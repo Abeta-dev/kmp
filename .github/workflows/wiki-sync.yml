@@ -30,7 +30,11 @@ jobs:
         run: |
           set -euo pipefail
           WIKI_DIR="$(mktemp -d)"
-          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" "$WIKI_DIR"
+          WIKI_URL="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git"
+          if ! git clone "$WIKI_URL" "$WIKI_DIR" 2>/dev/null; then
+            echo "::notice::GitHub Wiki is not initialized yet for ${{ github.repository }}. Create the first page in the Wiki tab to enable automated sync."
+            exit 0
+          fi
           find "$WIKI_DIR" -maxdepth 1 -type f -name "*.md" -delete
           cp wiki/*.md "$WIKI_DIR/"
           cd "$WIKI_DIR"
