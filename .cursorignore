@@ -1,0 +1,13 @@
+# Cursor indexing & context optimization
+.git/
+.gradle/
+.build.nosync/
+**/build/
+kotlin-js-store/
+bff/bin/
+bff/coverage.out
+*.hprof
+*.keystore
+*.jks
+*.jar
+.DS_Store

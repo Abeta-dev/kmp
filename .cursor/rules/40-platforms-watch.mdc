@@ -1,0 +1,16 @@
+---
+description: Native Android, Wear OS, Apple iOS/iPadOS, macOS, watchOS host glue & headless wearable module rules
+globs:
+  - "kmp/platforms/**"
+  - "kmp/watch-companion/**"
+alwaysApply: false
+---
+
+# Native Platforms & Wearable Rules
+
+- Consult `skills/abeta-kmp-platforms/SKILL.md` and `agents/owners/{platforms,watch-companion}-owner.md`.
+- `watch-companion` MUST stay 100% headless (zero Compose UI imports) and build `AbetaWatchKit.xcframework` cleanly across `watchosArm64`, `watchosSimulatorArm64`, and `watchosDeviceArm64`.
+- Native Android hosts (`kmp/platforms/android/`): use `enableEdgeToEdge()`, predictive Back (`OnBackPressedCallback`), `AndroidPlatformBridgeFactory`, and `DesignTheme(darkTheme, reducedMotion)`.
+- Wear OS hosts (`kmp/platforms/wearos/`): use `ScalingLazyColumn`, `PositionIndicator`, `Vignette`, `TimeText`, and `enabled = card.primaryAction != null` on `Chip`s.
+- Apple hosts (`kmp/platforms/apple/`): use SwiftUI `NavigationStack`, Dynamic Type, semantic colors, and call `holder.close()` in `deinit`.
+- Note transparently that `kmp/platforms/{android,wearos}` templates require an Android app module with `ANDROID_HOME` configured to compile.

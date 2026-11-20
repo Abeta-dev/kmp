@@ -1,0 +1,188 @@
+name: Module Owner & Architecture Review
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: module-owner-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  architecture-and-owner-gates:
+    name: Architecture, Wire Parity & Module Owners
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run brand & path hygiene check
+        run: |
+          chmod +x ./scripts/check_brand_hygiene.sh ./scripts/check_architecture_and_owners.sh
+          ./scripts/check_brand_hygiene.sh
+
+      - name: Run deterministic architecture, BOM, wire-parity & module-owner gate
+        id: arch
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.sha }}"
+          if [ -n "$BASE_REF" ]; then
+            ./scripts/check_architecture_and_owners.sh --pr-diff "$BASE_REF" --report-out module-owner-report.md
+          else
+            ./scripts/check_architecture_and_owners.sh --report-out module-owner-report.md
+          fi
+          cat module-owner-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish PR Module Owner Checklist Comment
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('module-owner-report.md')) return;
+            const marker = '<!-- abeta-module-owner-review -->';
+            const body = marker + '\n' + fs.readFileSync('module-owner-report.md', 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.data.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+  lint-abi-and-go-arch:
+    name: Lint, Detekt, ABI & Go Clean Architecture
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run KMP Spotless, Detekt & Binary Compatibility apiCheck
+        working-directory: kmp
+        run: |
+          chmod +x ./gradlew
+          ./gradlew spotlessCheck detekt apiCheck --no-daemon
+
+      - name: Set up Go 1.26.0
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.0"
+          cache-dependency-path: bff/go.sum
+
+      - name: Run Go gofmt, go vet & Clean Architecture test
+        working-directory: bff
+        run: |
+          test -z "$(gofmt -l .)"
+          go vet ./...
+          go test -race ./internal/domain/... ./internal/infra/...
+
+  optional-ai-code-owner-review:
+    name: Optional Multi-Model AI Code Owner Review (Claude / Gemini / OpenAI)
+    needs: [architecture-and-owner-gates]
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Advisory AI Review via configured model provider
+        env:
+          AI_REVIEW_PROVIDER: ${{ vars.AI_REVIEW_PROVIDER }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -z "${AI_REVIEW_PROVIDER:-}" ]; then
+            echo "### Optional AI Module Owner Review" >> "$GITHUB_STEP_SUMMARY"
+            echo "Skipped: set repository variable \`AI_REVIEW_PROVIDER\` (\`anthropic\`, \`gemini\`, or \`openai\`) and matching API key secret to enable automated LLM diff review using \`agents/owners/*\`." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          python3 - <<'PY'
+          import json, os, subprocess, urllib.request
+
+          provider = os.environ.get("AI_REVIEW_PROVIDER", "").strip().lower()
+          base_sha = os.environ.get("BASE_SHA", "HEAD~1")
+          diff = subprocess.check_output(["git", "diff", f"{base_sha}...HEAD", "--", "kmp/", "bff/", ".github/", "scripts/"], text=True)[:18000]
+          changed = subprocess.check_output(["git", "diff", "--name-only", f"{base_sha}...HEAD"], text=True).splitlines()
+
+          solid_prompt = open("agents/solid-reviewer.md", encoding="utf-8").read()
+          prompt = (
+              "Review this pull request strictly against the Abeta KMP Kit SOLID, KISS, Dependency Rule, "
+              "wire-parity, and lint standards. List concrete P0/P1/P2 findings or state APPROVED.\n\n"
+              f"Changed files:\n{chr(10).join(changed)}\n\nReviewer persona:\n{solid_prompt}\n\nDiff:\n```diff\n{diff}\n```"
+          )
+
+          review_text = None
+          if provider == "anthropic" and os.environ.get("ANTHROPIC_API_KEY"):
+              req = urllib.request.Request(
+                  "https://api.anthropic.com/v1/messages",
+                  data=json.dumps({
+                      "model": os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
+                      "max_tokens": 1200,
+                      "messages": [{"role": "user", "content": prompt}],
+                  }).encode(),
+                  headers={
+                      "x-api-key": os.environ["ANTHROPIC_API_KEY"],
+                      "anthropic-version": "2023-06-01",
+                      "content-type": "application/json",
+                  },
+              )
+              with urllib.request.urlopen(req, timeout=60) as resp:
+                  data = json.loads(resp.read().decode())
+                  review_text = "".join(b.get("text", "") for b in data.get("content", []))
+          elif provider == "gemini" and os.environ.get("GEMINI_API_KEY"):
+              model = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
+              url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={os.environ['GEMINI_API_KEY']}"
+              req = urllib.request.Request(
+                  url,
+                  data=json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode(),
+                  headers={"content-type": "application/json"},
+              )
+              with urllib.request.urlopen(req, timeout=60) as resp:
+                  data = json.loads(resp.read().decode())
+                  review_text = data["candidates"][0]["content"]["parts"][0]["text"]
+          elif provider == "openai" and os.environ.get("OPENAI_API_KEY"):
+              req = urllib.request.Request(
+                  "https://api.openai.com/v1/chat/completions",
+                  data=json.dumps({
+                      "model": os.environ.get("OPENAI_MODEL", "gpt-4.1"),
+                      "messages": [{"role": "user", "content": prompt}],
+                  }).encode(),
+                  headers={
+                      "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+                      "content-type": "application/json",
+                  },
+              )
+              with urllib.request.urlopen(req, timeout=60) as resp:
+                  data = json.loads(resp.read().decode())
+                  review_text = data["choices"][0]["message"]["content"]
+
+          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
+          with open(summary_path, "a", encoding="utf-8") as fh:
+              fh.write(f"\n### AI Code Owner Review ({provider})\n\n")
+              fh.write(review_text if review_text else "Provider secret not configured; skipped cleanly.\n")
+          PY

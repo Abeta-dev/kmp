@@ -1,0 +1,62 @@
+{
+  "id": "batch_onboarding_submit",
+  "type": "batch",
+  "payload": {
+    "actions": [
+      {
+        "id": "save_onboarding_draft",
+        "type": "save_state",
+        "payload": {
+          "key": "onboarding_completed",
+          "value": true,
+          "scope": "disk"
+        }
+      },
+      {
+        "id": "submit_onboarding",
+        "type": "call_api",
+        "payload": {
+          "endpoint": "/api/v1/actions/execute",
+          "method": "POST",
+          "body": {
+            "form_id": "workspace_onboarding"
+          },
+          "on_success": {
+            "id": "nav_home_after_onboarding",
+            "type": "navigate",
+            "payload": {
+              "route": "/screens/home",
+              "clear_back_stack": true
+            }
+          }
+        },
+        "validations": [
+          {
+            "field_id": "full_name",
+            "rule": "required",
+            "message": "Full name is required"
+          },
+          {
+            "field_id": "work_email",
+            "rule": "regex",
+            "value": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "message": "Enter a valid email address"
+          }
+        ]
+      }
+    ],
+    "stop_on_error": true
+  },
+  "secondary_actions": [
+    {
+      "id": "track_onboarding_batch",
+      "type": "track_event",
+      "payload": {
+        "event_name": "onboarding_batch_dispatched",
+        "properties": {
+          "screen": "form-demo"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+name: BFF CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "bff/**"
+      - ".github/workflows/bff-ci.yml"
+      - "scripts/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "bff/**"
+      - ".github/workflows/bff-ci.yml"
+      - "scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bff-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bff-test:
+    name: Vet, Race & Coverage Tests (Go 1.26.0)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bff
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.26.0
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.0"
+          cache-dependency-path: bff/go.sum
+
+      - name: Verify gofmt formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Unformatted Go files detected:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run go test with race detector and coverage
+        run: go test -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bff-coverage
+          path: bff/coverage.out
+          if-no-files-found: ignore

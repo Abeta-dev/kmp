@@ -1,0 +1,62 @@
+name: Quality & Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  brand-and-secret-hygiene:
+    name: Brand Hygiene & Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run brand and machine-path hygiene check
+        run: |
+          chmod +x ./scripts/check_brand_hygiene.sh ./scripts/check_architecture_and_owners.sh
+          ./scripts/check_brand_hygiene.sh
+          ./scripts/check_architecture_and_owners.sh
+
+      - name: Secret hygiene scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  kmp-static-analysis:
+    name: Spotless & Detekt
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kmp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Spotless and Detekt
+        run: |
+          chmod +x ./gradlew
+          ./gradlew spotlessCheck detekt --no-daemon

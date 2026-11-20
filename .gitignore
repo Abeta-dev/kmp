@@ -1,0 +1,30 @@
+# macOS & Editors
+.DS_Store
+*.iml
+.idea/
+.vscode/
+.fleet/
+
+# Gradle & Kotlin
+.gradle/
+.kotlin/
+build/
+**/build/
+.build.nosync/
+*.nosync/
+local.properties
+*.hprof
+*.keystore
+*.jks
+kotlin-js-store/
+
+# Go
+bff/bin/
+bff/coverage.out
+*.test
+*.prof
+
+# Env & Secrets
+.env
+.env.*
+!.env.example

@@ -1,0 +1,60 @@
+name: KMP CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "kmp/**"
+      - ".github/workflows/kmp-ci.yml"
+      - "scripts/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "kmp/**"
+      - ".github/workflows/kmp-ci.yml"
+      - "scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kmp-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kmp-check:
+    name: Build, Lint & Test (Java 21 / Gradle 9.7.0)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kmp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run Gradle check
+        run: ./gradlew check --no-daemon --stacktrace
+
+      - name: Upload build reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kmp-check-reports
+          path: |
+            kmp/**/build/reports/
+            kmp/**/build/test-results/
+          if-no-files-found: ignore

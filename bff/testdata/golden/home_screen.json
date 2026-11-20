@@ -1,0 +1,656 @@
+{
+  "page_id": "home",
+  "title": "Abeta Workspace",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Workspace",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "SDUI Control Center",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "trailing_actions": [
+      {
+        "name": "refresh",
+        "size_dp": 22,
+        "color": {
+          "token": "text.primary"
+        },
+        "content_description": "Refresh screen",
+        "on_click": {
+          "id": "refresh_home",
+          "type": "refresh_page",
+          "payload": {
+            "page_id": "home",
+            "show_loader": true
+          }
+        }
+      },
+      {
+        "name": "info",
+        "size_dp": 22,
+        "color": {
+          "token": "text.secondary"
+        },
+        "content_description": "About SDUI",
+        "on_click": {
+          "id": "open_home_info",
+          "type": "open_dialog",
+          "payload": {
+            "dialog_id": "home_info_dialog",
+            "title": "Abeta SDUI Engine",
+            "message": "Screens are streamed from the Go BFF and rendered natively on KMP.",
+            "dismissible": true,
+            "positive_action": {
+              "id": "dismiss_info",
+              "type": "dismiss_overlay",
+              "payload": {
+                "overlay_id": "home_info_dialog"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "home_header",
+      "snippet_type": "header_v1",
+      "data": {
+        "title": {
+          "text": "Welcome back, Builder",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "headline.small"
+          }
+        },
+        "subtitle": {
+          "text": "Server-driven UI powered by atomic contracts",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.medium"
+          }
+        },
+        "leading_icon": {
+          "name": "sparkles",
+          "size_dp": 24,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "trailing_tag": {
+          "label": "LIVE",
+          "bg_color": {
+            "token": "status.success_container"
+          }
+        },
+        "trailing_action": {
+          "id": "btn_home_catalog",
+          "label": "Catalog",
+          "variant": "outline",
+          "size": "sm",
+          "enabled": true,
+          "on_click": {
+            "id": "nav_catalog",
+            "type": "navigate",
+            "payload": {
+              "route": "/screens/catalog"
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 12,
+            "end": 16,
+            "bottom": 12
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "home_header"
+        }
+      }
+    },
+    {
+      "snippet_id": "home_promo_banner",
+      "snippet_type": "banner_v1",
+      "data": {
+        "title": {
+          "text": "Zero-Release UI Updates",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "body": {
+          "text": "Ship layout, theming, and action workflows instantly across Android, iOS, and Desktop.",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "icon": {
+          "name": "rocket",
+          "size_dp": 24,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "tag": {
+          "label": "v1.0",
+          "bg_color": {
+            "token": "surface.primary"
+          }
+        },
+        "cta": {
+          "id": "btn_open_form",
+          "label": "Open Form Demo",
+          "variant": "primary",
+          "size": "sm",
+          "enabled": true,
+          "on_click": {
+            "id": "nav_form_demo",
+            "type": "navigate",
+            "payload": {
+              "route": "/screens/form-demo"
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "brand.container"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "home_metric_uptime",
+      "snippet_type": "metric_card",
+      "data": {
+        "label": {
+          "text": "API Availability",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "label.medium"
+          }
+        },
+        "value": {
+          "text": "99.98%",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "headline.medium"
+          }
+        },
+        "delta": {
+          "label": "+0.04%",
+          "bg_color": {
+            "token": "status.success_container"
+          }
+        },
+        "icon": {
+          "name": "activity",
+          "size_dp": 20,
+          "color": {
+            "token": "status.success"
+          }
+        },
+        "progress": {
+          "kind": "linear",
+          "progress": 0.9998,
+          "label": "30-day SLO target",
+          "color": {
+            "token": "status.success"
+          }
+        },
+        "on_click": {
+          "id": "toast_uptime",
+          "type": "show_toast",
+          "payload": {
+            "message": "All BFF services healthy (99.98% SLA)",
+            "duration_ms": 2500,
+            "variant": "info"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "home_div_1",
+      "snippet_type": "divider",
+      "data": {
+        "divider": {
+          "thickness_dp": 1,
+          "color": {
+            "token": "divider.default"
+          },
+          "inset_start_dp": 16
+        }
+      }
+    },
+    {
+      "snippet_id": "home_featured_card",
+      "snippet_type": "card_v1",
+      "data": {
+        "title": {
+          "text": "Atomic Design System",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.large"
+          }
+        },
+        "subtitle": {
+          "text": "Tokens · Atoms · Snippets",
+          "color": {
+            "token": "text.brand"
+          },
+          "typography": {
+            "token": "label.medium"
+          }
+        },
+        "description": {
+          "text": "Consistent semantic theming and strict action decoupling across every platform.",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.medium"
+          }
+        },
+        "media": {
+          "url": "https://cdn.abeta.dev/sdui/atomic-system-preview.png",
+          "content_description": "Atomic design architecture diagram",
+          "height_dp": 140,
+          "scale_mode": "crop",
+          "corner_radius": {
+            "all": 8
+          }
+        },
+        "badge": {
+          "label": "STABLE",
+          "bg_color": {
+            "token": "status.info_container"
+          }
+        },
+        "primary_button": {
+          "id": "btn_explore_tokens",
+          "label": "Explore Tokens",
+          "variant": "primary",
+          "enabled": true,
+          "on_click": {
+            "id": "nav_catalog",
+            "type": "navigate",
+            "payload": {
+              "route": "/screens/catalog"
+            }
+          }
+        },
+        "secondary_button": {
+          "id": "btn_copy_endpoint",
+          "label": "Copy Endpoint",
+          "variant": "secondary",
+          "enabled": true,
+          "on_click": {
+            "id": "copy_catalog_url",
+            "type": "copy_to_clipboard",
+            "payload": {
+              "text": "/api/v1/catalog/tokens",
+              "label": "Catalog Endpoint"
+            },
+            "secondary_actions": [
+              {
+                "id": "toast_copied",
+                "type": "show_toast",
+                "payload": {
+                  "message": "Endpoint copied to clipboard",
+                  "duration_ms": 2000,
+                  "variant": "success"
+                }
+              }
+            ]
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "home_spacer_1",
+      "snippet_type": "spacer",
+      "data": {
+        "spacer": {
+          "height_dp": 12
+        }
+      }
+    },
+    {
+      "snippet_id": "home_row_profile",
+      "snippet_type": "action_row",
+      "data": {
+        "title": {
+          "text": "Account & Preferences",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.small"
+          }
+        },
+        "subtitle": {
+          "text": "Manage workspace profile and synced state",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "leading_icon": {
+          "name": "person",
+          "size_dp": 22,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "trailing_tag": {
+          "label": "PRO",
+          "bg_color": {
+            "token": "brand.container"
+          }
+        },
+        "trailing_icon": {
+          "name": "chevron_right",
+          "size_dp": 20,
+          "color": {
+            "token": "text.tertiary"
+          }
+        },
+        "on_click": {
+          "id": "nav_profile",
+          "type": "navigate",
+          "payload": {
+            "route": "/screens/profile"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "home_row_form",
+      "snippet_type": "action_row",
+      "data": {
+        "title": {
+          "text": "Interactive Onboarding Form",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.small"
+          }
+        },
+        "subtitle": {
+          "text": "Test declarative client and server validations",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "leading_icon": {
+          "name": "edit_note",
+          "size_dp": 22,
+          "color": {
+            "token": "accent.primary"
+          }
+        },
+        "trailing_icon": {
+          "name": "chevron_right",
+          "size_dp": 20,
+          "color": {
+            "token": "text.tertiary"
+          }
+        },
+        "on_click": {
+          "id": "nav_form_demo",
+          "type": "navigate",
+          "payload": {
+            "route": "/screens/form-demo"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    }
+  ],
+  "bottom_bar": {
+    "primary_button": {
+      "id": "btn_bottom_refresh",
+      "label": "Refresh Dashboard",
+      "variant": "primary",
+      "enabled": true,
+      "on_click": {
+        "id": "batch_refresh_home",
+        "type": "batch",
+        "payload": {
+          "actions": [
+            {
+              "id": "track_home_refresh",
+              "type": "track_event",
+              "payload": {
+                "event_name": "home_refresh_clicked",
+                "properties": {
+                  "source": "bottom_bar"
+                }
+              }
+            },
+            {
+              "id": "refresh_home",
+              "type": "refresh_page",
+              "payload": {
+                "page_id": "home",
+                "show_loader": true
+              }
+            }
+          ],
+          "stop_on_error": true
+        }
+      }
+    },
+    "helper_text": {
+      "text": "Synced via Abeta BFF",
+      "color": {
+        "token": "text.tertiary"
+      },
+      "typography": {
+        "token": "caption"
+      }
+    },
+    "layout": {
+      "padding": {
+        "start": 12,
+        "top": 12,
+        "end": 12,
+        "bottom": 12
+      },
+      "bg_color": {
+        "token": "surface.primary"
+      },
+      "fill_max_width": true
+    }
+  },
+  "page_actions": [
+    {
+      "id": "track_home_view",
+      "type": "track_event",
+      "payload": {
+        "event_name": "screen_viewed",
+        "properties": {
+          "screen_id": "home"
+        }
+      }
+    }
+  ],
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "home"
+    }
+  }
+}

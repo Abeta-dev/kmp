@@ -1,0 +1,17 @@
+{
+  "context": {
+    "fileName": [
+      "GEMINI.md",
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "includeDirectories": [
+      "skills",
+      "agents"
+    ]
+  },
+  "fileFiltering": {
+    "respectGitIgnore": true,
+    "respectGeminiIgnore": true
+  }
+}

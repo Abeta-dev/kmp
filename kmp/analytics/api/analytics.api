@@ -1,0 +1,247 @@
+public abstract interface class dev/abeta/kmp/analytics/AnalyticsBatchSink {
+	public abstract fun sendBatch (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsCategory : java/lang/Enum {
+	public static final field ACTION Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public static final field Companion Ldev/abeta/kmp/analytics/AnalyticsCategory$Companion;
+	public static final field ERROR Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public static final field IMPRESSION Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public static final field LIFECYCLE Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public static final field SCREEN Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public static final field SYSTEM Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public static fun values ()[Ldev/abeta/kmp/analytics/AnalyticsCategory;
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsCategory$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsEvent {
+	public static final field Companion Ldev/abeta/kmp/analytics/AnalyticsEvent$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ldev/abeta/kmp/analytics/AnalyticsCategory;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ldev/abeta/kmp/analytics/AnalyticsCategory;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun component4 ()Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ldev/abeta/kmp/analytics/AnalyticsCategory;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/analytics/AnalyticsEvent;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/analytics/AnalyticsEvent;Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ldev/abeta/kmp/analytics/AnalyticsCategory;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/analytics/AnalyticsEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnonymousId ()Ljava/lang/String;
+	public final fun getCategory ()Ldev/abeta/kmp/analytics/AnalyticsCategory;
+	public final fun getEventId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getProperties ()Ljava/util/Map;
+	public final fun getScreenName ()Ljava/lang/String;
+	public final fun getSessionId ()Ljava/lang/String;
+	public final fun getTimestampEpochMillis ()Ljava/lang/Long;
+	public final fun getUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/analytics/AnalyticsEvent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/analytics/AnalyticsEvent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/analytics/AnalyticsEvent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsEvent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsIdentity {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/analytics/AnalyticsIdentity;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/analytics/AnalyticsIdentity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/analytics/AnalyticsIdentity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnonymousId ()Ljava/lang/String;
+	public final fun getSessionId ()Ljava/lang/String;
+	public final fun getTraits ()Ljava/util/Map;
+	public final fun getUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/analytics/AnalyticsTracker {
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public static synthetic fun identify$default (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
+	public fun reset ()V
+	public abstract fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public abstract fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+	public static synthetic fun trackScreen$default (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsTracker$DefaultImpls {
+	public static fun identify (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ljava/lang/String;Ljava/util/Map;)V
+	public static synthetic fun identify$default (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
+	public static fun reset (Ldev/abeta/kmp/analytics/AnalyticsTracker;)V
+	public static fun trackScreen (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ljava/lang/String;Ljava/util/Map;)V
+	public static synthetic fun trackScreen$default (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsTrackingPayload {
+	public static final field Companion Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEventName ()Ljava/lang/String;
+	public final fun getProperties ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/analytics/AnalyticsTrackingPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/analytics/AnalyticsTrackingPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/analytics/BufferedAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public static final field Companion Ldev/abeta/kmp/analytics/BufferedAnalyticsTracker$Companion;
+	public static final field DEFAULT_BATCH_SIZE I
+	public static final field DEFAULT_FLUSH_INTERVAL_MILLIS J
+	public static final field DEFAULT_MAX_QUEUE_SIZE I
+	public static final field DEFAULT_STORAGE_KEY Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/analytics/AnalyticsBatchSink;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/time/Clock;Lkotlinx/coroutines/CoroutineScope;IJILjava/lang/String;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/analytics/AnalyticsBatchSink;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/time/Clock;Lkotlinx/coroutines/CoroutineScope;IJILjava/lang/String;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clearQueue ()V
+	public final fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getQueuedEvents ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public final fun startPeriodicFlush ()V
+	public final fun stopPeriodicFlush ()V
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+}
+
+public final class dev/abeta/kmp/analytics/BufferedAnalyticsTracker$Companion {
+}
+
+public final class dev/abeta/kmp/analytics/CompositeAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> ([Ldev/abeta/kmp/analytics/AnalyticsTracker;)V
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+}
+
+public final class dev/abeta/kmp/analytics/DeduplicatingAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public static final field Companion Ldev/abeta/kmp/analytics/DeduplicatingAnalyticsTracker$Companion;
+	public static final field DEFAULT_IMPRESSION_COOLDOWN_MILLIS J
+	public fun <init> (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ldev/abeta/kmp/core/time/Clock;J)V
+	public synthetic fun <init> (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ldev/abeta/kmp/core/time/Clock;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clearImpressions ()V
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+}
+
+public final class dev/abeta/kmp/analytics/DeduplicatingAnalyticsTracker$Companion {
+}
+
+public final class dev/abeta/kmp/analytics/EnrichingAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public fun <init> (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;Ldev/abeta/kmp/analytics/AnalyticsIdentity;Ljava/util/Map;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;Ldev/abeta/kmp/analytics/AnalyticsIdentity;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clearGlobalProperties (Ljava/util/Collection;)V
+	public static synthetic fun clearGlobalProperties$default (Ldev/abeta/kmp/analytics/EnrichingAnalyticsTracker;Ljava/util/Collection;ILjava/lang/Object;)V
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public final fun setGlobalProperties (Ljava/util/Map;)V
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+	public final fun updateIdentity (Ldev/abeta/kmp/analytics/AnalyticsIdentity;)V
+}
+
+public final class dev/abeta/kmp/analytics/LoggerAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public static final field Companion Ldev/abeta/kmp/analytics/LoggerAnalyticsTracker$Companion;
+	public static final field DEFAULT_TAG Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+}
+
+public final class dev/abeta/kmp/analytics/LoggerAnalyticsTracker$Companion {
+}
+
+public final class dev/abeta/kmp/analytics/RecordedIdentifyCall {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/analytics/RecordedIdentifyCall;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/analytics/RecordedIdentifyCall;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/analytics/RecordedIdentifyCall;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getTraits ()Ljava/util/Map;
+	public final fun getUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/analytics/RecordingAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public fun <init> ()V
+	public final fun clear ()V
+	public final fun getEvents ()Ljava/util/List;
+	public final fun getIdentifyCalls ()Ljava/util/List;
+	public final fun getImpressions ()Ljava/util/List;
+	public final fun getResetCount ()I
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+}
+
+public final class dev/abeta/kmp/analytics/SanitizingAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public fun <init> (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ldev/abeta/kmp/core/security/SensitiveDataRedactor;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/analytics/AnalyticsTracker;Ldev/abeta/kmp/core/security/SensitiveDataRedactor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+}
+

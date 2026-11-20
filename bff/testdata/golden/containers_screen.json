@@ -1,0 +1,1010 @@
+{
+  "page_id": "containers",
+  "title": "Container Showcase",
+  "toolbar": {
+    "title": {
+      "text": "Container Showcase",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_containers",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "containers_header",
+      "snippet_type": "header_v1",
+      "data": {
+        "title": {
+          "text": "SDUI Layout Containers",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "headline.small"
+          }
+        },
+        "subtitle": {
+          "text": "Carousel, Grid, Tabs, Accordion, and rich form atoms",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.medium"
+          }
+        },
+        "avatar": {
+          "id": "avatar_header_lead",
+          "initials": "AC",
+          "size_dp": 44,
+          "bg_color": {
+            "token": "brand.container"
+          },
+          "text_color": {
+            "token": "text.brand"
+          },
+          "content_description": "Abeta Core Team"
+        },
+        "trailing_tag": {
+          "label": "V2 WIRE",
+          "bg_color": {
+            "token": "status.info_container"
+          }
+        },
+        "trailing_action": {
+          "id": "btn_open_sheet",
+          "label": "Options",
+          "variant": "outline",
+          "size": "sm",
+          "enabled": true,
+          "on_click": {
+            "id": "open_containers_sheet",
+            "type": "open_dialog",
+            "payload": {
+              "dialog_id": "container_options_sheet",
+              "title": "Container Layout Options",
+              "message": "Configure responsive columns, spacing, and loading placeholders.",
+              "presentation": "bottom_sheet",
+              "dismissible": true,
+              "positive_action": {
+                "id": "dismiss_containers_sheet",
+                "type": "dismiss_overlay",
+                "payload": {
+                  "overlay_id": "container_options_sheet"
+                }
+              }
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 12,
+            "end": 16,
+            "bottom": 12
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "containers_carousel",
+      "snippet_type": "carousel",
+      "data": {
+        "title": {
+          "text": "Featured Carousel",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "items": [
+          {
+            "snippet_id": "car_card_1",
+            "snippet_parent_id": "containers_carousel",
+            "snippet_type": "card_v1",
+            "data": {
+              "title": {
+                "text": "Carousel Card One",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.medium"
+                }
+              },
+              "subtitle": {
+                "text": "Adaptive layout",
+                "color": {
+                  "token": "text.brand"
+                },
+                "typography": {
+                  "token": "label.medium"
+                }
+              },
+              "avatar": {
+                "id": "avatar_card_author",
+                "url": "https://cdn.abeta.dev/avatars/sr.png",
+                "initials": "SR",
+                "size_dp": 36,
+                "bg_color": {
+                  "token": "status.success_container"
+                },
+                "text_color": {
+                  "token": "status.success"
+                },
+                "content_description": "Sam Rivera"
+              },
+              "badge": {
+                "label": "NEW",
+                "bg_color": {
+                  "token": "brand.container"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 16,
+                  "top": 16,
+                  "end": 16,
+                  "bottom": 16
+                },
+                "margin": {
+                  "start": 16,
+                  "top": 4,
+                  "end": 16,
+                  "bottom": 4
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          },
+          {
+            "snippet_id": "car_metric_2",
+            "snippet_parent_id": "containers_carousel",
+            "snippet_type": "metric_card",
+            "data": {
+              "label": {
+                "text": "Render P95",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "label.medium"
+                }
+              },
+              "value": {
+                "text": "11.4 ms",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "headline.small"
+                }
+              },
+              "delta": {
+                "label": "-18%",
+                "bg_color": {
+                  "token": "status.success_container"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 16,
+                  "top": 16,
+                  "end": 16,
+                  "bottom": 16
+                },
+                "margin": {
+                  "start": 16,
+                  "top": 4,
+                  "end": 16,
+                  "bottom": 4
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          }
+        ],
+        "item_width_dp": 240,
+        "spacing_dp": 12,
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 8,
+            "end": 16,
+            "bottom": 8
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "containers_grid",
+      "snippet_type": "grid",
+      "data": {
+        "title": {
+          "text": "Telemetry Grid",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "columns": 2,
+        "spacing_dp": 12,
+        "items": [
+          {
+            "snippet_id": "grid_metric_1",
+            "snippet_parent_id": "containers_grid",
+            "snippet_type": "metric_card",
+            "data": {
+              "label": {
+                "text": "Active Snippets",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "label.medium"
+                }
+              },
+              "value": {
+                "text": "13",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "headline.medium"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 16,
+                  "top": 16,
+                  "end": 16,
+                  "bottom": 16
+                },
+                "margin": {
+                  "start": 16,
+                  "top": 4,
+                  "end": 16,
+                  "bottom": 4
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          },
+          {
+            "snippet_id": "grid_metric_2",
+            "snippet_parent_id": "containers_grid",
+            "snippet_type": "metric_card",
+            "data": {
+              "label": {
+                "text": "Atoms Ready",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "label.medium"
+                }
+              },
+              "value": {
+                "text": "14",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "headline.medium"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 16,
+                  "top": 16,
+                  "end": 16,
+                  "bottom": 16
+                },
+                "margin": {
+                  "start": 16,
+                  "top": 4,
+                  "end": 16,
+                  "bottom": 4
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          }
+        ],
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 8,
+            "end": 16,
+            "bottom": 8
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "containers_tabs",
+      "snippet_type": "tabs",
+      "data": {
+        "tabs": [
+          {
+            "id": "overview",
+            "title": "Overview",
+            "badge": {
+              "label": "LIVE",
+              "bg_color": {
+                "token": "status.success_container"
+              }
+            },
+            "snippets": [
+              {
+                "snippet_id": "tab_overview_card",
+                "snippet_parent_id": "containers_tabs",
+                "snippet_type": "card_v1",
+                "data": {
+                  "title": {
+                    "text": "Composable Containers",
+                    "color": {
+                      "token": "text.primary"
+                    },
+                    "typography": {
+                      "token": "title.medium"
+                    }
+                  },
+                  "description": {
+                    "text": "Nest any SnippetEnvelope inside Carousel, Grid, Tabs, or Accordion.",
+                    "color": {
+                      "token": "text.secondary"
+                    },
+                    "typography": {
+                      "token": "body.small"
+                    }
+                  },
+                  "avatar": {
+                    "id": "avatar_card_author",
+                    "url": "https://cdn.abeta.dev/avatars/sr.png",
+                    "initials": "SR",
+                    "size_dp": 36,
+                    "bg_color": {
+                      "token": "status.success_container"
+                    },
+                    "text_color": {
+                      "token": "status.success"
+                    },
+                    "content_description": "Sam Rivera"
+                  },
+                  "primary_button": {
+                    "id": "btn_tab_sheet",
+                    "label": "Open Sheet",
+                    "variant": "primary",
+                    "enabled": true,
+                    "on_click": {
+                      "id": "open_containers_sheet",
+                      "type": "open_dialog",
+                      "payload": {
+                        "dialog_id": "container_options_sheet",
+                        "title": "Container Layout Options",
+                        "message": "Configure responsive columns, spacing, and loading placeholders.",
+                        "presentation": "bottom_sheet",
+                        "dismissible": true,
+                        "positive_action": {
+                          "id": "dismiss_containers_sheet",
+                          "type": "dismiss_overlay",
+                          "payload": {
+                            "overlay_id": "container_options_sheet"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "layout": {
+                    "padding": {
+                      "start": 16,
+                      "top": 16,
+                      "end": 16,
+                      "bottom": 16
+                    },
+                    "margin": {
+                      "start": 16,
+                      "top": 4,
+                      "end": 16,
+                      "bottom": 4
+                    },
+                    "bg_color": {
+                      "token": "surface.primary"
+                    },
+                    "corner_radius": {
+                      "all": 12
+                    },
+                    "border": {
+                      "width_dp": 1,
+                      "color": {
+                        "token": "border.subtle"
+                      }
+                    },
+                    "fill_max_width": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "loading",
+            "title": "Skeletons",
+            "snippets": [
+              {
+                "snippet_id": "tab_skeleton_card",
+                "snippet_parent_id": "containers_tabs",
+                "snippet_type": "card_v1",
+                "data": {
+                  "title": {
+                    "text": "Skeleton Loading Preview",
+                    "color": {
+                      "token": "text.primary"
+                    },
+                    "typography": {
+                      "token": "title.medium"
+                    }
+                  },
+                  "description": {
+                    "text": "Shimmer placeholders rendered using pure SkeletonAtom contracts.",
+                    "color": {
+                      "token": "text.secondary"
+                    },
+                    "typography": {
+                      "token": "body.small"
+                    }
+                  },
+                  "skeletons": [
+                    {
+                      "kind": "circle",
+                      "width_dp": 40,
+                      "height_dp": 40
+                    },
+                    {
+                      "kind": "text",
+                      "width_dp": 180,
+                      "height_dp": 14
+                    },
+                    {
+                      "kind": "rectangle",
+                      "width_dp": 280,
+                      "height_dp": 96
+                    }
+                  ],
+                  "layout": {
+                    "padding": {
+                      "start": 16,
+                      "top": 16,
+                      "end": 16,
+                      "bottom": 16
+                    },
+                    "margin": {
+                      "start": 16,
+                      "top": 4,
+                      "end": 16,
+                      "bottom": 4
+                    },
+                    "bg_color": {
+                      "token": "surface.primary"
+                    },
+                    "corner_radius": {
+                      "all": 12
+                    },
+                    "border": {
+                      "width_dp": 1,
+                      "color": {
+                        "token": "border.subtle"
+                      }
+                    },
+                    "fill_max_width": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "selected_index": 0,
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "containers_accordion",
+      "snippet_type": "accordion",
+      "data": {
+        "title": {
+          "text": "Overlay & Sheet Triggers",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "subtitle": {
+          "text": "Expand to inspect bottom sheet action triggers",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "initially_expanded": true,
+        "snippets": [
+          {
+            "snippet_id": "acc_row_sheet",
+            "snippet_parent_id": "containers_accordion",
+            "snippet_type": "action_row",
+            "data": {
+              "title": {
+                "text": "Preview Bottom Sheet",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.small"
+                }
+              },
+              "subtitle": {
+                "text": "Opens an overlay with presentation=bottom_sheet",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "body.small"
+                }
+              },
+              "leading_icon": {
+                "name": "layers",
+                "size_dp": 22,
+                "color": {
+                  "token": "brand.primary"
+                }
+              },
+              "trailing_icon": {
+                "name": "chevron_right",
+                "size_dp": 20,
+                "color": {
+                  "token": "text.tertiary"
+                }
+              },
+              "on_click": {
+                "id": "open_containers_sheet",
+                "type": "open_dialog",
+                "payload": {
+                  "dialog_id": "container_options_sheet",
+                  "title": "Container Layout Options",
+                  "message": "Configure responsive columns, spacing, and loading placeholders.",
+                  "presentation": "bottom_sheet",
+                  "dismissible": true,
+                  "positive_action": {
+                    "id": "dismiss_containers_sheet",
+                    "type": "dismiss_overlay",
+                    "payload": {
+                      "overlay_id": "container_options_sheet"
+                    }
+                  }
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 16,
+                  "top": 16,
+                  "end": 16,
+                  "bottom": 16
+                },
+                "margin": {
+                  "start": 16,
+                  "top": 4,
+                  "end": 16,
+                  "bottom": 4
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          }
+        ],
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "containers_skeleton_card",
+      "snippet_type": "card_v1",
+      "data": {
+        "title": {
+          "text": "Async Feed Placeholder",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "subtitle": {
+          "text": "Avatar & Skeleton atoms",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "label.medium"
+          }
+        },
+        "avatar": {
+          "id": "avatar_card_author",
+          "url": "https://cdn.abeta.dev/avatars/sr.png",
+          "initials": "SR",
+          "size_dp": 36,
+          "bg_color": {
+            "token": "status.success_container"
+          },
+          "text_color": {
+            "token": "status.success"
+          },
+          "content_description": "Sam Rivera"
+        },
+        "skeletons": [
+          {
+            "kind": "circle",
+            "width_dp": 36,
+            "height_dp": 36
+          },
+          {
+            "kind": "text",
+            "width_dp": 220,
+            "height_dp": 16
+          },
+          {
+            "kind": "rectangle",
+            "width_dp": 300,
+            "height_dp": 110
+          }
+        ],
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "containers_controls_form",
+      "snippet_type": "form_v1",
+      "data": {
+        "form_id": "container_preferences",
+        "title": {
+          "text": "Interactive Atom Controls",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "description": {
+          "text": "Switch, Checkbox, and Slider atoms inside form_v1.",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "fields": [
+          {
+            "field_id": "preset_name",
+            "label": "Preset Name",
+            "placeholder": "Compact Dashboard",
+            "keyboard_type": "text"
+          }
+        ],
+        "switches": [
+          {
+            "field_id": "compact_mode",
+            "label": "Compact Container Spacing",
+            "subtitle": "Reduces inner card padding to 8dp",
+            "checked": true,
+            "enabled": true,
+            "on_change": {
+              "id": "save_container_pref",
+              "type": "save_state",
+              "payload": {
+                "key": "compact_containers",
+                "value": true,
+                "scope": "session"
+              }
+            }
+          }
+        ],
+        "checkboxes": [
+          {
+            "field_id": "confirm_schema",
+            "label": "Enable Strict Schema Mode",
+            "subtitle": "Reject unrecognized snippet envelopes in preview",
+            "checked": false,
+            "enabled": true,
+            "required": true,
+            "on_change": {
+              "id": "save_container_pref",
+              "type": "save_state",
+              "payload": {
+                "key": "compact_containers",
+                "value": true,
+                "scope": "session"
+              }
+            }
+          }
+        ],
+        "sliders": [
+          {
+            "field_id": "grid_density",
+            "label": "Grid Density",
+            "value": 2,
+            "min_value": 1,
+            "max_value": 4,
+            "steps": 3,
+            "show_value": true,
+            "unit_label": "cols",
+            "enabled": true,
+            "on_change": {
+              "id": "save_container_pref",
+              "type": "save_state",
+              "payload": {
+                "key": "compact_containers",
+                "value": true,
+                "scope": "session"
+              }
+            }
+          }
+        ],
+        "submit_button": {
+          "id": "btn_save_controls",
+          "label": "Save Preferences",
+          "variant": "primary",
+          "enabled": true,
+          "on_click": {
+            "id": "submit_container_controls",
+            "type": "call_api",
+            "payload": {
+              "endpoint": "/api/v1/actions/execute",
+              "method": "POST",
+              "body": {
+                "form_id": "container_preferences"
+              },
+              "on_success": {
+                "id": "toast_controls_saved",
+                "type": "show_toast",
+                "payload": {
+                  "message": "Container preferences updated",
+                  "duration_ms": 2000,
+                  "variant": "success"
+                }
+              }
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    }
+  ],
+  "pagination": {
+    "next_cursor": "cursor_page_2",
+    "has_more": true,
+    "load_more_action": {
+      "id": "load_more_containers",
+      "type": "call_api",
+      "payload": {
+        "endpoint": "/api/v1/screens/containers?cursor=cursor_page_2",
+        "method": "GET",
+        "on_success": {
+          "id": "toast_containers_loaded",
+          "type": "show_toast",
+          "payload": {
+            "message": "Loaded next page of containers",
+            "variant": "info"
+          }
+        }
+      }
+    }
+  },
+  "pull_to_refresh": {
+    "id": "pull_refresh_containers",
+    "type": "refresh_page",
+    "payload": {
+      "page_id": "containers",
+      "show_loader": true
+    }
+  },
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "containers"
+    }
+  }
+}

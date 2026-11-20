@@ -1,0 +1,6 @@
+.gradle/
+**/build/
+.build.nosync/
+kotlin-js-store/
+.git/
+bff/coverage.out

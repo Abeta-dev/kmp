@@ -1,0 +1,468 @@
+public final class dev/abeta/kmp/state/flags/FeatureFlagKey {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Object;)Ldev/abeta/kmp/state/flags/FeatureFlagKey;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/flags/FeatureFlagKey;Ljava/lang/String;Ljava/lang/Object;ILjava/lang/Object;)Ldev/abeta/kmp/state/flags/FeatureFlagKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDefaultValue ()Ljava/lang/Object;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/state/flags/FeatureFlagProvider {
+	public abstract fun getDouble (Ljava/lang/String;D)D
+	public static synthetic fun getDouble$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;DILjava/lang/Object;)D
+	public abstract fun getInt (Ljava/lang/String;I)I
+	public static synthetic fun getInt$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;IILjava/lang/Object;)I
+	public abstract fun getString (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static synthetic fun getString$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public abstract fun isEnabled (Ljava/lang/String;Z)Z
+	public static synthetic fun isEnabled$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;ZILjava/lang/Object;)Z
+}
+
+public final class dev/abeta/kmp/state/flags/FeatureFlagProvider$DefaultImpls {
+	public static synthetic fun getDouble$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;DILjava/lang/Object;)D
+	public static synthetic fun getInt$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;IILjava/lang/Object;)I
+	public static synthetic fun getString$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun isEnabled$default (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ljava/lang/String;ZILjava/lang/Object;)Z
+}
+
+public final class dev/abeta/kmp/state/flags/FeatureFlagProviderKt {
+	public static final fun getDouble (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ldev/abeta/kmp/state/flags/FeatureFlagKey;)D
+	public static final fun getInt (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ldev/abeta/kmp/state/flags/FeatureFlagKey;)I
+	public static final fun getString (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ldev/abeta/kmp/state/flags/FeatureFlagKey;)Ljava/lang/String;
+	public static final fun isEnabled (Ldev/abeta/kmp/state/flags/FeatureFlagProvider;Ldev/abeta/kmp/state/flags/FeatureFlagKey;)Z
+}
+
+public final class dev/abeta/kmp/state/flags/InMemoryFeatureFlagProvider : dev/abeta/kmp/state/flags/ObservableFeatureFlagProvider {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clear ()V
+	public fun getDouble (Ljava/lang/String;D)D
+	public fun getFlagsState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInt (Ljava/lang/String;I)I
+	public fun getString (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun isEnabled (Ljava/lang/String;Z)Z
+	public fun observeBoolean (Ljava/lang/String;Z)Lkotlinx/coroutines/flow/Flow;
+	public fun observeDouble (Ljava/lang/String;D)Lkotlinx/coroutines/flow/Flow;
+	public fun observeInt (Ljava/lang/String;I)Lkotlinx/coroutines/flow/Flow;
+	public fun observeString (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun removeFlag (Ljava/lang/String;)V
+	public final fun setFlag (Ljava/lang/String;Ljava/lang/Object;)V
+}
+
+public final class dev/abeta/kmp/state/flags/LayeredFeatureFlagProvider : dev/abeta/kmp/state/flags/FeatureFlagProvider {
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> ([Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;)V
+	public fun getDouble (Ljava/lang/String;D)D
+	public fun getInt (Ljava/lang/String;I)I
+	public fun getString (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun isEnabled (Ljava/lang/String;Z)Z
+	public final fun observeBoolean (Ljava/lang/String;Z)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeBoolean$default (Ldev/abeta/kmp/state/flags/LayeredFeatureFlagProvider;Ljava/lang/String;ZILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract interface class dev/abeta/kmp/state/flags/ObservableFeatureFlagProvider : dev/abeta/kmp/state/flags/FeatureFlagProvider {
+	public abstract fun getFlagsState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun observeBoolean (Ljava/lang/String;Z)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeBoolean$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;ZILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public fun observeDouble (Ljava/lang/String;D)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeDouble$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;DILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public fun observeInt (Ljava/lang/String;I)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeInt$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;IILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public fun observeString (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeString$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/abeta/kmp/state/flags/ObservableFeatureFlagProvider$DefaultImpls {
+	public static fun observeBoolean (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;Z)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeBoolean$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;ZILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static fun observeDouble (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;D)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeDouble$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;DILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static fun observeInt (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;I)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeInt$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;IILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static fun observeString (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeString$default (Ldev/abeta/kmp/state/flags/ObservableFeatureFlagProvider;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/abeta/kmp/state/flags/PersistentFeatureFlagStore : dev/abeta/kmp/state/flags/ObservableFeatureFlagProvider {
+	public static final field Companion Ldev/abeta/kmp/state/flags/PersistentFeatureFlagStore$Companion;
+	public static final field DEFAULT_STORAGE_KEY Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/lang/String;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/lang/String;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun applyRemoteJson (Ljava/lang/String;)Z
+	public final fun clear ()V
+	public fun getDouble (Ljava/lang/String;D)D
+	public fun getFlagsState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInt (Ljava/lang/String;I)I
+	public fun getString (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun isEnabled (Ljava/lang/String;Z)Z
+	public fun observeBoolean (Ljava/lang/String;Z)Lkotlinx/coroutines/flow/Flow;
+	public fun observeDouble (Ljava/lang/String;D)Lkotlinx/coroutines/flow/Flow;
+	public fun observeInt (Ljava/lang/String;I)Lkotlinx/coroutines/flow/Flow;
+	public fun observeString (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/abeta/kmp/state/flags/PersistentFeatureFlagStore$Companion {
+}
+
+public final class dev/abeta/kmp/state/preferences/DefaultPreferenceStore : dev/abeta/kmp/state/preferences/PreferenceStore {
+	public fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun contains (Ldev/abeta/kmp/state/preferences/PreferenceKey;)Z
+	public fun exportSnapshotJson ()Ljava/lang/String;
+	public fun getString (Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;)Ljava/lang/String;
+	public fun importSnapshotJson (Ljava/lang/String;Z)Z
+	public fun observeRaw (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun putString (Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;)V
+	public fun remove (Ldev/abeta/kmp/state/preferences/PreferenceKey;)V
+}
+
+public final class dev/abeta/kmp/state/preferences/PreferenceKey {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/abeta/kmp/state/preferences/PreferenceKey;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/state/preferences/PreferenceKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/state/preferences/PreferenceNumericExtensionsKt {
+	public static final fun getInt (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Integer;)Ljava/lang/Integer;
+	public static synthetic fun getInt$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Integer;ILjava/lang/Object;)Ljava/lang/Integer;
+	public static final fun getLong (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Long;)Ljava/lang/Long;
+	public static synthetic fun getLong$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Long;ILjava/lang/Object;)Ljava/lang/Long;
+	public static final fun observeInt (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Integer;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeInt$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Integer;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun observeLong (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Long;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeLong$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Long;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun observeString (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeString$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun putInt (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;I)V
+	public static final fun putLong (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;J)V
+}
+
+public final class dev/abeta/kmp/state/preferences/PreferenceObjectAndBoolExtensionsKt {
+	public static final fun getBoolean (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Boolean;)Ljava/lang/Boolean;
+	public static synthetic fun getBoolean$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Boolean;ILjava/lang/Object;)Ljava/lang/Boolean;
+	public static final fun getDouble (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Double;)Ljava/lang/Double;
+	public static synthetic fun getDouble$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Double;ILjava/lang/Object;)Ljava/lang/Double;
+	public static final fun getObject (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Lkotlinx/serialization/KSerializer;ILkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+	public static synthetic fun getObject$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Lkotlinx/serialization/KSerializer;ILkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun observeBoolean (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Boolean;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeBoolean$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Boolean;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun observeDouble (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Double;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeDouble$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Double;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun observeObject (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Lkotlinx/serialization/KSerializer;ILkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function2;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun observeObject$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Lkotlinx/serialization/KSerializer;ILkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun putBoolean (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Z)V
+	public static final fun putDouble (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;D)V
+	public static final fun putObject (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;ILkotlinx/serialization/json/Json;)V
+	public static synthetic fun putObject$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;ILkotlinx/serialization/json/Json;ILjava/lang/Object;)V
+}
+
+public abstract interface class dev/abeta/kmp/state/preferences/PreferenceStore {
+	public abstract fun clear ()V
+	public abstract fun contains (Ldev/abeta/kmp/state/preferences/PreferenceKey;)Z
+	public abstract fun exportSnapshotJson ()Ljava/lang/String;
+	public abstract fun getString (Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;)Ljava/lang/String;
+	public static synthetic fun getString$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public abstract fun importSnapshotJson (Ljava/lang/String;Z)Z
+	public static synthetic fun importSnapshotJson$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ljava/lang/String;ZILjava/lang/Object;)Z
+	public abstract fun observeRaw (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun putString (Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;)V
+	public abstract fun remove (Ldev/abeta/kmp/state/preferences/PreferenceKey;)V
+}
+
+public final class dev/abeta/kmp/state/preferences/PreferenceStore$DefaultImpls {
+	public static synthetic fun getString$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ldev/abeta/kmp/state/preferences/PreferenceKey;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun importSnapshotJson$default (Ldev/abeta/kmp/state/preferences/PreferenceStore;Ljava/lang/String;ZILjava/lang/Object;)Z
+}
+
+public final class dev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope {
+	public static final field Companion Ldev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope$Companion;
+	public fun <init> (ILkotlinx/serialization/json/JsonElement;)V
+	public final fun component1 ()I
+	public final fun component2 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun copy (ILkotlinx/serialization/json/JsonElement;)Ldev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope;ILkotlinx/serialization/json/JsonElement;ILjava/lang/Object;)Ldev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Lkotlinx/serialization/json/JsonElement;
+	public final fun getVersion ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/state/preferences/VersionedPreferenceEnvelope$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/abeta/kmp/state/session/AuthSessionState {
+}
+
+public final class dev/abeta/kmp/state/session/AuthSessionState$Authenticated : dev/abeta/kmp/state/session/AuthSessionState {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Set;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)Ldev/abeta/kmp/state/session/AuthSessionState$Authenticated;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/session/AuthSessionState$Authenticated;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/state/session/AuthSessionState$Authenticated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnonymousId ()Ljava/lang/String;
+	public final fun getAttributes ()Ljava/util/Map;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getRoles ()Ljava/util/Set;
+	public final fun getUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/state/session/AuthSessionState$Expired : dev/abeta/kmp/state/session/AuthSessionState {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/state/session/AuthSessionState$Expired;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/session/AuthSessionState$Expired;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/state/session/AuthSessionState$Expired;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnonymousId ()Ljava/lang/String;
+	public final fun getPreviousUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/state/session/AuthSessionState$Unauthenticated : dev/abeta/kmp/state/session/AuthSessionState {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/abeta/kmp/state/session/AuthSessionState$Unauthenticated;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/session/AuthSessionState$Unauthenticated;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/state/session/AuthSessionState$Unauthenticated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnonymousId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/state/session/InMemorySessionStore : dev/abeta/kmp/state/session/SessionStore {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun get (Ljava/lang/String;)Lkotlinx/serialization/json/JsonElement;
+	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun put (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun putAll (Ljava/util/Map;)V
+	public fun remove (Ljava/util/Collection;)V
+}
+
+public final class dev/abeta/kmp/state/session/PersistentSessionStore : dev/abeta/kmp/state/session/SessionStore {
+	public static final field Companion Ldev/abeta/kmp/state/session/PersistentSessionStore$Companion;
+	public static final field DEFAULT_STORAGE_KEY Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/lang/String;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/lang/String;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun get (Ljava/lang/String;)Lkotlinx/serialization/json/JsonElement;
+	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun put (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun putAll (Ljava/util/Map;)V
+	public fun remove (Ljava/util/Collection;)V
+}
+
+public final class dev/abeta/kmp/state/session/PersistentSessionStore$Companion {
+}
+
+public final class dev/abeta/kmp/state/session/SessionLifecycleManager {
+	public static final field Companion Ldev/abeta/kmp/state/session/SessionLifecycleManager$Companion;
+	public static final field DEFAULT_IDLE_TIMEOUT_MILLIS J
+	public static final field DEFAULT_METADATA_KEY Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;JLjava/lang/String;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;JLjava/lang/String;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthState ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun getMetadata ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun markExpired ()V
+	public final fun signIn (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;)Ldev/abeta/kmp/state/session/SessionMetadata;
+	public static synthetic fun signIn$default (Ldev/abeta/kmp/state/session/SessionLifecycleManager;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/state/session/SessionMetadata;
+	public final fun signOut ()Ldev/abeta/kmp/state/session/SessionMetadata;
+	public final fun touch ()Ldev/abeta/kmp/state/session/SessionMetadata;
+}
+
+public final class dev/abeta/kmp/state/session/SessionLifecycleManager$Companion {
+}
+
+public final class dev/abeta/kmp/state/session/SessionMetadata {
+	public static final field Companion Ldev/abeta/kmp/state/session/SessionMetadata$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;JJ)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/Set;
+	public final fun component6 ()Ljava/util/Map;
+	public final fun component7 ()J
+	public final fun component8 ()J
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;JJ)Ldev/abeta/kmp/state/session/SessionMetadata;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/session/SessionMetadata;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Map;JJILjava/lang/Object;)Ldev/abeta/kmp/state/session/SessionMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnonymousId ()Ljava/lang/String;
+	public final fun getAttributes ()Ljava/util/Map;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getLastActiveEpochMillis ()J
+	public final fun getRoles ()Ljava/util/Set;
+	public final fun getSessionId ()Ljava/lang/String;
+	public final fun getStartedAtEpochMillis ()J
+	public final fun getUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/state/session/SessionMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/state/session/SessionMetadata$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/state/session/SessionMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/state/session/SessionMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/state/session/SessionMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/abeta/kmp/state/session/SessionStore {
+	public abstract fun clear ()V
+	public abstract fun get (Ljava/lang/String;)Lkotlinx/serialization/json/JsonElement;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun put (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public abstract fun putAll (Ljava/util/Map;)V
+	public abstract fun remove (Ljava/util/Collection;)V
+}
+
+public final class dev/abeta/kmp/state/storage/SettingsKeyValueStore : dev/abeta/kmp/core/storage/ObservableKeyValueStore {
+	public fun <init> (Lcom/russhwolf/settings/Settings;Ljava/lang/String;)V
+	public synthetic fun <init> (Lcom/russhwolf/settings/Settings;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun contains (Ljava/lang/String;)Z
+	public fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public fun keys ()Ljava/util/Set;
+	public fun observeKey (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)V
+}
+
+public final class dev/abeta/kmp/state/storage/SettingsKeyValueStoreKt {
+	public static final fun createPersistentKeyValueStore (Ljava/lang/String;)Ldev/abeta/kmp/core/storage/ObservableKeyValueStore;
+	public static synthetic fun createPersistentKeyValueStore$default (Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/storage/ObservableKeyValueStore;
+	public static final fun createSecurePersistentKeyValueStore (Ljava/lang/String;)Ldev/abeta/kmp/core/security/SecureKeyValueStore;
+	public static synthetic fun createSecurePersistentKeyValueStore$default (Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/security/SecureKeyValueStore;
+}
+
+public final class dev/abeta/kmp/state/sync/FlushReport {
+	public fun <init> (III)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (III)Ldev/abeta/kmp/state/sync/FlushReport;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/sync/FlushReport;IIIILjava/lang/Object;)Ldev/abeta/kmp/state/sync/FlushReport;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDroppedDeadLetters ()I
+	public final fun getRetainedForRetry ()I
+	public final fun getSucceeded ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/state/sync/OfflineMutationQueue {
+	public static final field Companion Ldev/abeta/kmp/state/sync/OfflineMutationQueue$Companion;
+	public static final field DEFAULT_MAX_QUEUE_SIZE I
+	public static final field DEFAULT_MAX_RETRIES I
+	public static final field DEFAULT_STORAGE_KEY Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;IILjava/lang/String;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;IILjava/lang/String;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun enqueue (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun enqueue$default (Ldev/abeta/kmp/state/sync/OfflineMutationQueue;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun flush (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getQueue ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun getStatus ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun remove (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/state/sync/OfflineMutationQueue$Companion {
+}
+
+public final class dev/abeta/kmp/state/sync/OfflineQueueStatus {
+	public fun <init> (IZLjava/lang/Long;I)V
+	public synthetic fun <init> (IZLjava/lang/Long;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Z
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun component4 ()I
+	public final fun copy (IZLjava/lang/Long;I)Ldev/abeta/kmp/state/sync/OfflineQueueStatus;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/sync/OfflineQueueStatus;IZLjava/lang/Long;IILjava/lang/Object;)Ldev/abeta/kmp/state/sync/OfflineQueueStatus;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDroppedDeadLetters ()I
+	public final fun getLastFlushedEpochMillis ()Ljava/lang/Long;
+	public final fun getPendingCount ()I
+	public fun hashCode ()I
+	public final fun isFlushing ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/state/sync/QueuedMutation {
+	public static final field Companion Ldev/abeta/kmp/state/sync/QueuedMutation$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;JI)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;JIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun component4 ()J
+	public final fun component5 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;JI)Ldev/abeta/kmp/state/sync/QueuedMutation;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/state/sync/QueuedMutation;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;JIILjava/lang/Object;)Ldev/abeta/kmp/state/sync/QueuedMutation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCreatedAtEpochMillis ()J
+	public final fun getId ()Ljava/lang/String;
+	public final fun getPayload ()Lkotlinx/serialization/json/JsonElement;
+	public final fun getRetryCount ()I
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/state/sync/QueuedMutation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/state/sync/QueuedMutation$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/state/sync/QueuedMutation;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/state/sync/QueuedMutation;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/state/sync/QueuedMutation$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

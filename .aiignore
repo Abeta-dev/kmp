@@ -1,0 +1,15 @@
+# JetBrains AI Assistant, Junie & Android Studio Gemini ignore list
+.git/
+.gradle/
+.build.nosync/
+**/build/
+kotlin-js-store/
+bff/bin/
+bff/coverage.out
+*.iml
+.idea/
+*.hprof
+*.keystore
+*.jks
+*.jar
+.DS_Store

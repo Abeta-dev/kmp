@@ -1,0 +1,220 @@
+{
+  "page_id": "form-demo",
+  "title": "Form Demo",
+  "toolbar": {
+    "title": {
+      "text": "Form Demo",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_form",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "form_header",
+      "snippet_type": "header_v1",
+      "data": {
+        "title": {
+          "text": "Workspace Setup",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "headline.small"
+          }
+        },
+        "subtitle": {
+          "text": "All fields are validated declaratively on submit",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.medium"
+          }
+        },
+        "trailing_tag": {
+          "label": "VALIDATED",
+          "bg_color": {
+            "token": "status.info_container"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 12,
+            "end": 16,
+            "bottom": 12
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "form_workspace_setup",
+      "snippet_type": "form_v1",
+      "data": {
+        "form_id": "workspace_onboarding",
+        "title": {
+          "text": "Organization Details",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "description": {
+          "text": "Provide your contact info to initialize your SDUI workspace.",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "fields": [
+          {
+            "field_id": "full_name",
+            "label": "Full Name",
+            "placeholder": "Alex Rivera",
+            "required": true,
+            "keyboard_type": "text"
+          },
+          {
+            "field_id": "work_email",
+            "label": "Work Email",
+            "placeholder": "alex@abeta.dev",
+            "required": true,
+            "regex": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "keyboard_type": "email"
+          },
+          {
+            "field_id": "team_size",
+            "label": "Team Size",
+            "placeholder": "12",
+            "helper_text": "Optional number between 1 and 9999",
+            "regex": "^\\d+$",
+            "keyboard_type": "number"
+          }
+        ],
+        "submit_button": {
+          "id": "btn_submit_form",
+          "label": "Submit Setup",
+          "variant": "primary",
+          "enabled": true,
+          "on_click": {
+            "id": "submit_workspace_form",
+            "type": "call_api",
+            "payload": {
+              "endpoint": "/api/v1/actions/execute",
+              "method": "POST",
+              "body": {
+                "form_id": "workspace_onboarding"
+              },
+              "on_success": {
+                "id": "toast_form_saved",
+                "type": "show_toast",
+                "payload": {
+                  "message": "Workspace setup saved!",
+                  "duration_ms": 2500,
+                  "variant": "success"
+                }
+              }
+            },
+            "validations": [
+              {
+                "field_id": "full_name",
+                "rule": "required",
+                "message": "Full name is required"
+              },
+              {
+                "field_id": "work_email",
+                "rule": "required",
+                "message": "Work email is required"
+              },
+              {
+                "field_id": "work_email",
+                "rule": "regex",
+                "value": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+                "message": "Enter a valid email address"
+              }
+            ],
+            "secondary_actions": [
+              {
+                "id": "track_form_submit",
+                "type": "track_event",
+                "payload": {
+                  "event_name": "workspace_form_submitted",
+                  "properties": {
+                    "form_id": "workspace_onboarding"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "cancel_button": {
+          "id": "btn_cancel_form",
+          "label": "Cancel",
+          "variant": "outline",
+          "enabled": true,
+          "on_click": {
+            "id": "cancel_workspace_form",
+            "type": "back_press",
+            "payload": {
+              "steps": 1
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    }
+  ]
+}

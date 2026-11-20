@@ -1,0 +1,16 @@
+# Token & context optimization for Gemini CLI, Gemini Code Assist & Android Studio Gemini
+.git/
+.gradle/
+.build.nosync/
+**/build/
+kotlin-js-store/
+bff/bin/
+bff/coverage.out
+*.hprof
+*.keystore
+*.jks
+*.jar
+*.png
+*.jpg
+*.webp
+.DS_Store

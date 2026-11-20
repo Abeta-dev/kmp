@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/check_brand_hygiene.sh)",
+      "Bash(./scripts/check_architecture_and_owners.sh*)",
+      "Bash(./scripts/verify_all.sh)",
+      "Bash(cd kmp && ./gradlew *)",
+      "Bash(cd bff && go vet *)",
+      "Bash(cd bff && go test *)",
+      "Bash(cd bff && gofmt *)"
+    ]
+  }
+}

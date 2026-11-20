@@ -1,0 +1,55 @@
+# =============================================================================
+# CODEOWNERS for abeta-dev/kmp
+# Each path maps to its human review team AND its dedicated Module Code Owner
+# AI Agent persona under agents/owners/<module>-owner.md (enforced in CI by
+# scripts/check_architecture_and_owners.sh and module-owner-architecture-review.yml).
+# =============================================================================
+
+# Default monorepo fallback -> agents/kmp-architect.md & agents/solid-reviewer.md
+* @abeta-dev/kmp-maintainers
+
+# --- Layer 0: Core Primitives, OS Bridges, State & Analytics ---
+/kmp/core/                  @abeta-dev/kmp-core-owners           # Agent: agents/owners/core-owner.md
+/kmp/state/                 @abeta-dev/kmp-state-owners          # Agent: agents/owners/state-owner.md
+/kmp/analytics/             @abeta-dev/kmp-analytics-owners      # Agent: agents/owners/analytics-owner.md
+
+# --- Layer 1: Design Tokens, Pure Wire Contracts & Stateless UI Atoms ---
+/kmp/design-tokens/         @abeta-dev/kmp-design-owners         # Agent: agents/owners/design-tokens-owner.md
+/kmp/sdui-contracts/        @abeta-dev/kmp-contracts-owners      # Agent: agents/owners/sdui-contracts-owner.md
+/kmp/ui-atoms/              @abeta-dev/kmp-ui-owners             # Agent: agents/owners/ui-atoms-owner.md
+
+# --- Layer 2: OCP Action Engine & Network Transport ---
+/kmp/action-engine/         @abeta-dev/kmp-actions-owners        # Agent: agents/owners/action-engine-owner.md
+/kmp/network/               @abeta-dev/kmp-network-owners        # Agent: agents/owners/network-owner.md
+
+# --- Layer 3: SDUI Layout, Wearables, Explorer, Demo & Native Host Glue ---
+/kmp/sdui-layout/           @abeta-dev/kmp-layout-owners         # Agent: agents/owners/sdui-layout-owner.md
+/kmp/watch-companion/       @abeta-dev/kmp-wearable-owners       # Agent: agents/owners/watch-companion-owner.md
+/kmp/storybook/             @abeta-dev/kmp-ui-owners             # Agent: agents/owners/storybook-owner.md
+/kmp/sample-app/            @abeta-dev/kmp-demo-owners           # Agent: agents/owners/sample-app-owner.md
+/kmp/platforms/             @abeta-dev/kmp-platforms-owners      # Agent: agents/owners/platforms-owner.md
+
+# --- Build Platform: Gradle BOM, Version Catalog & Quality Config ---
+/kmp/kmp-bom/               @abeta-dev/kmp-platform-owners       # Agent: agents/owners/bom-catalog-owner.md
+/kmp/dependencyManagement/  @abeta-dev/kmp-platform-owners       # Agent: agents/owners/bom-catalog-owner.md
+/kmp/settings.gradle.kts    @abeta-dev/kmp-platform-owners       # Agent: agents/owners/bom-catalog-owner.md
+/kmp/build.gradle.kts       @abeta-dev/kmp-platform-owners       # Agent: agents/owners/bom-catalog-owner.md
+/kmp/gradle.properties      @abeta-dev/kmp-platform-owners       # Agent: agents/owners/bom-catalog-owner.md
+/kmp/detekt.yml             @abeta-dev/kmp-platform-owners       # Agent: agents/owners/bom-catalog-owner.md
+
+# --- Go 1.26.0 Clean Architecture SDUI BFF ---
+/bff/                       @abeta-dev/bff-owners                # Agent: agents/owners/bff-owner.md
+
+# --- CI/CD, Verification Scripts, Agents, Skills & IDE Configs ---
+/.github/                   @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/scripts/                   @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/agents/                    @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/skills/                    @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/AGENTS.md                  @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/CLAUDE.md                  @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/GEMINI.md                  @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/.claude/                   @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/.agent/                    @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/.gemini/                   @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/.cursor/                   @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md
+/.junie/                    @abeta-dev/platform-cicd-owners      # Agent: agents/owners/cicd-platform-owner.md

@@ -1,0 +1,2729 @@
+{
+  "page_id": "store-home",
+  "title": "Abeta Fresh",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Fresh",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "Home · Express 8 mins",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_store_home",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "trailing_actions": [
+      {
+        "name": "shopping_cart",
+        "size_dp": 22,
+        "color": {
+          "token": "brand.primary"
+        },
+        "content_description": "Open cart checkout",
+        "on_click": {
+          "id": "open_express_checkout",
+          "type": "open_dialog",
+          "payload": {
+            "dialog_id": "express_checkout_sheet",
+            "title": "Place Express Order",
+            "message": "Abeta Fresh · 8-Min Express Delivery to Home · Free delivery applied.",
+            "presentation": "bottom_sheet",
+            "dismissible": true,
+            "positive_action": {
+              "id": "place_express_order",
+              "type": "call_api",
+              "payload": {
+                "endpoint": "/api/v1/orders/express",
+                "method": "POST",
+                "body": {
+                  "coupon_code": "FRESH20",
+                  "delivery_eta_mins": 8,
+                  "store_brand": "Abeta Fresh"
+                }
+              },
+              "secondary_actions": [
+                {
+                  "id": "dismiss_express_checkout",
+                  "type": "dismiss_overlay",
+                  "payload": {
+                    "overlay_id": "express_checkout_sheet"
+                  }
+                }
+              ]
+            },
+            "negative_action": {
+              "id": "cancel_express_checkout",
+              "type": "dismiss_overlay",
+              "payload": {
+                "overlay_id": "express_checkout_sheet"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "store_eta_banner",
+      "snippet_type": "banner_v1",
+      "data": {
+        "title": {
+          "text": "8-Min Express Delivery",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "body": {
+          "text": "Chilled produce, bakery & pantry staples delivered fresh from Abeta Fresh Hub.",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "icon": {
+          "name": "bolt",
+          "size_dp": 24,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "tag": {
+          "label": "8 MINS",
+          "bg_color": {
+            "token": "status.success_container"
+          },
+          "motion": {
+            "loop_effect": "pulse"
+          }
+        },
+        "cta": {
+          "id": "btn_free_delivery_pill",
+          "label": "FREE DELIVERY",
+          "variant": "outline",
+          "size": "sm",
+          "enabled": true,
+          "on_click": {
+            "id": "toast_free_delivery",
+            "type": "show_toast",
+            "payload": {
+              "message": "FREE DELIVERY unlocked on your Abeta Fresh express order!",
+              "duration_ms": 2200,
+              "variant": "success"
+            }
+          },
+          "motion": {
+            "enter": "fade_in",
+            "duration_token": "fast"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "brand.container"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "motion": {
+        "enter": "slide_down",
+        "duration_token": "normal",
+        "loop_effect": "pulse"
+      }
+    },
+    {
+      "snippet_id": "store_promo_carousel",
+      "snippet_type": "carousel",
+      "data": {
+        "title": {
+          "text": "Flash Express Deals",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "items": [
+          {
+            "snippet_id": "promo_harvest",
+            "snippet_parent_id": "store_promo_carousel",
+            "snippet_type": "card_v1",
+            "data": {
+              "title": {
+                "text": "Morning Harvest · 25% OFF",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.medium"
+                }
+              },
+              "subtitle": {
+                "text": "Farm-fresh avocados, berries & leafy greens",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "body.small"
+                }
+              },
+              "badge": {
+                "label": "FRESH",
+                "bg_color": {
+                  "token": "status.success_container"
+                }
+              },
+              "on_click": {
+                "id": "toast_promo_harvest",
+                "type": "show_toast",
+                "payload": {
+                  "message": "Morning Harvest · 25% OFF deal highlighted",
+                  "duration_ms": 1800,
+                  "variant": "info"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 12,
+                  "top": 12,
+                  "end": 12,
+                  "bottom": 12
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            },
+            "motion": {
+              "enter": "slide_up",
+              "duration_token": "normal",
+              "stagger_ms": 80
+            }
+          },
+          {
+            "snippet_id": "promo_bakery",
+            "snippet_parent_id": "store_promo_carousel",
+            "snippet_type": "card_v1",
+            "data": {
+              "title": {
+                "text": "Warm Bakery & Dairy",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.medium"
+                }
+              },
+              "subtitle": {
+                "text": "Artisan sourdough & chilled A2 milk in 8 mins",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "body.small"
+                }
+              },
+              "badge": {
+                "label": "CHILLED",
+                "bg_color": {
+                  "token": "status.info_container"
+                }
+              },
+              "on_click": {
+                "id": "toast_promo_bakery",
+                "type": "show_toast",
+                "payload": {
+                  "message": "Warm Bakery \u0026 Dairy deal highlighted",
+                  "duration_ms": 1800,
+                  "variant": "info"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 12,
+                  "top": 12,
+                  "end": 12,
+                  "bottom": 12
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            },
+            "motion": {
+              "enter": "slide_up",
+              "duration_token": "normal",
+              "stagger_ms": 80,
+              "delay_ms": 80
+            }
+          },
+          {
+            "snippet_id": "promo_hydration",
+            "snippet_parent_id": "store_promo_carousel",
+            "snippet_type": "card_v1",
+            "data": {
+              "title": {
+                "text": "Cold-Pressed Hydration",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.medium"
+                }
+              },
+              "subtitle": {
+                "text": "Zero-sugar yuzu spritzers & oat cold brew",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "body.small"
+                }
+              },
+              "badge": {
+                "label": "COMBO",
+                "bg_color": {
+                  "token": "status.warning_container"
+                }
+              },
+              "on_click": {
+                "id": "toast_promo_hydration",
+                "type": "show_toast",
+                "payload": {
+                  "message": "Cold-Pressed Hydration deal highlighted",
+                  "duration_ms": 1800,
+                  "variant": "info"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 12,
+                  "top": 12,
+                  "end": 12,
+                  "bottom": 12
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            },
+            "motion": {
+              "enter": "slide_up",
+              "duration_token": "normal",
+              "stagger_ms": 80,
+              "delay_ms": 160
+            }
+          }
+        ],
+        "item_width_dp": 240,
+        "spacing_dp": 12,
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 8,
+            "end": 16,
+            "bottom": 8
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "store_category_tabs",
+      "snippet_type": "tabs",
+      "data": {
+        "tabs": [
+          {
+            "id": "fruits_veg",
+            "title": "Fruits & Veg",
+            "badge": {
+              "label": "FRESH",
+              "bg_color": {
+                "token": "status.success_container"
+              }
+            },
+            "snippets": [
+              {
+                "snippet_id": "grid_fruits_veg",
+                "snippet_parent_id": "store_category_tabs",
+                "snippet_type": "grid",
+                "data": {
+                  "columns": 2,
+                  "columns_by_width": {
+                    "compact": 2,
+                    "medium": 3,
+                    "expanded": 4
+                  },
+                  "spacing_dp": 12,
+                  "items": [
+                    {
+                      "snippet_id": "prod_avocados",
+                      "snippet_parent_id": "grid_fruits_veg",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "avocados",
+                        "title": {
+                          "text": "Fresh Avocados",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "2 pcs · Ready to eat",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$3.49",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$4.49",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 349,
+                        "badge": {
+                          "label": "BESTSELLER",
+                          "bg_color": {
+                            "token": "status.success_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/avocados.png",
+                          "content_description": "Fresh Avocados",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_avocados",
+                          "label": "ADD",
+                          "quantity": 1,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_avocados",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_avocados",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_avocados",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_avocados",
+                                      "product_id": "avocados",
+                                      "unit_price_cents": 349
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_avocados",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_avocados",
+                                "product_id": "avocados"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.9 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_avocados",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Fresh Avocados ($3.49) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_strawberries",
+                      "snippet_parent_id": "grid_fruits_veg",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "strawberries",
+                        "title": {
+                          "text": "Organic Strawberries",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "250 g · Sweet harvest",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$4.99",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$5.99",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 499,
+                        "badge": {
+                          "label": "ORGANIC",
+                          "bg_color": {
+                            "token": "brand.container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/strawberries.png",
+                          "content_description": "Organic Strawberries",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_strawberries",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_strawberries",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_strawberries",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_strawberries",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_strawberries",
+                                      "product_id": "strawberries",
+                                      "unit_price_cents": 499
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_strawberries",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_strawberries",
+                                "product_id": "strawberries"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.8 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_strawberries",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Organic Strawberries ($4.99) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 60
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_cherry_tomatoes",
+                      "snippet_parent_id": "grid_fruits_veg",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "cherry_tomatoes",
+                        "title": {
+                          "text": "Vine Cherry Tomatoes",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "300 g · Greenhouse",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$2.79",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$3.29",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 279,
+                        "badge": {
+                          "label": "LOCAL",
+                          "bg_color": {
+                            "token": "status.info_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/cherry_tomatoes.png",
+                          "content_description": "Vine Cherry Tomatoes",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_cherry_tomatoes",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_cherry_tomatoes",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_cherry_tomatoes",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_cherry_tomatoes",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_cherry_tomatoes",
+                                      "product_id": "cherry_tomatoes",
+                                      "unit_price_cents": 279
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_cherry_tomatoes",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_cherry_tomatoes",
+                                "product_id": "cherry_tomatoes"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.7 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_cherry_tomatoes",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Vine Cherry Tomatoes ($2.79) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 120
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_baby_spinach",
+                      "snippet_parent_id": "grid_fruits_veg",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "baby_spinach",
+                        "title": {
+                          "text": "Crisp Baby Spinach",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "200 g · Triple washed",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$2.49",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$2.99",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 249,
+                        "badge": {
+                          "label": "WASHED",
+                          "bg_color": {
+                            "token": "status.success_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/baby_spinach.png",
+                          "content_description": "Crisp Baby Spinach",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_baby_spinach",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_baby_spinach",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_baby_spinach",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_baby_spinach",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_baby_spinach",
+                                      "product_id": "baby_spinach",
+                                      "unit_price_cents": 249
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_baby_spinach",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_baby_spinach",
+                                "product_id": "baby_spinach"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.8 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_baby_spinach",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Crisp Baby Spinach ($2.49) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 180
+                      }
+                    }
+                  ],
+                  "layout": {
+                    "padding": {
+                      "start": 8,
+                      "top": 8,
+                      "end": 8,
+                      "bottom": 8
+                    },
+                    "fill_max_width": true
+                  }
+                },
+                "tracking": {
+                  "event_name": "category_grid_viewed",
+                  "properties": {
+                    "tab_id": "fruits_veg"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "dairy_bread",
+            "title": "Dairy & Bread",
+            "badge": {
+              "label": "COLD",
+              "bg_color": {
+                "token": "status.info_container"
+              }
+            },
+            "snippets": [
+              {
+                "snippet_id": "grid_dairy_bread",
+                "snippet_parent_id": "store_category_tabs",
+                "snippet_type": "grid",
+                "data": {
+                  "columns": 2,
+                  "columns_by_width": {
+                    "compact": 2,
+                    "medium": 3,
+                    "expanded": 4
+                  },
+                  "spacing_dp": 12,
+                  "items": [
+                    {
+                      "snippet_id": "prod_sourdough",
+                      "snippet_parent_id": "grid_dairy_bread",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "sourdough",
+                        "title": {
+                          "text": "Artisan Sourdough",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "450 g · Stone-baked",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$4.99",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$5.79",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 499,
+                        "badge": {
+                          "label": "BAKED TODAY",
+                          "bg_color": {
+                            "token": "status.warning_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/sourdough.png",
+                          "content_description": "Artisan Sourdough",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_sourdough",
+                          "label": "ADD",
+                          "quantity": 1,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_sourdough",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_sourdough",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_sourdough",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_sourdough",
+                                      "product_id": "sourdough",
+                                      "unit_price_cents": 499
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_sourdough",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_sourdough",
+                                "product_id": "sourdough"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.9 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_sourdough",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Artisan Sourdough ($4.99) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_whole_milk",
+                      "snippet_parent_id": "grid_dairy_bread",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "whole_milk",
+                        "title": {
+                          "text": "A2 Farm Whole Milk",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "1 L · Chilled glass",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$3.29",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$3.79",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 329,
+                        "badge": {
+                          "label": "CHILLED",
+                          "bg_color": {
+                            "token": "status.info_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/whole_milk.png",
+                          "content_description": "A2 Farm Whole Milk",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_whole_milk",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_whole_milk",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_whole_milk",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_whole_milk",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_whole_milk",
+                                      "product_id": "whole_milk",
+                                      "unit_price_cents": 329
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_whole_milk",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_whole_milk",
+                                "product_id": "whole_milk"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.9 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_whole_milk",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "A2 Farm Whole Milk ($3.29) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 60
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_greek_yogurt",
+                      "snippet_parent_id": "grid_dairy_bread",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "greek_yogurt",
+                        "title": {
+                          "text": "Greek Strained Yogurt",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "400 g · 18g protein",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$3.99",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$4.49",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 399,
+                        "badge": {
+                          "label": "HIGH PROTEIN",
+                          "bg_color": {
+                            "token": "brand.container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/greek_yogurt.png",
+                          "content_description": "Greek Strained Yogurt",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_greek_yogurt",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_greek_yogurt",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_greek_yogurt",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_greek_yogurt",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_greek_yogurt",
+                                      "product_id": "greek_yogurt",
+                                      "unit_price_cents": 399
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_greek_yogurt",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_greek_yogurt",
+                                "product_id": "greek_yogurt"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.8 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_greek_yogurt",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Greek Strained Yogurt ($3.99) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 120
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_cultured_butter",
+                      "snippet_parent_id": "grid_dairy_bread",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "cultured_butter",
+                        "title": {
+                          "text": "Sea Salt Cultured Butter",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "200 g · Grass-fed",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$4.29",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$4.99",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 429,
+                        "badge": {
+                          "label": "FARMSTEAD",
+                          "bg_color": {
+                            "token": "status.success_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/cultured_butter.png",
+                          "content_description": "Sea Salt Cultured Butter",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_cultured_butter",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_cultured_butter",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_cultured_butter",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_cultured_butter",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_cultured_butter",
+                                      "product_id": "cultured_butter",
+                                      "unit_price_cents": 429
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_cultured_butter",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_cultured_butter",
+                                "product_id": "cultured_butter"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.9 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_cultured_butter",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Sea Salt Cultured Butter ($4.29) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 180
+                      }
+                    }
+                  ],
+                  "layout": {
+                    "padding": {
+                      "start": 8,
+                      "top": 8,
+                      "end": 8,
+                      "bottom": 8
+                    },
+                    "fill_max_width": true
+                  }
+                },
+                "tracking": {
+                  "event_name": "category_grid_viewed",
+                  "properties": {
+                    "tab_id": "dairy_bread"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "snacks_drinks",
+            "title": "Snacks & Drinks",
+            "snippets": [
+              {
+                "snippet_id": "grid_snacks_drinks",
+                "snippet_parent_id": "store_category_tabs",
+                "snippet_type": "grid",
+                "data": {
+                  "columns": 2,
+                  "columns_by_width": {
+                    "compact": 2,
+                    "medium": 3,
+                    "expanded": 4
+                  },
+                  "spacing_dp": 12,
+                  "items": [
+                    {
+                      "snippet_id": "prod_cold_brew",
+                      "snippet_parent_id": "grid_snacks_drinks",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "cold_brew",
+                        "title": {
+                          "text": "Oat Milk Cold Brew",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "250 ml · Single origin",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$3.79",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$4.29",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 379,
+                        "badge": {
+                          "label": "CHILLED",
+                          "bg_color": {
+                            "token": "status.info_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/cold_brew.png",
+                          "content_description": "Oat Milk Cold Brew",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_cold_brew",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_cold_brew",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_cold_brew",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_cold_brew",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_cold_brew",
+                                      "product_id": "cold_brew",
+                                      "unit_price_cents": 379
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_cold_brew",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_cold_brew",
+                                "product_id": "cold_brew"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.8 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_cold_brew",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Oat Milk Cold Brew ($3.79) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_sparkling_yuzu",
+                      "snippet_parent_id": "grid_snacks_drinks",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "sparkling_yuzu",
+                        "title": {
+                          "text": "Sparkling Yuzu Water",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "330 ml · Zero sugar",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$1.99",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$2.49",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 199,
+                        "badge": {
+                          "label": "ZERO SUGAR",
+                          "bg_color": {
+                            "token": "status.success_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/sparkling_yuzu.png",
+                          "content_description": "Sparkling Yuzu Water",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_sparkling_yuzu",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_sparkling_yuzu",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_sparkling_yuzu",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_sparkling_yuzu",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_sparkling_yuzu",
+                                      "product_id": "sparkling_yuzu",
+                                      "unit_price_cents": 199
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_sparkling_yuzu",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_sparkling_yuzu",
+                                "product_id": "sparkling_yuzu"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.7 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_sparkling_yuzu",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Sparkling Yuzu Water ($1.99) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 60
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_sea_salt_chips",
+                      "snippet_parent_id": "grid_snacks_drinks",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "sea_salt_chips",
+                        "title": {
+                          "text": "Kettle Sea Salt Chips",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "140 g · Olive oil",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$2.99",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$3.49",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 299,
+                        "badge": {
+                          "label": "CRUNCHY",
+                          "bg_color": {
+                            "token": "status.warning_container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/sea_salt_chips.png",
+                          "content_description": "Kettle Sea Salt Chips",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_sea_salt_chips",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_sea_salt_chips",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_sea_salt_chips",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_sea_salt_chips",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_sea_salt_chips",
+                                      "product_id": "sea_salt_chips",
+                                      "unit_price_cents": 299
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_sea_salt_chips",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_sea_salt_chips",
+                                "product_id": "sea_salt_chips"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.8 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_sea_salt_chips",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Kettle Sea Salt Chips ($2.99) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 120
+                      }
+                    },
+                    {
+                      "snippet_id": "prod_roasted_almonds",
+                      "snippet_parent_id": "grid_snacks_drinks",
+                      "snippet_type": "product_card",
+                      "data": {
+                        "product_id": "roasted_almonds",
+                        "title": {
+                          "text": "Roasted Tamari Almonds",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "title.small"
+                          }
+                        },
+                        "subtitle": {
+                          "text": "180 g · Small batch",
+                          "color": {
+                            "token": "text.secondary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "price": {
+                          "text": "$5.49",
+                          "color": {
+                            "token": "text.primary"
+                          },
+                          "typography": {
+                            "token": "label.large"
+                          }
+                        },
+                        "original_price": {
+                          "text": "$6.49",
+                          "color": {
+                            "token": "text.tertiary"
+                          },
+                          "typography": {
+                            "token": "body.small"
+                          }
+                        },
+                        "unit_price_cents": 549,
+                        "badge": {
+                          "label": "ROASTED",
+                          "bg_color": {
+                            "token": "brand.container"
+                          }
+                        },
+                        "image": {
+                          "url": "https://cdn.abeta.dev/fresh/roasted_almonds.png",
+                          "content_description": "Roasted Tamari Almonds",
+                          "height_dp": 110,
+                          "scale_mode": "crop",
+                          "corner_radius": {
+                            "all": 8
+                          }
+                        },
+                        "stepper": {
+                          "field_id": "cart_qty_roasted_almonds",
+                          "label": "ADD",
+                          "quantity": 0,
+                          "max_quantity": 10,
+                          "enabled": true,
+                          "on_increment": {
+                            "id": "inc_roasted_almonds",
+                            "type": "batch",
+                            "payload": {
+                              "actions": [
+                                {
+                                  "id": "bounce_roasted_almonds",
+                                  "type": "trigger_feedback",
+                                  "payload": {
+                                    "effect": "cart_bounce",
+                                    "duration_ms": 320,
+                                    "target_id": "floating_cart_dock"
+                                  }
+                                },
+                                {
+                                  "id": "track_inc_roasted_almonds",
+                                  "type": "track_event",
+                                  "payload": {
+                                    "event_name": "cart_item_incremented",
+                                    "properties": {
+                                      "field_id": "cart_qty_roasted_almonds",
+                                      "product_id": "roasted_almonds",
+                                      "unit_price_cents": 549
+                                    }
+                                  }
+                                }
+                              ],
+                              "stop_on_error": true
+                            }
+                          },
+                          "on_decrement": {
+                            "id": "dec_roasted_almonds",
+                            "type": "track_event",
+                            "payload": {
+                              "event_name": "cart_item_decremented",
+                              "properties": {
+                                "field_id": "cart_qty_roasted_almonds",
+                                "product_id": "roasted_almonds"
+                              }
+                            }
+                          }
+                        },
+                        "rating": {
+                          "text": "4.9 ★",
+                          "color": {
+                            "token": "status.success"
+                          },
+                          "typography": {
+                            "token": "label.small"
+                          }
+                        },
+                        "on_click": {
+                          "id": "preview_roasted_almonds",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Roasted Tamari Almonds ($5.49) · Delivered chilled in 8 mins",
+                            "duration_ms": 2000,
+                            "variant": "info"
+                          }
+                        },
+                        "layout": {
+                          "padding": {
+                            "start": 12,
+                            "top": 12,
+                            "end": 12,
+                            "bottom": 12
+                          },
+                          "bg_color": {
+                            "token": "surface.primary"
+                          },
+                          "corner_radius": {
+                            "all": 12
+                          },
+                          "border": {
+                            "width_dp": 1,
+                            "color": {
+                              "token": "border.subtle"
+                            }
+                          },
+                          "fill_max_width": true
+                        }
+                      },
+                      "motion": {
+                        "enter": "scale_in",
+                        "duration_token": "fast",
+                        "stagger_ms": 60,
+                        "delay_ms": 180
+                      }
+                    }
+                  ],
+                  "layout": {
+                    "padding": {
+                      "start": 8,
+                      "top": 8,
+                      "end": 8,
+                      "bottom": 8
+                    },
+                    "fill_max_width": true
+                  }
+                },
+                "tracking": {
+                  "event_name": "category_grid_viewed",
+                  "properties": {
+                    "tab_id": "snacks_drinks"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "selected_index": 0,
+        "layout": {
+          "padding": {
+            "start": 12,
+            "top": 4,
+            "end": 12,
+            "bottom": 4
+          },
+          "fill_max_width": true
+        }
+      }
+    },
+    {
+      "snippet_id": "store_offers_accordion",
+      "snippet_type": "accordion",
+      "data": {
+        "title": {
+          "text": "Offers & Delivery Promise",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "subtitle": {
+          "text": "Apply FRESH20 coupon, rider tip & view cold-chain guarantee",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "initially_expanded": true,
+        "snippets": [
+          {
+            "snippet_id": "store_delivery_promise",
+            "snippet_parent_id": "store_offers_accordion",
+            "snippet_type": "action_row",
+            "data": {
+              "title": {
+                "text": "8-Min Cold-Chain Guarantee",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.small"
+                }
+              },
+              "subtitle": {
+                "text": "Chilled dispatch from Abeta Fresh Hub · Seal verified",
+                "color": {
+                  "token": "text.secondary"
+                },
+                "typography": {
+                  "token": "body.small"
+                }
+              },
+              "leading_icon": {
+                "name": "verified",
+                "size_dp": 22,
+                "color": {
+                  "token": "status.success"
+                }
+              },
+              "trailing_tag": {
+                "label": "GUARANTEED",
+                "bg_color": {
+                  "token": "status.success_container"
+                }
+              },
+              "on_click": {
+                "id": "toast_free_delivery",
+                "type": "show_toast",
+                "payload": {
+                  "message": "FREE DELIVERY unlocked on your Abeta Fresh express order!",
+                  "duration_ms": 2200,
+                  "variant": "success"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 16,
+                  "top": 16,
+                  "end": 16,
+                  "bottom": 16
+                },
+                "margin": {
+                  "start": 16,
+                  "top": 4,
+                  "end": 16,
+                  "bottom": 4
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          },
+          {
+            "snippet_id": "store_offers_form",
+            "snippet_parent_id": "store_offers_accordion",
+            "snippet_type": "form_v1",
+            "data": {
+              "form_id": "fresh_order_prefs",
+              "title": {
+                "text": "Savings & Rider Tip",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.small"
+                }
+              },
+              "fields": [],
+              "switches": [
+                {
+                  "field_id": "apply_fresh_coupon",
+                  "label": "Apply FRESH20 Instant Coupon",
+                  "subtitle": "Saves $2.00 on express baskets over $8",
+                  "checked": true,
+                  "enabled": true,
+                  "on_change": {
+                    "id": "save_fresh_coupon",
+                    "type": "save_state",
+                    "payload": {
+                      "key": "apply_fresh_coupon",
+                      "value": true,
+                      "scope": "session"
+                    }
+                  }
+                }
+              ],
+              "sliders": [
+                {
+                  "field_id": "rider_tip_dollars",
+                  "label": "Express Rider Tip",
+                  "value": 2,
+                  "min_value": 0,
+                  "max_value": 10,
+                  "steps": 5,
+                  "show_value": true,
+                  "unit_label": "$",
+                  "enabled": true,
+                  "on_change": {
+                    "id": "save_rider_tip",
+                    "type": "save_state",
+                    "payload": {
+                      "key": "rider_tip_dollars",
+                      "value": 2,
+                      "scope": "session"
+                    }
+                  }
+                }
+              ],
+              "submit_button": {
+                "id": "btn_apply_offers",
+                "label": "Apply Offers",
+                "variant": "secondary",
+                "enabled": true,
+                "on_click": {
+                  "id": "apply_store_offers",
+                  "type": "save_state",
+                  "payload": {
+                    "key": "fresh_offers_saved",
+                    "value": true,
+                    "scope": "session"
+                  },
+                  "secondary_actions": [
+                    {
+                      "id": "toast_offers_applied",
+                      "type": "show_toast",
+                      "payload": {
+                        "message": "FRESH20 coupon \u0026 rider tip updated",
+                        "duration_ms": 2000,
+                        "variant": "success"
+                      }
+                    }
+                  ]
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 16,
+                  "top": 16,
+                  "end": 16,
+                  "bottom": 16
+                },
+                "margin": {
+                  "start": 16,
+                  "top": 4,
+                  "end": 16,
+                  "bottom": 4
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          }
+        ],
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      }
+    }
+  ],
+  "floating_cart": {
+    "label": "2 items · $8.48",
+    "eta_badge": {
+      "label": "8 MINS",
+      "bg_color": {
+        "token": "status.success_container"
+      },
+      "motion": {
+        "loop_effect": "pulse"
+      }
+    },
+    "cta": {
+      "id": "btn_floating_checkout",
+      "label": "Place Express Order",
+      "variant": "primary",
+      "enabled": true,
+      "on_click": {
+        "id": "open_express_checkout",
+        "type": "open_dialog",
+        "payload": {
+          "dialog_id": "express_checkout_sheet",
+          "title": "Place Express Order",
+          "message": "Abeta Fresh · 8-Min Express Delivery to Home · Free delivery applied.",
+          "presentation": "bottom_sheet",
+          "dismissible": true,
+          "positive_action": {
+            "id": "place_express_order",
+            "type": "call_api",
+            "payload": {
+              "endpoint": "/api/v1/orders/express",
+              "method": "POST",
+              "body": {
+                "coupon_code": "FRESH20",
+                "delivery_eta_mins": 8,
+                "store_brand": "Abeta Fresh"
+              }
+            },
+            "secondary_actions": [
+              {
+                "id": "dismiss_express_checkout",
+                "type": "dismiss_overlay",
+                "payload": {
+                  "overlay_id": "express_checkout_sheet"
+                }
+              }
+            ]
+          },
+          "negative_action": {
+            "id": "cancel_express_checkout",
+            "type": "dismiss_overlay",
+            "payload": {
+              "overlay_id": "express_checkout_sheet"
+            }
+          }
+        }
+      },
+      "motion": {
+        "enter": "spring_bounce",
+        "duration_token": "fast"
+      }
+    },
+    "motion": {
+      "enter": "slide_up",
+      "exit": "slide_down",
+      "duration_token": "normal"
+    }
+  },
+  "page_actions": [
+    {
+      "id": "track_store_home_view",
+      "type": "track_event",
+      "payload": {
+        "event_name": "screen_viewed",
+        "properties": {
+          "brand": "Abeta Fresh",
+          "screen_id": "store-home"
+        }
+      }
+    }
+  ],
+  "pull_to_refresh": {
+    "id": "pull_refresh_store_home",
+    "type": "refresh_page",
+    "payload": {
+      "page_id": "store-home",
+      "show_loader": true
+    }
+  },
+  "adaptive_layout": {
+    "layout_mode": "centered",
+    "max_width_dp": 1120,
+    "split_pane_enabled": true,
+    "secondary_snippet_ids": [
+      "store_offers_accordion"
+    ]
+  },
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "store-home"
+    }
+  }
+}

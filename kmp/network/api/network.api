@@ -1,0 +1,207 @@
+public final class dev/abeta/kmp/network/client/BrotliContentEncoder : io/ktor/util/ContentEncoder {
+	public static final field INSTANCE Ldev/abeta/kmp/network/client/BrotliContentEncoder;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
+public final class dev/abeta/kmp/network/client/HttpClientFactory {
+	public static final field INSTANCE Ldev/abeta/kmp/network/client/HttpClientFactory;
+	public final fun create (Ldev/abeta/kmp/network/config/NetworkConfig;Ldev/abeta/kmp/network/ports/AuthTokenProvider;Ldev/abeta/kmp/network/ports/HeaderProvider;Lkotlinx/serialization/json/Json;Lio/ktor/client/engine/HttpClientEngine;)Lio/ktor/client/HttpClient;
+	public static synthetic fun create$default (Ldev/abeta/kmp/network/client/HttpClientFactory;Ldev/abeta/kmp/network/config/NetworkConfig;Ldev/abeta/kmp/network/ports/AuthTokenProvider;Ldev/abeta/kmp/network/ports/HeaderProvider;Lkotlinx/serialization/json/Json;Lio/ktor/client/engine/HttpClientEngine;ILjava/lang/Object;)Lio/ktor/client/HttpClient;
+	public final fun getDefaultJson ()Lkotlinx/serialization/json/Json;
+}
+
+public final class dev/abeta/kmp/network/client/HttpMethodType : java/lang/Enum {
+	public static final field DELETE Ldev/abeta/kmp/network/client/HttpMethodType;
+	public static final field GET Ldev/abeta/kmp/network/client/HttpMethodType;
+	public static final field PATCH Ldev/abeta/kmp/network/client/HttpMethodType;
+	public static final field POST Ldev/abeta/kmp/network/client/HttpMethodType;
+	public static final field PUT Ldev/abeta/kmp/network/client/HttpMethodType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/network/client/HttpMethodType;
+	public static fun values ()[Ldev/abeta/kmp/network/client/HttpMethodType;
+}
+
+public abstract interface class dev/abeta/kmp/network/client/HttpRequestBody {
+}
+
+public final class dev/abeta/kmp/network/client/HttpRequestBody$JsonValue : dev/abeta/kmp/network/client/HttpRequestBody {
+	public fun <init> (Lkotlinx/serialization/json/JsonElement;)V
+	public final fun component1 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun copy (Lkotlinx/serialization/json/JsonElement;)Ldev/abeta/kmp/network/client/HttpRequestBody$JsonValue;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/client/HttpRequestBody$JsonValue;Lkotlinx/serialization/json/JsonElement;ILjava/lang/Object;)Ldev/abeta/kmp/network/client/HttpRequestBody$JsonValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getElement ()Lkotlinx/serialization/json/JsonElement;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/client/HttpRequestBody$Serialized : dev/abeta/kmp/network/client/HttpRequestBody {
+	public fun <init> (Ljava/lang/Object;Lkotlinx/serialization/SerializationStrategy;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun component2 ()Lkotlinx/serialization/SerializationStrategy;
+	public final fun copy (Ljava/lang/Object;Lkotlinx/serialization/SerializationStrategy;)Ldev/abeta/kmp/network/client/HttpRequestBody$Serialized;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/client/HttpRequestBody$Serialized;Ljava/lang/Object;Lkotlinx/serialization/SerializationStrategy;ILjava/lang/Object;)Ldev/abeta/kmp/network/client/HttpRequestBody$Serialized;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSerializer ()Lkotlinx/serialization/SerializationStrategy;
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/network/client/HttpTransport {
+	public abstract fun request (Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun request$default (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/network/client/HttpTransport$DefaultImpls {
+	public static synthetic fun request$default (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/network/client/KtorHttpTransport : dev/abeta/kmp/network/client/HttpTransport {
+	public fun <init> (Lio/ktor/client/HttpClient;Lkotlinx/serialization/json/Json;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;Ldev/abeta/kmp/core/time/Clock;)V
+	public synthetic fun <init> (Lio/ktor/client/HttpClient;Lkotlinx/serialization/json/Json;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;Ldev/abeta/kmp/core/time/Clock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun request (Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/network/config/CompressionPolicy {
+	public fun <init> ()V
+	public fun <init> (ZZZ)V
+	public synthetic fun <init> (ZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun copy (ZZZ)Ldev/abeta/kmp/network/config/CompressionPolicy;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/config/CompressionPolicy;ZZZILjava/lang/Object;)Ldev/abeta/kmp/network/config/CompressionPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnableBrotli ()Z
+	public final fun getEnableDeflate ()Z
+	public final fun getEnableGzip ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/config/HttpProtocolMode : java/lang/Enum {
+	public static final field AUTO_HTTP2 Ldev/abeta/kmp/network/config/HttpProtocolMode;
+	public static final field HTTP_1_1_ONLY Ldev/abeta/kmp/network/config/HttpProtocolMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/network/config/HttpProtocolMode;
+	public static fun values ()[Ldev/abeta/kmp/network/config/HttpProtocolMode;
+}
+
+public final class dev/abeta/kmp/network/config/NetworkConfig {
+	public fun <init> (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Ldev/abeta/kmp/network/config/TimeoutPolicy;
+	public final fun component4 ()Ldev/abeta/kmp/network/config/RetryPolicy;
+	public final fun component5 ()Ldev/abeta/kmp/network/config/HttpProtocolMode;
+	public final fun component6 ()Ldev/abeta/kmp/network/config/CompressionPolicy;
+	public final fun component7 ()Ljava/util/Map;
+	public final fun component8 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;)Ldev/abeta/kmp/network/config/NetworkConfig;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/config/NetworkConfig;Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/network/config/NetworkConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBaseUrl ()Ljava/lang/String;
+	public final fun getCertificatePins ()Ljava/util/Map;
+	public final fun getCompression ()Ldev/abeta/kmp/network/config/CompressionPolicy;
+	public final fun getDefaultHeaders ()Ljava/util/Map;
+	public final fun getProtocolMode ()Ldev/abeta/kmp/network/config/HttpProtocolMode;
+	public final fun getRetry ()Ldev/abeta/kmp/network/config/RetryPolicy;
+	public final fun getTimeouts ()Ldev/abeta/kmp/network/config/TimeoutPolicy;
+	public fun hashCode ()I
+	public final fun isDebug ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/config/RetryPolicy {
+	public static final field Companion Ldev/abeta/kmp/network/config/RetryPolicy$Companion;
+	public static final field DEFAULT_INITIAL_DELAY_MS J
+	public static final field DEFAULT_MAX_DELAY_MS J
+	public static final field DEFAULT_MAX_RETRIES I
+	public fun <init> ()V
+	public fun <init> (IJJZZ)V
+	public synthetic fun <init> (IJJZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun copy (IJJZZ)Ldev/abeta/kmp/network/config/RetryPolicy;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/config/RetryPolicy;IJJZZILjava/lang/Object;)Ldev/abeta/kmp/network/config/RetryPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInitialDelayMillis ()J
+	public final fun getMaxDelayMillis ()J
+	public final fun getMaxRetries ()I
+	public final fun getRetryOnExceptions ()Z
+	public final fun getRetryOnServerErrors ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/config/RetryPolicy$Companion {
+}
+
+public final class dev/abeta/kmp/network/config/TimeoutPolicy {
+	public static final field Companion Ldev/abeta/kmp/network/config/TimeoutPolicy$Companion;
+	public static final field DEFAULT_CONNECT_TIMEOUT_MS J
+	public static final field DEFAULT_REQUEST_TIMEOUT_MS J
+	public static final field DEFAULT_SOCKET_TIMEOUT_MS J
+	public fun <init> ()V
+	public fun <init> (JJJ)V
+	public synthetic fun <init> (JJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun copy (JJJ)Ldev/abeta/kmp/network/config/TimeoutPolicy;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/config/TimeoutPolicy;JJJILjava/lang/Object;)Ldev/abeta/kmp/network/config/TimeoutPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConnectTimeoutMillis ()J
+	public final fun getRequestTimeoutMillis ()J
+	public final fun getSocketTimeoutMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/config/TimeoutPolicy$Companion {
+}
+
+public abstract interface class dev/abeta/kmp/network/ports/AuthTokenProvider {
+	public abstract fun accessToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/abeta/kmp/network/ports/HeaderProvider {
+	public abstract fun headers (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/network/ports/NetworkMetric {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()J
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JZLjava/lang/String;)Ldev/abeta/kmp/network/ports/NetworkMetric;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/ports/NetworkMetric;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JZLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/network/ports/NetworkMetric;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMillis ()J
+	public final fun getErrorType ()Ljava/lang/String;
+	public final fun getMethod ()Ljava/lang/String;
+	public final fun getStatusCode ()Ljava/lang/Integer;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isSuccess ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/network/ports/NetworkTelemetrySink {
+	public abstract fun onRequestComplete (Ldev/abeta/kmp/network/ports/NetworkMetric;)V
+}
+

@@ -1,0 +1,1212 @@
+public final class dev/abeta/kmp/core/coroutines/CustomDispatcherProvider : dev/abeta/kmp/core/coroutines/DispatcherProvider {
+	public static final field Companion Ldev/abeta/kmp/core/coroutines/CustomDispatcherProvider$Companion;
+	public fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public final fun component1 ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun component2 ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun component3 ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun copy (Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;)Ldev/abeta/kmp/core/coroutines/CustomDispatcherProvider;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/coroutines/CustomDispatcherProvider;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Ldev/abeta/kmp/core/coroutines/CustomDispatcherProvider;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getDefault ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getIo ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getMain ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/coroutines/CustomDispatcherProvider$Companion {
+	public final fun single (Lkotlinx/coroutines/CoroutineDispatcher;)Ldev/abeta/kmp/core/coroutines/DispatcherProvider;
+}
+
+public final class dev/abeta/kmp/core/coroutines/DefaultDispatcherProvider : dev/abeta/kmp/core/coroutines/DispatcherProvider {
+	public fun <init> ()V
+	public fun getDefault ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getIo ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getMain ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public abstract interface class dev/abeta/kmp/core/coroutines/DispatcherProvider {
+	public abstract fun getDefault ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public abstract fun getIo ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public abstract fun getMain ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public final class dev/abeta/kmp/core/coroutines/DispatcherProvider_jvmKt {
+	public static final fun getIoDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public abstract interface class dev/abeta/kmp/core/error/AppError {
+	public abstract fun getCause ()Ljava/lang/Throwable;
+	public abstract fun getCode ()Ljava/lang/String;
+	public abstract fun getMessage ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/AppErrorException : java/lang/RuntimeException {
+	public fun <init> (Ldev/abeta/kmp/core/error/AppError;)V
+	public final fun getAppError ()Ldev/abeta/kmp/core/error/AppError;
+}
+
+public final class dev/abeta/kmp/core/error/AppErrorKt {
+	public static final fun getCategory (Ldev/abeta/kmp/core/error/AppError;)Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final fun isRetryable (Ldev/abeta/kmp/core/error/AppError;)Z
+	public static final fun toException (Ldev/abeta/kmp/core/error/AppError;)Ldev/abeta/kmp/core/error/AppErrorException;
+}
+
+public final class dev/abeta/kmp/core/error/CancelledError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/CancelledError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/CancelledError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/CancelledError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/CancelledError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/CancelledError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/ConflictError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/ConflictError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/ConflictError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/ConflictError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/ConflictError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/ConflictError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/ErrorCategory : java/lang/Enum {
+	public static final field AUTH Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field CANCELLED Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field CONFLICT Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field NETWORK Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field NOT_FOUND Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field OFFLINE Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field RATE_LIMIT Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field SERIALIZATION Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field TIMEOUT Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field UNEXPECTED Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static final field VALIDATION Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/error/ErrorCategory;
+	public static fun values ()[Ldev/abeta/kmp/core/error/ErrorCategory;
+}
+
+public final class dev/abeta/kmp/core/error/ForbiddenError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/ForbiddenError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/ForbiddenError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/ForbiddenError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/ForbiddenError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/ForbiddenError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/NetworkError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/NetworkError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/NetworkError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/NetworkError;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/NetworkError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getStatusCode ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/NetworkError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/NotFoundError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/NotFoundError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/NotFoundError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/NotFoundError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/NotFoundError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/NotFoundError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/OfflineError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/OfflineError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/OfflineError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/OfflineError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/OfflineError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/OfflineError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/RateLimitError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/RateLimitError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Long;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/RateLimitError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/RateLimitError;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/RateLimitError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getRetryAfterMillis ()Ljava/lang/Long;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/RateLimitError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/SerializationError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/SerializationError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/SerializationError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/SerializationError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/SerializationError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/SerializationError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/TimeoutError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/TimeoutError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Long;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/TimeoutError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/TimeoutError;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/TimeoutError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getTimeoutMillis ()Ljava/lang/Long;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/TimeoutError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/UnauthorizedError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/UnauthorizedError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/UnauthorizedError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/UnauthorizedError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/UnauthorizedError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/UnauthorizedError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/UnexpectedError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/UnexpectedError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/UnexpectedError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/UnexpectedError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/UnexpectedError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/UnexpectedError$Companion {
+}
+
+public final class dev/abeta/kmp/core/error/ValidationError : dev/abeta/kmp/core/error/AppError {
+	public static final field Companion Ldev/abeta/kmp/core/error/ValidationError$Companion;
+	public static final field DEFAULT_CODE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/ValidationError;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/error/ValidationError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/ValidationError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Ljava/lang/String;
+	public final fun getField ()Ljava/lang/String;
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/error/ValidationError$Companion {
+}
+
+public final class dev/abeta/kmp/core/identity/RandomUuidGenerator : dev/abeta/kmp/core/identity/UuidGenerator {
+	public fun <init> ()V
+	public fun nextId ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/identity/SequentialUuidGenerator : dev/abeta/kmp/core/identity/UuidGenerator {
+	public static final field UUID_SUFFIX_WIDTH I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;J)V
+	public synthetic fun <init> (Ljava/lang/String;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun nextId ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/core/identity/UuidGenerator {
+	public abstract fun nextId ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/core/logging/AppLogger {
+	public fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun debug$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun error$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public fun info (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun info$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public abstract fun log (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun log$default (Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public fun verbose (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun verbose$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public fun warn (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun warn$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+}
+
+public final class dev/abeta/kmp/core/logging/AppLogger$DefaultImpls {
+	public static fun debug (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun debug$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static fun error (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun error$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static fun info (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun info$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static synthetic fun log$default (Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static fun verbose (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun verbose$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static fun warn (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun warn$default (Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+}
+
+public final class dev/abeta/kmp/core/logging/CompositeAppLogger : dev/abeta/kmp/core/logging/AppLogger {
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> ([Ldev/abeta/kmp/core/logging/AppLogger;)V
+	public fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun info (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun log (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun verbose (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun warn (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class dev/abeta/kmp/core/logging/KermitAppLogger : dev/abeta/kmp/core/logging/AppLogger {
+	public fun <init> ()V
+	public fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;Lco/touchlab/kermit/Logger;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;Lco/touchlab/kermit/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun info (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun log (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun verbose (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun warn (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class dev/abeta/kmp/core/logging/LogEntry {
+	public fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/abeta/kmp/core/logging/LogLevel;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Ldev/abeta/kmp/core/logging/LogEntry;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/logging/LogEntry;Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ldev/abeta/kmp/core/logging/LogEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLevel ()Ldev/abeta/kmp/core/logging/LogLevel;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getTag ()Ljava/lang/String;
+	public final fun getThrowable ()Ljava/lang/Throwable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/logging/LogLevel : java/lang/Enum {
+	public static final field DEBUG Ldev/abeta/kmp/core/logging/LogLevel;
+	public static final field ERROR Ldev/abeta/kmp/core/logging/LogLevel;
+	public static final field INFO Ldev/abeta/kmp/core/logging/LogLevel;
+	public static final field VERBOSE Ldev/abeta/kmp/core/logging/LogLevel;
+	public static final field WARN Ldev/abeta/kmp/core/logging/LogLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/logging/LogLevel;
+	public static fun values ()[Ldev/abeta/kmp/core/logging/LogLevel;
+}
+
+public final class dev/abeta/kmp/core/logging/NoOpAppLogger : dev/abeta/kmp/core/logging/AppLogger {
+	public fun <init> ()V
+	public fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun info (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun log (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun verbose (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun warn (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class dev/abeta/kmp/core/logging/RecordingAppLogger : dev/abeta/kmp/core/logging/AppLogger {
+	public fun <init> ()V
+	public fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clear ()V
+	public fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun getEntries ()Ljava/util/List;
+	public fun info (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun log (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun verbose (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun warn (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class dev/abeta/kmp/core/logging/RedactingAppLogger : dev/abeta/kmp/core/logging/AppLogger {
+	public fun <init> (Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/core/security/SensitiveDataRedactor;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/core/security/SensitiveDataRedactor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun info (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun log (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun verbose (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun warn (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/ClipboardPort {
+	public abstract fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/core/result/AppResult;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/ClipboardPort;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult;
+	public abstract fun readText ()Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/platform/ClipboardPort$DefaultImpls {
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/ClipboardPort;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/platform/ClipboardPort_jvmKt {
+	public static final fun createPlatformClipboardPort ()Ldev/abeta/kmp/core/platform/ClipboardPort;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/ConnectivityMonitor {
+	public abstract fun getStatus ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun isOnline ()Z
+	public fun refresh ()V
+	public fun start ()V
+	public fun stop ()V
+}
+
+public final class dev/abeta/kmp/core/platform/ConnectivityMonitor$DefaultImpls {
+	public static fun isOnline (Ldev/abeta/kmp/core/platform/ConnectivityMonitor;)Z
+	public static fun refresh (Ldev/abeta/kmp/core/platform/ConnectivityMonitor;)V
+	public static fun start (Ldev/abeta/kmp/core/platform/ConnectivityMonitor;)V
+	public static fun stop (Ldev/abeta/kmp/core/platform/ConnectivityMonitor;)V
+}
+
+public final class dev/abeta/kmp/core/platform/ConnectivityMonitor_jvmKt {
+	public static final fun createPlatformConnectivityMonitor ()Ldev/abeta/kmp/core/platform/ConnectivityMonitor;
+}
+
+public final class dev/abeta/kmp/core/platform/ConnectivityStatus : java/lang/Enum {
+	public static final field METERED Ldev/abeta/kmp/core/platform/ConnectivityStatus;
+	public static final field OFFLINE Ldev/abeta/kmp/core/platform/ConnectivityStatus;
+	public static final field ONLINE Ldev/abeta/kmp/core/platform/ConnectivityStatus;
+	public static final field UNKNOWN Ldev/abeta/kmp/core/platform/ConnectivityStatus;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/platform/ConnectivityStatus;
+	public static fun values ()[Ldev/abeta/kmp/core/platform/ConnectivityStatus;
+}
+
+public final class dev/abeta/kmp/core/platform/DeepLinkParser {
+	public static final field INSTANCE Ldev/abeta/kmp/core/platform/DeepLinkParser;
+	public final fun parse (Ljava/lang/String;)Ldev/abeta/kmp/core/platform/DeepLinkTarget;
+}
+
+public final class dev/abeta/kmp/core/platform/DeepLinkTarget {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/core/platform/DeepLinkTarget;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/DeepLinkTarget;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/core/platform/DeepLinkTarget;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHost ()Ljava/lang/String;
+	public final fun getParams ()Ljava/util/Map;
+	public final fun getRawUri ()Ljava/lang/String;
+	public final fun getScheme ()Ljava/lang/String;
+	public final fun getScreenId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/platform/DeviceCoordinates {
+	public fun <init> (DDLjava/lang/Float;Ljava/lang/Long;)V
+	public synthetic fun <init> (DDLjava/lang/Float;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun component3 ()Ljava/lang/Float;
+	public final fun component4 ()Ljava/lang/Long;
+	public final fun copy (DDLjava/lang/Float;Ljava/lang/Long;)Ldev/abeta/kmp/core/platform/DeviceCoordinates;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/DeviceCoordinates;DDLjava/lang/Float;Ljava/lang/Long;ILjava/lang/Object;)Ldev/abeta/kmp/core/platform/DeviceCoordinates;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccuracyMeters ()Ljava/lang/Float;
+	public final fun getCapturedAtEpochMillis ()Ljava/lang/Long;
+	public final fun getLatitude ()D
+	public final fun getLongitude ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/ExternalLauncherPort {
+	public abstract fun canOpenUrl (Ljava/lang/String;)Z
+	public abstract fun openUrl (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/ExternalLauncherPortKt {
+	public static final fun validateExternalUrl (Ljava/lang/String;Ljava/util/Set;)Ldev/abeta/kmp/core/result/AppResult;
+	public static synthetic fun validateExternalUrl$default (Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/FilePickerPort {
+	public abstract fun pickFiles (Ldev/abeta/kmp/core/platform/FilePickerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun pickFiles$default (Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/FilePickerRequest;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/FilePickerPort$DefaultImpls {
+	public static synthetic fun pickFiles$default (Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/FilePickerRequest;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/FilePickerRequest {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Z)V
+	public synthetic fun <init> (Ljava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/util/List;Z)Ldev/abeta/kmp/core/platform/FilePickerRequest;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/FilePickerRequest;Ljava/util/List;ZILjava/lang/Object;)Ldev/abeta/kmp/core/platform/FilePickerRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowMultiple ()Z
+	public final fun getMimeTypes ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/HapticEngine {
+	public abstract fun perform (Ldev/abeta/kmp/core/platform/HapticStyle;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/platform/HapticEngine_jvmKt {
+	public static final fun createPlatformHapticEngine ()Ldev/abeta/kmp/core/platform/HapticEngine;
+}
+
+public final class dev/abeta/kmp/core/platform/HapticStyle : java/lang/Enum {
+	public static final field CLICK Ldev/abeta/kmp/core/platform/HapticStyle;
+	public static final field ERROR Ldev/abeta/kmp/core/platform/HapticStyle;
+	public static final field HEAVY Ldev/abeta/kmp/core/platform/HapticStyle;
+	public static final field SUCCESS Ldev/abeta/kmp/core/platform/HapticStyle;
+	public static final field TICK Ldev/abeta/kmp/core/platform/HapticStyle;
+	public static final field WARNING Ldev/abeta/kmp/core/platform/HapticStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/platform/HapticStyle;
+	public static fun values ()[Ldev/abeta/kmp/core/platform/HapticStyle;
+}
+
+public final class dev/abeta/kmp/core/platform/InMemoryClipboardPort : dev/abeta/kmp/core/platform/ClipboardPort {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/core/result/AppResult;
+	public final fun getLastLabel ()Ljava/lang/String;
+	public fun readText ()Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/platform/LauncherAndShare_jvmKt {
+	public static final fun createPlatformExternalLauncher ()Ldev/abeta/kmp/core/platform/ExternalLauncherPort;
+	public static final fun createPlatformSharePort ()Ldev/abeta/kmp/core/platform/SharePort;
+}
+
+public final class dev/abeta/kmp/core/platform/LocaleFormatter_jvmKt {
+	public static final fun currentLocaleTag ()Ljava/lang/String;
+	public static final fun formatCurrencyCents (JLjava/lang/String;)Ljava/lang/String;
+	public static synthetic fun formatCurrencyCents$default (JLjava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/LocationPort {
+	public abstract fun currentLocation (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/MutableConnectivityMonitor : dev/abeta/kmp/core/platform/ConnectivityMonitor {
+	public fun <init> ()V
+	public fun <init> (Ldev/abeta/kmp/core/platform/ConnectivityStatus;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/platform/ConnectivityStatus;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getStatus ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun isOnline ()Z
+	public fun refresh ()V
+	public final fun setStatus (Ldev/abeta/kmp/core/platform/ConnectivityStatus;)V
+	public fun start ()V
+	public fun stop ()V
+}
+
+public final class dev/abeta/kmp/core/platform/NoOpHapticEngine : dev/abeta/kmp/core/platform/HapticEngine {
+	public static final field INSTANCE Ldev/abeta/kmp/core/platform/NoOpHapticEngine;
+	public fun perform (Ldev/abeta/kmp/core/platform/HapticStyle;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/platform/OsPermission : java/lang/Enum {
+	public static final field CAMERA Ldev/abeta/kmp/core/platform/OsPermission;
+	public static final field LOCATION Ldev/abeta/kmp/core/platform/OsPermission;
+	public static final field NOTIFICATIONS Ldev/abeta/kmp/core/platform/OsPermission;
+	public static final field STORAGE Ldev/abeta/kmp/core/platform/OsPermission;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/platform/OsPermission;
+	public static fun values ()[Ldev/abeta/kmp/core/platform/OsPermission;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/PermissionPort {
+	public abstract fun checkStatus (Ldev/abeta/kmp/core/platform/OsPermission;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun request (Ldev/abeta/kmp/core/platform/OsPermission;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun request$default (Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/OsPermission;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/PermissionPort$DefaultImpls {
+	public static synthetic fun request$default (Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/OsPermission;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/PermissionStatus : java/lang/Enum {
+	public static final field DENIED Ldev/abeta/kmp/core/platform/PermissionStatus;
+	public static final field GRANTED Ldev/abeta/kmp/core/platform/PermissionStatus;
+	public static final field PERMANENTLY_DENIED Ldev/abeta/kmp/core/platform/PermissionStatus;
+	public static final field UNSUPPORTED Ldev/abeta/kmp/core/platform/PermissionStatus;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/platform/PermissionStatus;
+	public static fun values ()[Ldev/abeta/kmp/core/platform/PermissionStatus;
+}
+
+public final class dev/abeta/kmp/core/platform/PickedFile {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;[BLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;[BLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun component4 ()[B
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;[BLjava/lang/String;)Ldev/abeta/kmp/core/platform/PickedFile;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/PickedFile;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;[BLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/platform/PickedFile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBytes ()[B
+	public final fun getMimeType ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSizeBytes ()Ljava/lang/Long;
+	public final fun getUriString ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/platform/PlatformCapabilities {
+	public fun <init> (Ldev/abeta/kmp/core/platform/PlatformInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZZZZZ)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/platform/PlatformInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/abeta/kmp/core/platform/PlatformInfo;
+	public final fun component10 ()Z
+	public final fun component11 ()Z
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun component7 ()Z
+	public final fun component8 ()Z
+	public final fun component9 ()Z
+	public final fun copy (Ldev/abeta/kmp/core/platform/PlatformInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZZZZZ)Ldev/abeta/kmp/core/platform/PlatformCapabilities;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/PlatformInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZZZZZILjava/lang/Object;)Ldev/abeta/kmp/core/platform/PlatformCapabilities;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLocaleTag ()Ljava/lang/String;
+	public final fun getOsVersion ()Ljava/lang/String;
+	public final fun getPlatform ()Ldev/abeta/kmp/core/platform/PlatformInfo;
+	public final fun getSupportsBiometrics ()Z
+	public final fun getSupportsClipboard ()Z
+	public final fun getSupportsExternalUrl ()Z
+	public final fun getSupportsHaptics ()Z
+	public final fun getSupportsShareSheet ()Z
+	public final fun getTimezoneId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isDarkModePreferred ()Z
+	public final fun isReducedMotionPreferred ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/platform/PlatformCapabilities_jvmKt {
+	public static final fun currentPlatformCapabilities ()Ldev/abeta/kmp/core/platform/PlatformCapabilities;
+}
+
+public final class dev/abeta/kmp/core/platform/PlatformInfo {
+	public fun <init> (Ldev/abeta/kmp/core/platform/PlatformKind;Ljava/lang/String;)V
+	public final fun component1 ()Ldev/abeta/kmp/core/platform/PlatformKind;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ldev/abeta/kmp/core/platform/PlatformKind;Ljava/lang/String;)Ldev/abeta/kmp/core/platform/PlatformInfo;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/PlatformInfo;Ldev/abeta/kmp/core/platform/PlatformKind;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/platform/PlatformInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKind ()Ldev/abeta/kmp/core/platform/PlatformKind;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isApple ()Z
+	public final fun isDesktop ()Z
+	public final fun isMobile ()Z
+	public final fun isWatch ()Z
+	public final fun isWeb ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/platform/PlatformInfo_jvmKt {
+	public static final fun currentPlatformInfo ()Ldev/abeta/kmp/core/platform/PlatformInfo;
+}
+
+public final class dev/abeta/kmp/core/platform/PlatformKind : java/lang/Enum {
+	public static final field ANDROID Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field IOS Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field JVM_DESKTOP Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field LINUX_NATIVE Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field MACOS Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field WASM_WEB Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field WATCHOS Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field WEAR_OS Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static final field WINDOWS_NATIVE Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/platform/PlatformKind;
+	public static fun values ()[Ldev/abeta/kmp/core/platform/PlatformKind;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/PushNotificationPort {
+	public abstract fun currentToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun registerForPush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/RecordingExternalLauncherPort : dev/abeta/kmp/core/platform/ExternalLauncherPort {
+	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun canOpenUrl (Ljava/lang/String;)Z
+	public final fun getOpenedUrls ()Ljava/util/List;
+	public fun openUrl (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/RecordingHapticEngine : dev/abeta/kmp/core/platform/HapticEngine {
+	public fun <init> ()V
+	public final fun clear ()V
+	public final fun getPerformed ()Ljava/util/List;
+	public fun perform (Ldev/abeta/kmp/core/platform/HapticStyle;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/platform/RecordingSharePort : dev/abeta/kmp/core/platform/SharePort {
+	public fun <init> ()V
+	public final fun getRequests ()Ljava/util/List;
+	public fun share (Ldev/abeta/kmp/core/platform/ShareRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/abeta/kmp/core/platform/SharePort {
+	public abstract fun share (Ldev/abeta/kmp/core/platform/ShareRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/ShareRequest {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/core/platform/ShareRequest;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/platform/ShareRequest;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/platform/ShareRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun formatCombinedText ()Ljava/lang/String;
+	public final fun getChooserTitle ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/platform/UnavailableFilePickerPort : dev/abeta/kmp/core/platform/FilePickerPort {
+	public static final field INSTANCE Ldev/abeta/kmp/core/platform/UnavailableFilePickerPort;
+	public fun pickFiles (Ldev/abeta/kmp/core/platform/FilePickerRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/UnavailableLocationPort : dev/abeta/kmp/core/platform/LocationPort {
+	public static final field INSTANCE Ldev/abeta/kmp/core/platform/UnavailableLocationPort;
+	public fun currentLocation (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/UnavailablePushNotificationPort : dev/abeta/kmp/core/platform/PushNotificationPort {
+	public static final field INSTANCE Ldev/abeta/kmp/core/platform/UnavailablePushNotificationPort;
+	public fun currentToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun registerForPush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/UnsupportedPermissionPort : dev/abeta/kmp/core/platform/PermissionPort {
+	public static final field INSTANCE Ldev/abeta/kmp/core/platform/UnsupportedPermissionPort;
+	public fun checkStatus (Ldev/abeta/kmp/core/platform/OsPermission;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun request (Ldev/abeta/kmp/core/platform/OsPermission;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/resilience/BackoffPolicy {
+	public static final field Companion Ldev/abeta/kmp/core/resilience/BackoffPolicy$Companion;
+	public static final field DEFAULT_INITIAL_DELAY_MILLIS J
+	public static final field DEFAULT_MAX_DELAY_MILLIS J
+	public static final field DEFAULT_MAX_RETRIES I
+	public static final field DEFAULT_MULTIPLIER D
+	public fun <init> ()V
+	public fun <init> (IJJD)V
+	public synthetic fun <init> (IJJDILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()D
+	public final fun copy (IJJD)Ldev/abeta/kmp/core/resilience/BackoffPolicy;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/resilience/BackoffPolicy;IJJDILjava/lang/Object;)Ldev/abeta/kmp/core/resilience/BackoffPolicy;
+	public final fun delayMillisForAttempt (ID)J
+	public static synthetic fun delayMillisForAttempt$default (Ldev/abeta/kmp/core/resilience/BackoffPolicy;IDILjava/lang/Object;)J
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInitialDelayMillis ()J
+	public final fun getMaxDelayMillis ()J
+	public final fun getMaxRetries ()I
+	public final fun getMultiplier ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/resilience/BackoffPolicy$Companion {
+}
+
+public final class dev/abeta/kmp/core/resilience/ClickBackpressureGuard {
+	public static final field Companion Ldev/abeta/kmp/core/resilience/ClickBackpressureGuard$Companion;
+	public static final field DEFAULT_COOLDOWN_MILLIS J
+	public fun <init> ()V
+	public fun <init> (JLdev/abeta/kmp/core/time/Clock;)V
+	public synthetic fun <init> (JLdev/abeta/kmp/core/time/Clock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun reset ()V
+	public final fun tryAcquire ()Z
+}
+
+public final class dev/abeta/kmp/core/resilience/ClickBackpressureGuard$Companion {
+}
+
+public final class dev/abeta/kmp/core/resilience/Debouncer {
+	public static final field Companion Ldev/abeta/kmp/core/resilience/Debouncer$Companion;
+	public static final field DEFAULT_DEBOUNCE_MILLIS J
+	public fun <init> (Lkotlinx/coroutines/CoroutineScope;J)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun cancel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun submit (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/resilience/Debouncer$Companion {
+}
+
+public final class dev/abeta/kmp/core/resilience/SingleFlight {
+	public fun <init> ()V
+	public final fun execute (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/abeta/kmp/core/result/AppResult {
+}
+
+public final class dev/abeta/kmp/core/result/AppResult$Failure : dev/abeta/kmp/core/result/AppResult {
+	public fun <init> (Ldev/abeta/kmp/core/error/AppError;)V
+	public final fun component1 ()Ldev/abeta/kmp/core/error/AppError;
+	public final fun copy (Ldev/abeta/kmp/core/error/AppError;)Ldev/abeta/kmp/core/result/AppResult$Failure;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/result/AppResult$Failure;Ldev/abeta/kmp/core/error/AppError;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Ldev/abeta/kmp/core/error/AppError;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/result/AppResult$Success : dev/abeta/kmp/core/result/AppResult {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult$Success;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/result/AppResult$Success;Ljava/lang/Object;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/result/AppResultExtensionsKt {
+	public static final fun combineResults (Ljava/util/List;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun getOrDefault (Ldev/abeta/kmp/core/result/AppResult;Ljava/lang/Object;)Ljava/lang/Object;
+	public static final fun getOrElse (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun recover (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun recoverCatching (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static synthetic fun recoverCatching$default (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun retryResult (Ldev/abeta/kmp/core/resilience/BackoffPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun retryResult$default (Ldev/abeta/kmp/core/resilience/BackoffPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun toAppResult (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static synthetic fun toAppResult$default (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun toKotlinResult (Ldev/abeta/kmp/core/result/AppResult;)Ljava/lang/Object;
+	public static final fun zip (Ldev/abeta/kmp/core/result/AppResult;Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function2;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/result/AppResultKt {
+	public static final fun defaultThrowableToAppError (Ljava/lang/Throwable;)Ldev/abeta/kmp/core/error/AppError;
+	public static final fun errorOrNull (Ldev/abeta/kmp/core/result/AppResult;)Ldev/abeta/kmp/core/error/AppError;
+	public static final fun flatMap (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun fold (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun getOrNull (Ldev/abeta/kmp/core/result/AppResult;)Ljava/lang/Object;
+	public static final fun map (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun mapError (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun onFailure (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun onSuccess (Ldev/abeta/kmp/core/result/AppResult;Lkotlin/jvm/functions/Function1;)Ldev/abeta/kmp/core/result/AppResult;
+	public static final fun runCatchingResult (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Ldev/abeta/kmp/core/result/AppResult;
+	public static synthetic fun runCatchingResult$default (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/core/security/BiometricAuth_jvmKt {
+	public static final fun createPlatformBiometricAuthenticator ()Ldev/abeta/kmp/core/security/BiometricAuthenticator;
+}
+
+public abstract interface class dev/abeta/kmp/core/security/BiometricAuthenticator {
+	public abstract fun authenticate (Ldev/abeta/kmp/core/security/BiometricPromptRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun availability ()Ldev/abeta/kmp/core/security/BiometricAvailability;
+}
+
+public final class dev/abeta/kmp/core/security/BiometricAvailability : java/lang/Enum {
+	public static final field AVAILABLE Ldev/abeta/kmp/core/security/BiometricAvailability;
+	public static final field NOT_ENROLLED Ldev/abeta/kmp/core/security/BiometricAvailability;
+	public static final field UNAVAILABLE Ldev/abeta/kmp/core/security/BiometricAvailability;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/security/BiometricAvailability;
+	public static fun values ()[Ldev/abeta/kmp/core/security/BiometricAvailability;
+}
+
+public final class dev/abeta/kmp/core/security/BiometricPromptRequest {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Z)Ldev/abeta/kmp/core/security/BiometricPromptRequest;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/security/BiometricPromptRequest;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Ldev/abeta/kmp/core/security/BiometricPromptRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowDeviceCredential ()Z
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/core/security/BiometricResult {
+}
+
+public final class dev/abeta/kmp/core/security/BiometricResult$Authenticated : dev/abeta/kmp/core/security/BiometricResult {
+	public static final field INSTANCE Ldev/abeta/kmp/core/security/BiometricResult$Authenticated;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/security/BiometricResult$Cancelled : dev/abeta/kmp/core/security/BiometricResult {
+	public static final field INSTANCE Ldev/abeta/kmp/core/security/BiometricResult$Cancelled;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/security/BiometricResult$Failed : dev/abeta/kmp/core/security/BiometricResult {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/abeta/kmp/core/security/BiometricResult$Failed;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/security/BiometricResult$Failed;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/security/BiometricResult$Failed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/security/BiometricResult$Unavailable : dev/abeta/kmp/core/security/BiometricResult {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/abeta/kmp/core/security/BiometricResult$Unavailable;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/security/BiometricResult$Unavailable;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/security/BiometricResult$Unavailable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/security/FakeBiometricAuthenticator : dev/abeta/kmp/core/security/BiometricAuthenticator {
+	public fun <init> ()V
+	public fun <init> (Ldev/abeta/kmp/core/security/BiometricAvailability;Ldev/abeta/kmp/core/security/BiometricResult;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/security/BiometricAvailability;Ldev/abeta/kmp/core/security/BiometricResult;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun authenticate (Ldev/abeta/kmp/core/security/BiometricPromptRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun availability ()Ldev/abeta/kmp/core/security/BiometricAvailability;
+	public final fun getRequests ()Ljava/util/List;
+}
+
+public final class dev/abeta/kmp/core/security/InMemorySecureKeyValueStore : dev/abeta/kmp/core/security/SecureKeyValueStore {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun contains (Ljava/lang/String;)Z
+	public fun getStorageBackend ()Ljava/lang/String;
+	public fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public fun isHardwareOrOsEncrypted ()Z
+	public fun keys ()Ljava/util/Set;
+	public final fun observeKey (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)V
+}
+
+public final class dev/abeta/kmp/core/security/MaskingOptions {
+	public static final field Companion Ldev/abeta/kmp/core/security/MaskingOptions$Companion;
+	public static final field DEFAULT_MASK_PATTERN Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (ZLjava/lang/String;ILdev/abeta/kmp/core/security/SensitiveCategory;)V
+	public synthetic fun <init> (ZLjava/lang/String;ILdev/abeta/kmp/core/security/SensitiveCategory;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()I
+	public final fun component4 ()Ldev/abeta/kmp/core/security/SensitiveCategory;
+	public final fun copy (ZLjava/lang/String;ILdev/abeta/kmp/core/security/SensitiveCategory;)Ldev/abeta/kmp/core/security/MaskingOptions;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/core/security/MaskingOptions;ZLjava/lang/String;ILdev/abeta/kmp/core/security/SensitiveCategory;ILjava/lang/Object;)Ldev/abeta/kmp/core/security/MaskingOptions;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCategory ()Ldev/abeta/kmp/core/security/SensitiveCategory;
+	public final fun getMaskPattern ()Ljava/lang/String;
+	public final fun getVisibleSuffixLength ()I
+	public fun hashCode ()I
+	public final fun isMasked ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/security/MaskingOptions$Companion {
+}
+
+public abstract interface class dev/abeta/kmp/core/security/SecureKeyValueStore : dev/abeta/kmp/core/storage/KeyValueStore {
+	public abstract fun getStorageBackend ()Ljava/lang/String;
+	public abstract fun isHardwareOrOsEncrypted ()Z
+}
+
+public final class dev/abeta/kmp/core/security/SecureStorage_jvmKt {
+	public static final fun createSecureKeyValueStore (Ljava/lang/String;)Ldev/abeta/kmp/core/security/SecureKeyValueStore;
+	public static synthetic fun createSecureKeyValueStore$default (Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/security/SecureKeyValueStore;
+}
+
+public final class dev/abeta/kmp/core/security/SensitiveCategory : java/lang/Enum {
+	public static final field CONTRACT Ldev/abeta/kmp/core/security/SensitiveCategory;
+	public static final field CREDENTIAL Ldev/abeta/kmp/core/security/SensitiveCategory;
+	public static final field FINANCIAL Ldev/abeta/kmp/core/security/SensitiveCategory;
+	public static final field PII Ldev/abeta/kmp/core/security/SensitiveCategory;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/core/security/SensitiveCategory;
+	public static fun values ()[Ldev/abeta/kmp/core/security/SensitiveCategory;
+}
+
+public final class dev/abeta/kmp/core/security/SensitiveDataRedactor {
+	public static final field Companion Ldev/abeta/kmp/core/security/SensitiveDataRedactor$Companion;
+	public static final field DEFAULT_REDACTED_TOKEN Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun isSensitiveKey (Ljava/lang/String;)Z
+	public final fun redactMap (Ljava/util/Map;)Ljava/util/Map;
+	public final fun redactText (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/security/SensitiveDataRedactor$Companion {
+	public final fun getDEFAULT_SENSITIVE_KEYS ()Ljava/util/Set;
+	public final fun getDefault ()Ldev/abeta/kmp/core/security/SensitiveDataRedactor;
+	public final fun maskValue (Ljava/lang/String;Ldev/abeta/kmp/core/security/MaskingOptions;)Ljava/lang/String;
+	public static synthetic fun maskValue$default (Ldev/abeta/kmp/core/security/SensitiveDataRedactor$Companion;Ljava/lang/String;Ldev/abeta/kmp/core/security/MaskingOptions;ILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/storage/InMemoryKeyValueStore : dev/abeta/kmp/core/storage/ObservableKeyValueStore {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun contains (Ljava/lang/String;)Z
+	public fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public fun keys ()Ljava/util/Set;
+	public fun observeKey (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)V
+}
+
+public abstract interface class dev/abeta/kmp/core/storage/KeyValueStore {
+	public abstract fun clear ()V
+	public abstract fun contains (Ljava/lang/String;)Z
+	public abstract fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun keys ()Ljava/util/Set;
+	public abstract fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun remove (Ljava/lang/String;)V
+}
+
+public final class dev/abeta/kmp/core/storage/KeyValueStoreKt {
+	public static final fun putAll (Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/util/Map;)V
+	public static final fun snapshot (Ldev/abeta/kmp/core/storage/KeyValueStore;)Ljava/util/Map;
+}
+
+public final class dev/abeta/kmp/core/storage/NamespacedKeyValueStore : dev/abeta/kmp/core/storage/ObservableKeyValueStore {
+	public fun <init> (Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/lang/String;)V
+	public fun clear ()V
+	public fun contains (Ljava/lang/String;)Z
+	public fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public fun keys ()Ljava/util/Set;
+	public fun observeKey (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)V
+}
+
+public abstract interface class dev/abeta/kmp/core/storage/ObservableKeyValueStore : dev/abeta/kmp/core/storage/KeyValueStore {
+	public abstract fun observeKey (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract interface class dev/abeta/kmp/core/time/Clock {
+	public abstract fun nowEpochMillis ()J
+}
+
+public final class dev/abeta/kmp/core/time/ClockKt {
+	public static final fun measureTimed (Ldev/abeta/kmp/core/time/Clock;Lkotlin/jvm/functions/Function0;)Lkotlin/Pair;
+	public static final fun nowInstant (Ldev/abeta/kmp/core/time/Clock;)Lkotlin/time/Instant;
+	public static final fun nowIsoUtc (Ldev/abeta/kmp/core/time/Clock;)Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/core/time/ElapsedTimer {
+	public fun <init> ()V
+	public fun <init> (Ldev/abeta/kmp/core/time/Clock;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/time/Clock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun elapsedMillis ()J
+	public final fun reset ()V
+}
+
+public final class dev/abeta/kmp/core/time/MutableClock : dev/abeta/kmp/core/time/Clock {
+	public fun <init> ()V
+	public fun <init> (J)V
+	public synthetic fun <init> (JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun advanceByMillis (J)V
+	public fun nowEpochMillis ()J
+	public final fun setEpochMillis (J)V
+}
+
+public final class dev/abeta/kmp/core/time/SystemClock : dev/abeta/kmp/core/time/Clock {
+	public fun <init> ()V
+	public fun nowEpochMillis ()J
+}
+
+public final class dev/abeta/kmp/core/validation/FieldValidators {
+	public static final field INSTANCE Ldev/abeta/kmp/core/validation/FieldValidators;
+	public final fun getE164_PHONE_REGEX ()Lkotlin/text/Regex;
+	public final fun getEMAIL_REGEX ()Lkotlin/text/Regex;
+	public final fun getHTTP_URL_REGEX ()Lkotlin/text/Regex;
+	public final fun isValidEmail (Ljava/lang/String;)Z
+	public final fun isValidPhone (Ljava/lang/String;)Z
+	public final fun isValidUrl (Ljava/lang/String;)Z
+	public final fun validateEmail (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/core/error/ValidationError;
+	public static synthetic fun validateEmail$default (Ldev/abeta/kmp/core/validation/FieldValidators;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/ValidationError;
+	public final fun validateLength (Ljava/lang/String;Ljava/lang/String;II)Ldev/abeta/kmp/core/error/ValidationError;
+	public static synthetic fun validateLength$default (Ldev/abeta/kmp/core/validation/FieldValidators;Ljava/lang/String;Ljava/lang/String;IIILjava/lang/Object;)Ldev/abeta/kmp/core/error/ValidationError;
+	public final fun validatePhone (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/core/error/ValidationError;
+	public static synthetic fun validatePhone$default (Ldev/abeta/kmp/core/validation/FieldValidators;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/ValidationError;
+	public final fun validateRequired (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/core/error/ValidationError;
+	public static synthetic fun validateRequired$default (Ldev/abeta/kmp/core/validation/FieldValidators;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/error/ValidationError;
+}
+

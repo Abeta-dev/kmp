@@ -1,0 +1,15 @@
+---
+description: Go 1.26.0 Clean Architecture SDUI BFF, wire parity, golden fixtures & OpenAPI rules
+globs:
+  - "bff/**/*.go"
+  - "bff/testdata/**"
+alwaysApply: false
+---
+
+# Go 1.26.0 SDUI BFF Rules
+
+- Consult `skills/abeta-kmp-bff/SKILL.md` and `agents/owners/bff-owner.md`.
+- Maintain strict Clean Architecture (`internal/handler -> internal/usecase -> internal/domain <- internal/infra`; `domain` has zero Gin/`net/http` imports).
+- Keep 1:1 wire parity with `kmp/sdui-contracts` and `kmp/action-engine` (`15` atoms, `14` snippets, `18` actions) and keep all 5 golden fixtures in `bff/testdata/golden/` passing.
+- Keep screen builders separated per screen (`bff/internal/infra/screen_<name>.go`) and snippet builders partitioned by domain in `bff/pkg/sdui/snippets/`.
+- Run `(cd bff && test -z "$(gofmt -l .)" && go vet ./... && go test -count=1 -race -cover ./...)`.

@@ -1,0 +1,1034 @@
+public final class dev/abeta/kmp/actions/codec/ActionDecoderRegistry {
+	public static final field Companion Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Companion;
+	public synthetic fun <init> (Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun decode (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)Ldev/abeta/kmp/core/result/AppResult;
+	public final fun decoderFor (Ljava/lang/String;)Ldev/abeta/kmp/actions/codec/ActionPayloadDecoder;
+	public final fun registeredTypes ()Ljava/util/Set;
+	public final fun toBuilder ()Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder;
+}
+
+public final class dev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder {
+	public fun <init> ()V
+	public final fun build ()Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;
+	public final fun register (Ljava/lang/String;Ldev/abeta/kmp/actions/codec/ActionPayloadDecoder;)Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder;
+}
+
+public final class dev/abeta/kmp/actions/codec/ActionDecoderRegistry$Companion {
+	public final fun builder ()Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder;
+}
+
+public abstract interface class dev/abeta/kmp/actions/codec/ActionPayloadDecoder {
+	public abstract fun decode (Lkotlinx/serialization/json/JsonObject;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/actions/codec/BuiltInActionDecoders {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/codec/BuiltInActionDecoders;
+	public final fun createDefaultRegistry (Lkotlinx/serialization/json/Json;)Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;
+	public static synthetic fun createDefaultRegistry$default (Ldev/abeta/kmp/actions/codec/BuiltInActionDecoders;Lkotlinx/serialization/json/Json;ILjava/lang/Object;)Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;
+	public final fun registerDefaults (Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder;Lkotlinx/serialization/json/Json;)Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder;
+	public static synthetic fun registerDefaults$default (Ldev/abeta/kmp/actions/codec/BuiltInActionDecoders;Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder;Lkotlinx/serialization/json/Json;ILjava/lang/Object;)Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry$Builder;
+}
+
+public abstract interface class dev/abeta/kmp/actions/handler/ActionDispatcher {
+	public abstract fun dispatch (Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun dispatch$default (Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionDispatcher$DefaultImpls {
+	public static synthetic fun dispatch$default (Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/abeta/kmp/actions/handler/ActionHandler {
+	public abstract fun handle (Ldev/abeta/kmp/actions/model/ActionPayload;Ldev/abeta/kmp/actions/model/ActionContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/abeta/kmp/actions/handler/ActionOutcome {
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$ApiCallResult : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/Integer;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/Integer;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/Integer;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/List;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ApiCallResult;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$ApiCallResult;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/Integer;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ApiCallResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEndpoint ()Ljava/lang/String;
+	public final fun getErrorMessage ()Ljava/lang/String;
+	public final fun getFollowUpActions ()Ljava/util/List;
+	public final fun getMethod ()Ljava/lang/String;
+	public final fun getResponseBody ()Lkotlinx/serialization/json/JsonElement;
+	public final fun getStatusCode ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public final fun isSuccess ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$BackRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;I)V
+	public synthetic fun <init> (Ljava/util/Map;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()I
+	public final fun copy (Ljava/util/Map;I)Ldev/abeta/kmp/actions/handler/ActionOutcome$BackRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$BackRequested;Ljava/util/Map;IILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$BackRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResult ()Ljava/util/Map;
+	public final fun getSteps ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$BiometricAuthRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/actions/handler/ActionOutcome$BiometricAuthRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$BiometricAuthRequested;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$BiometricAuthRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowDeviceCredential ()Z
+	public final fun getOnAuthenticated ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnFailed ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$ClipboardCopyRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ClipboardCopyRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$ClipboardCopyRequested;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ClipboardCopyRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/abeta/kmp/contracts/FeedbackEffect;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()J
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)Ldev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMs ()J
+	public final fun getEffect ()Ldev/abeta/kmp/contracts/FeedbackEffect;
+	public final fun getSubtitle ()Ljava/lang/String;
+	public final fun getTargetId ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$Handled : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/handler/ActionOutcome$Handled;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$NavigationRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;)Ldev/abeta/kmp/actions/handler/ActionOutcome$NavigationRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$NavigationRequested;Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$NavigationRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClearBackStack ()Z
+	public final fun getLaunchMode ()Ljava/lang/String;
+	public final fun getParams ()Ljava/util/Map;
+	public final fun getRoute ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$OpenUrlRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;ZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ZLjava/lang/String;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OpenUrlRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$OpenUrlRequested;Ljava/lang/String;ZLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OpenUrlRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExternalBrowser ()Z
+	public final fun getFallbackRoute ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$OverlayDismissed : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayDismissed;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayDismissed;Ljava/lang/String;ZILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayDismissed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAll ()Z
+	public final fun getOverlayId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component7 ()Ldev/abeta/kmp/contracts/OverlayPresentation;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDialogId ()Ljava/lang/String;
+	public final fun getDismissible ()Z
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getNegativeAction ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPositiveAction ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPresentation ()Ldev/abeta/kmp/contracts/OverlayPresentation;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$PermissionRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/abeta/kmp/contracts/OsPermissionKind;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/actions/handler/ActionOutcome$PermissionRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$PermissionRequested;Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$PermissionRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOnDenied ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnGranted ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPermission ()Ldev/abeta/kmp/contracts/OsPermissionKind;
+	public final fun getRationale ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$RefreshRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Ldev/abeta/kmp/actions/handler/ActionOutcome$RefreshRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$RefreshRequested;Ljava/lang/String;ZILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$RefreshRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPageId ()Ljava/lang/String;
+	public final fun getShowLoader ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$ShareRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ShareRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$ShareRequested;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ShareRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChooserTitle ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$SnippetsUpdated : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Ldev/abeta/kmp/actions/handler/ActionOutcome$SnippetsUpdated;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$SnippetsUpdated;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$SnippetsUpdated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOperation ()Ljava/lang/String;
+	public final fun getSnippets ()Ljava/util/List;
+	public final fun getTargetSnippetId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$StateMutated : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)Ldev/abeta/kmp/actions/handler/ActionOutcome$StateMutated;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$StateMutated;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$StateMutated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeletedKeys ()Ljava/util/List;
+	public final fun getSavedEntries ()Ljava/util/Map;
+	public final fun getScope ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;JLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;JLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;JLjava/lang/String;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/lang/String;JLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMs ()J
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getVariant ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionOutcome$TrackingRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/actions/handler/ActionOutcome$TrackingRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$TrackingRequested;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$TrackingRequested;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEventName ()Ljava/lang/String;
+	public final fun getProperties ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionRegistry {
+	public static final field Companion Ldev/abeta/kmp/actions/handler/ActionRegistry$Companion;
+	public synthetic fun <init> (Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun handlerFor (Lkotlin/reflect/KClass;)Ldev/abeta/kmp/actions/handler/ActionHandler;
+	public final fun registeredPayloads ()Ljava/util/Set;
+	public final fun toBuilder ()Ldev/abeta/kmp/actions/handler/ActionRegistry$Builder;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionRegistry$Builder {
+	public fun <init> ()V
+	public final fun build ()Ldev/abeta/kmp/actions/handler/ActionRegistry;
+	public final fun register (Lkotlin/reflect/KClass;Ldev/abeta/kmp/actions/handler/ActionHandler;)Ldev/abeta/kmp/actions/handler/ActionRegistry$Builder;
+}
+
+public final class dev/abeta/kmp/actions/handler/ActionRegistry$Companion {
+	public final fun builder ()Ldev/abeta/kmp/actions/handler/ActionRegistry$Builder;
+}
+
+public abstract interface class dev/abeta/kmp/actions/handler/ApiCallExecutor {
+	public abstract fun execute (Ldev/abeta/kmp/actions/model/CallApiPayload;Ldev/abeta/kmp/actions/model/ActionContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/actions/handler/BuiltInActionHandlers {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/handler/BuiltInActionHandlers;
+	public final fun createDefaultRegistry (Ldev/abeta/kmp/actions/handler/ApiCallExecutor;)Ldev/abeta/kmp/actions/handler/ActionRegistry;
+	public static synthetic fun createDefaultRegistry$default (Ldev/abeta/kmp/actions/handler/BuiltInActionHandlers;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionRegistry;
+	public final fun registerDefaults (Ldev/abeta/kmp/actions/handler/ActionRegistry$Builder;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;)Ldev/abeta/kmp/actions/handler/ActionRegistry$Builder;
+	public static synthetic fun registerDefaults$default (Ldev/abeta/kmp/actions/handler/BuiltInActionHandlers;Ldev/abeta/kmp/actions/handler/ActionRegistry$Builder;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionRegistry$Builder;
+}
+
+public final class dev/abeta/kmp/actions/handler/DefaultActionDispatcher : dev/abeta/kmp/actions/handler/ActionDispatcher {
+	public static final field Companion Ldev/abeta/kmp/actions/handler/DefaultActionDispatcher$Companion;
+	public static final field DEFAULT_MAX_DEPTH I
+	public fun <init> (Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;Ldev/abeta/kmp/actions/handler/ActionRegistry;Ldev/abeta/kmp/actions/validation/ActionValidator;I)V
+	public synthetic fun <init> (Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;Ldev/abeta/kmp/actions/handler/ActionRegistry;Ldev/abeta/kmp/actions/validation/ActionValidator;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun dispatch (Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/actions/handler/DefaultActionDispatcher$Companion {
+}
+
+public final class dev/abeta/kmp/actions/model/ActionContext {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;Ljava/util/Map;)Ldev/abeta/kmp/actions/model/ActionContext;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/ActionContext;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/ActionContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMetadata ()Ljava/util/Map;
+	public final fun getSessionState ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/abeta/kmp/actions/model/ActionPayload {
+}
+
+public final class dev/abeta/kmp/actions/model/ActionTypes {
+	public static final field BACK_PRESS Ljava/lang/String;
+	public static final field BATCH Ljava/lang/String;
+	public static final field BIOMETRIC_AUTH Ljava/lang/String;
+	public static final field CALL_API Ljava/lang/String;
+	public static final field COPY_TO_CLIPBOARD Ljava/lang/String;
+	public static final field DELETE_STATE Ljava/lang/String;
+	public static final field DISMISS_OVERLAY Ljava/lang/String;
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/ActionTypes;
+	public static final field NAVIGATE Ljava/lang/String;
+	public static final field OPEN_DIALOG Ljava/lang/String;
+	public static final field OPEN_URL Ljava/lang/String;
+	public static final field REFRESH_PAGE Ljava/lang/String;
+	public static final field REQUEST_PERMISSION Ljava/lang/String;
+	public static final field SAVE_STATE Ljava/lang/String;
+	public static final field SHARE Ljava/lang/String;
+	public static final field SHOW_TOAST Ljava/lang/String;
+	public static final field TRACK_EVENT Ljava/lang/String;
+	public static final field TRIGGER_FEEDBACK Ljava/lang/String;
+	public static final field UPDATE_SNIPPETS Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/actions/model/BackPressPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/BackPressPayload$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;I)V
+	public synthetic fun <init> (Ljava/util/Map;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()I
+	public final fun copy (Ljava/util/Map;I)Ldev/abeta/kmp/actions/model/BackPressPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/BackPressPayload;Ljava/util/Map;IILjava/lang/Object;)Ldev/abeta/kmp/actions/model/BackPressPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResult ()Ljava/util/Map;
+	public final fun getSteps ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/BackPressPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/BackPressPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/BackPressPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/BackPressPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/BackPressPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/BatchPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/BatchPayload$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;ZZ)V
+	public synthetic fun <init> (Ljava/util/List;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun copy (Ljava/util/List;ZZ)Ldev/abeta/kmp/actions/model/BatchPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/BatchPayload;Ljava/util/List;ZZILjava/lang/Object;)Ldev/abeta/kmp/actions/model/BatchPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getActions ()Ljava/util/List;
+	public final fun getParallel ()Z
+	public final fun getStopOnError ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/BatchPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/BatchPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/BatchPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/BatchPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/BatchPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/BiometricAuthPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/BiometricAuthPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/actions/model/BiometricAuthPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/BiometricAuthPayload;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/BiometricAuthPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowDeviceCredential ()Z
+	public final fun getOnAuthenticated ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnFailed ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/BiometricAuthPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/BiometricAuthPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/BiometricAuthPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/BiometricAuthPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/BiometricAuthPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/abeta/kmp/actions/model/BuiltInActionPayload : dev/abeta/kmp/actions/model/ActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/BuiltInActionPayload$Companion;
+}
+
+public final class dev/abeta/kmp/actions/model/BuiltInActionPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/CallApiPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/CallApiPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun component4 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/actions/model/CallApiPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/CallApiPayload;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/CallApiPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getEndpoint ()Ljava/lang/String;
+	public final fun getHeaders ()Ljava/util/Map;
+	public final fun getMethod ()Ljava/lang/String;
+	public final fun getOnError ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnSuccess ()Ldev/abeta/kmp/contracts/ActionRef;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/CallApiPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/CallApiPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/CallApiPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/CallApiPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/CallApiPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/CopyToClipboardPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/CopyToClipboardPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/actions/model/CopyToClipboardPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/CopyToClipboardPayload;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/CopyToClipboardPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/CopyToClipboardPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/CopyToClipboardPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/CopyToClipboardPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/CopyToClipboardPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/CopyToClipboardPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/DeleteStatePayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/DeleteStatePayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/actions/model/DeleteStatePayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/DeleteStatePayload;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/DeleteStatePayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getScope ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/DeleteStatePayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/DeleteStatePayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/DeleteStatePayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/DeleteStatePayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/DeleteStatePayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/DismissOverlayPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/DismissOverlayPayload$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Ldev/abeta/kmp/actions/model/DismissOverlayPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/DismissOverlayPayload;Ljava/lang/String;ZILjava/lang/Object;)Ldev/abeta/kmp/actions/model/DismissOverlayPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAll ()Z
+	public final fun getOverlayId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/DismissOverlayPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/DismissOverlayPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/DismissOverlayPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/DismissOverlayPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/DismissOverlayPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/NavigatePayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/NavigatePayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;)Ldev/abeta/kmp/actions/model/NavigatePayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/NavigatePayload;Ljava/lang/String;Ljava/util/Map;ZLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/NavigatePayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClearBackStack ()Z
+	public final fun getLaunchMode ()Ljava/lang/String;
+	public final fun getParams ()Ljava/util/Map;
+	public final fun getRoute ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/NavigatePayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/NavigatePayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/NavigatePayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/NavigatePayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/NavigatePayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/OpenDialogPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/OpenDialogPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component7 ()Ldev/abeta/kmp/contracts/OverlayPresentation;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)Ldev/abeta/kmp/actions/model/OpenDialogPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/OpenDialogPayload;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/OpenDialogPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDialogId ()Ljava/lang/String;
+	public final fun getDismissible ()Z
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getNegativeAction ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPositiveAction ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPresentation ()Ldev/abeta/kmp/contracts/OverlayPresentation;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/OpenDialogPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/OpenDialogPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/OpenDialogPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/OpenDialogPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/OpenDialogPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/OpenUrlPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/OpenUrlPayload$Companion;
+	public fun <init> (Ljava/lang/String;ZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ZLjava/lang/String;)Ldev/abeta/kmp/actions/model/OpenUrlPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/OpenUrlPayload;Ljava/lang/String;ZLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/OpenUrlPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExternalBrowser ()Z
+	public final fun getFallbackRoute ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/OpenUrlPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/OpenUrlPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/OpenUrlPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/OpenUrlPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/OpenUrlPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/RefreshPagePayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/RefreshPagePayload$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Ldev/abeta/kmp/actions/model/RefreshPagePayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/RefreshPagePayload;Ljava/lang/String;ZILjava/lang/Object;)Ldev/abeta/kmp/actions/model/RefreshPagePayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPageId ()Ljava/lang/String;
+	public final fun getShowLoader ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/RefreshPagePayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/RefreshPagePayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/RefreshPagePayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/RefreshPagePayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/RefreshPagePayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/RequestPermissionPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/RequestPermissionPayload$Companion;
+	public fun <init> (Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/abeta/kmp/contracts/OsPermissionKind;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/actions/model/RequestPermissionPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/RequestPermissionPayload;Ldev/abeta/kmp/contracts/OsPermissionKind;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/RequestPermissionPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOnDenied ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnGranted ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPermission ()Ldev/abeta/kmp/contracts/OsPermissionKind;
+	public final fun getRationale ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/RequestPermissionPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/RequestPermissionPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/RequestPermissionPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/RequestPermissionPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/RequestPermissionPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/SaveStatePayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/SaveStatePayload$Companion;
+	public fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;)Ldev/abeta/kmp/actions/model/SaveStatePayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/SaveStatePayload;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/SaveStatePayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getScope ()Ljava/lang/String;
+	public final fun getValue ()Lkotlinx/serialization/json/JsonElement;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/SaveStatePayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/SaveStatePayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/SaveStatePayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/SaveStatePayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/SaveStatePayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/SharePayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/SharePayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/actions/model/SharePayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/SharePayload;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/SharePayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChooserTitle ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/SharePayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/SharePayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/SharePayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/SharePayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/SharePayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/ShowToastPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/ShowToastPayload$Companion;
+	public fun <init> (Ljava/lang/String;JLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;JLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;JLjava/lang/String;)Ldev/abeta/kmp/actions/model/ShowToastPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/ShowToastPayload;Ljava/lang/String;JLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/ShowToastPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMs ()J
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getVariant ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/ShowToastPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/ShowToastPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/ShowToastPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/ShowToastPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/ShowToastPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/TrackEventPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/TrackEventPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/actions/model/TrackEventPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/TrackEventPayload;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/TrackEventPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEventName ()Ljava/lang/String;
+	public final fun getProperties ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/TrackEventPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/TrackEventPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/TrackEventPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/TrackEventPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/TrackEventPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/TriggerFeedbackPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/TriggerFeedbackPayload$Companion;
+	public fun <init> ()V
+	public fun <init> (Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/abeta/kmp/contracts/FeedbackEffect;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()J
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)Ldev/abeta/kmp/actions/model/TriggerFeedbackPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/TriggerFeedbackPayload;Ldev/abeta/kmp/contracts/FeedbackEffect;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/TriggerFeedbackPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMs ()J
+	public final fun getEffect ()Ldev/abeta/kmp/contracts/FeedbackEffect;
+	public final fun getSubtitle ()Ljava/lang/String;
+	public final fun getTargetId ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/TriggerFeedbackPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/TriggerFeedbackPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/TriggerFeedbackPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/TriggerFeedbackPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/TriggerFeedbackPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/UpdateSnippetsPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
+	public static final field Companion Ldev/abeta/kmp/actions/model/UpdateSnippetsPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Ldev/abeta/kmp/actions/model/UpdateSnippetsPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/UpdateSnippetsPayload;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/UpdateSnippetsPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOperation ()Ljava/lang/String;
+	public final fun getSnippets ()Ljava/util/List;
+	public final fun getTargetSnippetId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/actions/model/UpdateSnippetsPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/actions/model/UpdateSnippetsPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/actions/model/UpdateSnippetsPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/actions/model/UpdateSnippetsPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/actions/model/UpdateSnippetsPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/abeta/kmp/actions/validation/ActionValidationRule {
+	public abstract fun evaluate (Ldev/abeta/kmp/contracts/ValidationRuleContract;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public abstract interface class dev/abeta/kmp/actions/validation/ActionValidator {
+	public abstract fun validate (Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;)Ldev/abeta/kmp/core/result/AppResult;
+}
+
+public final class dev/abeta/kmp/actions/validation/DefaultActionValidator : dev/abeta/kmp/actions/validation/ActionValidator {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun validate (Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;)Ldev/abeta/kmp/core/result/AppResult;
+}
+

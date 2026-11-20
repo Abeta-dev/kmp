@@ -1,0 +1,21 @@
+---
+description: Atomic Design, SDUI UI craft (/impeccable native iOS & Android guidelines), touch targets, safe areas, and accessibility
+globs:
+  - "kmp/design-tokens/**"
+  - "kmp/sdui-contracts/**"
+  - "kmp/ui-atoms/**"
+  - "kmp/sdui-layout/**"
+  - "kmp/storybook/**"
+alwaysApply: false
+---
+
+# Atomic Design & Native UI Craft Rules
+
+- Consult `skills/abeta-kmp-atomic/SKILL.md` and `agents/owners/{design-tokens,sdui-contracts,ui-atoms,sdui-layout,storybook}-owner.md`.
+- Preserve strict Atomic/Action separation: `ui-atoms` emits `ActionRef` and `LocalUiHapticFeedback` only—never imports `core`, `action-engine`, `network`, or `sdui-layout`.
+- Native iOS & Android Craft (`/impeccable`):
+  - Every interactive element meets `ThemeTokens.sizing.minTouchTarget` (`48.dp`, satisfying iOS `44 pt` & Android `48 dp`).
+  - Use semantic `ThemeTokens.colors` & `sp` typography—zero raw hex colors or fixed `px`.
+  - Honor `WindowInsets.safeDrawing`, `statusBarsPadding()`, `navigationBarsPadding()`, and `imePadding()`.
+  - Honor `ThemeTokens.motion.reducedMotion` on all animations and `LiveRegionMode.Polite` on offline/toast banners.
+- Register every snippet via `SnippetRegistry` (OCP) and verify with `compose.uiTest` (`UiAtomsComposeTest`, `SduiScreenComposeTest`, `StorybookComposeTest`).

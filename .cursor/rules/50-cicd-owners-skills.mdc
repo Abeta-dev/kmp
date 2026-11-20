@@ -1,0 +1,19 @@
+---
+description: CI/CD workflows, verification scripts, module owner agents, CODEOWNERS & repository skills rules
+globs:
+  - ".github/**"
+  - "scripts/**"
+  - "agents/**"
+  - "skills/**"
+  - "AGENTS.md"
+  - "CLAUDE.md"
+  - "GEMINI.md"
+alwaysApply: false
+---
+
+# CI/CD, Code Owners & Skills Rules
+
+- Consult `skills/abeta-kmp-cicd/SKILL.md`, `skills/abeta-kmp-module-review/SKILL.md`, and `agents/owners/cicd-platform-owner.md`.
+- Keep every module mapped in BOTH `.github/CODEOWNERS` and `agents/owners/<module>-owner.md`.
+- Keep CI workflows least-privilege (`permissions:`, `concurrency:`) and ensure PR checks pass deterministically without requiring external LLM API keys.
+- Run `./scripts/check_brand_hygiene.sh` and `./scripts/check_architecture_and_owners.sh` after any edit.

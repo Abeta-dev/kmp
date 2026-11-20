@@ -1,0 +1,14 @@
+---
+description: KMP Kotlin & Gradle conventions, Spotless, Detekt, BCV ABI, and HMPP Apple target rules
+globs:
+  - "kmp/**/*.kt"
+  - "kmp/**/*.kts"
+alwaysApply: false
+---
+
+# KMP Layer, Lint & ABI Rules
+
+- Consult `agents/owners/<module>-owner.md` before changing any module under `kmp/`.
+- Use `libs.versions.toml` / `internal.versions.toml` for every dependency; never hardcode versions.
+- Keep `kmp/core` and `kmp/network` Apple CInterop bit-width-varying calls (`NSInteger`, `NSUInteger`, `CFIndex`) isolated in `apple64Main` + `watchosArm64Main` so `compileAppleMainKotlinMetadata` and `dokkaGenerateHtml` succeed.
+- Enforce Spotless (`ktlint`), Detekt (`MaxLineLength <= 120`, `ReturnCount <= 2`, `CyclomaticComplexMethod <= 14`, `LongMethod <= 60`, `TooManyFunctions <= 11`), and BCV `apiCheck` (`apiDump` on intentional public API edits).
