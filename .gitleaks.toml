@@ -1,0 +1,11 @@
+title = "Abeta KMP Kit gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Gradle task coordinates for the :design-tokens KMP module (e.g. :design-tokens:macosArm64Test) are not API tokens"
+regexTarget = "match"
+regexes = [
+  '''tokens:(?:macosArm64|iosArm64|iosSimulatorArm64|watchos[A-Za-z0-9]*|compileKotlin|jvmTest|apiCheck|apiDump|detekt|spotless|check|assemble|publish)[A-Za-z0-9]*''',
+]

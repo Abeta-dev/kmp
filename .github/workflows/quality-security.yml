@@ -41,7 +41,7 @@ jobs:
           curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${TARBALL}" -o "${TMP_DIR}/${TARBALL}"
           echo "${GITLEAKS_SHA256}  ${TMP_DIR}/${TARBALL}" | sha256sum -c -
           tar -xzf "${TMP_DIR}/${TARBALL}" -C "${TMP_DIR}" gitleaks
-          "${TMP_DIR}/gitleaks" git --redact --verbose .
+          "${TMP_DIR}/gitleaks" git --config .gitleaks.toml --redact --verbose .
 
   kmp-static-analysis:
     name: Spotless & Detekt
