@@ -1,0 +1,73 @@
+# Abeta KMP Kit
+
+> Open-source Server-Driven UI (SDUI) monorepo pairing a 4-layer Kotlin Multiplatform + Compose Multiplatform UI, Wearable & Local Database Kit (`kmp/`, 11 publishable library modules + Gradle BOM + Version Catalog) with a Go 1.26.0 Clean Architecture SDUI BFF (`bff/`), sharing a 1:1 `v1` JSON wire protocol (15 Wire Atoms, 16 Stateless Compose UI Atoms, 17 Canonical SnippetTypes, 18 ActionTypes) across Android, Wear OS, iOS, iPadOS, watchOS, macOS, Desktop JVM, and Web (`wasmJs`).
+
+`Abeta-dev/kmp` is the client kit and canonical `v1` wire-contract foundation of the 3-repo **Abeta SDUI Platform** alongside `Abeta-dev/layout-engine` and `Abeta-dev/sdui-bff`. Every module enforces the Uncle Bob Dependency Rule (`Layer 3 -> Layer 2 -> Layer 1 -> Layer 0`; Go `handler -> usecase -> domain <- infra`), strict Atomic / Action decoupling, Binary Compatibility Validator ABI baselines, and 1:1 KMP <-> Go golden JSON parity.
+
+## Complete Reference
+
+- [llms-full.txt](https://raw.githubusercontent.com/Abeta-dev/kmp/main/llms-full.txt): Self-contained LLM-ready technical reference covering the 3-repo Abeta SDUI Platform, 4-layer architecture, all 11 publishable KMP modules, Room 3 database, SDUI Wire Protocol v1 (15 Wire Atoms, 16 Compose UI Atoms, 17 SnippetTypes incl. `swipe_deck`/`search_bar`/`chip_group`, 18 ActionTypes), installation snippets, 6-in-1 Super-App Showcase, 13-story Storybook, and verification commands.
+
+## Core Documentation
+
+- [README.md](https://raw.githubusercontent.com/Abeta-dev/kmp/main/README.md): Repository overview, architecture diagram, module matrix, Gradle BOM quick start, and CLI commands.
+- [AGENTS.md](https://raw.githubusercontent.com/Abeta-dev/kmp/main/AGENTS.md): Authoritative AI coding agent contract, skill & code-owner routing table, architectural truth gates, and verification commands.
+- [Architecture & Uncle Bob Dependency Rule](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/architecture.md): Layer 0–3 dependency graph, import isolation rules, Go Clean Architecture boundaries, and OCP extension points.
+- [SDUI Wire Protocol (v1)](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/sdui-wire-protocol.md): HTTP `ginmw.Envelope` / `BffEnvelope<T>`, `PageResponse`, `AdaptivePageSpec`, `FloatingCartSpec`, `MotionSpec`, wire atoms, snippet payloads, actions, and golden JSON fixtures.
+- [Atomic & Action Separation](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/atomic-and-action-separation.md): Strict decoupling between stateless Layer 1 Compose atoms (`ui-atoms`) and Layer 2 OCP action execution (`action-engine`).
+- [Gradle BOM & Version Catalog Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/gradle-bom-guide.md): Using `dev.abeta.kmp:bom`, `dev.abeta.kmp:dependencies`, `libs.versions.toml`, `internal.versions.toml`, and `abeta.kmpLocalBuild` substitution.
+- [Multiplatform Local Database Guide (Room 3 + SQLite)](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/local-database-room3.md): Layer 0 Room 3 (`3.0.3`) KMP persistence (`cached_screens`, `offline_mutations`, `key_value_records`), `sqlite-bundled:2.7.1`, `sqlite-web:2.7.1` OPFS Web Worker, and KSP (`2.3.14`) `@ConstructedBy` codegen.
+- [Open Package Hosting & Release Publishing Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/publishing-and-hosting.md): Zero-credential consumption and automated publishing across Maven Central, Cloudsmith Open Source, Apple SwiftPM (`Abeta-dev/kmp-spm`), and Go `proxy.golang.org`.
+- [Go BFF Integration Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/bff-integration.md): Go 1.26.0 SDUI BFF (`github.com/abeta-dev/kmp/bff`), Gin `v1.12.0`, `go-libs@v0.4.0`, Brotli/Gzip, ETag `304`, HTTP/2 `h2c`, OpenAPI 3.1, and Scalar UI.
+- [Visual Showcase — Demo App & Storybook Screenshots](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/demo-screenshots.md): Pixel-accurate Compose Multiplatform Retina PNG captures for the 6-in-1 Super-App Showcase, core reference screens, and 13-story Storybook.
+- [Per-Module Code Owners & Automated CI/CD Governance](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/module-owners-and-cicd.md): Mapping of all 17 Code Owner agents, `.github/CODEOWNERS`, architecture checks, ABI gates, and release pipelines.
+- [IDE & Multi-Model AI Setup Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/ide-and-ai-setup.md): Configuration for Claude Code, Gemini/Antigravity, Cursor, Android Studio/Junie, and GitHub Copilot/Codex.
+
+## Ecosystem Sibling Repositories
+
+- [Abeta Layout Engine (llms.txt)](https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt): Companion SDUI layout & composition engine in the 3-repo Abeta SDUI Platform.
+- [Abeta SDUI BFF (llms.txt)](https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt): Multi-tenant production Go SDUI BFF serving the 6-in-1 Super-App Showcase over `github.com/abeta-dev/kmp/bff` Wire Protocol v1.
+
+## AI Agent Skills
+
+- [abeta-kmp-kit](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-kit/SKILL.md): Umbrella monorepo router, cross-stack workflows, Gradle BOM configuration, and verification gates.
+- [abeta-kmp-usage](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-usage/SKILL.md): Consumer onboarding for `dev.abeta.kmp:bom`, BFF wiring, and custom OCP atom/snippet/action extensions.
+- [abeta-kmp-demo](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-demo/SKILL.md): Reference guide for `sample-app` (6-in-1 Super-App Showcase Launcher), 13-story `storybook`, and BFF-to-KMP parity.
+- [abeta-kmp-platforms](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-platforms/SKILL.md): Android, Wear OS, iOS/iPadOS, watchOS, macOS, Desktop JVM, and WasmJS host wiring, Core OS bridges, Room 3 drivers, and Apple HMPP split.
+- [abeta-kmp-atomic](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-atomic/SKILL.md): Authoring `design-tokens`, responsive metrics, pure `sdui-contracts` DTOs, and stateless `ui-atoms` without outer-layer leaks.
+- [abeta-kmp-actions](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-actions/SKILL.md): Implementing OCP action decoders, handlers, OS bridge outcomes, and `DefaultActionDispatcher` in `action-engine`.
+- [abeta-kmp-bff](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-bff/SKILL.md): Building and testing Go 1.26.0 SDUI BFF screens, `pkg/sdui/*` builders, middleware, and golden parity tests.
+- [abeta-kmp-architecture](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-architecture/SKILL.md): Auditing Clean Architecture, Uncle Bob Dependency Rule, SOLID/KISS, BOM/Catalog registration, and ABI checks.
+- [abeta-kmp-module-review](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-module-review/SKILL.md): Per-module Code Owner PR review workflow mapping diffs to the 17 dedicated owner personas.
+- [abeta-kmp-cicd](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-cicd/SKILL.md): GitHub Actions CI/CD pipelines, ABI/brand/secret security gates, XCFramework packaging, and SemVer releases.
+
+## Module Code Owners
+
+- [core-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/core-owner.md): Layer 0 primitives, `AppResult`/`AppError`, concurrency utilities, and multi-OS hardware/security bridges (`kmp/core`).
+- [state-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/state-owner.md): Layer 0 `SessionStore`, `PreferenceStore`, secure persistent KV store, `FeatureFlagProvider`, and `OfflineMutationQueue` (`kmp/state`).
+- [analytics-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/analytics-owner.md): Layer 0 `AnalyticsTracker` pipeline, sanitizing, deduplicating, enriching, and buffered trackers (`kmp/analytics`).
+- [database-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/database-owner.md): Layer 0 Room 3 (`3.0.3`) KMP SQLite database, DAOs, schema exports, and Bundled/Web OPFS drivers (`kmp/database`).
+- [design-tokens-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/design-tokens-owner.md): Layer 1 semantic colors, typography, spacing, motion, theme presets, WCAG contrast, and `ResponsiveTokens` (`kmp/design-tokens`).
+- [sdui-contracts-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/sdui-contracts-owner.md): Layer 1 pure `@Serializable` v1 wire DTOs, 15 wire atoms, 17 snippet contracts, `MotionSpec`, and `AdaptiveContracts` (`kmp/sdui-contracts`).
+- [ui-atoms-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/ui-atoms-owner.md): Layer 1 16 stateless Compose Multiplatform atoms, `UiCelebrationOverlay`, `UiHapticFeedback`, and `MotionModifier` (`kmp/ui-atoms`).
+- [action-engine-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/action-engine-owner.md): Layer 2 OCP action decoders, handlers, 18 built-in `ActionTypes`, validator, and `DefaultActionDispatcher` (`kmp/action-engine`).
+- [network-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/network-owner.md): Layer 2 Ktor 3.6.1 HTTP/2 ALPN + Brotli client, bearer refresh, and JVM/Apple SPKI `CertificatePinMatcher` (`kmp/network`).
+- [sdui-layout-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/sdui-layout-owner.md): Layer 3 `LayoutController`, 17 snippet renderers, `FloatingCartDockHost`, `PlatformBridgeBundle`, Koin, iOS/macOS hosts (`kmp/sdui-layout`).
+- [watch-companion-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/watch-companion-owner.md): Layer 3 headless wearable SDUI companion for watchOS (`AbetaWatchKit.xcframework`) and Wear OS (`kmp/watch-companion`).
+- [platforms-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/platforms-owner.md): Layer 3 drop-in native host glue templates for Android, Wear OS, Apple SwiftUI/SwiftPM, and Web COOP/COEP (`kmp/platforms`).
+- [bom-catalog-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/bom-catalog-owner.md): Gradle BOM (`dev.abeta.kmp:bom`), Version Catalog (`dev.abeta.kmp:dependencies`), and `kmpLocalBuild` substitution (`kmp/kmp-bom`, `kmp/dependencyManagement`).
+- [bff-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/bff-owner.md): Go 1.26.0 Clean Architecture SDUI BFF, `pkg/sdui/*` v1 wire packages, OpenAPI 3.1, and golden parity tests (`bff/`).
+- [sample-app-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/sample-app-owner.md): Layer 3 runnable Compose Desktop & `--headless` CLI 6-in-1 Super-App Showcase Launcher (`kmp/sample-app`).
+- [storybook-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/storybook-owner.md): Layer 3 interactive 13-story Compose Multiplatform Storybook for Desktop, WasmJS, macOS, and iOS (`kmp/storybook`).
+- [cicd-platform-owner](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/owners/cicd-platform-owner.md): GitHub Actions CI/CD workflows, verification scripts, ABI/hygiene gates, and multi-channel release automation (`.github/`, `scripts/`).
+
+## Optional
+
+- [kmp-architect](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/kmp-architect.md): Cross-stack KMP and Go BFF architecture persona.
+- [atomic-designer](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/atomic-designer.md): Design tokens, wire contracts, and stateless Compose atoms persona.
+- [action-engine-engineer](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/action-engine-engineer.md): OCP action registry, decoders, and dispatcher engineering persona.
+- [bff-go-engineer](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/bff-go-engineer.md): Go 1.26.0 SDUI BFF Clean Architecture engineering persona.
+- [solid-reviewer](https://raw.githubusercontent.com/Abeta-dev/kmp/main/agents/solid-reviewer.md): SOLID, Clean Code, KISS, and Uncle Bob Dependency Rule audit persona.
+- [CHANGELOG.md](https://raw.githubusercontent.com/Abeta-dev/kmp/main/CHANGELOG.md): Release history across KMP and Go BFF versions.
+- [CONTRIBUTING.md](https://raw.githubusercontent.com/Abeta-dev/kmp/main/CONTRIBUTING.md): Contribution workflow, coding standards, and pull request requirements.
+- [SECURITY.md](https://raw.githubusercontent.com/Abeta-dev/kmp/main/SECURITY.md): Security policy, vulnerability disclosure, and certificate pinning / secret hygiene notes.

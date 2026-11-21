@@ -1,0 +1,370 @@
+# Abeta KMP Kit (`Abeta-dev/kmp`) — Complete Technical Reference
+
+> Self-contained LLM/AI context reference for **Abeta KMP Kit (`dev.abeta.kmp`)** and its embedded **Go 1.26.0 SDUI BFF (`github.com/abeta-dev/kmp/bff`)**.
+> License: Apache-2.0 | Repo: `https://github.com/Abeta-dev/kmp` | Index: `llms.txt`
+
+---
+
+## 1. 3-Repo Abeta SDUI Platform Architecture
+
+The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source repositories sharing one canonical `v1` JSON wire protocol:
+
+1. **`Abeta-dev/kmp` (this repository — Client Kit & Canonical `v1` Wire Contracts)**:
+   - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** + `bom` + `dependencies`).
+   - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.2.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
+   - Runnable **6-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **13-story Interactive Storybook** (`kmp/storybook`).
+2. **`Abeta-dev/layout-engine`** (`https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt`):
+   - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics.
+3. **`Abeta-dev/sdui-bff`** (`https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt`):
+   - Multi-tenant production Go SDUI BFF importing `github.com/abeta-dev/kmp/bff@v0.2.0` to serve live vertical screens and interactive mutations for all 6 Super-App verticals (`abeta-fresh`, `abeta-bites`, `abeta-pulse`, `abeta-mart`, `abeta-spark`, `abeta-trade`).
+
+### Core Toolchain Versions (`kmp/dependencyManagement/gradle/libs.versions.toml` & `bff/go.mod`)
+- **Kotlin**: `2.4.21` | **Compose Multiplatform**: `1.12.2` (Material 3 `1.12.0-alpha03`) | **Gradle**: `9.7.0` (JDK 21)
+- **KotlinX**: Coroutines `1.11.0`, Serialization `1.13.0`, DateTime `0.8.0`, Immutable Collections `0.5.2`
+- **Networking / DI / Settings**: Ktor `3.6.1`, `org.brotli:dec:0.1.2`, Koin `4.2.2`, Kermit `2.2.0`, `multiplatform-settings:1.3.0`
+- **Local Database**: AndroidX Room 3 `3.0.3`, SQLite Bundled `2.7.1`, SQLite Web `2.7.1`, KSP `2.3.14`
+- **Quality & Publishing**: Spotless `8.11.0`, Detekt `2.0.0-alpha.6`, Dokka `2.3.0`, Binary Compatibility Validator `0.18.2`, Vanniktech Maven Publish `0.37.0`
+- **Go BFF**: Go `1.26.0`, Gin `v1.12.0`, `github.com/abeta-dev/go-libs@v0.4.0`, `github.com/andybalholm/brotli@v1.3.0`
+
+---
+
+## 2. Strict 4-Layer Uncle Bob Dependency Rule & Module Matrix
+
+Dependencies strictly point **inward** (`Layer 3 -> Layer 2 -> Layer 1 -> Layer 0`; Go `internal/handler -> internal/usecase -> internal/domain <- internal/infra`). Enforced deterministically in CI by `scripts/check_architecture_and_owners.sh` and `bff/internal/domain/arch_test.go`.
+
+### Supported Multiplatform Targets
+- **8-Target Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `database`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`):
+  `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`.
+- **5-Target Compose UI Publishable Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`) + **`storybook`**:
+  `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
+- **`sample-app`**: JVM Desktop & `--headless` CLI.
+- **Drop-In Reference Native Host Glue (`kmp/platforms/`)**:
+  - `android/AndroidPlatformBridgeFactory.kt` & `android/AndroidDatabaseFactory.kt` (Android `ComponentActivity`/`FragmentActivity` + Room 3 `BundledSQLiteDriver`, requires consumer Android app with `ANDROID_HOME`).
+  - `wearos/WearCompanionHostActivity.kt` (Wear OS Compose Material wiring `:watch-companion`).
+  - `apple/AbetaAppleHosts.swift` & `apple/Package.template.swift` (iOS/iPadOS `AbetaSduiKit`, macOS Cocoa `launchMacOsSduiWindow`, watchOS `AbetaWatchKit`).
+  - `web/README.md` (COOP/COEP headers for Room 3 `wasmJs` OPFS Web Worker SQLite persistence).
+
+### All 11 Publishable KMP Modules + BOM + Catalog (`dev.abeta.kmp`)
+
+| Layer | Module | Coordinate (`0.1.0`) | Allowed Internal Deps | Key Responsibilities |
+| :--- | :--- | :--- | :--- | :--- |
+| **Catalog** | `dependencyManagement` | `dev.abeta.kmp:dependencies` | *(catalog)* | External (`libs.versions.toml`) & internal (`internal.versions.toml`) Gradle Version Catalogs |
+| **BOM** | `kmp-bom` | `dev.abeta.kmp:bom` | *(platform)* | Java Platform BOM aligning all 11 publishable `dev.abeta.kmp:*` modules + `dependencies` |
+| **Layer 0** | `core` | `dev.abeta.kmp:core` | None | `AppResult`, `AppError` (`ErrorCategory`, `isRetryable`), `DispatcherProvider`, `Clock`, `AppLogger`/`RedactingAppLogger`, `KeyValueStore`/`ObservableKeyValueStore`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`, `BackoffPolicy`, `FieldValidators`, `PlatformInfo`/`PlatformCapabilities`, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore` (Apple Keychain `SecItem*`, JVM AES-256-GCM, WasmJS `sessionStorage`), `BiometricAuthenticator` (`LAContext`) |
+| **Layer 0** | `state` | `dev.abeta.kmp:state` | `:core` | `SessionStore`/`PersistentSessionStore`/`SessionLifecycleManager`, schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, `OfflineMutationQueue` |
+| **Layer 0** | `analytics` | `dev.abeta.kmp:analytics` | `:core` | `AnalyticsEvent`, `AnalyticsTracker`, `Composite`, `Logger`, `Recording`, `Sanitizing`, `Deduplicating`, `Enriching`, and `Buffered` trackers |
+| **Layer 0** | `database` | `dev.abeta.kmp:database` | `:core` | **Room 3 (`3.0.3`)** KMP SQLite DB (`AbetaDatabase` with `@ConstructedBy(AbetaDatabaseConstructor::class)`, `AbetaLocalDatabase`): tables `cached_screens` (PK `screenId`, `payloadJson`, `etag`, TTL), `offline_mutations` (PK `id`, FIFO retry queue), `key_value_records` (PK `namespace`+`recordKey`, TTL). Uses `sqlite-bundled:2.7.1` on JVM/Android/Apple and `sqlite-web:2.7.1` OPFS Web Worker on `wasmJs`; KSP `2.3.14` schema export under `kmp/database/schemas/` |
+| **Layer 1** | `design-tokens` | `dev.abeta.kmp:design-tokens` | None | `ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens` (17 type roles), `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset` (`INDIGO`, `EMERALD`, `AMBER`), `ColorAccessibility`, `DesignTheme`, `ThemeTokens`, and `ResponsiveTokens.kt` (`WindowWidthClass`, `WindowHeightClass`, `DeviceFormFactor`, `AdaptiveLayoutMetrics`, `ThemeTokens.adaptiveMetrics`) |
+| **Layer 1** | `sdui-contracts` | `dev.abeta.kmp:sdui-contracts` | None | Pure `@Serializable` `v1` wire DTOs (`SduiJson` with `ignoreUnknownKeys = true`): `PageResponse`, `SnippetEnvelope`, **15 Wire Atoms**, **17 `SnippetTypes`**, `MotionSpec`, `AdaptiveContracts`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`. Zero Compose or Ktor imports |
+| **Layer 1** | `ui-atoms` | `dev.abeta.kmp:ui-atoms` | `:design-tokens`, `:sdui-contracts` | **16 stateless Compose atoms** + `UiCelebrationOverlay`, `UiHapticFeedback`, `MotionModifier` (`applyMotionSpec`, `Modifier.shakeOnError` honoring `reducedMotion`), `LocalImageRenderer`, `TokenResolvers`. Emits `onAction: (ActionRef) -> Unit` only; NEVER imports `:core`, `:action-engine`, `:network`, or `:sdui-layout` |
+| **Layer 2** | `action-engine` | `dev.abeta.kmp:action-engine` | `:core`, `:sdui-contracts` | OCP action system: **18 `ActionTypes`**, `ActionPayloadDecoder`, `ActionDecoderRegistry`, `ActionHandler`, `ActionRegistry`, `DefaultActionDispatcher`, `ActionValidator`, `ApiCallExecutor`, `ActionOutcome` |
+| **Layer 2** | `network` | `dev.abeta.kmp:network` | `:core` | Ktor `3.6.1` `HttpTransport`/`KtorHttpTransport`/`HttpClientFactory`: HTTP/2 ALPN, Brotli (`br`), bearer refresh (`AuthTokenProvider`), shared SPKI/cert pinning (`CertificatePinMatcher` for JVM/OkHttp `CertificatePinner` and Apple Darwin `NSURLSession` across iOS/macOS/watchOS) |
+| **Layer 3** | `sdui-layout` | `dev.abeta.kmp:sdui-layout` | Layers 0–2 | `LayoutController` (`observeConnectivity`, `handleDeepLink`, `isOffline`, `loadMore`, `errorShakeSequence`, `dismissFeedback`), `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers` (`AdaptiveReadyViewport`, `SplitPaneBody`, `OfflineStatusBanner`), **17 snippet renderers** (`BuiltInSnippetModule`), `FloatingCartDockHost` + `PageCartCalculator`, `ModalBottomSheet`/`AlertDialog`, `PullToRefreshBox`, `CachedScreenRepository`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, `SduiHostedRoot`, iOS `createSduiViewController` (`AbetaSduiKit.xcframework`), macOS `launchMacOsSduiWindow` |
+| **Layer 3** | `watch-companion` | `dev.abeta.kmp:watch-companion` | `:core`, `:state`, `:analytics`, `:database`, `:sdui-contracts`, `:action-engine`, `:network` | Headless wearable orchestrator (zero Compose UI imports): `WatchGlanceModels`, `WatchScreenMapper`, `RemoteWatchPageSource`, `WatchRemoteApiCallExecutor`, `WatchCompanionController`, `createWatchCompanionModule`, `createAppleWatchCompanionHost`, `AbetaWatchKit.xcframework` |
+
+**Key Architectural Invariants**:
+- **Atomic / Action Decoupling**: `ui-atoms` only accepts wire contracts and invokes `onAction: (ActionRef) -> Unit`; zero monolithic `when (actionType)` in UI or core.
+- **Apple HMPP Split**: C/ObjC code using bit-width-varying types (`NSInteger`/`CFIndex`) lives in `apple64Main` + `watchosArm64Main` so HMPP metadata and Dokka compile cleanly.
+- **ABI Stability**: Every publishable library maintains a Binary Compatibility Validator descriptor at `kmp/<module>/api/<module>.api` (verified via `./gradlew apiCheck`, updated via `./gradlew apiDump`).
+- **No Hardcoded Versions**: External versions live only in `libs.versions.toml`; internal coordinates in `internal.versions.toml`.
+
+---
+
+## 3. SDUI Wire Protocol (`v1`) Reference
+
+Shared 1:1 between `kmp/sdui-contracts` + `kmp/action-engine` (`SduiJson`, `kotlinx.serialization`) and `bff/pkg/sdui/{actions,atoms,snippets,theming}` (`encoding/json`). All JSON keys use `snake_case`.
+
+### 3.1 HTTP Envelope & Root `PageResponse`
+Every BFF `/api/v1/*` response wraps payloads in `ginmw.Envelope` (`BffEnvelope<T>` on KMP):
+```json
+{ "success": true, "data": { ... }, "error": null }
+```
+On error: `{ "success": false, "data": null, "error": { "code": "...", "message": "...", "detail": "..." } }`.
+
+`PageResponse` (`GET /api/v1/screens/:screenId`):
+- `page_id` (`string`, req), `title` (`string?`), `toolbar` (`ToolbarSpec?`: `title`, `subtitle`, `navigation_icon`, `trailing_actions`, `bg_color`, `layout`)
+- `snippets` (`SnippetEnvelope[]`), `bottom_bar` (`BottomBarSpec?`: `primary_button`, `secondary_button`, `helper_text`, `layout`, `motion`)
+- `floating_cart` (`FloatingCartSpec?`: `label`, `eta_badge`, `cta`, `motion`)
+- `page_actions` (`ActionRef[]`), `tracking` (`TrackingContract?`), `pull_to_refresh` (`ActionRef?`)
+- `pagination` (`PaginationSpec?`: `next_cursor`, `has_more`, `load_more_action`)
+- `adaptive_layout` (`AdaptivePageSpec?`: `layout_mode` [`single_column`|`centered`|`split_pane`], `max_width_dp`, `split_pane_enabled`, `secondary_snippet_ids`)
+
+`SnippetEnvelope`: `snippet_id` (`string`, req), `snippet_parent_id` (`string?`), `snippet_type` (`string`, req), `data` (`JsonObject`), `tracking` (`TrackingContract?`), `motion` (`MotionSpec?`).
+
+### 3.2 Critical Wire Invariants
+1. **String-Only `TrackingContract.properties` Invariant**: In `kmp/sdui-contracts` (`ActionContracts.kt`), `TrackingContract` is defined as:
+   ```kotlin
+   data class TrackingContract(
+       @SerialName("event_name") val eventName: String,
+       val properties: Map<String, String> = emptyMap(),
+   )
+   ```
+   Every BFF emitting `tracking.properties` (including Go structs where `TrackingMeta.Properties` is `map[string]any`) **MUST serialize only JSON string values** (`"count": "3"`, NOT `"count": 3` or booleans/objects). Non-string values fail `kotlinx.serialization` decoding on KMP clients.
+2. **`TabItemSpec.title` is a plain `string`**: Not a `TextAtom`.
+3. **Forward Compatibility**: `SduiJson` sets `ignoreUnknownKeys = true`; unknown `snippet_type` entries fall back safely inside `SnippetRegistry`.
+4. **Shared Styling & Motion Primitives**:
+   - `ColorTokenRef`: `token`, `alpha`, `fallback_hex`, `hex`
+   - `TypographyTokenRef`: `token`, `font_weight`, `letter_spacing`
+   - `LayoutConfig`: `padding`/`margin` (`top`,`bottom`,`start`,`end`,`all`,`horizontal`,`vertical`), `bg_color`, `corner_radius` (`token`,`all`,`top_start`,`top_end`,`bottom_start`,`bottom_end`), `border` (`width_dp`,`width_token`,`color`), `fill_max_width`
+   - `MotionSpec`: `enter`/`exit` (`none`|`fade_in`|`slide_up`|`slide_down`|`scale_in`|`spring_bounce`), `duration_token` (`instant`|`fast`|`normal`|`slow`), `duration_ms`, `stagger_ms`, `delay_ms`, `loop_effect` (`none`|`pulse`|`shimmer`)
+   - `ResponsiveColumnsSpec` / `ResponsiveIntSpec`: `compact`, `medium`, `expanded`
+
+### 3.3 All 15 Wire Atoms (`sdui-contracts` & `pkg/sdui/atoms`)
+1. `TextAtom`: `id`, `text`, `color`, `typography`, `max_lines`, `alignment` (`start`|`center`|`end`), `markdown`, `strike_through`, `underline`, `prefix_icon`, `suffix_icon`, `on_click`, `layout`
+2. `IconAtom`: `id`, `name`, `size_dp`, `color`, `content_description`, `on_click`, `layout`
+3. `TagAtom`: `id`, `label`, `variant` (`neutral`|`brand`|`success`|`warning`|`error`|`info`), `bg_color`, `text_color`, `border`, `icon`, `on_click`, `layout`, `motion`
+4. `ButtonAtom`: `id`, `label`, `sub_label`, `variant` (`primary`|`secondary`|`outline`|`ghost`|`destructive`), `size` (`sm`|`md`|`lg`), `enabled`, `loading`, `full_width`, `leading_icon`, `trailing_icon`, `on_click`, `tracking`, `layout`, `motion`
+5. `ImageAtom`: `id`, `url`, `content_description`, `width_dp`, `height_dp`, `aspect_ratio`, `scale_mode` (`fit`|`fill_bounds`|`crop`|`inside`), `corner_radius`, `placeholder_color`, `on_click`, `layout`
+6. `TextFieldAtom`: `field_id`, `label`, `placeholder`, `initial_value`, `helper_text`, `error_text`, `enabled`, `read_only`, `single_line`, `max_lines`, `max_length`, `required`, `regex`, `keyboard_type` (`text`|`number`|`email`|`phone`|`password`|`decimal`|`uri`), `prefix_icon`, `suffix_icon`, `on_value_change`, `on_submit`, `layout`
+7. `DividerAtom`: `id`, `thickness_dp`, `color`, `inset_start_dp`, `layout`
+8. `SpacerAtom`: `id`, `width_dp`, `height_dp`, `weight`
+9. `ProgressAtom`: `id`, `kind` (`linear`|`circular`), `progress`, `label`, `color`, `track_color`, `layout`
+10. `SwitchAtom`: `field_id`, `label`, `subtitle`, `checked`, `enabled`, `on_change`, `layout`
+11. `CheckboxAtom`: `field_id`, `label`, `subtitle`, `checked`, `enabled`, `required`, `on_change`, `layout`
+12. `SliderAtom`: `field_id`, `label`, `value`, `min_value`, `max_value`, `steps`, `show_value`, `unit_label`, `enabled`, `on_change`, `layout`
+13. `AvatarAtom`: `id`, `url`, `initials`, `size_dp`, `bg_color`, `text_color`, `content_description`, `on_click`, `layout`
+14. `SkeletonAtom`: `id`, `kind` (`text`|`rectangle`|`circle`), `width_dp`, `height_dp`, `layout`
+15. `StepperAtom`: `field_id`, `label`, `quantity`, `min_quantity` (`0`), `max_quantity` (`20`), `enabled`, `on_increment`, `on_decrement`, `layout`
+
+### 3.4 All 16 Stateless Compose UI Atoms (`kmp/ui-atoms`)
+Renders all 15 wire atoms plus `UiSurfaceCard`:
+`UiText`, `UiIcon`, `UiTag`, `UiButton`, `UiImage`, `UiTextField`, `UiDivider`, `UiSpacer`, `UiProgress`, `UiSurfaceCard`, `UiSwitch`, `UiCheckbox`, `UiSlider`, `UiAvatar`, `UiSkeleton`, `UiStepper` (animated `ADD` <-> `- qty +` morph with `UiHapticFeedback` hooks).
+Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`UiHapticKind`, `LocalUiHapticFeedback`, `rememberComposeHapticFallback`), `MotionModifier` (`applyMotionSpec`, `Modifier.shakeOnError`, reduced-motion collapse).
+
+### 3.5 All 17 Canonical `SnippetTypes` (`SnippetTypes` & `pkg/sdui/snippets`)
+
+| `snippet_type` | Contract (`sdui-contracts` / Go) | Exact JSON Payload Keys (`snake_case`) |
+| :--- | :--- | :--- |
+| `header_v1` | `HeaderSnippetData` | `title`, `subtitle`, `leading_icon`, `avatar`, `trailing_tag`, `trailing_action`, `trailing_icon`, `skeletons`, `on_click`, `layout` |
+| `banner_v1` | `BannerSnippetData` | `title`, `body`, `icon`, `image`, `tag`, `cta`, `dismiss_action`, `on_click`, `layout` |
+| `metric_card` | `MetricCardSnippetData` | `label`, `value`, `delta`, `caption`, `icon`, `progress`, `on_click`, `layout` |
+| `card_v1` | `CardSnippetData` | `title`, `subtitle`, `description`, `media`, `avatar`, `skeletons`, `badge`, `leading_icon`, `primary_button`, `secondary_button`, `on_click`, `layout` |
+| `action_row` | `ActionRowSnippetData` | `title`, `subtitle`, `leading_icon`, `trailing_tag`, `trailing_icon`, `on_click`, `layout` |
+| `form_v1` | `FormSnippetData` | `form_id`, `title`, `description`, `fields`, `switches`, `checkboxes`, `sliders`, `submit_button`, `cancel_button`, `layout` |
+| `empty_state` | `EmptyStateSnippetData` | `title`, `message`, `icon`, `image`, `action_button`, `layout` |
+| `divider` | `DividerSnippetData` | `divider`, `layout` |
+| `spacer` | `SpacerSnippetData` | `spacer` |
+| `product_card` | `ProductCardSnippetData` | `product_id`, `title`, `subtitle`, `price`, `original_price`, `unit_price_cents`, `badge`, `image`, `stepper`, `rating`, `on_click`, `layout` |
+| `carousel` | `CarouselSnippetData` | `title`, `items`, `item_width_dp`, `item_width_by_width`, `spacing_dp`, `layout` |
+| `grid` | `GridSnippetData` | `title`, `columns`, `columns_by_width`, `spacing_dp`, `items`, `layout` |
+| `tabs` | `TabsSnippetData` | `tabs` (`[{ id, title, badge, snippets }]`), `selected_index`, `layout` |
+| `accordion` | `AccordionSnippetData` | `title`, `subtitle`, `initially_expanded`, `snippets`, `layout` |
+| `swipe_deck` *(v0.2.0)* | `SwipeDeckSnippetData` | `deck_id`, `cards` (`SwipeCardItem[]`), `like_label`, `nope_label`, `super_like_label`, `empty_title`, `empty_message`, `on_like`, `on_nope`, `on_super_like`, `on_undo`, `layout` |
+| `search_bar` *(v0.2.0)* | `SearchBarSnippetData` | `search_id`, `query`, `placeholder`, `leading_icon`, `trailing_icon`, `submit_label`, `clearable`, `on_submit`, `on_clear`, `on_trailing_click`, `layout` |
+| `chip_group` *(v0.2.0)* | `ChipGroupSnippetData` | `group_id`, `title`, `multi_select`, `chips` (`FilterChipItem[]`), `layout` |
+
+**Exact Sub-Item Schemas Added in `bff/v0.2.0` (`InteractiveSnippetContracts.kt` / `interactive_snippets.go`)**:
+- `SwipeCardItem` (inside `swipe_deck.cards`): `card_id`, `title` (`TextAtom`), `subtitle` (`TextAtom?`), `bio` (`TextAtom?`), `badge` (`TagAtom?`), `distance_text` (`TextAtom?`), `image` (`ImageAtom?`), `tags` (`TagAtom[]`), `on_like` (`ActionRef?`), `on_nope` (`ActionRef?`), `on_super_like` (`ActionRef?`), `on_click` (`ActionRef?`).
+- `FilterChipItem` (inside `chip_group.chips`): `id`, `label`, `selected` (`bool`), `icon` (`IconAtom?`), `badge` (`string?`), `on_click` (`ActionRef?`).
+
+```json
+[
+  {
+    "snippet_id": "fresh_search_bar",
+    "snippet_type": "search_bar",
+    "data": {
+      "search_id": "fresh_search",
+      "placeholder": "Search groceries & essentials...",
+      "clearable": true,
+      "on_submit": { "id": "search_fresh", "type": "navigate", "payload": { "route": "fresh-home" } }
+    }
+  },
+  {
+    "snippet_id": "fresh_filter_chips",
+    "snippet_type": "chip_group",
+    "data": {
+      "group_id": "fresh_filters",
+      "multi_select": false,
+      "chips": [
+        { "id": "all", "label": "All", "selected": true },
+        { "id": "produce", "label": "Produce", "selected": false, "badge": "8M" }
+      ]
+    }
+  },
+  {
+    "snippet_id": "spark_deck_main",
+    "snippet_type": "swipe_deck",
+    "data": {
+      "deck_id": "spark_primary",
+      "like_label": "LIKE",
+      "nope_label": "NOPE",
+      "super_like_label": "SUPER LIKE",
+      "cards": [
+        {
+          "card_id": "spark_maya",
+          "title": { "text": "Maya Chen, 28" },
+          "subtitle": { "text": "Product Designer · Studio K" },
+          "distance_text": { "text": "2.4 km" },
+          "tags": [{ "label": "Design" }, { "label": "Coffee" }],
+          "on_like": { "id": "like_maya", "type": "call_api", "payload": { "endpoint": "/api/v1/spark/swipe", "method": "POST", "body": { "profile_id": "spark_maya", "action": "like" } } }
+        }
+      ]
+    },
+    "tracking": { "event_name": "deck_impression", "properties": { "vertical": "abeta-spark", "deck_size": "3" } }
+  }
+]
+```
+
+### 3.6 Go SDUI BFF HTTP Endpoints (`bff/internal/handler/router.go`)
+- `GET /api/v1/screens` (ETag `304`) — lists available screen IDs
+- `GET /api/v1/screens/:screenId` (ETag `304`) — returns `ginmw.Envelope<PageResponse>`
+- `POST /api/v1/actions/execute` — executes a declarative `ActionTrigger` with server-side `ValidationRule` checks
+- `POST /api/v1/orders/express` — express order endpoint returning `trigger_feedback` (`celebration`) + `show_toast` follow-up actions
+- `GET /api/v1/catalog/tokens` (ETag `304`) — exports design token catalog metadata
+- Observability & Docs: `GET /healthz`, `GET /readyz`, `GET /metrics`, `GET /openapi.json` (OpenAPI 3.1), `GET /docs` (Scalar UI)
+- Middleware: `go-libs/ginmw` (`RequestID`, `Recovery`, `Telemetry`, `Logger`, `SecurityHeaders`, `CORS`, `REDMetrics`, `LimitBodyDefault`, optional `GlobalRateLimit`, optional `AuthMiddleware` via `JWT_SECRET`), `CompressionMiddleware()` (Brotli `br` + `gzip`), `ETagMiddleware()`, and `http.Server.Protocols` (`HTTP/1.1` + `h2c` + TLS HTTP/2).
+
+### 3.7 All 18 Built-In `ActionTypes` (`ActionPayloads.kt` & `pkg/sdui/actions`)
+`ActionRef` / `ActionTrigger` envelope: `id`, `type`, `payload`, `validations` (`[{ field_id, rule, value?, message }]`), `secondary_actions` (`ActionRef[]`).
+
+| `type` | Payload Keys (`snake_case`) |
+| :--- | :--- |
+| `navigate` | `route`, `params` (`map<string,string>`), `clear_back_stack`, `launch_mode` |
+| `back_press` | `result` (`map<string,any>`), `steps` (default `1`) |
+| `open_dialog` | `dialog_id`, `title`, `message`, `dismissible`, `positive_action`, `negative_action`, `presentation` (`dialog`|`bottom_sheet`) |
+| `dismiss_overlay` | `overlay_id`, `all` |
+| `show_toast` | `message`, `duration_ms` (`2500`), `variant` (`info`) |
+| `call_api` | `endpoint`, `method` (`POST`), `headers`, `body`, `on_success`, `on_error` |
+| `save_state` | `key`, `value`, `scope` (`session`) |
+| `delete_state` | `key`, `scope` (`session`) |
+| `track_event` | `event_name`, `properties` (`map<string,JsonElement>`) |
+| `refresh_page` | `page_id`, `show_loader` |
+| `copy_to_clipboard` | `text`, `label` |
+| `update_snippets` | `operation`, `target_snippet_id`, `snippets` (`SnippetEnvelope[]`) |
+| `batch` | `actions` (`ActionRef[]`), `stop_on_error`, `parallel` |
+| `trigger_feedback` | `effect` (`celebration`|`cart_bounce`|`shake_error`|`haptic_tick`), `title`, `subtitle`, `duration_ms` (`1800`), `target_id` |
+| `open_url` | `url`, `external_browser` (`true`), `fallback_route` |
+| `share` | `title`, `text`, `url`, `chooser_title` |
+| `request_permission` | `permission` (`location`|`notifications`|`camera`|`storage`), `rationale`, `on_granted`, `on_denied` |
+| `biometric_auth` | `reason`, `title`, `allow_device_credential` (`true`), `on_authenticated`, `on_failed` |
+
+**Golden Wire Parity Fixtures** (`bff/testdata/golden/`): `home_screen.json`, `form_screen.json`, `action_batch.json`, `containers_screen.json`, `store_home.json` — validated by both `bff/internal/infra/golden_test.go` and `kmp/sdui-contracts/.../GoldenFixturesParityTest.kt`.
+
+---
+
+## 4. Installation & Consumption Snippets (Zero Credentials Required)
+
+### Gradle KMP — Maven Central (Stable)
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    versionCatalogs {
+        create("abetaKmp") { from("dev.abeta.kmp:dependencies:0.1.0") }
+    }
+}
+
+// build.gradle.kts (commonMain)
+dependencies {
+    implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0"))
+    implementation("dev.abeta.kmp:core")
+    implementation("dev.abeta.kmp:database")        // Optional Room 3 KMP local SQLite DB
+    implementation("dev.abeta.kmp:design-tokens")
+    implementation("dev.abeta.kmp:sdui-contracts")
+    implementation("dev.abeta.kmp:ui-atoms")
+    implementation("dev.abeta.kmp:action-engine")
+    implementation("dev.abeta.kmp:network")
+    implementation("dev.abeta.kmp:sdui-layout")
+    // implementation("dev.abeta.kmp:watch-companion") // Optional headless wearable kit
+}
+```
+
+### Gradle KMP — Cloudsmith Open Source (Anonymous `-SNAPSHOT` & Mirror)
+```kotlin
+repositories {
+    maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
+}
+dependencies {
+    implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0-SNAPSHOT"))
+    implementation("dev.abeta.kmp:sdui-layout")
+}
+```
+Inside this monorepo, `abeta.kmpLocalBuild=true` substitutes `dev.abeta.kmp:*` with local Gradle projects; pass `-Pabeta.kmpLocalBuild=false` to resolve published artifacts.
+
+### Apple SwiftPM (`Abeta-dev/kmp-spm`)
+```swift
+// Package.swift — or Xcode -> File -> Add Package Dependencies...
+dependencies: [
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.1.0"),
+]
+// Targets: import AbetaSduiKit (iOS/iPadOS) | import AbetaWatchKit (watchOS)
+```
+
+### Go Module Proxy (`proxy.golang.org`)
+```bash
+go get github.com/abeta-dev/kmp/bff@v0.2.0
+```
+```go
+import (
+    "github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
+    "github.com/abeta-dev/kmp/bff/pkg/sdui/atoms"
+    "github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
+    "github.com/abeta-dev/kmp/bff/pkg/sdui/theming"
+)
+```
+
+---
+
+## 5. 6-in-1 Super-App Showcase Launcher & 13-Story Storybook
+
+### 6-in-1 Super-App Showcase (`kmp/sample-app` + `Abeta-dev/sdui-bff`)
+
+| Showcase App | Vertical Category | Tenant ID | Entry & Sub-Screens | Theme Preset | Highlighted SDUI Patterns |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Abeta Fresh** | 8-Min Quick-Commerce Grocery | `abeta-fresh` | `fresh-home` | `EMERALD` | `search_bar`, `chip_group`, responsive `grid` of `product_card` + `UiStepper`, `FloatingCartDockHost`, express order `celebration` |
+| **Abeta Bites** | Restaurant & Food Delivery | `abeta-bites` | `bites-home`, `bites-restaurant`, `bites-order-track` | `AMBER` | `search_bar`, cuisine `chip_group`, promo `carousel`, restaurant menu `product_card` grid, live progress order tracker |
+| **Abeta Pulse** | Live Events, Concerts & Cinema | `abeta-pulse` | `pulse-home`, `pulse-event-detail` | `INDIGO` | `search_bar`, category `chip_group`, event `card_v1` discovery, seat/tier booking flow with `celebration` overlay |
+| **Abeta Mart** | Multi-Category Retail Marketplace | `abeta-mart` | `mart-home`, `mart-product-detail` | `AMBER` | `search_bar`, department `chip_group`, lightning-deals `carousel`, `product_card` grid, `accordion` specs & reviews, OS `share` action |
+| **Abeta Spark** | Swipe-Based Profile Discovery | `abeta-spark` | `spark-deck`, `spark-matches` | `INDIGO` | Interest `chip_group`, stacked gesture `swipe_deck` (`on_like`/`on_nope`/`on_super_like`), mutual match `celebration` & matches inbox |
+| **Abeta Trade** | B2B Wholesale & Direct RFQ | `abeta-trade` | `trade-home`, `trade-supplier` | `EMERALD` | `search_bar`, verification `chip_group`, MOQ `metric_card`, supplier directory, declarative validated `form_v1` RFQ submission |
+
+Core reference screens in `sample-app` & `bff/`: `home`, `store-home`, `catalog`, `profile`, `form-demo`, `containers`, `watch-status`.
+
+### Interactive 13-Story Storybook (`kmp/storybook`)
+4 categories across Desktop JVM, WasmJS Browser, macOS Cocoa, and iOS (`AbetaStorybookKit.xcframework`):
+- **Foundations**: `introduction`, `design-tokens` (WCAG contrast, 17 type roles, 3 theme presets)
+- **UI Atoms**: `atom-button`, `atom-text-tag`, `atom-text-field`, `atom-media-feedback`, `atom-controls-data`
+- **SDUI Snippets**: `sdui-snippets` ("All 17 Snippets" via `BuiltInSnippetModule`)
+- **Playground**: `sdui-playground`, `motion-store`, `live-bff-explorer` (all 6 Super-App slugs + `watch-status`), `responsive-bridges`, `discovery-search` (`SwipeDeck`, `SearchBar`, `ChipGroup`)
+
+---
+
+## 6. Verification & Developer Commands
+
+```bash
+# 1. Brand/path hygiene & Uncle Bob Dependency Rule + BOM + ABI + Wire Parity + Code Owners
+./scripts/check_brand_hygiene.sh
+./scripts/check_architecture_and_owners.sh
+
+# 2. KMP format, Detekt, ABI apiCheck, compile & unit/golden/compose.uiTest suites (JDK 21)
+(cd kmp && ./gradlew check)
+
+# 3. Sample App headless smoke checks (core kit + all 6 Super-App verticals)
+(cd kmp && ./gradlew :sample-app:run --args="--headless")
+(cd kmp && ./gradlew :sample-app:run --args="--headless --verticals")
+
+# 4. Launch Desktop Showcase or Storybook (offline or connected to live Go BFF)
+(cd kmp && ./gradlew :sample-app:run --args="--verticals --bff-url http://localhost:8080")
+(cd kmp && ./gradlew :storybook:run)
+(cd kmp && ./gradlew :storybook:wasmJsBrowserDevelopmentRun)
+
+# 5. Export Retina Compose screenshots (Demo, 6 Verticals, Storybook)
+(cd kmp && ./gradlew :sample-app:run --args="--capture-screenshots=../docs/assets/screenshots")
+(cd kmp && ./gradlew :sample-app:run --args="--capture-verticals=../docs/assets/screenshots")
+(cd kmp && ./gradlew :storybook:run --args="--capture-screenshots=../docs/assets/screenshots")
+
+# 6. ABI baseline dump, Dokka v2 HTML docs & Apple XCFrameworks
+(cd kmp && ./gradlew apiDump)
+(cd kmp && ./gradlew dokkaGenerateHtml)
+(cd kmp && ./gradlew :sdui-layout:assembleAbetaSduiKitXCFramework :watch-companion:assembleAbetaWatchKitXCFramework :storybook:assembleAbetaStorybookKitXCFramework)
+
+# 7. Go 1.26.0 SDUI BFF vet, race tests & local server (OpenAPI at /openapi.json, Scalar at /docs)
+(cd bff && go vet ./... && go test -race -cover ./...)
+(cd bff && go run ./cmd/bff)
+
+# 8. Full monorepo verification gate
+./scripts/verify_all.sh
+```

@@ -9,11 +9,14 @@
 
 Designed around **Clean Architecture**, the **Uncle Bob Dependency Rule**, **SOLID principles**, and strict **Atomic / Action decoupling**, the repository shares a 1:1 versioned JSON wire contract (`v1` — **15 Wire Atoms**, **17 Standard Snippet Types** incl. `swipe_deck`, `search_bar`, and `chip_group`, **18 Built-in Action Types**, declarative **`MotionSpec` / `FeedbackEffect`**, and **responsive `AdaptivePageSpec`**) between the Go BFF and KMP client modules—powering a **6-in-1 Super-App Showcase Launcher** (**Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**) and a **13-story Storybook**—managed through a published **Gradle BOM (`dev.abeta.kmp:bom`)**, **Gradle Version Catalog (`dev.abeta.kmp:dependencies`)**, and **Binary Compatibility Validator (`apiCheck`)**.
 
+> **AI / LLM Documentation (`llmstxt.org`)**: Ingest [`llms.txt`](llms.txt) (concise documentation & skill index) or [`llms-full.txt`](llms-full.txt) (self-contained full technical reference).
+> **Abeta SDUI Platform (3-Repo Ecosystem)**: **Abeta KMP Kit** (`Abeta-dev/kmp`, this repo) · [**Abeta Layout Engine**](https://github.com/Abeta-dev/layout-engine) ([`llms.txt`](https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt)) · [**Abeta SDUI BFF**](https://github.com/Abeta-dev/sdui-bff) ([`llms.txt`](https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt)).
+
 ---
 
 ## Visual Showcase (Live Compose Multiplatform Renders)
 
-Pixel-accurate Retina captures rendered directly from `kmp/sample-app` and `kmp/storybook` (full 12-screen gallery & regeneration commands in [docs/demo-screenshots.md](docs/demo-screenshots.md)):
+Pixel-accurate Retina captures rendered directly from `kmp/sample-app` and `kmp/storybook` (full 19-screen gallery including all **6-in-1 Super-App Showcase verticals** & regeneration commands in [docs/demo-screenshots.md](docs/demo-screenshots.md)):
 
 | Abeta Fresh Express — Desktop Split-Pane (`store-home`) | Interactive Storybook — All 17 Snippets (Dark Mode) |
 | :---: | :---: |
@@ -212,6 +215,10 @@ cd kmp
 
 ## Documentation, Wikis, Skills, Code Owners & Multi-IDE Support
 
+- **AI / LLM Context & Abeta SDUI Platform**:
+  - [`llms.txt`](llms.txt) — `llmstxt.org`-compliant documentation, skill, and Code Owner index
+  - [`llms-full.txt`](llms-full.txt) — Self-contained technical reference for LLM/AI ingestion (architecture, 11 KMP modules, Wire Protocol `v1`, installation, showcase & commands)
+  - Sibling repositories: [`Abeta-dev/layout-engine`](https://github.com/Abeta-dev/layout-engine) ([`llms.txt`](https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt)) | [`Abeta-dev/sdui-bff`](https://github.com/Abeta-dev/sdui-bff) ([`llms.txt`](https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt))
 - **Technical Documentation (`docs/`)**:
   - [Architecture & Dependency Rule](docs/architecture.md)
   - [Atomic & Action Separation](docs/atomic-and-action-separation.md)
