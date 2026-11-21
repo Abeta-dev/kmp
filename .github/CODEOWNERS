@@ -8,10 +8,11 @@
 # Default monorepo fallback -> agents/kmp-architect.md & agents/solid-reviewer.md
 * @abeta-dev/kmp-maintainers
 
-# --- Layer 0: Core Primitives, OS Bridges, State & Analytics ---
+# --- Layer 0: Core Primitives, OS Bridges, State, Analytics & Room 3 Database ---
 /kmp/core/                  @abeta-dev/kmp-core-owners           # Agent: agents/owners/core-owner.md
 /kmp/state/                 @abeta-dev/kmp-state-owners          # Agent: agents/owners/state-owner.md
 /kmp/analytics/             @abeta-dev/kmp-analytics-owners      # Agent: agents/owners/analytics-owner.md
+/kmp/database/              @abeta-dev/kmp-database-owners       # Agent: agents/owners/database-owner.md
 
 # --- Layer 1: Design Tokens, Pure Wire Contracts & Stateless UI Atoms ---
 /kmp/design-tokens/         @abeta-dev/kmp-design-owners         # Agent: agents/owners/design-tokens-owner.md

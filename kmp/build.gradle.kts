@@ -9,12 +9,15 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish) apply false
     alias(libs.plugins.binaryValidator) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.androidxRoom3) apply false
 }
 
 val publishableModules = setOf(
     "core",
     "state",
     "analytics",
+    "database",
     "design-tokens",
     "sdui-contracts",
     "ui-atoms",

@@ -32,7 +32,7 @@ Use this skill when onboarding to `abeta-dev/kmp`, consuming `dev.abeta.kmp:*` m
 
 ## 2. Consuming via Gradle BOM & Version Catalog (Zero Auth Required)
 
-Stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for SwiftPM XCFrameworks and Go `proxy.golang.org` setup.
+Stable releases across all **11 publishable KMP library modules** (plus `bom` and `dependencies`) publish to **Maven Central** (`mavenCentral()`), and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for Maven Central, Cloudsmith, Apple SwiftPM (`https://github.com/Abeta-dev/kmp-spm`), and Go `proxy.golang.org` setup, and `docs/local-database-room3.md` for Room 3 local SQLite persistence.
 
 In your consumer project's `settings.gradle.kts`:
 ```kotlin
@@ -57,6 +57,7 @@ dependencies {
     implementation(platform("dev.abeta.kmp:bom:0.1.0"))
     // Pick only the layers you need (versions aligned by the BOM):
     implementation("dev.abeta.kmp:core")
+    implementation("dev.abeta.kmp:database") // Optional Room 3 KMP SQLite local DB
     implementation("dev.abeta.kmp:design-tokens")
     implementation("dev.abeta.kmp:sdui-contracts")
     implementation("dev.abeta.kmp:ui-atoms")
@@ -111,7 +112,9 @@ Render inside `DesignTheme(darkTheme = ..., reducedMotion = ...)` with `SduiScre
   - Provide `LocalImageRenderer` for Coil/Kamel/custom caching.
   - Pass your `AnalyticsTracker` implementation into `CompositeAnalyticsTracker` / `SanitizingAnalyticsTracker`.
 
-## 5. Related Skills
+## 5. Related Skills & Guides
+- Local Room 3 SQLite database guide: `docs/local-database-room3.md`
+- Open package hosting & release playbook: `docs/publishing-and-hosting.md`
 - Demo walkthroughs: `skills/abeta-kmp-demo/SKILL.md`
 - Native Android/Wear/Apple/Web host integration: `skills/abeta-kmp-platforms/SKILL.md`
 - CI/CD & release gates: `skills/abeta-kmp-cicd/SKILL.md`

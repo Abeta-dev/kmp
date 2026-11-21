@@ -1,0 +1,192 @@
+public abstract class dev/abeta/kmp/database/AbetaDatabase : androidx/room3/RoomDatabase {
+	public static final field Companion Ldev/abeta/kmp/database/AbetaDatabase$Companion;
+	public static final field SCHEMA_VERSION I
+	public fun <init> ()V
+	public abstract fun cachedScreenDao ()Ldev/abeta/kmp/database/dao/CachedScreenDao;
+	public abstract fun keyValueRecordDao ()Ldev/abeta/kmp/database/dao/KeyValueRecordDao;
+	public abstract fun offlineMutationDao ()Ldev/abeta/kmp/database/dao/OfflineMutationDao;
+}
+
+public final class dev/abeta/kmp/database/AbetaDatabase$Companion {
+}
+
+public final class dev/abeta/kmp/database/AbetaDatabaseConfig {
+	public static final field Companion Ldev/abeta/kmp/database/AbetaDatabaseConfig$Companion;
+	public static final field DEFAULT_DB_NAME Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;ZLkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun <init> (Ljava/lang/String;ZLkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Lkotlin/coroutines/CoroutineContext;
+	public final fun copy (Ljava/lang/String;ZLkotlin/coroutines/CoroutineContext;)Ldev/abeta/kmp/database/AbetaDatabaseConfig;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/database/AbetaDatabaseConfig;Ljava/lang/String;ZLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Ldev/abeta/kmp/database/AbetaDatabaseConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDatabaseName ()Ljava/lang/String;
+	public final fun getInMemory ()Z
+	public final fun getQueryCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/database/AbetaDatabaseConfig$Companion {
+}
+
+public final class dev/abeta/kmp/database/AbetaLocalDatabase {
+	public static final field Companion Ldev/abeta/kmp/database/AbetaLocalDatabase$Companion;
+	public static final field DEFAULT_MAX_QUEUE_SIZE I
+	public static final field DEFAULT_MAX_RETRIES I
+	public fun <init> (Ldev/abeta/kmp/database/AbetaDatabase;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/database/AbetaDatabase;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clearMutations (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun clearNamespace (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun clearScreenCache (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun close ()V
+	public final fun completeMutation (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun deleteScreenCache (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun enqueueMutation (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun enqueueMutation$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun evictExpiredScreens (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun evictExpiredValues (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getDatabase ()Ldev/abeta/kmp/database/AbetaDatabase;
+	public final fun getFreshScreenCache (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getValue (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun listKeys (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun markMutationRetry (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun markMutationRetry$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun observePendingMutationCount ()Lkotlinx/coroutines/flow/Flow;
+	public final fun observePendingMutations ()Lkotlinx/coroutines/flow/Flow;
+	public final fun observeScreenCache (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun observeValue (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun pendingMutations (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun purgeDeadLetters (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun purgeDeadLetters$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun putScreenCache (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun putScreenCache$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun putValue (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun putValue$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun removeValue (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun screenCacheCount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun trimMutationQueue (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/database/AbetaLocalDatabase$Companion {
+}
+
+public final class dev/abeta/kmp/database/DatabaseFactoryKt {
+	public static final fun createAbetaDatabase (Landroidx/sqlite/SQLiteDriver;Ldev/abeta/kmp/database/AbetaDatabaseConfig;)Ldev/abeta/kmp/database/AbetaDatabase;
+	public static final fun createAbetaDatabase (Ldev/abeta/kmp/database/AbetaDatabaseConfig;)Ldev/abeta/kmp/database/AbetaDatabase;
+	public static synthetic fun createAbetaDatabase$default (Landroidx/sqlite/SQLiteDriver;Ldev/abeta/kmp/database/AbetaDatabaseConfig;ILjava/lang/Object;)Ldev/abeta/kmp/database/AbetaDatabase;
+	public static synthetic fun createAbetaDatabase$default (Ldev/abeta/kmp/database/AbetaDatabaseConfig;ILjava/lang/Object;)Ldev/abeta/kmp/database/AbetaDatabase;
+	public static final fun createAbetaDatabaseBuilder (Landroidx/sqlite/SQLiteDriver;Ldev/abeta/kmp/database/AbetaDatabaseConfig;)Landroidx/room3/RoomDatabase$Builder;
+	public static synthetic fun createAbetaDatabaseBuilder$default (Landroidx/sqlite/SQLiteDriver;Ldev/abeta/kmp/database/AbetaDatabaseConfig;ILjava/lang/Object;)Landroidx/room3/RoomDatabase$Builder;
+	public static final fun createAbetaLocalDatabase (Landroidx/sqlite/SQLiteDriver;Ldev/abeta/kmp/database/AbetaDatabaseConfig;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;)Ldev/abeta/kmp/database/AbetaLocalDatabase;
+	public static final fun createAbetaLocalDatabase (Ldev/abeta/kmp/database/AbetaDatabaseConfig;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;)Ldev/abeta/kmp/database/AbetaLocalDatabase;
+	public static synthetic fun createAbetaLocalDatabase$default (Landroidx/sqlite/SQLiteDriver;Ldev/abeta/kmp/database/AbetaDatabaseConfig;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;ILjava/lang/Object;)Ldev/abeta/kmp/database/AbetaLocalDatabase;
+	public static synthetic fun createAbetaLocalDatabase$default (Ldev/abeta/kmp/database/AbetaDatabaseConfig;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;ILjava/lang/Object;)Ldev/abeta/kmp/database/AbetaLocalDatabase;
+}
+
+public final class dev/abeta/kmp/database/DatabaseFactory_jvmKt {
+	public static final fun createAbetaDatabaseBuilder (Ldev/abeta/kmp/database/AbetaDatabaseConfig;)Landroidx/room3/RoomDatabase$Builder;
+	public static synthetic fun createAbetaDatabaseBuilder$default (Ldev/abeta/kmp/database/AbetaDatabaseConfig;ILjava/lang/Object;)Landroidx/room3/RoomDatabase$Builder;
+}
+
+public abstract interface class dev/abeta/kmp/database/dao/CachedScreenDao {
+	public abstract fun clearAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun count (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteById (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteExpired (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getById (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun observeById (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun upsert (Ldev/abeta/kmp/database/entities/CachedScreenEntity;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/abeta/kmp/database/dao/KeyValueRecordDao {
+	public abstract fun delete (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteExpired (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteNamespace (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun get (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun listKeys (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun observe (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun upsert (Ldev/abeta/kmp/database/entities/KeyValueRecordEntity;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/abeta/kmp/database/dao/OfflineMutationDao {
+	public abstract fun clearAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteById (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteExceededRetries (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun incrementRetry (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun incrementRetry$default (Ldev/abeta/kmp/database/dao/OfflineMutationDao;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun listAllOrdered (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun observeAllOrdered ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun observePendingCount ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun trimToMaxSize (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun upsert (Ldev/abeta/kmp/database/entities/OfflineMutationEntity;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/database/dao/OfflineMutationDao$DefaultImpls {
+	public static synthetic fun incrementRetry$default (Ldev/abeta/kmp/database/dao/OfflineMutationDao;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/database/entities/CachedScreenEntity {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()J
+	public final fun component5 ()Ljava/lang/Long;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;)Ldev/abeta/kmp/database/entities/CachedScreenEntity;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/database/entities/CachedScreenEntity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Object;)Ldev/abeta/kmp/database/entities/CachedScreenEntity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCachedAtEpochMillis ()J
+	public final fun getEtag ()Ljava/lang/String;
+	public final fun getExpiresAtEpochMillis ()Ljava/lang/Long;
+	public final fun getPayloadJson ()Ljava/lang/String;
+	public final fun getScreenId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/database/entities/KeyValueRecordEntity {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()J
+	public final fun component5 ()Ljava/lang/Long;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;)Ldev/abeta/kmp/database/entities/KeyValueRecordEntity;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/database/entities/KeyValueRecordEntity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Object;)Ldev/abeta/kmp/database/entities/KeyValueRecordEntity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExpiresAtEpochMillis ()Ljava/lang/Long;
+	public final fun getNamespace ()Ljava/lang/String;
+	public final fun getRecordKey ()Ljava/lang/String;
+	public final fun getUpdatedAtEpochMillis ()J
+	public final fun getValueText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/database/entities/OfflineMutationEntity {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()J
+	public final fun component5 ()I
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;)Ldev/abeta/kmp/database/entities/OfflineMutationEntity;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/database/entities/OfflineMutationEntity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/database/entities/OfflineMutationEntity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCreatedAtEpochMillis ()J
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLastError ()Ljava/lang/String;
+	public final fun getMutationType ()Ljava/lang/String;
+	public final fun getPayloadJson ()Ljava/lang/String;
+	public final fun getRetryCount ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

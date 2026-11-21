@@ -5,6 +5,7 @@ kmpDependencies = "0.1.0"
 core = "0.1.0"
 state = "0.1.0"
 analytics = "0.1.0"
+database = "0.1.0"
 designTokens = "0.1.0"
 sduiContracts = "0.1.0"
 uiAtoms = "0.1.0"
@@ -20,6 +21,7 @@ kmp-dependencies = { group = "dev.abeta.kmp", name = "dependencies", version.ref
 kmp-core = { group = "dev.abeta.kmp", name = "core", version.ref = "core" }
 kmp-state = { group = "dev.abeta.kmp", name = "state", version.ref = "state" }
 kmp-analytics = { group = "dev.abeta.kmp", name = "analytics", version.ref = "analytics" }
+kmp-database = { group = "dev.abeta.kmp", name = "database", version.ref = "database" }
 kmp-designTokens = { group = "dev.abeta.kmp", name = "design-tokens", version.ref = "designTokens" }
 kmp-sduiContracts = { group = "dev.abeta.kmp", name = "sdui-contracts", version.ref = "sduiContracts" }
 kmp-uiAtoms = { group = "dev.abeta.kmp", name = "ui-atoms", version.ref = "uiAtoms" }

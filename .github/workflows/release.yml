@@ -46,6 +46,7 @@ jobs:
       maven_central_configured: ${{ steps.plan.outputs.maven_central_configured }}
       cloudsmith_configured: ${{ steps.plan.outputs.cloudsmith_configured }}
       custom_maven_configured: ${{ steps.plan.outputs.custom_maven_configured }}
+      spm_mirror_configured: ${{ steps.plan.outputs.spm_mirror_configured }}
 
     steps:
       - name: Checkout repository
@@ -67,6 +68,7 @@ jobs:
           GPG_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           CS_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
           CUSTOM_URL: ${{ vars.CUSTOM_MAVEN_URL }}
+          SPM_TOKEN: ${{ secrets.SPM_REPO_TOKEN }}
         run: |
           set -euo pipefail
           if [[ "${GITHUB_REF_NAME}" == bff/v* ]]; then
@@ -97,6 +99,10 @@ jobs:
           if [[ -n "${CUSTOM_URL:-}" ]]; then
             CUSTOM_OK="true"
           fi
+          SPM_MIRROR_OK="false"
+          if [[ -n "${SPM_TOKEN:-}" ]]; then
+            SPM_MIRROR_OK="true"
+          fi
 
           if [[ "${INPUT_TARGET}" == "maven-central" && "${MC_OK}" != "true" ]]; then
             echo "::error::maven-central target requested, but MAVEN_CENTRAL_USERNAME, MAVEN_CENTRAL_PASSWORD, or GPG_SIGNING_KEY secret is missing. See docs/publishing-and-hosting.md."
@@ -115,9 +121,10 @@ jobs:
             echo "maven_central_configured=${MC_OK}"
             echo "cloudsmith_configured=${CS_OK}"
             echo "custom_maven_configured=${CUSTOM_OK}"
+            echo "spm_mirror_configured=${SPM_MIRROR_OK}"
           } >> "$GITHUB_OUTPUT"
 
-          echo "Release plan: kind=${RELEASE_KIND} tag=${RELEASE_TAG} version=${PUBLISH_VERSION} target=${INPUT_TARGET} (mavenCentral=${MC_OK}, cloudsmith=${CS_OK}, customMaven=${CUSTOM_OK})"
+          echo "Release plan: kind=${RELEASE_KIND} tag=${RELEASE_TAG} version=${PUBLISH_VERSION} target=${INPUT_TARGET} (mavenCentral=${MC_OK}, cloudsmith=${CS_OK}, customMaven=${CUSTOM_OK}, spmMirror=${SPM_MIRROR_OK})"
 
       - name: Set up Go 1.26.0
         uses: actions/setup-go@v5
@@ -173,8 +180,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Make gradlew and packaging script executable
-        run: chmod +x ./kmp/gradlew ./scripts/package_xcframeworks.sh
+      - name: Make gradlew and packaging scripts executable
+        run: chmod +x ./kmp/gradlew ./scripts/package_xcframeworks.sh ./scripts/verify_spm_package.sh
 
       - name: Publish to Maven Central (Sonatype Central Portal)
         if: >
@@ -263,6 +270,12 @@ jobs:
             --repo "${GITHUB_REPOSITORY}" \
             --out-dir dist/xcframeworks
 
+      - name: Verify generated SwiftPM Package.swift manifest
+        env:
+          RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
+        run: |
+          ./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag "${RELEASE_TAG}"
+
       - name: Upload XCFramework & SwiftPM release artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -278,7 +291,8 @@ jobs:
             echo "- **Published Version**: \`${{ needs.plan-and-verify.outputs.publish_version }}\`"
             echo "- **Maven Central (Central Portal)**: \`${{ needs.plan-and-verify.outputs.maven_central_configured }}\`"
             echo "- **Cloudsmith Open Source**: \`${{ needs.plan-and-verify.outputs.cloudsmith_configured }}\`"
-            echo "- **Apple Release XCFrameworks + SwiftPM \`Package.swift\`**: Packaged & checksummed"
+            echo "- **SwiftPM Direct-URL Mirror Repo Sync**: \`${{ needs.plan-and-verify.outputs.spm_mirror_configured }}\`"
+            echo "- **Apple Release XCFrameworks + SwiftPM \`Package.swift\`**: Packaged, checksummed & verified"
           } >> "$GITHUB_STEP_SUMMARY"
 
   github-release:
@@ -326,3 +340,105 @@ jobs:
             --title "Abeta SDUI Go BFF ${BFF_VER}" \
             --generate-notes
           curl -fsSL "https://proxy.golang.org/github.com/abeta-dev/kmp/bff/@v/${BFF_VER}.info" || true
+
+  publish-spm-mirror:
+    name: Sync Direct-URL SwiftPM Mirror Repo
+    needs: [plan-and-verify, github-release]
+    if: >
+      needs.plan-and-verify.outputs.release_kind == 'kmp' &&
+      needs.plan-and-verify.outputs.spm_mirror_configured == 'true' &&
+      startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download Apple XCFramework & SwiftPM artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: abeta-xcframeworks
+          path: dist/xcframeworks
+
+      - name: Sync Package.swift, SHA256SUMS.txt & README.md to SwiftPM mirror
+        env:
+          SPM_REPO: ${{ vars.SPM_REPO || 'Abeta-dev/kmp-spm' }}
+          SPM_REPO_TOKEN: ${{ secrets.SPM_REPO_TOKEN }}
+          SPM_VERSION_RAW: ${{ needs.plan-and-verify.outputs.publish_version }}
+          RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          # SwiftPM prefers SemVer tags like 0.1.0 without leading 'v' (both 0.1.0 and v0.1.0 work in Xcode)
+          SPM_VERSION="${SPM_VERSION_RAW#v}"
+          MIRROR_DIR="$(mktemp -d)"
+          trap 'rm -rf "${MIRROR_DIR}"' EXIT
+
+          git clone "https://x-access-token:${SPM_REPO_TOKEN}@github.com/${SPM_REPO}.git" "${MIRROR_DIR}"
+
+          cp dist/xcframeworks/Package.swift "${MIRROR_DIR}/Package.swift"
+          cp dist/xcframeworks/SHA256SUMS.txt "${MIRROR_DIR}/SHA256SUMS.txt"
+
+          sed \
+            -e "s|__GITHUB_REPOSITORY__|${GITHUB_REPOSITORY}|g" \
+            -e "s|__SPM_REPO__|${SPM_REPO}|g" \
+            -e "s|__SPM_VERSION__|${SPM_VERSION}|g" \
+            -e "s|__RELEASE_TAG__|${RELEASE_TAG}|g" \
+            > "${MIRROR_DIR}/README.md" <<'EOF'
+          # Abeta KMP Kit — Swift Package Manager Mirror
+
+          Direct-URL binary Swift Package Manager distribution for [`__GITHUB_REPOSITORY__`](https://github.com/__GITHUB_REPOSITORY__) Apple Release XCFrameworks (`AbetaSduiKit` for iOS/iPadOS 15+ and `AbetaWatchKit` for watchOS 9+).
+
+          - **Latest Release**: `__SPM_VERSION__` (`__RELEASE_TAG__`)
+          - **Upstream Release Assets**: https://github.com/__GITHUB_REPOSITORY__/releases/tag/__RELEASE_TAG__
+
+          ## Xcode — Add Package Dependency
+
+          1. Open your Xcode project -> **File -> Add Package Dependencies...**
+          2. Enter the package URL:
+             ```
+             https://github.com/__SPM_REPO__
+             ```
+          3. Select **Up to Next Major Version** starting from `__SPM_VERSION__` (note: SwiftPM prefers SemVer tags like `__SPM_VERSION__`, and both `__SPM_VERSION__` and `__RELEASE_TAG__` work in Xcode).
+          4. Link **`AbetaSduiKit`** to your iOS/iPadOS 15+ target and/or **`AbetaWatchKit`** to your watchOS 9+ target.
+
+          ## `Package.swift` Dependency
+
+          ```swift
+          dependencies: [
+              .package(url: "https://github.com/__SPM_REPO__.git", from: "__SPM_VERSION__"),
+          ]
+          ```
+
+          ```swift
+          // iOS / iPadOS target
+          import AbetaSduiKit
+
+          // watchOS target
+          import AbetaWatchKit
+          ```
+          EOF
+
+          cd "${MIRROR_DIR}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add Package.swift SHA256SUMS.txt README.md
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(spm): release ${SPM_VERSION} (${GITHUB_REF_NAME})"
+            git push -u origin HEAD
+          else
+            echo "No SwiftPM mirror file changes to commit for ${SPM_VERSION}."
+          fi
+
+          if git rev-parse -q --verify "refs/tags/${SPM_VERSION}" >/dev/null; then
+            echo "Tag ${SPM_VERSION} already exists in ${SPM_REPO}; skipping tag push."
+          else
+            git tag -a "${SPM_VERSION}" -m "Release ${SPM_VERSION} (${GITHUB_REF_NAME})"
+            git push origin "${SPM_VERSION}"
+          fi
+
+          {
+            echo "## SwiftPM Direct-URL Mirror Sync"
+            echo "- **Mirror Repo**: \`https://github.com/${SPM_REPO}\`"
+            echo "- **SemVer Tag**: \`${SPM_VERSION}\` (from \`${GITHUB_REF_NAME}\`)"
+            echo "- **Products**: \`AbetaSduiKit\` (iOS 15+), \`AbetaWatchKit\` (watchOS 9+)"
+          } >> "$GITHUB_STEP_SUMMARY"

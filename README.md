@@ -5,7 +5,7 @@
 [![Quality & Security](https://github.com/abeta-dev/kmp/actions/workflows/quality-security.yml/badge.svg)](https://github.com/abeta-dev/kmp/actions/workflows/quality-security.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-**Abeta KMP Kit (`dev.abeta.kmp`)** is an open-source, Server-Driven UI (SDUI) monorepo pairing a layered **Kotlin Multiplatform + Compose Multiplatform UI, Wearable & SDUI Kit (`kmp/`)** (**10 publishable library modules** plus `kmp-bom` and `dependencyManagement`) with a **Go 1.26.0 Clean Architecture SDUI Backend-for-Frontend (`bff/`)**.
+**Abeta KMP Kit (`dev.abeta.kmp`)** is an open-source, Server-Driven UI (SDUI) monorepo pairing a layered **Kotlin Multiplatform + Compose Multiplatform UI, Wearable & SDUI Kit (`kmp/`)** (**11 publishable library modules** plus `kmp-bom` and `dependencyManagement`) with a **Go 1.26.0 Clean Architecture SDUI Backend-for-Frontend (`bff/`)**.
 
 Designed around **Clean Architecture**, the **Uncle Bob Dependency Rule**, **SOLID principles**, and strict **Atomic / Action decoupling**, the repository shares a 1:1 versioned JSON wire contract (`v1` — **15 Wire Atoms**, **14 Standard Snippet Types**, **18 Built-in Action Types**, declarative **`MotionSpec` / `FeedbackEffect`**, and **responsive `AdaptivePageSpec`**) between the Go BFF and KMP client modules, managed through a published **Gradle BOM (`dev.abeta.kmp:bom`)**, **Gradle Version Catalog (`dev.abeta.kmp:dependencies`)**, and **Binary Compatibility Validator (`apiCheck`)**.
 
@@ -51,7 +51,7 @@ flowchart TB
         L3["Layer 3: sdui-layout (LayoutController, PlatformBridgeBundle, AdaptiveScreenContainers, Koin, AbetaSduiKit, macOS Cocoa) | watch-companion (Headless WatchKit/Wear OS + AbetaWatchKit) | storybook (12 Stories, Desktop/WasmJS/macOS/AbetaStorybookKit) | sample-app (7 Screens)"]
         L2["Layer 2: action-engine (18 ActionTypes, ActionDecoderRegistry, ActionRegistry, DefaultActionDispatcher) | network (Ktor HTTP/2 ALPN, Brotli, Bearer Refresh, CertificatePinMatcher JVM + Apple)"]
         L1["Layer 1: ui-atoms (16 Stateless Compose Atoms + MotionModifier + shakeOnError + UiHapticFeedback + UiCelebrationOverlay) -> design-tokens (incl. ResponsiveTokens) & sdui-contracts (15 Wire Atoms, 14 Snippets, MotionSpec, AdaptiveContracts)"]
-        L0["Layer 0: core (Primitives + OS Bridges/Ports, Keychain/AES-GCM, Biometrics, DeepLinkParser, LocaleFormatter) | state (SessionStore, PreferenceStore, SecurePersistentKeyValueStore, FeatureFlagProvider, OfflineMutationQueue) | analytics"]
+        L0["Layer 0: core (Primitives + OS Bridges/Ports, Keychain/AES-GCM, Biometrics, DeepLinkParser, LocaleFormatter) | state (SessionStore, PreferenceStore, SecurePersistentKeyValueStore, FeatureFlagProvider, OfflineMutationQueue) | analytics | database (Room 3.0.3 KMP SQLite, Bundled & Web OPFS)"]
 
         L3 --> L2
         L3 --> L1
@@ -69,13 +69,14 @@ flowchart TB
 
 ### Supported Multiplatform Targets & Host Glue (`kmp/`)
 
-- **Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`): `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`.
+- **Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `database`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`): `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`.
 - **Compose UI Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`) and **`storybook`**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
 - **`sample-app`**: JVM Desktop & `--headless` CLI.
 - **Drop-in Reference Host Glue (`kmp/platforms/`)**:
-  - `kmp/platforms/android/AndroidPlatformBridgeFactory.kt` — Android `ComponentActivity` / `FragmentActivity` bridge implementations (`VibrationEffect`, `ClipboardManager`, `Intent.ACTION_VIEW`, chooser share, `ConnectivityManager`, AES-GCM `AndroidKeyStore`, `BiometricPrompt`, `ActivityResultContracts`, push token hook, deep links, `SduiScreen`).
+  - `kmp/platforms/android/AndroidPlatformBridgeFactory.kt` & `kmp/platforms/android/AndroidDatabaseFactory.kt` — Android `ComponentActivity` / `FragmentActivity` bridge implementations (`VibrationEffect`, `ClipboardManager`, `Intent.ACTION_VIEW`, chooser share, `ConnectivityManager`, AES-GCM `AndroidKeyStore`, `BiometricPrompt`, `ActivityResultContracts`, push token hook, deep links, `SduiScreen`) plus Room 3 `AbetaDatabase` Android factory.
   - `kmp/platforms/wearos/WearCompanionHostActivity.kt` — Android Wear OS `ComponentActivity` wiring `:watch-companion`'s `WatchCompanionController` + `WatchGlancePage` into Wear Compose Material.
-  - `kmp/platforms/apple/AbetaAppleHosts.swift` — SwiftUI reference hosts for iOS/iPadOS (`AbetaSduiKit`), macOS (`launchMacOsSduiWindow`), and watchOS (`AbetaWatchKit` `createAppleWatchCompanionHost`).
+  - `kmp/platforms/apple/AbetaAppleHosts.swift` & `kmp/platforms/apple/Package.template.swift` — SwiftUI reference hosts for iOS/iPadOS (`AbetaSduiKit`), macOS (`launchMacOsSduiWindow`), watchOS (`AbetaWatchKit` `createAppleWatchCompanionHost`), and SwiftPM release manifest template.
+  - `kmp/platforms/web/README.md` — Browser COOP/COEP Cross-Origin Isolation header guide for Room 3 `wasmJs` OPFS Web Worker persistence.
   - `kmp/platforms/README.md` — Notes that Android & Wear OS templates require an Android app module with `ANDROID_HOME` / Android SDK configured.
 
 ### KMP Modules (`kmp/`)
@@ -83,10 +84,11 @@ flowchart TB
 | Layer | Module | Maven Coordinate | Responsibility |
 | :--- | :--- | :--- | :--- |
 | **Catalog** | `dependencyManagement` | `dev.abeta.kmp:dependencies:0.1.0` | Centralized Gradle Version Catalog (`libs.versions.toml` & `internal.versions.toml`) |
-| **Platform** | `kmp-bom` | `dev.abeta.kmp:bom:0.1.0` | Java Platform BOM aligning all 10 publishable `dev.abeta.kmp:*` modules + `dependencies` |
+| **Platform** | `kmp-bom` | `dev.abeta.kmp:bom:0.1.0` | Java Platform BOM aligning all **11 publishable `dev.abeta.kmp:*` modules** + `dependencies` |
 | **Layer 0** | `core` | `dev.abeta.kmp:core:0.1.0` | `AppResult`, `AppError` (`ErrorCategory`, `isRetryable`, `TimeoutError`, `RateLimitError`), `DispatcherProvider`, `Clock`, `AppLogger`/`RedactingAppLogger`, `KeyValueStore`/`ObservableKeyValueStore`, `UuidGenerator`, `BackoffPolicy`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`, `SensitiveDataRedactor`, `FieldValidators`, `PlatformInfo` (`PlatformKind.{WATCHOS, WEAR_OS, LINUX_NATIVE, WINDOWS_NATIVE}`), `PlatformCapabilities`/`currentPlatformCapabilities()`, `HapticEngine`/`HapticStyle`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`/`ShareRequest`, `ConnectivityMonitor`/`ConnectivityStatus`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `LocaleFormatter` (`formatCurrencyCents`, `currentLocaleTag`), `DeepLinkParser`/`DeepLinkTarget`, `SecureKeyValueStore` (`AppleKeychain` `SecItem*` w/ fallback, JVM AES-256-GCM + `Preferences`, WasmJS `sessionStorage`), `BiometricAuthenticator` (`LAContext` on Apple) |
 | **Layer 0** | `state` | `dev.abeta.kmp:state:0.1.0` | Reactive `SessionStore` (`PersistentSessionStore`, `SessionLifecycleManager`), observable & schema-versioned `PreferenceStore` (`multiplatform-settings`), `createSecurePersistentKeyValueStore(namespace)` in `SettingsKeyValueStore.kt`, `FeatureFlagProvider`, and `OfflineMutationQueue` |
 | **Layer 0** | `analytics` | `dev.abeta.kmp:analytics:0.1.0` | `AnalyticsEvent`, `AnalyticsTracker`, `CompositeAnalyticsTracker`, `LoggerAnalyticsTracker`, `RecordingAnalyticsTracker`, `SanitizingAnalyticsTracker`, `DeduplicatingAnalyticsTracker`, `EnrichingAnalyticsTracker`, `BufferedAnalyticsTracker` |
+| **Layer 0** | `database` | `dev.abeta.kmp:database:0.1.0` | Room 3 (`3.0.3`) KMP local SQLite database (`AbetaDatabase`, `AbetaLocalDatabase`, `cached_screens`, `offline_mutations`, `key_value_records`, `sqlite-bundled:2.7.1` on JVM/Android/Apple, `sqlite-web:2.7.1` OPFS Web Worker on WasmJS, KSP `2.3.14` schema export under `kmp/database/schemas/`; see [docs/local-database-room3.md](docs/local-database-room3.md)) |
 | **Layer 1** | `design-tokens` | `dev.abeta.kmp:design-tokens:0.1.0` | Owns all design tokens: `ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens`, `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset`, `ColorAccessibility`, `DesignTheme`, `ThemeTokens`, and `ResponsiveTokens.kt` (`WindowWidthClass`, `WindowHeightClass`, `DeviceFormFactor`, `AdaptiveLayoutMetrics`, `resolveAdaptiveLayoutMetrics`, `LocalAdaptiveLayoutMetrics`, `ProvideAdaptiveLayoutMetrics`) exposed via `ThemeTokens.adaptiveMetrics` |
 | **Layer 1** | `sdui-contracts` | `dev.abeta.kmp:sdui-contracts:0.1.0` | Pure `@Serializable` wire DTOs (`PageResponse` with `PaginationSpec`, `pullToRefresh`, `floatingCart` / `FloatingCartSpec`, and `adaptiveLayout` / `AdaptivePageSpec`, `SnippetEnvelope` with optional `motion`, **14 `SnippetTypes`** incl. `product_card` / `ProductCardSnippetData`, `CarouselSnippetData.itemWidthByWidth`, `GridSnippetData.columnsByWidth`, **15 Wire Atoms** incl. `StepperAtom`, `AdaptiveContracts.kt` (`ResponsiveColumnsSpec`, `ResponsiveIntSpec`, `AdaptivePageSpec`), `MotionContracts.kt` + `AtomEnums.kt` (`MotionSpec`, `MotionTransition`, `MotionDurationToken`, `MotionLoopEffect`, `FeedbackEffect`, `OsPermissionKind`, `ScreenLayoutMode`), `OverlayPresentation`, `TabItemSpec.title: String`, `LayoutConfig`, `ColorTokenRef`, `TypographyTokenRef`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`, `SduiJson`) |
 | **Layer 1** | `ui-atoms` | `dev.abeta.kmp:ui-atoms:0.1.0` | **16 stateless Compose Multiplatform atoms** (`UiText`, `UiIcon`, `UiTag`, `UiButton`, `UiImage`, `UiTextField`, `UiDivider`, `UiSpacer`, `UiProgress`, `UiSurfaceCard`, `UiSwitch`, `UiCheckbox`, `UiSlider`, `UiAvatar`, `UiSkeleton`, animated `UiStepper` morphing `ADD` <-> `- qty +` with haptic hooks), `UiCelebrationOverlay` (`UiCelebrationBurst.kt`), `UiHapticFeedback.kt` (`UiHapticKind`, `LocalUiHapticFeedback`, `rememberComposeHapticFallback`), `MotionModifier.kt` (`applyMotionSpec`, `Modifier.shakeOnError`, `resolveMotionDurationMs`, `resolveMotionDelayMs`, `resolveEnterTransition`, `resolveExitTransition`) honoring `ThemeTokens.motion.reducedMotion`, `UiImageRenderer`/`LocalImageRenderer`, `LayoutConfigModifier`, `TokenResolvers`, `compose.uiTest` semantic tests (`UiAtomsComposeTest`) |
@@ -135,6 +137,7 @@ dependencyResolutionManagement {
 // build.gradle.kts (commonMain)
 dependencies {
     implementation(platform("dev.abeta.kmp:bom:0.1.0"))
+    implementation("dev.abeta.kmp:database") // Optional Room 3 KMP local SQLite DB
     implementation("dev.abeta.kmp:design-tokens")
     implementation("dev.abeta.kmp:sdui-contracts")
     implementation("dev.abeta.kmp:ui-atoms")
@@ -213,6 +216,7 @@ cd kmp
   - [Architecture & Dependency Rule](docs/architecture.md)
   - [Atomic & Action Separation](docs/atomic-and-action-separation.md)
   - [Gradle BOM & Version Catalog Guide](docs/gradle-bom-guide.md)
+  - [Multiplatform Local Database Guide (Room 3 + SQLite)](docs/local-database-room3.md)
   - [Open Package Hosting & Release Publishing Guide](docs/publishing-and-hosting.md)
   - [SDUI Wire Protocol (`v1`)](docs/sdui-wire-protocol.md)
   - [Go BFF Integration Guide](docs/bff-integration.md)
@@ -234,7 +238,7 @@ cd kmp
   - [abeta-kmp-cicd](skills/abeta-kmp-cicd/SKILL.md) — CI/CD workflows, automated PR owner gates & SemVer releases
 - **Agent Personas & Per-Module Code Owners (`agents/` + `.github/CODEOWNERS`)**:
   - Core personas: [kmp-architect](agents/kmp-architect.md) | [atomic-designer](agents/atomic-designer.md) | [action-engine-engineer](agents/action-engine-engineer.md) | [bff-go-engineer](agents/bff-go-engineer.md) | [solid-reviewer](agents/solid-reviewer.md)
-  - **16 Per-Module Code Owner Agents**: [`agents/owners/`](agents/owners/) paired with [`.github/CODEOWNERS`](.github/CODEOWNERS) and enforced in CI by [`module-owner-architecture-review.yml`](.github/workflows/module-owner-architecture-review.yml)
+  - **17 Per-Module Code Owner Agents**: [`agents/owners/`](agents/owners/) paired with [`.github/CODEOWNERS`](.github/CODEOWNERS) and enforced in CI by [`module-owner-architecture-review.yml`](.github/workflows/module-owner-architecture-review.yml)
 - **Multi-IDE & Multi-Model Configs**:
   - `AGENTS.md` | `CLAUDE.md` + `.claude/` | `GEMINI.md` + `.gemini/` + `.agent/` | `.cursor/rules/` | `.junie/guidelines.md` + `.aiignore` (Android Studio / JetBrains) | `.github/copilot-instructions.md` + `.github/instructions/`
 - **Community & Governance**:

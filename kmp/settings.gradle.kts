@@ -34,6 +34,7 @@ include(":kmp-bom")
 include(":core")
 include(":state")
 include(":analytics")
+include(":database")
 include(":design-tokens")
 include(":sdui-contracts")
 include(":ui-atoms")
@@ -54,6 +55,7 @@ if (useLocalBom) {
         "$group:core" to ":core",
         "$group:state" to ":state",
         "$group:analytics" to ":analytics",
+        "$group:database" to ":database",
         "$group:design-tokens" to ":design-tokens",
         "$group:sdui-contracts" to ":sdui-contracts",
         "$group:ui-atoms" to ":ui-atoms",

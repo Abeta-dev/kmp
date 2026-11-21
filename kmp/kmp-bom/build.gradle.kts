@@ -14,10 +14,11 @@ javaPlatform {
 
 dependencies {
     constraints {
-        // Layer 0: Core Foundation, State & Analytics
+        // Layer 0: Core Foundation, State, Analytics & Room 3 Database
         api(internal.kmp.core)
         api(internal.kmp.state)
         api(internal.kmp.analytics)
+        api(internal.kmp.database)
         api(internal.kmp.dependencies)
 
         // Layer 1: Design Tokens, SDUI Wire Contracts & Stateless UI Atoms

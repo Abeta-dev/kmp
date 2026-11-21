@@ -11,7 +11,7 @@ flowchart TB
     L3["Layer 3: sdui-layout, watch-companion, storybook, sample-app"]
     L2["Layer 2: action-engine, network"]
     L1["Layer 1: ui-atoms -> design-tokens & sdui-contracts"]
-    L0["Layer 0: core, state, analytics"]
+    L0["Layer 0: core, state, analytics, database"]
 
     L3 --> L2
     L3 --> L1
@@ -24,18 +24,19 @@ flowchart TB
 
 ### Supported Multiplatform Targets & Reference Host Glue
 
-- **Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`): `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, and `wasmJs`.
+- **Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `database`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`): `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, and `wasmJs`.
 - **Compose UI Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`) and **`storybook`**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, and `wasmJs`.
 - **`sample-app`**: `jvm` Desktop & `--headless` CLI.
 - **Apple XCFrameworks**: `AbetaSduiKit.xcframework` (`sdui-layout`), `AbetaWatchKit.xcframework` (`watch-companion`), and `AbetaStorybookKit.xcframework` (`storybook`).
-- **Drop-in Host Glue (`kmp/platforms/`)**: `android/AndroidPlatformBridgeFactory.kt`, `wearos/WearCompanionHostActivity.kt`, `apple/AbetaAppleHosts.swift`, and `README.md` (Android & Wear OS templates require an Android app module with `ANDROID_HOME` / Android SDK configured).
+- **Drop-in Host Glue (`kmp/platforms/`)**: `android/AndroidPlatformBridgeFactory.kt`, `android/AndroidDatabaseFactory.kt`, `wearos/WearCompanionHostActivity.kt`, `apple/AbetaAppleHosts.swift`, `apple/Package.template.swift`, `web/README.md`, and `README.md` (Android & Wear OS templates require an Android app module with `ANDROID_HOME` / Android SDK configured).
 
 ### Layer Responsibilities
 
-- **Layer 0 (`core`, `state`, `analytics`)**:
+- **Layer 0 (`core`, `state`, `analytics`, `database`)**:
   - `core`: `AppResult` (+ combinators), `AppError` (`ErrorCategory`, `isRetryable`, `TimeoutError`, `RateLimitError`, etc.), `DispatcherProvider`, `Clock` / `MutableClock` / `ElapsedTimer`, `AppLogger` / `RedactingAppLogger` / `CompositeAppLogger`, `KeyValueStore` / `ObservableKeyValueStore` / `NamespacedKeyValueStore`, `UuidGenerator`, `BackoffPolicy`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`, `SensitiveDataRedactor`, `FieldValidators`, `PlatformInfo` (`PlatformKind.{WATCHOS, WEAR_OS, LINUX_NATIVE, WINDOWS_NATIVE}`), `PlatformCapabilities` / `currentPlatformCapabilities()`, `HapticEngine` / `HapticStyle`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort` / `ShareRequest`, `ConnectivityMonitor` / `ConnectivityStatus`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `LocaleFormatter` (`formatCurrencyCents`, `currentLocaleTag`), `DeepLinkParser` / `DeepLinkTarget`, `SecureKeyValueStore` (`AppleKeychain` `SecItem*` w/ fallback, JVM AES-256-GCM + `Preferences`, WasmJS `sessionStorage`), `BiometricAuthenticator` (`LAContext` on Apple). Zero project dependencies.
   - `state`: Reactive `SessionStore` (`InMemorySessionStore`, `PersistentSessionStore`, `SessionLifecycleManager`), typed & observable `PreferenceStore` (`VersionedPreferenceEnvelope` backed by `multiplatform-settings`), `createSecurePersistentKeyValueStore(namespace)` in `SettingsKeyValueStore.kt`, `FeatureFlagProvider` (`LayeredFeatureFlagProvider`, `PersistentFeatureFlagStore`), and `OfflineMutationQueue`. Depends only on `core` (design tokens live in `design-tokens`).
   - `analytics`: `AnalyticsEvent`, `AnalyticsTracker`, `CompositeAnalyticsTracker`, `LoggerAnalyticsTracker`, `RecordingAnalyticsTracker`, `SanitizingAnalyticsTracker`, `DeduplicatingAnalyticsTracker`, `EnrichingAnalyticsTracker`, and `BufferedAnalyticsTracker`. Depends only on `core`.
+  - `database`: Room 3 (`3.0.3`) KMP local SQLite engine (`AbetaDatabase`, `AbetaLocalDatabase`, `cached_screens`, `offline_mutations`, `key_value_records`), `androidx.sqlite:sqlite-bundled:2.7.1` on JVM/Android/Apple, `androidx.sqlite:sqlite-web:2.7.1` OPFS Web Worker on WasmJS, KSP (`2.3.14`) codegen & committed schema JSON exports under `kmp/database/schemas/`. Depends only on `core` (zero Compose UI or Ktor).
 - **Layer 1 (`design-tokens`, `sdui-contracts`, `ui-atoms`)**:
   - `design-tokens`: Owns all immutable design tokens (`ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens`, `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset`, `ColorAccessibility`, `DesignTheme`, `ThemeTokens`, plus `ResponsiveTokens.kt`: `WindowWidthClass`, `WindowHeightClass`, `DeviceFormFactor`, `AdaptiveLayoutMetrics`, `resolveAdaptiveLayoutMetrics`, `LocalAdaptiveLayoutMetrics`, `ProvideAdaptiveLayoutMetrics`, exposed via `ThemeTokens.adaptiveMetrics`). Zero project dependencies.
   - `sdui-contracts`: Pure `@Serializable` v1 wire DTOs (`PageResponse` with `PaginationSpec`, `pullToRefresh`, `floatingCart` / `FloatingCartSpec`, and `adaptiveLayout` / `AdaptivePageSpec`; `SnippetEnvelope` with optional `motion`; **14 `SnippetTypes`** incl. `product_card` / `ProductCardSnippetData`, `CarouselSnippetData.itemWidthByWidth`, `GridSnippetData.columnsByWidth`; **15 Wire Atoms** incl. `StepperAtom`; `AdaptiveContracts.kt` (`ResponsiveColumnsSpec`, `ResponsiveIntSpec`, `AdaptivePageSpec`); `MotionContracts.kt` + `AtomEnums.kt` (`MotionSpec`, `MotionTransition`, `MotionDurationToken`, `MotionLoopEffect`, `FeedbackEffect`, `OsPermissionKind`, `ScreenLayoutMode`, `OverlayPresentation`); `LayoutConfig`, `ColorTokenRef`, `TypographyTokenRef`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`, `SduiJson`; `TabItemSpec.title: String`). Zero `core`, Compose, or Ktor imports.
@@ -56,6 +57,6 @@ flowchart TB
 1. **No upward imports**: Layer 1 must never import `core`, `action-engine`, `network`, or `sdui-layout`.
 2. **No sibling coupling in Layer 2**: `action-engine` and `network` do not depend on each other; `sdui-layout` and `watch-companion` bridge them via `RemoteApiCallExecutor` / `WatchRemoteApiCallExecutor`.
 3. **Host binds concretes**: Concrete analytics trackers, OS bridge ports (`PlatformBridgeBundle`), certificate pins, navigation listeners, and BFF base URLs are wired at the composition root (`sample-app`, `createSduiKoinModule`, `createWatchCompanionModule`, `kmp/platforms/*`, or consumer app).
-4. **ABI & Docs Hygiene**: All **10 publishable KMP library modules** validate binary compatibility via `apiCheck` (`apiDump`) and generate Dokka v2 HTML via `dokkaGenerateHtml`.
+4. **ABI & Docs Hygiene**: All **11 publishable KMP library modules** (including Room 3 `database`) validate binary compatibility via `apiCheck` (`apiDump`) and generate Dokka v2 HTML via `dokkaGenerateHtml`.
 
-See `docs/architecture.md` in the repository for the complete dependency matrix.
+See `docs/architecture.md`, `docs/local-database-room3.md`, and `docs/publishing-and-hosting.md` in the repository for the complete dependency matrix, Room 3 database guide, and open-registry publishing playbook.

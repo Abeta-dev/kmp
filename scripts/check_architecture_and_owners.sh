@@ -50,27 +50,28 @@ ALLOWED_PROJECT_DEPS = {
     "core": set(),
     "state": {"core"},
     "analytics": {"core"},
+    "database": {"core"},
     "design-tokens": set(),
     "sdui-contracts": set(),
     "ui-atoms": {"designTokens", "sduiContracts"},
     "action-engine": {"core", "sduiContracts"},
     "network": {"core"},
     "sdui-layout": {
-        "core", "state", "analytics",
+        "core", "state", "analytics", "database",
         "designTokens", "sduiContracts", "uiAtoms",
         "actionEngine", "network",
     },
     "watch-companion": {
-        "core", "state", "analytics",
+        "core", "state", "analytics", "database",
         "sduiContracts", "actionEngine", "network",
     },
     "storybook": {
-        "core", "state", "analytics",
+        "core", "state", "analytics", "database",
         "designTokens", "sduiContracts", "uiAtoms",
         "actionEngine", "network", "sduiLayout", "kmpBom",
     },
     "sample-app": {
-        "core", "state", "analytics",
+        "core", "state", "analytics", "database",
         "designTokens", "sduiContracts", "uiAtoms",
         "actionEngine", "network", "sduiLayout", "kmpBom",
     },
@@ -80,6 +81,7 @@ PUBLISHABLE_LIBS = [
     "core",
     "state",
     "analytics",
+    "database",
     "design-tokens",
     "sdui-contracts",
     "ui-atoms",
@@ -109,12 +111,25 @@ for mod, allowed in ALLOWED_PROJECT_DEPS.items():
             f"[BOM/Catalog] {gradle_rel} contains hardcoded dependency versions: {hardcoded}"
         )
 
-# Layer 1 import isolation checks
+# Layer 0 / Layer 1 / headless Layer 3 import isolation checks
 LAYER1_FORBIDDEN_IMPORTS = {
+    "database": (
+        "dev.abeta.kmp.state.",
+        "dev.abeta.kmp.analytics.",
+        "dev.abeta.kmp.tokens.",
+        "dev.abeta.kmp.contracts.",
+        "dev.abeta.kmp.atoms.",
+        "dev.abeta.kmp.actions.",
+        "dev.abeta.kmp.network.",
+        "dev.abeta.kmp.layout.",
+        "androidx.compose.",
+        "io.ktor.",
+    ),
     "design-tokens": (
         "dev.abeta.kmp.core.",
         "dev.abeta.kmp.state.",
         "dev.abeta.kmp.analytics.",
+        "dev.abeta.kmp.database.",
         "dev.abeta.kmp.contracts.",
         "dev.abeta.kmp.atoms.",
         "dev.abeta.kmp.actions.",
@@ -124,6 +139,7 @@ LAYER1_FORBIDDEN_IMPORTS = {
     ),
     "sdui-contracts": (
         "dev.abeta.kmp.core.",
+        "dev.abeta.kmp.database.",
         "dev.abeta.kmp.tokens.",
         "dev.abeta.kmp.atoms.",
         "dev.abeta.kmp.actions.",
@@ -136,6 +152,7 @@ LAYER1_FORBIDDEN_IMPORTS = {
         "dev.abeta.kmp.core.",
         "dev.abeta.kmp.state.",
         "dev.abeta.kmp.analytics.",
+        "dev.abeta.kmp.database.",
         "dev.abeta.kmp.actions.",
         "dev.abeta.kmp.network.",
         "dev.abeta.kmp.layout.",
@@ -195,7 +212,7 @@ for mod in PUBLISHABLE_LIBS:
     if not os.path.isfile(api_file):
         violations.append(f"[ABI] Missing Binary Compatibility Validator descriptor: kmp/{mod}/api/{mod}.api")
 
-# Ensure all 10 publishable libraries are referenced in kmp-bom
+# Ensure all 11 publishable libraries are referenced in kmp-bom
 bom_entries = re.findall(r"api\(internal\.kmp\.([A-Za-z0-9_]+)\)", bom_text)
 if len(bom_entries) < len(PUBLISHABLE_LIBS):
     violations.append(
@@ -246,6 +263,7 @@ OWNER_MAPPING = [
     ("kmp/core/", "agents/owners/core-owner.md", "core-owner"),
     ("kmp/state/", "agents/owners/state-owner.md", "state-owner"),
     ("kmp/analytics/", "agents/owners/analytics-owner.md", "analytics-owner"),
+    ("kmp/database/", "agents/owners/database-owner.md", "database-owner"),
     ("kmp/design-tokens/", "agents/owners/design-tokens-owner.md", "design-tokens-owner"),
     ("kmp/sdui-contracts/", "agents/owners/sdui-contracts-owner.md", "sdui-contracts-owner"),
     ("kmp/ui-atoms/", "agents/owners/ui-atoms-owner.md", "ui-atoms-owner"),

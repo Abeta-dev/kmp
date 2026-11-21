@@ -27,6 +27,11 @@ dokka = "2.3.0"
 maven-publish = "0.37.0"
 binary-validator = "0.18.2"
 
+# Local Database (Room 3 KMP + SQLite Drivers + KSP)
+room3 = "3.0.3"
+sqlite = "2.7.1"
+ksp = "2.3.14"
+
 [libraries]
 # Kotlin & Coroutines & Serialization
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
@@ -66,6 +71,12 @@ multiplatform-settings = { group = "com.russhwolf", name = "multiplatform-settin
 multiplatform-settings-test = { group = "com.russhwolf", name = "multiplatform-settings-test", version.ref = "multiplatform-settings" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
+# Room 3 KMP & SQLite Drivers (Android, JVM, iOS, macOS, watchOS, WasmJS)
+androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3" }
+androidx-room3-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room3" }
+androidx-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite" }
+androidx-sqlite-web = { group = "androidx.sqlite", name = "sqlite-web", version.ref = "sqlite" }
+
 [bundles]
 ktor-common = [
     "ktor-client-core",
@@ -86,3 +97,5 @@ detekt = { id = "dev.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
 binaryValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-validator" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+androidxRoom3 = { id = "androidx.room3", version.ref = "room3" }
