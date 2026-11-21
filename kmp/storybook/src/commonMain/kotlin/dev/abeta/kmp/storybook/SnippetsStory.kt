@@ -32,10 +32,10 @@ import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.tokens.ThemeTokens
 
-private const val TOTAL_SNIPPET_COUNT = 14
+private const val TOTAL_SNIPPET_COUNT = 17
 
 /**
- * Interactive gallery rendering all 14 built-in SDUI [SnippetTypes] through [BuiltInSnippetModule].
+ * Interactive gallery rendering all 17 built-in SDUI [SnippetTypes] through [BuiltInSnippetModule].
  */
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")

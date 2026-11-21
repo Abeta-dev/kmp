@@ -1,0 +1,534 @@
+{
+  "page_id": "interactive-demo",
+  "title": "Abeta Discovery",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Discovery",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "Search, filters, and interactive swipe deck",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_interactive",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "interactive_search_bar",
+      "snippet_type": "search_bar",
+      "data": {
+        "search_id": "discovery_search",
+        "query": "compose",
+        "placeholder": "Search builders, teams, or KMP kits",
+        "leading_icon": {
+          "name": "search",
+          "size_dp": 20,
+          "color": {
+            "token": "text.secondary"
+          }
+        },
+        "trailing_icon": {
+          "name": "tune",
+          "size_dp": 20,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "submit_label": "Search",
+        "clearable": true,
+        "on_submit": {
+          "id": "submit_discovery_search",
+          "type": "call_api",
+          "payload": {
+            "endpoint": "/api/v1/actions/execute",
+            "method": "POST",
+            "body": {
+              "search_id": "discovery_search"
+            },
+            "on_success": {
+              "id": "toast_search_done",
+              "type": "show_toast",
+              "payload": {
+                "message": "Discovery results updated",
+                "duration_ms": 1800,
+                "variant": "info"
+              }
+            }
+          }
+        },
+        "on_clear": {
+          "id": "clear_discovery_query",
+          "type": "save_state",
+          "payload": {
+            "key": "discovery_query",
+            "value": "",
+            "scope": "session"
+          }
+        },
+        "on_trailing_click": {
+          "id": "open_discovery_filters",
+          "type": "open_dialog",
+          "payload": {
+            "dialog_id": "discovery_filters_sheet",
+            "title": "Discovery Filters",
+            "message": "Refine recommendations by platform target and availability.",
+            "presentation": "bottom_sheet",
+            "dismissible": true,
+            "positive_action": {
+              "id": "dismiss_discovery_filters",
+              "type": "dismiss_overlay",
+              "payload": {
+                "overlay_id": "discovery_filters_sheet"
+              }
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "interactive_search_bar",
+          "surface": "interactive-demo"
+        }
+      },
+      "motion": {
+        "enter": "fade_in",
+        "duration_token": "fast"
+      }
+    },
+    {
+      "snippet_id": "interactive_chip_group",
+      "snippet_type": "chip_group",
+      "data": {
+        "group_id": "discovery_categories",
+        "title": {
+          "text": "Filter Topics",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.small"
+          }
+        },
+        "multi_select": true,
+        "chips": [
+          {
+            "id": "chip_kmp",
+            "label": "KMP",
+            "selected": true,
+            "icon": {
+              "name": "sparkles",
+              "size_dp": 16,
+              "color": {
+                "token": "brand.primary"
+              }
+            },
+            "badge": "12",
+            "on_click": {
+              "id": "select_chip_kmp",
+              "type": "track_event",
+              "payload": {
+                "event_name": "filter_chip_toggled",
+                "properties": {
+                  "chip_id": "chip_kmp",
+                  "group_id": "discovery_categories"
+                }
+              }
+            }
+          },
+          {
+            "id": "chip_go_bff",
+            "label": "Go BFF",
+            "selected": true,
+            "badge": "7",
+            "on_click": {
+              "id": "select_chip_go_bff",
+              "type": "track_event",
+              "payload": {
+                "event_name": "filter_chip_toggled",
+                "properties": {
+                  "chip_id": "chip_go_bff",
+                  "group_id": "discovery_categories"
+                }
+              }
+            }
+          },
+          {
+            "id": "chip_wearables",
+            "label": "Wearables",
+            "selected": false,
+            "on_click": {
+              "id": "select_chip_wearables",
+              "type": "track_event",
+              "payload": {
+                "event_name": "filter_chip_toggled",
+                "properties": {
+                  "chip_id": "chip_wearables",
+                  "group_id": "discovery_categories"
+                }
+              }
+            }
+          }
+        ],
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 8,
+            "end": 16,
+            "bottom": 8
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "group_id": "discovery_categories",
+          "snippet_id": "interactive_chip_group"
+        }
+      },
+      "motion": {
+        "enter": "slide_up",
+        "duration_token": "fast",
+        "stagger_ms": 40
+      }
+    },
+    {
+      "snippet_id": "interactive_swipe_deck",
+      "snippet_type": "swipe_deck",
+      "data": {
+        "deck_id": "builders_deck",
+        "cards": [
+          {
+            "card_id": "card_maya_chen",
+            "title": {
+              "text": "Maya Chen",
+              "color": {
+                "token": "text.primary"
+              },
+              "typography": {
+                "token": "headline.small"
+              }
+            },
+            "subtitle": {
+              "text": "Staff KMP Architect · Compose Multiplatform",
+              "color": {
+                "token": "text.secondary"
+              },
+              "typography": {
+                "token": "body.medium"
+              }
+            },
+            "bio": {
+              "text": "Building zero-release SDUI renderers across Android, iOS, macOS, and WasmJS.",
+              "color": {
+                "token": "text.secondary"
+              },
+              "typography": {
+                "token": "body.small"
+              }
+            },
+            "badge": {
+              "label": "VERIFIED",
+              "bg_color": {
+                "token": "status.success_container"
+              }
+            },
+            "distance_text": {
+              "text": "2 km away",
+              "color": {
+                "token": "text.tertiary"
+              },
+              "typography": {
+                "token": "label.small"
+              }
+            },
+            "image": {
+              "url": "https://cdn.abeta.dev/profiles/maya-chen.png",
+              "content_description": "Maya Chen profile preview",
+              "height_dp": 220,
+              "scale_mode": "crop",
+              "corner_radius": {
+                "all": 12
+              }
+            },
+            "tags": [
+              {
+                "label": "Kotlin",
+                "bg_color": {
+                  "token": "brand.container"
+                }
+              },
+              {
+                "label": "SDUI",
+                "bg_color": {
+                  "token": "status.info_container"
+                }
+              }
+            ],
+            "on_like": {
+              "id": "like_card_maya",
+              "type": "track_event",
+              "payload": {
+                "event_name": "swipe_card_liked",
+                "properties": {
+                  "card_id": "card_maya_chen",
+                  "deck_id": "builders_deck"
+                }
+              }
+            },
+            "on_nope": {
+              "id": "nope_card_maya",
+              "type": "track_event",
+              "payload": {
+                "event_name": "swipe_card_skipped",
+                "properties": {
+                  "card_id": "card_maya_chen",
+                  "deck_id": "builders_deck"
+                }
+              }
+            },
+            "on_super_like": {
+              "id": "super_like_maya_fx",
+              "type": "trigger_feedback",
+              "payload": {
+                "effect": "celebration",
+                "title": "Priority Connect Sent!",
+                "subtitle": "Maya Chen has been notified",
+                "duration_ms": 1800
+              }
+            },
+            "on_click": {
+              "id": "open_maya_profile",
+              "type": "navigate",
+              "payload": {
+                "route": "/screens/profile",
+                "params": {
+                  "member_id": "card_maya_chen"
+                }
+              }
+            }
+          },
+          {
+            "card_id": "card_devon_patel",
+            "title": {
+              "text": "Devon Patel",
+              "color": {
+                "token": "text.primary"
+              },
+              "typography": {
+                "token": "headline.small"
+              }
+            },
+            "subtitle": {
+              "text": "Principal Go Engineer · Edge BFF",
+              "color": {
+                "token": "text.secondary"
+              },
+              "typography": {
+                "token": "body.medium"
+              }
+            },
+            "bio": {
+              "text": "Focused on HTTP/2 streaming, Brotli compression, and sub-10ms SDUI contracts.",
+              "color": {
+                "token": "text.secondary"
+              },
+              "typography": {
+                "token": "body.small"
+              }
+            },
+            "badge": {
+              "label": "MENTOR",
+              "bg_color": {
+                "token": "brand.container"
+              }
+            },
+            "distance_text": {
+              "text": "5 km away",
+              "color": {
+                "token": "text.tertiary"
+              },
+              "typography": {
+                "token": "label.small"
+              }
+            },
+            "tags": [
+              {
+                "label": "Go 1.26",
+                "bg_color": {
+                  "token": "status.info_container"
+                }
+              },
+              {
+                "label": "OpenAPI",
+                "bg_color": {
+                  "token": "surface.secondary"
+                }
+              }
+            ]
+          }
+        ],
+        "like_label": "Connect",
+        "nope_label": "Skip",
+        "super_like_label": "Boost",
+        "empty_title": {
+          "text": "You're all caught up",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "empty_message": {
+          "text": "Adjust your filter chips or check back soon for new collaborators.",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "on_like": {
+          "id": "deck_like_toast",
+          "type": "show_toast",
+          "payload": {
+            "message": "Added to connections",
+            "duration_ms": 1500,
+            "variant": "success"
+          }
+        },
+        "on_nope": {
+          "id": "deck_nope_toast",
+          "type": "show_toast",
+          "payload": {
+            "message": "Skipped card",
+            "duration_ms": 1200,
+            "variant": "info"
+          }
+        },
+        "on_super_like": {
+          "id": "deck_super_like_haptic",
+          "type": "trigger_feedback",
+          "payload": {
+            "effect": "haptic_tick",
+            "target_id": "interactive_swipe_deck"
+          }
+        },
+        "on_undo": {
+          "id": "deck_undo_toast",
+          "type": "show_toast",
+          "payload": {
+            "message": "Restored previous card",
+            "duration_ms": 1400,
+            "variant": "info"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "deck_id": "builders_deck",
+          "snippet_id": "interactive_swipe_deck"
+        }
+      },
+      "motion": {
+        "enter": "scale_in",
+        "duration_token": "normal"
+      }
+    }
+  ],
+  "adaptive_layout": {
+    "layout_mode": "centered",
+    "max_width_dp": 960
+  },
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "interactive-demo",
+      "version": "v1"
+    }
+  }
+}

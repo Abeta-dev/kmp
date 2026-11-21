@@ -39,6 +39,7 @@ object StoryCatalog {
     const val STORY_MOTION_STORE = "motion-store"
     const val STORY_LIVE_BFF = "live-bff-explorer"
     const val STORY_RESPONSIVE_BRIDGES = "responsive-bridges"
+    const val STORY_DISCOVERY_SEARCH = "discovery-search"
 
     val entries: List<StoryEntry> =
         listOf(
@@ -93,10 +94,10 @@ object StoryCatalog {
             ),
             StoryEntry(
                 id = STORY_SNIPPETS,
-                title = "All 14 Snippets",
+                title = "All 17 Snippets",
                 category = StoryCategory.SNIPPETS,
-                subtitle = "BuiltInSnippetModule · All 14 Canonical SDUI SnippetTypes",
-                description = "Interactive gallery rendering all 14 SDUI snippets via SnippetRegistry.",
+                subtitle = "BuiltInSnippetModule · All 17 Canonical SDUI SnippetTypes",
+                description = "Interactive gallery rendering all 17 SDUI snippets via SnippetRegistry.",
             ),
             StoryEntry(
                 id = STORY_PLAYGROUND,
@@ -125,6 +126,14 @@ object StoryCatalog {
                 category = StoryCategory.PLAYGROUND,
                 subtitle = "AdaptiveLayoutMetrics · Watch/Phone/iPad/Desktop · Core OS Ports",
                 description = "Interactive breakpoint previewer and live OS bridge capabilities deck.",
+            ),
+            StoryEntry(
+                id = STORY_DISCOVERY_SEARCH,
+                title = "Discovery, Search & Swipe",
+                category = StoryCategory.PLAYGROUND,
+                subtitle = "SwipeDeck · SearchBar · ChipGroup · Live Match Celebration",
+                description =
+                    "Interactive swipe card stack with drag gestures, search bar query binding, and filter chips.",
             ),
         )
 

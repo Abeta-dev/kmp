@@ -8,15 +8,18 @@ import dev.abeta.kmp.contracts.ActionRowSnippetData
 import dev.abeta.kmp.contracts.BannerSnippetData
 import dev.abeta.kmp.contracts.CardSnippetData
 import dev.abeta.kmp.contracts.CarouselSnippetData
+import dev.abeta.kmp.contracts.ChipGroupSnippetData
 import dev.abeta.kmp.contracts.DividerSnippetData
 import dev.abeta.kmp.contracts.EmptyStateSnippetData
 import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.GridSnippetData
 import dev.abeta.kmp.contracts.HeaderSnippetData
 import dev.abeta.kmp.contracts.MetricCardSnippetData
+import dev.abeta.kmp.contracts.SearchBarSnippetData
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.SpacerSnippetData
+import dev.abeta.kmp.contracts.SwipeDeckSnippetData
 import dev.abeta.kmp.contracts.TabsSnippetData
 import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.result.AppResult
@@ -80,7 +83,7 @@ class SnippetRegistryTest {
     }
 
     @Test
-    fun allThirteenBuiltInSnippetRenderersRegisterAndDecodeCoreSnippets() {
+    fun allSeventeenBuiltInSnippetRenderersRegisterAndDecodeCoreSnippets() {
         val registry = BuiltInSnippetModule.createDefaultRegistry()
 
         val expectedTypes =
@@ -99,6 +102,9 @@ class SnippetRegistryTest {
                 SnippetTypes.TABS,
                 SnippetTypes.ACCORDION,
                 SnippetTypes.PRODUCT_CARD,
+                SnippetTypes.SWIPE_DECK,
+                SnippetTypes.SEARCH_BAR,
+                SnippetTypes.CHIP_GROUP,
             )
         assertEquals(expectedTypes, registry.registeredTypes())
 
@@ -222,6 +228,41 @@ class SnippetRegistryTest {
                 ),
             ).value
         assertEquals("FAQ", accordion.title.text)
+    }
+
+    @Test
+    fun builtInInteractiveSnippetDecodersDecodeSwipeDeckSearchBarAndChipGroup() {
+        val registry = BuiltInSnippetModule.createDefaultRegistry()
+
+        val swipeDeck =
+            assertIs<AppResult.Success<SwipeDeckSnippetData>>(
+                registry.resolve(SnippetTypes.SWIPE_DECK)!!.decode(
+                    buildJsonObject { put("deck_id", "discover") },
+                ),
+            ).value
+        assertEquals("discover", swipeDeck.deckId)
+
+        val searchBar =
+            assertIs<AppResult.Success<SearchBarSnippetData>>(
+                registry.resolve(SnippetTypes.SEARCH_BAR)!!.decode(
+                    buildJsonObject {
+                        put("search_id", "catalog_q")
+                        put("placeholder", "Search items")
+                    },
+                ),
+            ).value
+        assertEquals("catalog_q", searchBar.searchId)
+
+        val chipGroup =
+            assertIs<AppResult.Success<ChipGroupSnippetData>>(
+                registry.resolve(SnippetTypes.CHIP_GROUP)!!.decode(
+                    buildJsonObject {
+                        put("group_id", "filters")
+                        put("multi_select", true)
+                    },
+                ),
+            ).value
+        assertEquals("filters", chipGroup.groupId)
     }
 
     @Test

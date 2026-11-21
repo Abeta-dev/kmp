@@ -119,6 +119,9 @@ class SampleContainer(
     /** Ordered list of sample screen IDs available in the UI switcher. */
     val availableScreens: List<String> = DEFAULT_SCREENS
 
+    /** Ordered list of six vertical showcase apps available in the Super-App launcher. */
+    val verticalApps: List<ShowcaseAppSpec> = VERTICAL_APPS
+
     /** Loads the initial `"home"` screen. */
     fun loadInitialScreen(): Job = navigateTo(DEFAULT_SCREEN_ID, pushHistory = false)
 
@@ -254,10 +257,20 @@ class SampleContainer(
         return storeReady.page.pageId to celebrationTriggered
     }
 
+    /**
+     * Executes an end-to-end headless verification sequence across all six vertical showcase entry
+     * screens (`fresh-home`, `bites-home`, `pulse-home`, `mart-home`, `spark-deck`, `trade-home`)
+     * and live vertical `CALL_API` endpoints.
+     */
+    suspend fun runVerticalsHeadlessVerification(): VerticalsVerificationSummary = verifyVerticalsHeadless(this)
+
     companion object {
         const val DEFAULT_SCREEN_ID: String = "home"
         val DEFAULT_SCREENS: List<String> =
             listOf("home", "store-home", "catalog", "profile", "form-demo", "containers", "watch-status")
+        val VERTICAL_APPS: List<ShowcaseAppSpec> = SampleShowcaseApps.allApps
+        val VERTICAL_SCREENS: List<String> =
+            listOf("fresh-home", "bites-home", "pulse-home", "mart-home", "spark-deck", "trade-home")
     }
 }
 
@@ -398,20 +411,29 @@ fun SampleRoot(
     val activeScreen by container.currentScreenId.collectAsState()
     val offlineStatus by container.offlineCoordinator.status.collectAsState()
     val pendingOfflineCount = (uiState as? LayoutUiState.Ready)?.pendingOfflineActions ?: offlineStatus.pendingCount
+    var launcherMode by remember { mutableStateOf(launcherModeForScreen(activeScreen)) }
+    val activePreset = SampleShowcaseApps.themePresetForScreen(activeScreen)
+
+    LaunchedEffect(activeScreen) {
+        launcherMode = launcherModeForScreen(activeScreen)
+    }
 
     LaunchedEffect(container.controller) {
         container.controller.observeConnectivity()
     }
 
-    DesignTheme(darkTheme = darkTheme) {
+    DesignTheme(preset = activePreset, darkTheme = darkTheme) {
         CompositionLocalProvider(LocalImageRenderer provides container.imageRenderer) {
             Column(modifier = Modifier.fillMaxSize().background(ThemeTokens.colors.background.primary)) {
                 if (showTopBar) {
                     SampleTopBar(
+                        verticalApps = container.verticalApps,
                         availableScreens = container.availableScreens,
                         activeScreen = activeScreen,
+                        mode = launcherMode,
                         pendingOfflineCount = pendingOfflineCount,
                         darkTheme = darkTheme,
+                        onSelectMode = { launcherMode = it },
                         onSelectScreen = { container.navigateTo(it) },
                         onFlushOffline = { container.flushOfflineActions() },
                         onToggleTheme = { darkTheme = !darkTheme },
@@ -429,7 +451,7 @@ fun SampleRoot(
                     onDismissFeedback = container.controller::dismissFeedback,
                     onSnippetImpression = container.controller::onSnippetImpression,
                     onLoadMore = { container.controller.loadMore() },
-                    isWatch = activeScreen == "watch-status",
+                    isWatch = SampleShowcaseApps.normalizeBaseScreenId(activeScreen) == "watch-status",
                     onHaptic = container.platformBridges.hapticEngine.asUiHapticCallback(),
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                 )

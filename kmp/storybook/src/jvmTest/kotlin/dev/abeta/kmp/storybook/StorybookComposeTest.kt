@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class StorybookComposeTest {
@@ -32,9 +33,9 @@ class StorybookComposeTest {
             onNodeWithText("115%").performClick()
             onNodeWithText("1.0x").assertIsDisplayed()
 
-            onNodeWithText("All 14 Snippets").performScrollTo().performClick()
+            onNodeWithText("All 17 Snippets").performScrollTo().performClick()
             onNodeWithText("SDUI Snippet Registry Gallery").assertIsDisplayed()
-            onNodeWithText("14 / 14 Registered").assertIsDisplayed()
+            onNodeWithText("17 / 17 Registered").assertIsDisplayed()
             onNode(hasText("Accordion") and hasClickAction()).performClick()
             onNodeWithText("SnippetEnvelope Wire JSON (accordion)").performScrollTo().assertIsDisplayed()
 
@@ -61,10 +62,20 @@ class StorybookComposeTest {
             onNodeWithText("Watch (260dp)").performClick()
             onNodeWithText("Core OS Bridges & Capabilities").performScrollTo().assertIsDisplayed()
             onNodeWithText("Shake Error Test").performScrollTo().performClick()
+
+            onNodeWithText("Discovery, Search & Swipe").performScrollTo().performClick()
+            onNodeWithText("Search Bar & Live Query Binding").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Category & Filter Chip Groups").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Abeta Spark · Swipe Discovery Deck").performScrollTo().assertIsDisplayed()
+            onNodeWithContentDescription("Like").performScrollTo().performClick()
+            onNodeWithText("It's a Match!").assertIsDisplayed()
+            onNodeWithContentDescription("Dismiss celebration").performClick()
+            onNodeWithText("It's a Match!").assertDoesNotExist()
         }
 
     @Test
-    fun allTwelveStoriesRenderCleanlyInStorybook() {
+    fun allThirteenStoriesRenderCleanlyInStorybook() {
+        assertEquals(13, StoryCatalog.entries.size)
         StoryCatalog.entries.forEach { entry ->
             runComposeUiTest {
                 setContent {

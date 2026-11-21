@@ -5,7 +5,7 @@ import dev.abeta.kmp.contracts.SnippetTypes
 import kotlinx.serialization.json.Json
 
 /**
- * Registers all 14 built-in SDUI snippet renderers backed exclusively by stateless `ui-atoms` atoms.
+ * Registers all 17 built-in SDUI snippet renderers backed exclusively by stateless `ui-atoms` atoms.
  */
 object BuiltInSnippetModule {
     /** Populates [builder] with renderers for all canonical [SnippetTypes]. */
@@ -29,6 +29,9 @@ object BuiltInSnippetModule {
             register(TabsSnippetRenderer(json, registryProvider))
             register(AccordionSnippetRenderer(json, registryProvider))
             register(ProductCardSnippetRenderer(json))
+            register(SwipeDeckSnippetRenderer(json))
+            register(SearchBarSnippetRenderer(json))
+            register(ChipGroupSnippetRenderer(json))
         }
 
     /** Convenience factory creating a [SnippetRegistry] pre-populated with all built-in renderers. */

@@ -13,6 +13,7 @@ import (
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/atoms"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/theming"
 )
 
 var updateGolden = flag.Bool("update", false, "update golden JSON fixtures")
@@ -62,6 +63,233 @@ func canonicalActionBatch() actions.ActionTrigger {
 			Properties: map[string]any{"screen": "form-demo"},
 		}),
 	)
+}
+
+func canonicalInteractiveScreen() snippets.PageResponse {
+	ptrAction := func(a actions.ActionTrigger) *actions.ActionTrigger { return &a }
+	ptrText := func(t atoms.TextAtom) *atoms.TextAtom { return &t }
+	ptrTag := func(t atoms.TagAtom) *atoms.TagAtom { return &t }
+	ptrIcon := func(i atoms.IconAtom) *atoms.IconAtom { return &i }
+
+	cardLayout := atoms.LayoutConfig{
+		Padding:      atoms.UniformSpacing(theming.SpacingLG.Dp()),
+		Margin:       atoms.SymmetricSpacing(theming.SpacingLG.Dp(), theming.SpacingXS.Dp()),
+		BgColor:      atoms.ColorRef(theming.ColorSurfacePrimary),
+		CornerRadius: atoms.UniformRadius(12),
+		Border: &atoms.BorderSpec{
+			WidthDp: 1,
+			Color:   *atoms.ColorRef(theming.ColorBorderSubtle),
+		},
+		FillMaxWidth: atoms.BoolPtr(true),
+	}
+
+	toolbarTitle := atoms.NewText("Abeta Discovery", theming.TypographyTitleLarge, theming.ColorTextPrimary)
+	toolbarSub := atoms.NewText("Search, filters, and interactive swipe deck", theming.TypographyBodySmall, theming.ColorTextSecondary)
+	backIcon := atoms.NewIcon("arrow_back", 22, theming.ColorTextPrimary)
+	backIcon.ContentDescription = "Navigate back"
+	backIcon.OnClick = ptrAction(actions.NewBackPressAction("back_from_interactive", actions.BackPressPayload{Steps: 1}))
+
+	searchSubmit := actions.NewCallAPIAction("submit_discovery_search", actions.CallAPIPayload{
+		Endpoint: "/api/v1/actions/execute",
+		Method:   "POST",
+		Body:     map[string]any{"search_id": "discovery_search"},
+		OnSuccess: ptrAction(actions.NewShowToastAction("toast_search_done", actions.ShowToastPayload{
+			Message:    "Discovery results updated",
+			DurationMs: 1800,
+			Variant:    "info",
+		})),
+	})
+	searchClear := actions.NewSaveStateAction("clear_discovery_query", actions.SaveStatePayload{
+		Key:   "discovery_query",
+		Value: "",
+		Scope: "session",
+	})
+	searchFilterSheet := actions.NewOpenDialogAction("open_discovery_filters", actions.OpenDialogPayload{
+		DialogID:     "discovery_filters_sheet",
+		Title:        "Discovery Filters",
+		Message:      "Refine recommendations by platform target and availability.",
+		Presentation: actions.PresentationBottomSheet,
+		Dismissible:  atoms.BoolPtr(true),
+		PositiveAction: ptrAction(actions.NewDismissOverlayAction("dismiss_discovery_filters", actions.DismissOverlayPayload{
+			OverlayID: "discovery_filters_sheet",
+		})),
+	})
+
+	searchSnippet := snippets.NewSearchBarSnippet("interactive_search_bar", "discovery_search", "Search builders, teams, or KMP kits").
+		WithQuery("compose").
+		WithLeadingIcon(atoms.NewIcon("search", 20, theming.ColorTextSecondary)).
+		WithTrailingIcon(atoms.NewIcon("tune", 20, theming.ColorBrandPrimary)).
+		WithSubmitLabel("Search").
+		WithClearable(true).
+		WithOnSubmit(searchSubmit).
+		WithOnClear(searchClear).
+		WithOnTrailingClick(searchFilterSheet).
+		WithLayout(cardLayout).
+		WithMotion(atoms.MotionSpec{
+			Enter:         atoms.MotionTransitionFadeIn,
+			DurationToken: atoms.MotionDurationFast,
+		}).
+		WithTracking("snippet_impression", map[string]any{
+			"snippet_id": "interactive_search_bar",
+			"surface":    "interactive-demo",
+		}).
+		Build()
+
+	chipGroupSnippet := snippets.NewChipGroupSnippet(
+		"interactive_chip_group",
+		"discovery_categories",
+		snippets.FilterChipItem{
+			ID:       "chip_kmp",
+			Label:    "KMP",
+			Selected: true,
+			Icon:     ptrIcon(atoms.NewIcon("sparkles", 16, theming.ColorBrandPrimary)),
+			Badge:    "12",
+			OnClick: ptrAction(actions.NewTrackEventAction("select_chip_kmp", actions.TrackEventPayload{
+				EventName:  "filter_chip_toggled",
+				Properties: map[string]any{"chip_id": "chip_kmp", "group_id": "discovery_categories"},
+			})),
+		},
+		snippets.FilterChipItem{
+			ID:       "chip_go_bff",
+			Label:    "Go BFF",
+			Selected: true,
+			Badge:    "7",
+			OnClick: ptrAction(actions.NewTrackEventAction("select_chip_go_bff", actions.TrackEventPayload{
+				EventName:  "filter_chip_toggled",
+				Properties: map[string]any{"chip_id": "chip_go_bff", "group_id": "discovery_categories"},
+			})),
+		},
+		snippets.FilterChipItem{
+			ID:       "chip_wearables",
+			Label:    "Wearables",
+			Selected: false,
+			OnClick: ptrAction(actions.NewTrackEventAction("select_chip_wearables", actions.TrackEventPayload{
+				EventName:  "filter_chip_toggled",
+				Properties: map[string]any{"chip_id": "chip_wearables", "group_id": "discovery_categories"},
+			})),
+		},
+	).
+		WithTitle(atoms.NewText("Filter Topics", theming.TypographyTitleSmall, theming.ColorTextPrimary)).
+		WithMultiSelect(true).
+		WithLayout(atoms.LayoutConfig{
+			Padding:      atoms.SymmetricSpacing(theming.SpacingLG.Dp(), theming.SpacingSM.Dp()),
+			FillMaxWidth: atoms.BoolPtr(true),
+		}).
+		WithMotion(atoms.MotionSpec{
+			Enter:         atoms.MotionTransitionSlideUp,
+			DurationToken: atoms.MotionDurationFast,
+			StaggerMs:     40,
+		}).
+		WithTracking("snippet_impression", map[string]any{
+			"snippet_id": "interactive_chip_group",
+			"group_id":   "discovery_categories",
+		}).
+		Build()
+
+	card1 := snippets.SwipeCardItem{
+		CardID:       "card_maya_chen",
+		Title:        atoms.NewText("Maya Chen", theming.TypographyHeadlineSmall, theming.ColorTextPrimary),
+		Subtitle:     ptrText(atoms.NewText("Staff KMP Architect · Compose Multiplatform", theming.TypographyBodyMedium, theming.ColorTextSecondary)),
+		Bio:          ptrText(atoms.NewText("Building zero-release SDUI renderers across Android, iOS, macOS, and WasmJS.", theming.TypographyBodySmall, theming.ColorTextSecondary)),
+		Badge:        ptrTag(atoms.NewTag("VERIFIED", theming.ColorSuccessContainer)),
+		DistanceText: ptrText(atoms.NewText("2 km away", theming.TypographyLabelSmall, theming.ColorTextTertiary)),
+		Image: &atoms.ImageAtom{
+			URL:                "https://cdn.abeta.dev/profiles/maya-chen.png",
+			ContentDescription: "Maya Chen profile preview",
+			HeightDp:           atoms.IntPtr(220),
+			ScaleMode:          "crop",
+			CornerRadius:       atoms.UniformRadius(12),
+		},
+		Tags: []atoms.TagAtom{
+			atoms.NewTag("Kotlin", theming.ColorBrandContainer),
+			atoms.NewTag("SDUI", theming.ColorInfoContainer),
+		},
+		OnLike: ptrAction(actions.NewTrackEventAction("like_card_maya", actions.TrackEventPayload{
+			EventName:  "swipe_card_liked",
+			Properties: map[string]any{"card_id": "card_maya_chen", "deck_id": "builders_deck"},
+		})),
+		OnNope: ptrAction(actions.NewTrackEventAction("nope_card_maya", actions.TrackEventPayload{
+			EventName:  "swipe_card_skipped",
+			Properties: map[string]any{"card_id": "card_maya_chen", "deck_id": "builders_deck"},
+		})),
+		OnSuperLike: ptrAction(actions.NewTriggerFeedbackAction("super_like_maya_fx", actions.TriggerFeedbackPayload{
+			Effect:     actions.FeedbackCelebration,
+			Title:      "Priority Connect Sent!",
+			Subtitle:   "Maya Chen has been notified",
+			DurationMs: 1800,
+		})),
+		OnClick: ptrAction(actions.NewNavigateAction("open_maya_profile", actions.NavigatePayload{
+			Route:  "/screens/profile",
+			Params: map[string]string{"member_id": "card_maya_chen"},
+		})),
+	}
+
+	card2 := snippets.SwipeCardItem{
+		CardID:       "card_devon_patel",
+		Title:        atoms.NewText("Devon Patel", theming.TypographyHeadlineSmall, theming.ColorTextPrimary),
+		Subtitle:     ptrText(atoms.NewText("Principal Go Engineer · Edge BFF", theming.TypographyBodyMedium, theming.ColorTextSecondary)),
+		Bio:          ptrText(atoms.NewText("Focused on HTTP/2 streaming, Brotli compression, and sub-10ms SDUI contracts.", theming.TypographyBodySmall, theming.ColorTextSecondary)),
+		Badge:        ptrTag(atoms.NewTag("MENTOR", theming.ColorBrandContainer)),
+		DistanceText: ptrText(atoms.NewText("5 km away", theming.TypographyLabelSmall, theming.ColorTextTertiary)),
+		Tags: []atoms.TagAtom{
+			atoms.NewTag("Go 1.26", theming.ColorInfoContainer),
+			atoms.NewTag("OpenAPI", theming.ColorSurfaceSecondary),
+		},
+	}
+
+	swipeDeckSnippet := snippets.NewSwipeDeckSnippet("interactive_swipe_deck", "builders_deck", card1, card2).
+		WithLabels("Connect", "Skip", "Boost").
+		WithEmptyState(
+			atoms.NewText("You're all caught up", theming.TypographyTitleMedium, theming.ColorTextPrimary),
+			atoms.NewText("Adjust your filter chips or check back soon for new collaborators.", theming.TypographyBodySmall, theming.ColorTextSecondary),
+		).
+		WithOnLike(actions.NewShowToastAction("deck_like_toast", actions.ShowToastPayload{
+			Message:    "Added to connections",
+			DurationMs: 1500,
+			Variant:    "success",
+		})).
+		WithOnNope(actions.NewShowToastAction("deck_nope_toast", actions.ShowToastPayload{
+			Message:    "Skipped card",
+			DurationMs: 1200,
+			Variant:    "info",
+		})).
+		WithOnSuperLike(actions.NewTriggerFeedbackAction("deck_super_like_haptic", actions.TriggerFeedbackPayload{
+			Effect:   actions.FeedbackHapticTick,
+			TargetID: "interactive_swipe_deck",
+		})).
+		WithOnUndo(actions.NewShowToastAction("deck_undo_toast", actions.ShowToastPayload{
+			Message:    "Restored previous card",
+			DurationMs: 1400,
+			Variant:    "info",
+		})).
+		WithLayout(cardLayout).
+		WithMotion(atoms.MotionSpec{
+			Enter:         atoms.MotionTransitionScaleIn,
+			DurationToken: atoms.MotionDurationNormal,
+		}).
+		WithTracking("snippet_impression", map[string]any{
+			"snippet_id": "interactive_swipe_deck",
+			"deck_id":    "builders_deck",
+		}).
+		Build()
+
+	return snippets.NewPage("interactive-demo", "Abeta Discovery").
+		WithToolbar(snippets.ToolbarSpec{
+			Title:          &toolbarTitle,
+			Subtitle:       &toolbarSub,
+			NavigationIcon: &backIcon,
+			BgColor:        atoms.ColorRef(theming.ColorSurfacePrimary),
+		}).
+		WithAdaptiveLayout(snippets.AdaptivePageSpec{
+			LayoutMode: snippets.LayoutModeCentered,
+			MaxWidthDp: atoms.IntPtr(960),
+		}).
+		AddSnippets(searchSnippet, chipGroupSnippet, swipeDeckSnippet).
+		WithTracking("page_loaded", map[string]any{
+			"page_id": "interactive-demo",
+			"version": "v1",
+		}).
+		Build()
 }
 
 func writeOrCompareGolden(t *testing.T, filename string, value any) []byte {
@@ -250,5 +478,39 @@ func TestGoldenFixtures_RoundTrip(t *testing.T) {
 	orderAPI, err := actions.DecodePayload[actions.CallAPIPayload](*checkoutDlg.PositiveAction)
 	if err != nil || orderAPI.Endpoint != "/api/v1/orders/express" {
 		t.Fatalf("unexpected positive action API payload: %+v, err=%v", orderAPI, err)
+	}
+
+	interactivePage := canonicalInteractiveScreen()
+	interactiveBytes := writeOrCompareGolden(t, "interactive_screen.json", interactivePage)
+
+	var decodedInteractive snippets.PageResponse
+	if err := json.Unmarshal(interactiveBytes, &decodedInteractive); err != nil {
+		t.Fatalf("round-trip unmarshal interactive_screen.json: %v", err)
+	}
+	if decodedInteractive.PageID != "interactive-demo" || len(decodedInteractive.Snippets) != 3 {
+		t.Fatalf("unexpected decoded interactive screen: %+v", decodedInteractive)
+	}
+	if decodedInteractive.Snippets[0].SnippetType != snippets.SnippetTypeSearchBar ||
+		decodedInteractive.Snippets[1].SnippetType != snippets.SnippetTypeChipGroup ||
+		decodedInteractive.Snippets[2].SnippetType != snippets.SnippetTypeSwipeDeck {
+		t.Fatalf("unexpected interactive snippet types: %+v", decodedInteractive.Snippets)
+	}
+
+	searchData, err := snippets.DecodeSnippetData[snippets.SearchBarSnippetData](decodedInteractive.Snippets[0])
+	if err != nil || searchData.SearchID != "discovery_search" || searchData.Query != "compose" || !searchData.Clearable || searchData.OnSubmit == nil || searchData.OnClear == nil || searchData.OnTrailingClick == nil {
+		t.Fatalf("unexpected interactive search_bar data: %+v, err=%v", searchData, err)
+	}
+
+	chipData, err := snippets.DecodeSnippetData[snippets.ChipGroupSnippetData](decodedInteractive.Snippets[1])
+	if err != nil || chipData.GroupID != "discovery_categories" || !chipData.MultiSelect || chipData.Title == nil || len(chipData.Chips) != 3 || !chipData.Chips[0].Selected || chipData.Chips[0].Badge != "12" {
+		t.Fatalf("unexpected interactive chip_group data: %+v, err=%v", chipData, err)
+	}
+
+	deckData, err := snippets.DecodeSnippetData[snippets.SwipeDeckSnippetData](decodedInteractive.Snippets[2])
+	if err != nil || deckData.DeckID != "builders_deck" || len(deckData.Cards) != 2 || deckData.LikeLabel != "Connect" || deckData.NopeLabel != "Skip" || deckData.SuperLikeLabel != "Boost" || deckData.EmptyTitle == nil || deckData.EmptyMessage == nil || deckData.OnUndo == nil {
+		t.Fatalf("unexpected interactive swipe_deck data: %+v, err=%v", deckData, err)
+	}
+	if deckData.Cards[0].CardID != "card_maya_chen" || deckData.Cards[0].DistanceText == nil || len(deckData.Cards[0].Tags) != 2 || deckData.Cards[0].OnSuperLike == nil {
+		t.Fatalf("unexpected interactive swipe_deck card[0]: %+v", deckData.Cards[0])
 	}
 }

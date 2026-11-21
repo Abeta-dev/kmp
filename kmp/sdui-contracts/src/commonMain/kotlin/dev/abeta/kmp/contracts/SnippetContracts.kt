@@ -22,6 +22,9 @@ object SnippetTypes {
     const val TABS = "tabs"
     const val ACCORDION = "accordion"
     const val PRODUCT_CARD = "product_card"
+    const val SWIPE_DECK = "swipe_deck"
+    const val SEARCH_BAR = "search_bar"
+    const val CHIP_GROUP = "chip_group"
 }
 
 /**

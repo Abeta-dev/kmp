@@ -27,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -259,12 +260,14 @@ private fun StoryStagePane(
             onFontScaleChange = onFontScaleChange,
         )
         UiDivider(DividerAtom())
+        val stageScrollState = rememberScrollState()
+        LaunchedEffect(selectedStoryId) { stageScrollState.scrollTo(0) }
         Box(
             modifier =
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(stageScrollState)
                     .padding(ThemeTokens.spacing.space24),
         ) {
             StoryStage(selectedStoryId, preset, darkTheme, reducedMotion, onAction)
@@ -427,11 +430,23 @@ private fun StoryStage(
         StoryCatalog.STORY_TEXT_FIELD -> TextFieldStory(onAction)
         StoryCatalog.STORY_MEDIA_FEEDBACK -> MediaFeedbackStory(onAction)
         StoryCatalog.STORY_CONTROLS_DATA -> ControlsAndDataAtomsStory(onAction)
+        else -> PlaygroundAndSnippetStage(storyId = storyId, onAction = onAction)
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun PlaygroundAndSnippetStage(
+    storyId: String,
+    onAction: (ActionRef) -> Unit,
+) {
+    when (storyId) {
         StoryCatalog.STORY_SNIPPETS -> SnippetsStory(onAction)
         StoryCatalog.STORY_PLAYGROUND -> PlaygroundStory(onAction)
         StoryCatalog.STORY_MOTION_STORE -> MotionAndStoreStory(onAction)
         StoryCatalog.STORY_LIVE_BFF -> LiveBffStory(onAction)
         StoryCatalog.STORY_RESPONSIVE_BRIDGES -> ResponsiveAndBridgesStory(onAction)
+        StoryCatalog.STORY_DISCOVERY_SEARCH -> DiscoveryAndSearchStory(onAction)
         else -> IntroductionStory()
     }
 }

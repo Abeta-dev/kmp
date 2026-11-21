@@ -22,7 +22,7 @@ verification_command: "(cd kmp && ./gradlew :sdui-contracts:spotlessCheck :sdui-
 - **Paths**: `kmp/sdui-contracts/**`
 - **Maven Coordinate**: `dev.abeta.kmp:sdui-contracts`
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
-- **Core Responsibilities**: Pure `@Serializable` SDUI v1 wire DTOs (**15 Wire Atoms**, **14 `SnippetTypes`**, `PageResponse`, `AdaptiveContracts.kt`, `MotionContracts.kt`, `AtomEnums.kt`, `FloatingCartSpec`, `PaginationSpec`, `OverlayPresentation`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`, `SduiJson`).
+- **Core Responsibilities**: Pure `@Serializable` SDUI v1 wire DTOs (**15 Wire Atoms**, **17 `SnippetTypes`** incl. `product_card` plus `InteractiveSnippetContracts.kt`: `swipe_deck` / `SwipeDeckSnippetData`, `search_bar` / `SearchBarSnippetData`, `chip_group` / `ChipGroupSnippetData`, `PageResponse`, `AdaptiveContracts.kt`, `MotionContracts.kt`, `AtomEnums.kt`, `FloatingCartSpec`, `PaginationSpec`, `OverlayPresentation`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`, `SduiJson`).
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Pure Wire Data Only**: ZERO Compose imports, ZERO `core` imports, ZERO action handlers, ZERO network clients. Every class is immutable `@Serializable` data.

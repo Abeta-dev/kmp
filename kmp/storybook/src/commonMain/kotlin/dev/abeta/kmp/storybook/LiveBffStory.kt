@@ -81,7 +81,21 @@ private const val BFF_CONNECT_TIMEOUT_MS = 3_000L
 private const val BFF_REQUEST_TIMEOUT_MS = 5_000L
 private const val VIEWPORT_HEIGHT_DP = 540
 private val BFF_SCREENS =
-    listOf("home", "catalog", "profile", "form-demo", "containers", "store-home", "watch-status")
+    listOf(
+        "home",
+        "catalog",
+        "profile",
+        "form-demo",
+        "containers",
+        "store-home",
+        "watch-status",
+        "fresh-home",
+        "bites-home",
+        "pulse-home",
+        "mart-home",
+        "spark-deck",
+        "trade-home",
+    )
 
 private class LiveBffHolder(
     val httpClient: HttpClient,

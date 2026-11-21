@@ -533,6 +533,42 @@ public final class dev/abeta/kmp/contracts/CheckboxAtom$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/abeta/kmp/contracts/ChipGroupSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/ChipGroupSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;ZLjava/util/List;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;ZLjava/util/List;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun copy (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;ZLjava/util/List;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/ChipGroupSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/ChipGroupSnippetData;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;ZLjava/util/List;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/ChipGroupSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChips ()Ljava/util/List;
+	public final fun getGroupId ()Ljava/lang/String;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getMultiSelect ()Z
+	public final fun getTitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/ChipGroupSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/ChipGroupSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/ChipGroupSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/ChipGroupSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/ChipGroupSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/abeta/kmp/contracts/ColorTokenRef {
 	public static final field Companion Ldev/abeta/kmp/contracts/ColorTokenRef$Companion;
 	public fun <init> ()V
@@ -725,6 +761,44 @@ public final class dev/abeta/kmp/contracts/FeedbackEffect : java/lang/Enum {
 }
 
 public final class dev/abeta/kmp/contracts/FeedbackEffect$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/FilterChipItem {
+	public static final field Companion Ldev/abeta/kmp/contracts/FilterChipItem$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/contracts/FilterChipItem;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/FilterChipItem;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/FilterChipItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBadge ()Ljava/lang/String;
+	public final fun getIcon ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getOnClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getSelected ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/FilterChipItem$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/FilterChipItem$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/FilterChipItem;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/FilterChipItem;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/FilterChipItem$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -1479,6 +1553,54 @@ public final class dev/abeta/kmp/contracts/SduiJsonKt {
 	public static final fun getSduiJson ()Lkotlinx/serialization/json/Json;
 }
 
+public final class dev/abeta/kmp/contracts/SearchBarSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/SearchBarSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component11 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Z
+	public final fun component8 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component9 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/SearchBarSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/SearchBarSnippetData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/IconAtom;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/SearchBarSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClearable ()Z
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getLeadingIcon ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun getOnClear ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnSubmit ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnTrailingClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPlaceholder ()Ljava/lang/String;
+	public final fun getQuery ()Ljava/lang/String;
+	public final fun getSearchId ()Ljava/lang/String;
+	public final fun getSubmitLabel ()Ljava/lang/String;
+	public final fun getTrailingIcon ()Ldev/abeta/kmp/contracts/IconAtom;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/SearchBarSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/SearchBarSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/SearchBarSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/SearchBarSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/SearchBarSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/abeta/kmp/contracts/SkeletonAtom {
 	public static final field Companion Ldev/abeta/kmp/contracts/SkeletonAtom$Companion;
 	public fun <init> ()V
@@ -1622,6 +1744,7 @@ public final class dev/abeta/kmp/contracts/SnippetTypes {
 	public static final field BANNER Ljava/lang/String;
 	public static final field CARD Ljava/lang/String;
 	public static final field CAROUSEL Ljava/lang/String;
+	public static final field CHIP_GROUP Ljava/lang/String;
 	public static final field DIVIDER Ljava/lang/String;
 	public static final field EMPTY_STATE Ljava/lang/String;
 	public static final field FORM Ljava/lang/String;
@@ -1630,7 +1753,9 @@ public final class dev/abeta/kmp/contracts/SnippetTypes {
 	public static final field INSTANCE Ldev/abeta/kmp/contracts/SnippetTypes;
 	public static final field METRIC_CARD Ljava/lang/String;
 	public static final field PRODUCT_CARD Ljava/lang/String;
+	public static final field SEARCH_BAR Ljava/lang/String;
 	public static final field SPACER Ljava/lang/String;
+	public static final field SWIPE_DECK Ljava/lang/String;
 	public static final field TABS Ljava/lang/String;
 }
 
@@ -1780,6 +1905,106 @@ public final synthetic class dev/abeta/kmp/contracts/StepperAtom$$serializer : k
 }
 
 public final class dev/abeta/kmp/contracts/StepperAtom$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/SwipeCardItem {
+	public static final field Companion Ldev/abeta/kmp/contracts/SwipeCardItem$Companion;
+	public fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ljava/util/List;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ljava/util/List;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component11 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component12 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component2 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component7 ()Ldev/abeta/kmp/contracts/ImageAtom;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ljava/util/List;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/contracts/SwipeCardItem;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/SwipeCardItem;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ljava/util/List;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/SwipeCardItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBadge ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun getBio ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getCardId ()Ljava/lang/String;
+	public final fun getDistanceText ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getImage ()Ldev/abeta/kmp/contracts/ImageAtom;
+	public final fun getOnClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnLike ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnNope ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnSuperLike ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getSubtitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getTags ()Ljava/util/List;
+	public final fun getTitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/SwipeCardItem$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/SwipeCardItem$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/SwipeCardItem;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/SwipeCardItem;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/SwipeCardItem$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/SwipeDeckSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/SwipeDeckSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component11 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component12 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component7 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component8 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component9 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/SwipeDeckSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/SwipeDeckSnippetData;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/SwipeDeckSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCards ()Ljava/util/List;
+	public final fun getDeckId ()Ljava/lang/String;
+	public final fun getEmptyMessage ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getEmptyTitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getLikeLabel ()Ljava/lang/String;
+	public final fun getNopeLabel ()Ljava/lang/String;
+	public final fun getOnLike ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnNope ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnSuperLike ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnUndo ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getSuperLikeLabel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/SwipeDeckSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/SwipeDeckSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/SwipeDeckSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/SwipeDeckSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/SwipeDeckSnippetData$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 

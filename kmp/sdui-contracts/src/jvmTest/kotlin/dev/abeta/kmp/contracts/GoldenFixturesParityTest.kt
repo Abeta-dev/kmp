@@ -284,4 +284,50 @@ class GoldenFixturesParityTest {
         assertEquals("cart_qty_avocados", product.stepper.fieldId)
         assertEquals(1, product.stepper.quantity)
     }
+
+    @Test
+    fun decodesInteractiveScreenGoldenFixture() {
+        val page = SduiJson.decodeFromString<PageResponse>(loadGoldenJson("interactive_screen.json"))
+        assertEquals("interactive-demo", page.pageId)
+        assertEquals("Abeta Discovery", page.title)
+        assertEquals(3, page.snippets.size)
+
+        val searchEnvelope = page.snippets[0]
+        assertEquals(SnippetTypes.SEARCH_BAR, searchEnvelope.snippetType)
+        val search = SduiJson.decodeFromJsonElement<SearchBarSnippetData>(searchEnvelope.data)
+        assertEquals("discovery_search", search.searchId)
+        assertEquals("compose", search.query)
+        assertEquals("Search", search.submitLabel)
+        assertTrue(search.clearable)
+        assertNotNull(search.onSubmit)
+        assertNotNull(search.onClear)
+        assertNotNull(search.onTrailingClick)
+
+        val chipsEnvelope = page.snippets[1]
+        assertEquals(SnippetTypes.CHIP_GROUP, chipsEnvelope.snippetType)
+        val chips = SduiJson.decodeFromJsonElement<ChipGroupSnippetData>(chipsEnvelope.data)
+        assertEquals("discovery_categories", chips.groupId)
+        assertTrue(chips.multiSelect)
+        assertEquals(3, chips.chips.size)
+        assertEquals("chip_kmp", chips.chips.first().id)
+        assertTrue(chips.chips.first().selected)
+
+        val deckEnvelope = page.snippets[2]
+        assertEquals(SnippetTypes.SWIPE_DECK, deckEnvelope.snippetType)
+        val deck = SduiJson.decodeFromJsonElement<SwipeDeckSnippetData>(deckEnvelope.data)
+        assertEquals("builders_deck", deck.deckId)
+        assertEquals("Connect", deck.likeLabel)
+        assertEquals("Skip", deck.nopeLabel)
+        assertEquals("Boost", deck.superLikeLabel)
+        assertEquals(2, deck.cards.size)
+        assertEquals("card_maya_chen", deck.cards.first().cardId)
+        assertEquals(
+            "2 km away",
+            deck.cards
+                .first()
+                .distanceText
+                ?.text,
+        )
+        assertNotNull(deck.onUndo)
+    }
 }

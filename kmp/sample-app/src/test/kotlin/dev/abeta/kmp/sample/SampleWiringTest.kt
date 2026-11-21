@@ -2,9 +2,11 @@ package dev.abeta.kmp.sample
 
 import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.layout.engine.LayoutUiState
 import dev.abeta.kmp.layout.repository.CachedScreenRepository
 import io.ktor.client.engine.mock.MockEngine
@@ -239,5 +241,110 @@ class SampleWiringTest {
             } finally {
                 container.close()
             }
+        }
+
+    @Test
+    fun allSixVerticalShowcaseAppsAndDetailScreensLoadOffline() =
+        runTest {
+            assertEquals(6, SampleContainer.VERTICAL_APPS.size)
+            assertEquals(
+                listOf("fresh-home", "bites-home", "pulse-home", "mart-home", "spark-deck", "trade-home"),
+                SampleContainer.VERTICAL_SCREENS,
+            )
+            val allVerticalScreens =
+                listOf(
+                    "fresh-home",
+                    "bites-home",
+                    "bites-restaurant",
+                    "bites-order-track",
+                    "pulse-home",
+                    "pulse-event-detail",
+                    "mart-home",
+                    "mart-product-detail",
+                    "spark-deck",
+                    "spark-matches",
+                    "trade-home",
+                    "trade-supplier",
+                )
+            val container = SampleFactory.create(scope = this, bffBaseUrl = null)
+            try {
+                for (screenId in allVerticalScreens) {
+                    container.navigateTo(screenId).join()
+                    val ready = assertIs<LayoutUiState.Ready>(container.controller.uiState.value)
+                    assertEquals(screenId, ready.page.pageId)
+                    assertTrue(ready.page.snippets.isNotEmpty(), "Expected snippets on '$screenId'")
+                    assertNotNull(SampleShowcaseApps.findAppForScreen(screenId))
+                }
+            } finally {
+                container.close()
+            }
+        }
+
+    @Test
+    fun runVerticalsHeadlessVerificationAndCliFlagsSucceed() =
+        runTest {
+            val cli =
+                parseCliOptions(
+                    arrayOf(
+                        "--headless",
+                        "--verticals",
+                        "--capture-verticals=/tmp/verticals",
+                        "--bff-url=http://127.0.0.1:8080",
+                    ),
+                )
+            assertTrue(cli.headless)
+            assertTrue(cli.verticals)
+            assertEquals("/tmp/verticals", cli.captureVerticalsDir)
+            assertEquals("http://127.0.0.1:8080", cli.bffUrl)
+
+            val container = SampleFactory.create(scope = this, bffBaseUrl = null)
+            try {
+                val summary = container.runVerticalsHeadlessVerification()
+                assertEquals(6, summary.loadedVerticals.size)
+                assertTrue(summary.loadedVerticals.values.all { it > 0 })
+                assertTrue(summary.expressOrderCelebrationTriggered)
+                assertTrue(summary.swipeCelebrationTriggered)
+                assertTrue(summary.bookingCelebrationTriggered)
+                assertTrue(summary.rfqSubmitted)
+
+                container.navigateTo("bites-restaurant").join()
+                val bitesOrder =
+                    ActionRef(
+                        id = "test_bites_order",
+                        type = ActionTypes.CALL_API,
+                        payload = buildJsonObject { put("endpoint", "/api/v1/bites/orders") },
+                    )
+                container.controller.onAction(bitesOrder).join()
+                assertEquals("bites-order-track", container.currentScreenId.value)
+
+                container.navigateTo("mart-product-detail").join()
+                val martOrder =
+                    ActionRef(
+                        id = "test_mart_order",
+                        type = ActionTypes.CALL_API,
+                        payload = buildJsonObject { put("endpoint", "/api/v1/mart/orders") },
+                    )
+                container.controller.onAction(martOrder).join()
+                val martReady = assertIs<LayoutUiState.Ready>(container.controller.uiState.value)
+                assertEquals(FeedbackEffect.CELEBRATION, martReady.activeFeedback?.effect)
+            } finally {
+                container.close()
+            }
+        }
+
+    @Test
+    fun offlineScreenRepositoryStripsQueryStringsGracefully() =
+        runTest {
+            val repo = OfflineScreenRepository()
+            val freshResult =
+                assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("fresh-home?q=avocados&filter=produce"))
+            assertEquals("fresh-home", freshResult.value.pageId)
+
+            val bitesResult =
+                assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("/screens/bites-home?filter=biryani"))
+            assertEquals("bites-home", bitesResult.value.pageId)
+
+            val tradeResult = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("trade-home?q=cartons"))
+            assertEquals("trade-home", tradeResult.value.pageId)
         }
 }

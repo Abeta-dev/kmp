@@ -14,7 +14,7 @@ Before modifying any module, load its **Skill** (`skills/*/SKILL.md`) and its **
 | :--- | :--- | :--- |
 | Monorepo navigation & cross-stack features | [skills/abeta-kmp-kit/SKILL.md](skills/abeta-kmp-kit/SKILL.md) | [agents/kmp-architect.md](agents/kmp-architect.md) |
 | Repo usage & onboarding (`dev.abeta.kmp:bom`) | [skills/abeta-kmp-usage/SKILL.md](skills/abeta-kmp-usage/SKILL.md) | [agents/owners/bom-catalog-owner.md](agents/owners/bom-catalog-owner.md) |
-| Demo & Reference apps (`sample-app`, `storybook`) | [skills/abeta-kmp-demo/SKILL.md](skills/abeta-kmp-demo/SKILL.md) | [agents/owners/sample-app-owner.md](agents/owners/sample-app-owner.md), [agents/owners/storybook-owner.md](agents/owners/storybook-owner.md) |
+| Demo & Reference apps (`sample-app` 6-in-1 Super-App Showcase, `storybook` 13 stories) | [skills/abeta-kmp-demo/SKILL.md](skills/abeta-kmp-demo/SKILL.md) | [agents/owners/sample-app-owner.md](agents/owners/sample-app-owner.md), [agents/owners/storybook-owner.md](agents/owners/storybook-owner.md) |
 | Native Android, Wear OS, iOS, watchOS, macOS, Web | [skills/abeta-kmp-platforms/SKILL.md](skills/abeta-kmp-platforms/SKILL.md) | [agents/owners/platforms-owner.md](agents/owners/platforms-owner.md), [agents/owners/core-owner.md](agents/owners/core-owner.md), [agents/owners/watch-companion-owner.md](agents/owners/watch-companion-owner.md) |
 | Multiplatform Local Database (Room 3 + SQLite) | [skills/abeta-kmp-platforms/SKILL.md](skills/abeta-kmp-platforms/SKILL.md) | [agents/owners/database-owner.md](agents/owners/database-owner.md) |
 | Design tokens, wire DTOs & stateless atoms | [skills/abeta-kmp-atomic/SKILL.md](skills/abeta-kmp-atomic/SKILL.md) | [agents/owners/design-tokens-owner.md](agents/owners/design-tokens-owner.md), [agents/owners/sdui-contracts-owner.md](agents/owners/sdui-contracts-owner.md), [agents/owners/ui-atoms-owner.md](agents/owners/ui-atoms-owner.md) |
@@ -30,7 +30,7 @@ Before modifying any module, load its **Skill** (`skills/*/SKILL.md`) and its **
 
 1. **Uncle Bob Dependency Rule**: `Layer 3 -> Layer 2 -> Layer 1 -> Layer 0`; Go `handler -> usecase -> domain <- infra`.
 2. **SOLID, Clean Code & KISS**: Keep files cohesive (recommended production ceiling `<= 750 LOC`), register actions/snippets via OCP registries, inject dependencies via constructors/Koin.
-3. **1:1 Wire Parity**: `kmp/sdui-contracts` + `kmp/action-engine` (`15` atoms, `14` snippets, `18` actions) MUST match `bff/pkg/sdui/*` and all 5 golden fixtures (`bff/testdata/golden/`).
+3. **1:1 Wire Parity**: `kmp/sdui-contracts` + `kmp/action-engine` (`15` atoms, `17` snippets incl. `swipe_deck`/`search_bar`/`chip_group`, `18` actions) MUST match `bff/pkg/sdui/*` and all golden fixtures (`bff/testdata/golden/`), powering the 6-in-1 Super-App Showcase Launcher (`Abeta Fresh`, `Abeta Bites`, `Abeta Pulse`, `Abeta Mart`, `Abeta Spark`, `Abeta Trade`).
 4. **BOM, Catalog & ABI**: Never hardcode external versions in module `build.gradle.kts`; update `.api` baselines with `(cd kmp && ./gradlew apiDump)` across all **11 publishable modules** (including Room 3 `database` — see [docs/local-database-room3.md](docs/local-database-room3.md) and [docs/publishing-and-hosting.md](docs/publishing-and-hosting.md)).
 5. **Android Studio & Apple Notes**:
    - Open `kmp/` as a Gradle project in Android Studio / IntelliJ IDEA (JDK 21).

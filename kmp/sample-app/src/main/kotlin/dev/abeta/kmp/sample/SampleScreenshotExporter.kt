@@ -32,69 +32,65 @@ private data class DemoCaptureSpec(
 
 private val DEMO_CAPTURE_SPECS: List<DemoCaptureSpec> =
     listOf(
-        DemoCaptureSpec(
-            fileName = "demo-home-desktop.png",
-            screenId = "home",
-            widthDp = DESKTOP_WIDTH_DP,
-            heightDp = DESKTOP_HEIGHT_DP,
-            darkTheme = false,
-            showTopBar = true,
-        ),
-        DemoCaptureSpec(
-            fileName = "demo-store-home-desktop.png",
-            screenId = "store-home",
-            widthDp = DESKTOP_WIDTH_DP,
-            heightDp = DESKTOP_HEIGHT_DP,
-            darkTheme = false,
-            showTopBar = true,
-        ),
-        DemoCaptureSpec(
-            fileName = "demo-store-home-phone.png",
-            screenId = "store-home",
-            widthDp = PHONE_WIDTH_DP,
-            heightDp = PHONE_HEIGHT_DP,
-            darkTheme = false,
-            showTopBar = false,
-        ),
-        DemoCaptureSpec(
-            fileName = "demo-store-home-dark.png",
-            screenId = "store-home",
-            widthDp = PHONE_WIDTH_DP,
-            heightDp = PHONE_HEIGHT_DP,
-            darkTheme = true,
-            showTopBar = false,
-        ),
-        DemoCaptureSpec(
-            fileName = "demo-containers-desktop.png",
-            screenId = "containers",
-            widthDp = DESKTOP_WIDTH_DP,
-            heightDp = DESKTOP_HEIGHT_DP,
-            darkTheme = false,
-            showTopBar = true,
-        ),
-        DemoCaptureSpec(
-            fileName = "demo-form-demo-desktop.png",
-            screenId = "form-demo",
-            widthDp = DESKTOP_WIDTH_DP,
-            heightDp = DESKTOP_HEIGHT_DP,
-            darkTheme = false,
-            showTopBar = true,
-        ),
-        DemoCaptureSpec(
-            fileName = "demo-watch-status.png",
-            screenId = "watch-status",
-            widthDp = WATCH_WIDTH_DP,
-            heightDp = WATCH_HEIGHT_DP,
-            darkTheme = true,
-            showTopBar = false,
-        ),
+        DemoCaptureSpec("demo-home-desktop.png", "home", DESKTOP_WIDTH_DP, DESKTOP_HEIGHT_DP, false, true),
+        DemoCaptureSpec("demo-store-home-desktop.png", "store-home", DESKTOP_WIDTH_DP, DESKTOP_HEIGHT_DP, false, true),
+        DemoCaptureSpec("demo-store-home-phone.png", "store-home", PHONE_WIDTH_DP, PHONE_HEIGHT_DP, false, false),
+        DemoCaptureSpec("demo-store-home-dark.png", "store-home", PHONE_WIDTH_DP, PHONE_HEIGHT_DP, true, false),
+        DemoCaptureSpec("demo-containers-desktop.png", "containers", DESKTOP_WIDTH_DP, DESKTOP_HEIGHT_DP, false, true),
+        DemoCaptureSpec("demo-form-demo-desktop.png", "form-demo", DESKTOP_WIDTH_DP, DESKTOP_HEIGHT_DP, false, true),
+        DemoCaptureSpec("demo-watch-status.png", "watch-status", WATCH_WIDTH_DP, WATCH_HEIGHT_DP, true, false),
     )
+
+private val VERTICAL_CAPTURE_SPECS: List<DemoCaptureSpec> =
+    listOf(
+        "fresh" to "fresh-home",
+        "bites" to "bites-home",
+        "pulse" to "pulse-home",
+        "mart" to "mart-home",
+        "spark" to "spark-deck",
+        "trade" to "trade-home",
+    ).flatMap { (slug, screenId) ->
+        listOf(
+            DemoCaptureSpec("vertical-$slug-phone.png", screenId, PHONE_WIDTH_DP, PHONE_HEIGHT_DP, false, false),
+            DemoCaptureSpec("vertical-$slug-desktop.png", screenId, DESKTOP_WIDTH_DP, DESKTOP_HEIGHT_DP, false, true),
+        )
+    }
 
 /**
  * Renders pixel-accurate off-screen Compose Multiplatform PNG screenshots of the demo screens
  * across Desktop, Phone, Watch, Light, and Dark modes.
  */
 internal fun exportDemoScreenshots(
+    outputDirPath: String,
+    bffUrl: String?,
+) {
+    exportCaptureSpecs(
+        specs = DEMO_CAPTURE_SPECS,
+        label = "demo",
+        outputDirPath = outputDirPath,
+        bffUrl = bffUrl,
+    )
+}
+
+/**
+ * Renders off-screen Phone (412x915) and Desktop (1280x860) PNG screenshots of all six vertical
+ * showcase apps (`fresh-home`, `bites-home`, `pulse-home`, `mart-home`, `spark-deck`, `trade-home`).
+ */
+internal fun exportVerticalScreenshots(
+    outputDirPath: String,
+    bffUrl: String?,
+) {
+    exportCaptureSpecs(
+        specs = VERTICAL_CAPTURE_SPECS,
+        label = "vertical showcase",
+        outputDirPath = outputDirPath,
+        bffUrl = bffUrl,
+    )
+}
+
+private fun exportCaptureSpecs(
+    specs: List<DemoCaptureSpec>,
+    label: String,
     outputDirPath: String,
     bffUrl: String?,
 ) {
@@ -105,11 +101,11 @@ internal fun exportDemoScreenshots(
         runBlocking {
             val created = SampleFactory.create(scope = scope, bffBaseUrl = bffUrl)
             container = created
-            DEMO_CAPTURE_SPECS.forEach { spec ->
+            specs.forEach { spec ->
                 captureDemoScreen(created, spec, outputDir)
             }
         }
-        println("Exported ${DEMO_CAPTURE_SPECS.size} demo screenshots to ${outputDir.absolutePath}")
+        println("Exported ${specs.size} $label screenshots to ${outputDir.absolutePath}")
     } finally {
         container?.close()
         scope.cancel()

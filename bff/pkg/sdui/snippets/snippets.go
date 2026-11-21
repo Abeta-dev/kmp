@@ -26,6 +26,9 @@ const (
 	SnippetTypeTabs        = "tabs"
 	SnippetTypeAccordion   = "accordion"
 	SnippetTypeProductCard = "product_card"
+	SnippetTypeSwipeDeck   = "swipe_deck"
+	SnippetTypeSearchBar   = "search_bar"
+	SnippetTypeChipGroup   = "chip_group"
 )
 
 // SnippetEnvelope wraps any typed snippet payload with identity, hierarchy, and tracking metadata.

@@ -63,7 +63,7 @@ internal data class SnippetSampleItem(
 )
 
 /**
- * Provides sample [SnippetEnvelope] fixtures covering all 13 canonical [SnippetTypes].
+ * Provides sample [SnippetEnvelope] fixtures covering all 17 canonical [SnippetTypes].
  */
 internal object SnippetsSamples {
     val cardLayout =
@@ -103,7 +103,7 @@ internal object SnippetsSamples {
         val header =
             HeaderSnippetData(
                 title = txt("Release Readiness", "headline.small"),
-                subtitle = txt("All 14 snippet renderers active", "body.small", "text.secondary"),
+                subtitle = txt("All 17 snippet renderers active", "body.small", "text.secondary"),
                 avatar = AvatarAtom(initials = "AB", sizeDp = AVATAR_SIZE_DP),
                 trailingTag = TagAtom(label = "v1", variant = TagVariant.BRAND),
                 trailingAction =

@@ -39,13 +39,15 @@ class StorybookCatalogTest {
                 StoryCatalog.STORY_MOTION_STORE,
                 StoryCatalog.STORY_LIVE_BFF,
                 StoryCatalog.STORY_RESPONSIVE_BRIDGES,
+                StoryCatalog.STORY_DISCOVERY_SEARCH,
             )
+        assertEquals(13, entries.size)
         assertEquals(expectedIds, uniqueIds)
         assertEquals(StoryCatalog.STORY_INTRODUCTION, StoryCatalog.findById("unknown").id)
     }
 
     @Test
-    fun `snippet gallery samples cover all 14 canonical snippet types`() {
+    fun `snippet gallery samples cover all 17 canonical snippet types`() {
         val registry = BuiltInSnippetModule.createDefaultRegistry()
         val samples = SnippetsSamples.allItems()
         val sampleTypes = samples.map { it.envelope.snippetType }.toSet()
@@ -65,6 +67,9 @@ class StorybookCatalogTest {
                 SnippetTypes.TABS,
                 SnippetTypes.ACCORDION,
                 SnippetTypes.PRODUCT_CARD,
+                SnippetTypes.SEARCH_BAR,
+                SnippetTypes.CHIP_GROUP,
+                SnippetTypes.SWIPE_DECK,
             )
 
         assertEquals(expectedTypes.size, samples.size)

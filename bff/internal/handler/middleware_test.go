@@ -346,6 +346,15 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 			t.Errorf("openapi.json missing action type %q", actionType)
 		}
 	}
+	for _, snippetType := range []string{
+		"header_v1", "banner_v1", "metric_card", "card_v1", "action_row", "form_v1",
+		"empty_state", "divider", "spacer", "carousel", "grid", "tabs", "accordion",
+		"product_card", "swipe_deck", "search_bar", "chip_group",
+	} {
+		if !strings.Contains(rawSpec, `"`+snippetType+`"`) {
+			t.Errorf("openapi.json missing snippet type %q", snippetType)
+		}
+	}
 	for _, schema := range []string{
 		"ActionType",
 		"SnippetType",
@@ -364,6 +373,11 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"SkeletonAtom",
 		"StepperAtom",
 		"ProductCardSnippetData",
+		"SwipeCardItem",
+		"SwipeDeckSnippetData",
+		"SearchBarSnippetData",
+		"FilterChipItem",
+		"ChipGroupSnippetData",
 		"NavigatePayload",
 		"BackPressPayload",
 		"OpenDialogPayload",

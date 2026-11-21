@@ -96,6 +96,8 @@ func openAPIComponentSchemas() map[string]any {
 			snippets.SnippetTypeSpacer, snippets.SnippetTypeCarousel,
 			snippets.SnippetTypeGrid, snippets.SnippetTypeTabs,
 			snippets.SnippetTypeAccordion, snippets.SnippetTypeProductCard,
+			snippets.SnippetTypeSwipeDeck, snippets.SnippetTypeSearchBar,
+			snippets.SnippetTypeChipGroup,
 		),
 		"PaginationSpec": objSchema([]string{"has_more"}, map[string]any{
 			"next_cursor": p.str, "has_more": p.bool, "load_more_action": p.action,
@@ -193,6 +195,33 @@ func openAPIComponentSchemas() map[string]any {
 			"product_id": p.str, "title": p.anyObj, "subtitle": p.anyObj, "price": p.anyObj, "original_price": p.anyObj,
 			"unit_price_cents": p.int, "badge": p.anyObj, "image": p.anyObj, "stepper": refSchema("StepperAtom"),
 			"rating": p.anyObj, "on_click": p.action, "layout": p.anyObj,
+		}),
+		"SwipeCardItem": objSchema([]string{"card_id", "title"}, map[string]any{
+			"card_id": p.str, "title": p.anyObj, "subtitle": p.anyObj, "bio": p.anyObj,
+			"badge": p.anyObj, "distance_text": p.anyObj, "image": p.anyObj,
+			"tags": arrSchema(p.anyObj), "on_like": p.action, "on_nope": p.action,
+			"on_super_like": p.action, "on_click": p.action,
+		}),
+		"SwipeDeckSnippetData": objSchema([]string{"deck_id", "cards"}, map[string]any{
+			"deck_id": p.str, "cards": arrSchema(refSchema("SwipeCardItem")),
+			"like_label": p.str, "nope_label": p.str, "super_like_label": p.str,
+			"empty_title": p.anyObj, "empty_message": p.anyObj,
+			"on_like": p.action, "on_nope": p.action, "on_super_like": p.action,
+			"on_undo": p.action, "layout": p.anyObj,
+		}),
+		"SearchBarSnippetData": objSchema([]string{"search_id", "clearable"}, map[string]any{
+			"search_id": p.str, "query": p.str, "placeholder": p.str,
+			"leading_icon": p.anyObj, "trailing_icon": p.anyObj, "submit_label": p.str,
+			"clearable": p.bool, "on_submit": p.action, "on_clear": p.action,
+			"on_trailing_click": p.action, "layout": p.anyObj,
+		}),
+		"FilterChipItem": objSchema([]string{"id", "label", "selected"}, map[string]any{
+			"id": p.str, "label": p.str, "selected": p.bool,
+			"icon": p.anyObj, "badge": p.str, "on_click": p.action,
+		}),
+		"ChipGroupSnippetData": objSchema([]string{"group_id", "multi_select", "chips"}, map[string]any{
+			"group_id": p.str, "title": p.anyObj, "multi_select": p.bool,
+			"chips": arrSchema(refSchema("FilterChipItem")), "layout": p.anyObj,
 		}),
 	}
 
