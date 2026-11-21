@@ -1,0 +1,139 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "kmp/storybook/**"
+      - "kmp/ui-atoms/**"
+      - "kmp/design-tokens/**"
+      - "kmp/sdui-contracts/**"
+      - "kmp/sdui-layout/**"
+      - "kmp/core/**"
+      - "kmp/database/**"
+      - "kmp/action-engine/**"
+      - "kmp/network/**"
+      - "kmp/watch-companion/**"
+      - "docs/site/**"
+      - "docs/assets/screenshots/**"
+      - "llms.txt"
+      - "llms-full.txt"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Portal, WasmJS Storybook & Dokka API Docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build Compose Multiplatform WasmJS Storybook
+        run: |
+          set -euo pipefail
+          cd kmp
+          chmod +x ./gradlew
+          ./gradlew :storybook:wasmJsBrowserDistribution --no-daemon --stacktrace
+
+      - name: Build Dokka v2 HTML API Docs
+        run: |
+          set -euo pipefail
+          cd kmp
+          ./gradlew \
+            :core:dokkaGenerateHtml \
+            :database:dokkaGenerateHtml \
+            :design-tokens:dokkaGenerateHtml \
+            :sdui-contracts:dokkaGenerateHtml \
+            :ui-atoms:dokkaGenerateHtml \
+            :action-engine:dokkaGenerateHtml \
+            :network:dokkaGenerateHtml \
+            :sdui-layout:dokkaGenerateHtml \
+            :watch-companion:dokkaGenerateHtml \
+            --no-daemon --continue || true
+
+      - name: Assemble GitHub Pages site bundle
+        run: |
+          set -euo pipefail
+          rm -rf site
+          mkdir -p site/assets/screenshots site/storybook site/api
+
+          cp docs/site/index.html site/index.html
+          touch site/.nojekyll
+          cp llms.txt llms-full.txt site/
+          cp docs/assets/screenshots/*.png site/assets/screenshots/
+          cp -R kmp/storybook/build/dist/wasmJs/productionExecutable/* site/storybook/
+
+          MODULES=(
+            core
+            database
+            design-tokens
+            sdui-contracts
+            ui-atoms
+            action-engine
+            network
+            sdui-layout
+            watch-companion
+          )
+
+          for mod in "${MODULES[@]}"; do
+            mkdir -p "site/api/${mod}"
+            if [ -d "kmp/${mod}/build/dokka/html" ]; then
+              cp -R "kmp/${mod}/build/dokka/html/." "site/api/${mod}/"
+              echo "Copied Dokka HTML for :${mod}"
+            else
+              echo "::warning::Dokka HTML missing for :${mod}; generating fallback redirect page."
+              printf '%s\n' \
+                '<!DOCTYPE html>' \
+                '<html lang="en">' \
+                '<head>' \
+                '  <meta charset="UTF-8">' \
+                "  <meta http-equiv=\"refresh\" content=\"0; url=https://github.com/Abeta-dev/kmp/tree/main/kmp/${mod}\">" \
+                "  <title>Abeta KMP Kit — :${mod} API Reference</title>" \
+                '</head>' \
+                '<body>' \
+                "  <p>Redirecting to <a href=\"https://github.com/Abeta-dev/kmp/tree/main/kmp/${mod}\">kmp/${mod} on GitHub</a>.</p>" \
+                '</body>' \
+                '</html>' > "site/api/${mod}/index.html"
+            fi
+          done
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

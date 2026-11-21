@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abeta KMP Kit — Open-Source Server-Driven UI Platform</title>
+  <meta name="description" content="Explore Abeta KMP Kit live in the browser: Compose Multiplatform WasmJS Storybook, Dokka v2 KMP API Reference, 6-in-1 Super-App Showcase, zero-auth install snippets, and llms.txt.">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8fafc">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#080c14">
+  <meta property="og:title" content="Abeta KMP Kit — Open-Source SDUI Platform">
+  <meta property="og:description" content="4-layer Kotlin Multiplatform + Compose Multiplatform SDUI, Wearable & Room 3 Database Kit paired with a Go 1.26.0 Clean Architecture BFF.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://abeta-dev.github.io/kmp/">
+  <meta property="og:image" content="https://abeta-dev.github.io/kmp/assets/screenshots/vertical-fresh-desktop.png">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f8fafc;
+      --bg-elevated: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-code: #0f172a;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --text-code: #e2e8f0;
+      --border: rgba(15, 23, 42, 0.10);
+      --border-strong: rgba(15, 23, 42, 0.18);
+      --brand: #059669;
+      --brand-hover: #047857;
+      --brand-soft: rgba(5, 150, 105, 0.11);
+      --indigo: #4f46e5;
+      --indigo-soft: rgba(79, 70, 229, 0.11);
+      --amber: #d97706;
+      --amber-soft: rgba(217, 119, 6, 0.12);
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 12px 30px -12px rgba(15, 23, 42, 0.14), 0 4px 10px -4px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 24px 54px -20px rgba(15, 23, 42, 0.22);
+      --hero-glow-1: rgba(16, 185, 129, 0.16);
+      --hero-glow-2: rgba(99, 102, 241, 0.14);
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #080c14;
+        --bg-elevated: #0f1624;
+        --bg-subtle: #151e30;
+        --bg-code: #050810;
+        --text: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --text-code: #e2e8f0;
+        --border: rgba(148, 163, 184, 0.15);
+        --border-strong: rgba(148, 163, 184, 0.28);
+        --brand: #10b981;
+        --brand-hover: #34d399;
+        --brand-soft: rgba(16, 185, 129, 0.15);
+        --indigo: #818cf8;
+        --indigo-soft: rgba(129, 140, 248, 0.16);
+        --amber: #f59e0b;
+        --amber-soft: rgba(245, 158, 11, 0.16);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+        --shadow-md: 0 14px 32px -12px rgba(0, 0, 0, 0.55);
+        --shadow-lg: 0 28px 64px -20px rgba(0, 0, 0, 0.72);
+        --hero-glow-1: rgba(16, 185, 129, 0.20);
+        --hero-glow-2: rgba(99, 102, 241, 0.18);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #080c14;
+      --bg-elevated: #0f1624;
+      --bg-subtle: #151e30;
+      --bg-code: #050810;
+      --text: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-code: #e2e8f0;
+      --border: rgba(148, 163, 184, 0.15);
+      --border-strong: rgba(148, 163, 184, 0.28);
+      --brand: #10b981;
+      --brand-hover: #34d399;
+      --brand-soft: rgba(16, 185, 129, 0.15);
+      --indigo: #818cf8;
+      --indigo-soft: rgba(129, 140, 248, 0.16);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.16);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 14px 32px -12px rgba(0, 0, 0, 0.55);
+      --shadow-lg: 0 28px 64px -20px rgba(0, 0, 0, 0.72);
+      --hero-glow-1: rgba(16, 185, 129, 0.20);
+      --hero-glow-2: rgba(99, 102, 241, 0.18);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      background-image:
+        radial-gradient(ellipse 68% 42% at 15% -5%, var(--hero-glow-1), transparent 62%),
+        radial-gradient(ellipse 62% 40% at 88% -8%, var(--hero-glow-2), transparent 62%);
+      background-repeat: no-repeat;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    code, pre {
+      font-family: var(--font-mono);
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 2.5rem));
+      margin-inline: auto;
+    }
+
+    /* Sticky Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 68px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 750;
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #10b981 0%, #4f46e5 100%);
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.92rem;
+      box-shadow: 0 6px 16px -6px rgba(16, 185, 129, 0.65);
+    }
+
+    .version-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.16rem 0.5rem;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      border: 1px solid color-mix(in srgb, var(--brand) 25%, transparent);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 550;
+      color: var(--text-secondary);
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.48rem;
+      padding: 0.68rem 1.15rem;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: #ffffff;
+      box-shadow: 0 10px 24px -10px rgba(16, 185, 129, 0.75);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #047857 0%, #059669 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px -10px rgba(16, 185, 129, 0.85);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text);
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-subtle);
+      border-color: color-mix(in srgb, var(--text) 30%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .btn-indigo {
+      background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+      color: #ffffff;
+      box-shadow: 0 10px 24px -10px rgba(99, 102, 241, 0.65);
+    }
+
+    .btn-indigo:hover {
+      background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-sm {
+      padding: 0.46rem 0.82rem;
+      font-size: 0.83rem;
+      border-radius: 10px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 4.5rem 0 3.2rem;
+    }
+
+    .hero-inner {
+      max-width: 880px;
+      margin-inline: auto;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.34rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--brand);
+      background: var(--brand-soft);
+      border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+      margin-bottom: 1.4rem;
+    }
+
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 24%, transparent);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.25rem, 5.1vw, 3.65rem);
+      font-weight: 820;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(125deg, var(--brand) 0%, var(--indigo) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-lead {
+      margin: 1.35rem auto 0;
+      max-width: 720px;
+      font-size: clamp(1.02rem, 1.8vw, 1.18rem);
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    .hero-cta-group {
+      margin-top: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .hero-cta-group .btn-primary {
+      padding: 0.84rem 1.5rem;
+      font-size: 0.98rem;
+    }
+
+    .hero-cta-group .btn-secondary {
+      padding: 0.84rem 1.2rem;
+      font-size: 0.94rem;
+    }
+
+    .ecosystem-strip {
+      margin-top: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.55rem;
+    }
+
+    .repo-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.42rem 0.78rem;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.16s ease, transform 0.16s ease, color 0.16s ease;
+    }
+
+    .repo-chip:hover {
+      border-color: var(--brand);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .repo-chip code {
+      font-size: 0.78rem;
+      font-weight: 650;
+      color: var(--text);
+    }
+
+    .metrics-grid {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+
+    .metric-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.15rem 1.2rem;
+      text-align: left;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .metric-value {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .metric-label {
+      margin-top: 0.25rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Sections */
+    section {
+      padding: 3.4rem 0;
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .section-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand);
+      margin-bottom: 0.35rem;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: clamp(1.5rem, 3vw, 2.05rem);
+      font-weight: 780;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+    }
+
+    .section-desc {
+      margin: 0.45rem 0 0;
+      color: var(--text-secondary);
+      max-width: 680px;
+      font-size: 0.97rem;
+    }
+
+    /* Install & Cloud Demo */
+    .adopt-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.42rem;
+      padding: 0.34rem;
+      border-radius: 13px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      margin-bottom: 1.1rem;
+    }
+
+    .tab-btn {
+      flex: 1 1 auto;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.84rem;
+      font-weight: 650;
+      padding: 0.52rem 0.78rem;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+    }
+
+    .tab-btn[aria-selected="true"] {
+      background: var(--bg-elevated);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-panel {
+      display: none;
+      flex-direction: column;
+      gap: 0.85rem;
+      flex: 1;
+    }
+
+    .tab-panel.active {
+      display: flex;
+    }
+
+    .tab-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+
+    .code-wrap {
+      position: relative;
+      background: var(--bg-code);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.85rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: #94a3b8;
+    }
+
+    .copy-btn {
+      appearance: none;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2e8f0;
+      font-family: var(--font-sans);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 0.24rem 0.6rem;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(148, 163, 184, 0.45);
+    }
+
+    .copy-btn.copied {
+      background: rgba(16, 185, 129, 0.22);
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #6ee7b7;
+    }
+
+    pre {
+      margin: 0;
+      padding: 0.95rem 1rem;
+      overflow-x: auto;
+      font-size: 0.81rem;
+      line-height: 1.62;
+      color: var(--text-code);
+      tab-size: 2;
+    }
+
+    .code-note {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .code-note code {
+      font-size: 0.77rem;
+      padding: 0.12rem 0.36rem;
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      color: var(--text);
+    }
+
+    .cloud-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.95rem;
+      height: 100%;
+    }
+
+    .cloud-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .cloud-card h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 720;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .cloud-card p {
+      margin: 0.35rem 0 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.16rem 0.52rem;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-emerald {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .badge-indigo {
+      background: var(--indigo-soft);
+      color: var(--indigo);
+    }
+
+    .badge-amber {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    /* Visual Showcase */
+    .desktop-feature {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 1.5rem;
+    }
+
+    .desktop-feature-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-subtle);
+    }
+
+    .window-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+    }
+
+    .window-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-strong);
+    }
+
+    .window-dots span:nth-child(1) { background: #ef4444; opacity: 0.75; }
+    .window-dots span:nth-child(2) { background: #f59e0b; opacity: 0.75; }
+    .window-dots span:nth-child(3) { background: #10b981; opacity: 0.75; }
+
+    .desktop-feature-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 680;
+    }
+
+    .desktop-feature-media {
+      padding: 1rem;
+      background: var(--bg-code);
+      cursor: zoom-in;
+    }
+
+    .desktop-feature-media img {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .verticals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.2rem;
+    }
+
+    .vertical-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .vertical-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-strong);
+    }
+
+    .phone-frame {
+      background: linear-gradient(160deg, var(--bg-subtle) 0%, color-mix(in srgb, var(--bg-subtle) 60%, var(--bg)) 100%);
+      padding: 1.15rem 1.25rem 0.95rem;
+      display: flex;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      cursor: zoom-in;
+    }
+
+    .phone-frame img {
+      width: min(230px, 100%);
+      aspect-ratio: 412 / 915;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 18px 34px -16px rgba(15, 23, 42, 0.55);
+    }
+
+    .vertical-body {
+      padding: 1.1rem 1.2rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      flex: 1;
+    }
+
+    .vertical-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .vertical-head h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .vertical-subtitle {
+      font-size: 0.81rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .vertical-desc {
+      margin: 0.15rem 0 0;
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+      line-height: 1.52;
+    }
+
+    .vertical-desc code {
+      font-size: 0.77rem;
+      padding: 0.08rem 0.34rem;
+      border-radius: 5px;
+      background: var(--bg-subtle);
+      color: var(--text);
+    }
+
+    /* API Docs Index */
+    .api-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .api-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.2rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .api-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--brand);
+      box-shadow: var(--shadow-md);
+    }
+
+    .api-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .api-card-name {
+      font-family: var(--font-mono);
+      font-size: 0.96rem;
+      font-weight: 750;
+      color: var(--text);
+    }
+
+    .api-card p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.52;
+      flex: 1;
+    }
+
+    .api-card-link {
+      font-size: 0.82rem;
+      font-weight: 650;
+      color: var(--brand);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.25rem;
+    }
+
+    /* AI / LLMs Section */
+    .llm-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .llm-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.45rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .llm-card h3 {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 1.08rem;
+      font-weight: 750;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .llm-card p {
+      margin: 0.5rem 0 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .llm-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    /* Lightbox Dialog */
+    dialog.lightbox {
+      padding: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
+      background: var(--bg-code);
+      color: #f8fafc;
+      max-width: min(94vw, 1140px);
+      max-height: 92vh;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.72);
+    }
+
+    dialog.lightbox::backdrop {
+      background: rgba(2, 6, 23, 0.82);
+      backdrop-filter: blur(6px);
+    }
+
+    .lightbox-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      font-size: 0.88rem;
+      font-weight: 650;
+    }
+
+    .lightbox-body {
+      padding: 0.85rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .lightbox-body img {
+      max-height: 78vh;
+      width: auto;
+      border-radius: 10px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 2rem;
+      border-top: 1px solid var(--border);
+      padding: 2.2rem 0 2.8rem;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+    }
+
+    /* Responsive */
+    @media (max-width: 980px) {
+      .adopt-layout {
+        grid-template-columns: 1fr;
+      }
+      .verticals-grid,
+      .api-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .nav-links {
+        display: none;
+      }
+      .hero {
+        padding: 3.1rem 0 2.2rem;
+      }
+      .verticals-grid,
+      .api-grid,
+      .llm-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a class="brand" href="#top" aria-label="Abeta KMP Kit Home">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span>Abeta KMP Kit</span>
+        <span class="version-pill">v0.1.0</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#install">Install</a>
+        <a href="#showcase">6-App Showcase</a>
+        <a href="#api-docs">API Docs</a>
+        <a href="#ai-llms">AI &amp; LLMs</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle color theme" title="Toggle light/dark theme">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+        </button>
+        <a class="btn btn-primary btn-sm" href="./storybook/">Live Storybook &rarr;</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-inner">
+          <div class="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            Apache-2.0 &middot; 3-Repo Open-Source SDUI Platform &middot; Zero-Auth Registries
+          </div>
+          <h1>
+            One Server-Driven UI Protocol.<br>
+            <span class="gradient-text">Every Screen, Watch &amp; Browser.</span>
+          </h1>
+          <p class="hero-lead">
+            <strong>Abeta KMP Kit</strong> pairs a strict 4-layer <strong>Kotlin Multiplatform + Compose Multiplatform</strong>
+            SDUI, Wearable &amp; Room 3 Database kit with a <strong>Go 1.26.0 Clean Architecture BFF</strong>—sharing one
+            1:1 <code>v1</code> JSON wire contract across Android, Wear OS, iOS, iPadOS, watchOS, macOS, Desktop JVM, and Web (<code>wasmJs</code>).
+          </p>
+
+          <div class="hero-cta-group">
+            <a class="btn btn-primary" href="./storybook/">Open Live WasmJS Storybook &rarr;</a>
+            <a class="btn btn-secondary" href="./api/core/">API Reference</a>
+            <a class="btn btn-secondary" href="./llms.txt">llms.txt</a>
+            <a class="btn btn-secondary" href="https://github.com/Abeta-dev/kmp" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </div>
+
+          <div class="ecosystem-strip" aria-label="Abeta 3-Repo Open-Source SDUI Platform">
+            <a class="repo-chip" href="https://github.com/Abeta-dev/kmp" target="_blank" rel="noopener noreferrer">
+              <code>Abeta-dev/kmp</code>
+              <span>Client Kit &amp; v1 Wire Contracts</span>
+            </a>
+            <a class="repo-chip" href="https://github.com/Abeta-dev/layout-engine" target="_blank" rel="noopener noreferrer">
+              <code>Abeta-dev/layout-engine</code>
+              <span>Layout Studio &amp; Composition Engine</span>
+            </a>
+            <a class="repo-chip" href="https://github.com/Abeta-dev/sdui-bff" target="_blank" rel="noopener noreferrer">
+              <code>Abeta-dev/sdui-bff</code>
+              <span>Multi-Tenant 6-App Go BFF</span>
+            </a>
+            <a class="repo-chip" href="https://github.com/Abeta-dev/kmp-spm" target="_blank" rel="noopener noreferrer">
+              <code>Abeta-dev/kmp-spm</code>
+              <span>Apple SwiftPM Binary Mirror</span>
+            </a>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-value">11 Modules</div>
+              <div class="metric-label">Publishable KMP libs + Gradle BOM &amp; Version Catalog, ABI-checked via BCV</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">15 / 16 Atoms</div>
+              <div class="metric-label">15 pure wire atoms &amp; 16 stateless Compose UI atoms with haptic + motion hooks</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">17 / 18 Wire</div>
+              <div class="metric-label">17 canonical SDUI snippets &amp; 18 OCP action types with 1:1 KMP &harr; Go parity</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">8 Targets</div>
+              <div class="metric-label">Android, Wear OS, iOS, watchOS, macOS, Desktop JVM, WasmJS &amp; Go 1.26.0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zero-Auth Adoption -->
+    <section id="install">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Zero-Auth 1-Line Adoption</div>
+            <h2 class="section-title">Install Anywhere — Zero Credentials Required</h2>
+            <p class="section-desc">
+              Consume anonymously via Maven Central, Apple SwiftPM, Go Proxy, and GHCR—or launch the Layout Studio and 6-App SDUI BFF in one click.
+            </p>
+          </div>
+        </div>
+
+        <div class="adopt-layout">
+          <div class="panel">
+            <div class="tab-bar" role="tablist" aria-label="Installation ecosystems">
+              <button class="tab-btn" type="button" role="tab" aria-selected="true" aria-controls="panel-kmp" id="tab-kmp">Android / KMP / JVM</button>
+              <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="panel-swift" id="tab-swift">Apple SwiftPM</button>
+              <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="panel-go" id="tab-go">Go SDUI SDK</button>
+              <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="panel-docker" id="tab-docker">Docker (GHCR)</button>
+            </div>
+
+            <!-- Tab 1: Android / KMP / JVM -->
+            <div class="tab-panel active" id="panel-kmp" role="tabpanel" aria-labelledby="tab-kmp">
+              <div class="tab-meta">
+                <span>Gradle BOM &amp; multiplatform artifacts via <strong>Maven Central</strong></span>
+                <span class="badge badge-emerald">dev.abeta.kmp:bom:0.1.0</span>
+              </div>
+              <div class="code-wrap">
+                <div class="code-header">
+                  <span>build.gradle.kts (commonMain)</span>
+                  <button class="copy-btn" type="button" data-copy-target="code-kmp">Copy</button>
+                </div>
+                <pre id="code-kmp"><code>repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    implementation(platform("dev.abeta.kmp:bom:0.1.0"))
+    implementation("dev.abeta.kmp:sdui-layout")
+    implementation("dev.abeta.kmp:database")        // Optional Room 3 SQLite DB
+    implementation("dev.abeta.kmp:watch-companion") // Optional Wear OS / watchOS
+}</code></pre>
+              </div>
+              <p class="code-note">
+                Need nightly snapshots? Add anonymous Cloudsmith Open Source: <code>maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")</code>.
+              </p>
+            </div>
+
+            <!-- Tab 2: Apple SwiftPM -->
+            <div class="tab-panel" id="panel-swift" role="tabpanel" aria-labelledby="tab-swift">
+              <div class="tab-meta">
+                <span>Prebuilt Release XCFrameworks via <strong>Xcode Swift Package Manager</strong></span>
+                <span class="badge badge-indigo">Abeta-dev/kmp-spm</span>
+              </div>
+              <div class="code-wrap">
+                <div class="code-header">
+                  <span>Package.swift — or Xcode &rarr; Add Package Dependencies</span>
+                  <button class="copy-btn" type="button" data-copy-target="code-swift">Copy</button>
+                </div>
+                <pre id="code-swift"><code>// Direct Git URL: https://github.com/Abeta-dev/kmp-spm
+dependencies: [
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.1.0"),
+]
+
+// Import prebuilt binary targets directly in Swift:
+import AbetaSduiKit   // iOS / iPadOS Compose + SDUI host
+import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
+              </div>
+              <p class="code-note">
+                Lightweight ~1 KB manifest repo pulls SHA-256 verified <code>.xcframework.zip</code> binaries from GitHub Releases.
+              </p>
+            </div>
+
+            <!-- Tab 3: Go SDUI SDK -->
+            <div class="tab-panel" id="panel-go" role="tabpanel" aria-labelledby="tab-go">
+              <div class="tab-meta">
+                <span>Canonical <code>v1</code> Go wire builders &amp; BFF contracts via <strong>proxy.golang.org</strong></span>
+                <span class="badge badge-emerald">bff@v0.2.0</span>
+              </div>
+              <div class="code-wrap">
+                <div class="code-header">
+                  <span>Terminal + Go imports</span>
+                  <button class="copy-btn" type="button" data-copy-target="code-go">Copy</button>
+                </div>
+                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.2.0
+
+// Import 1:1 v1 wire packages in your Go BFF:
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/atoms"
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/theming"</code></pre>
+              </div>
+              <p class="code-note">
+                Golden-tested 1:1 parity across all 15 wire atoms, 17 canonical snippet types, and 18 built-in action types.
+              </p>
+            </div>
+
+            <!-- Tab 4: Docker -->
+            <div class="tab-panel" id="panel-docker" role="tabpanel" aria-labelledby="tab-docker">
+              <div class="tab-meta">
+                <span>Prebuilt container images published to <strong>GitHub Container Registry</strong></span>
+                <span class="badge badge-amber">ghcr.io/abeta-dev</span>
+              </div>
+              <div class="code-wrap">
+                <div class="code-header">
+                  <span>Terminal (Docker)</span>
+                  <button class="copy-btn" type="button" data-copy-target="code-docker">Copy</button>
+                </div>
+                <pre id="code-docker"><code># Pull Visual Layout Studio &amp; Composition Engine
+docker pull ghcr.io/abeta-dev/layout-engine:0.1.0
+
+# Pull Multi-Tenant 6-App SDUI BFF
+docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
+              </div>
+              <p class="code-note">
+                Run locally and point the <a href="./storybook/" style="text-decoration: underline;">Live WasmJS Storybook</a> or <code>sample-app --bff-url</code> directly at your container.
+              </p>
+            </div>
+          </div>
+
+          <!-- One-Click Free Cloud Demo -->
+          <div class="panel">
+            <div class="cloud-stack">
+              <div>
+                <div class="section-kicker" style="margin-bottom: 0.25rem;">One-Click Free Cloud Demo</div>
+                <p style="margin: 0; font-size: 0.87rem; color: var(--text-secondary);">
+                  Spin up live hosted instances on Render's free tier directly from the official Blueprint repositories.
+                </p>
+              </div>
+
+              <div class="cloud-card">
+                <div>
+                  <h3>
+                    <span>Abeta Layout Studio</span>
+                    <span class="badge badge-indigo">layout-engine</span>
+                  </h3>
+                  <p>
+                    Interactive visual SDUI composition engine and schema workbench aligned with Wire Protocol <code>v1</code>.
+                  </p>
+                </div>
+                <a class="btn btn-indigo" href="https://render.com/deploy?repo=https://github.com/Abeta-dev/layout-engine" target="_blank" rel="noopener noreferrer">
+                  Deploy Layout Studio on Render &rarr;
+                </a>
+              </div>
+
+              <div class="cloud-card">
+                <div>
+                  <h3>
+                    <span>6-App SDUI BFF</span>
+                    <span class="badge badge-emerald">sdui-bff</span>
+                  </h3>
+                  <p>
+                    Multi-tenant Go 1.26.0 SDUI backend serving all 6 Super-App Showcase verticals, OpenAPI 3.1, and Scalar docs.
+                  </p>
+                </div>
+                <a class="btn btn-primary" href="https://render.com/deploy?repo=https://github.com/Abeta-dev/sdui-bff" target="_blank" rel="noopener noreferrer">
+                  Deploy 6-App BFF on Render &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6-in-1 Super-App Showcase Visual Gallery -->
+    <section id="showcase">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">6-in-1 Super-App Showcase</div>
+            <h2 class="section-title">Six Distinct Verticals. One Shared SDUI Engine.</h2>
+            <p class="section-desc">
+              Pixel-accurate Retina (2&times;) PNG captures rendered directly by Compose Multiplatform from <code>kmp/sample-app</code>—zero hand-edited mockups. Click any capture to inspect full-size.
+            </p>
+          </div>
+          <a class="btn btn-secondary btn-sm" href="./storybook/">Explore Live in Storybook &rarr;</a>
+        </div>
+
+        <!-- Desktop Feature Capture -->
+        <article class="desktop-feature">
+          <div class="desktop-feature-bar">
+            <div class="desktop-feature-title">
+              <span class="window-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+              <span>Abeta Fresh &mdash; Super-App Launcher &amp; Adaptive Desktop Split-Pane (<code>1280&times;860</code>)</span>
+            </div>
+            <span class="badge badge-emerald">EMERALD &middot; AdaptivePageSpec</span>
+          </div>
+          <div class="desktop-feature-media" data-zoom-src="./assets/screenshots/vertical-fresh-desktop.png" data-zoom-title="Abeta Fresh — Desktop 1280×860 Super-App Launcher &amp; Adaptive Grid">
+            <img src="./assets/screenshots/vertical-fresh-desktop.png" alt="Abeta Fresh desktop 1280x860 Super-App Launcher and adaptive responsive product grid rendered in Compose Multiplatform">
+          </div>
+        </article>
+
+        <!-- 6 Phone Verticals Grid -->
+        <div class="verticals-grid">
+          <article class="vertical-card">
+            <div class="phone-frame" data-zoom-src="./assets/screenshots/vertical-fresh-phone.png" data-zoom-title="Abeta Fresh — 8-Min Quick-Commerce Grocery (412×915)">
+              <img src="./assets/screenshots/vertical-fresh-phone.png" alt="Abeta Fresh quick-commerce grocery mobile screen rendered by Compose Multiplatform" loading="lazy">
+            </div>
+            <div class="vertical-body">
+              <div class="vertical-head">
+                <h3>Abeta Fresh</h3>
+                <span class="badge badge-emerald">EMERALD</span>
+              </div>
+              <div class="vertical-subtitle">8-Min Quick-Commerce Grocery &middot; <code>fresh-home</code></div>
+              <p class="vertical-desc">
+                Combines <code>search_bar</code>, category <code>chip_group</code>, responsive <code>product_card</code> grid with animated <code>UiStepper</code>, <code>FloatingCartDockHost</code>, and express celebration bursts.
+              </p>
+            </div>
+          </article>
+
+          <article class="vertical-card">
+            <div class="phone-frame" data-zoom-src="./assets/screenshots/vertical-bites-phone.png" data-zoom-title="Abeta Bites — Restaurant &amp; Food Delivery (412×915)">
+              <img src="./assets/screenshots/vertical-bites-phone.png" alt="Abeta Bites food delivery mobile screen rendered by Compose Multiplatform" loading="lazy">
+            </div>
+            <div class="vertical-body">
+              <div class="vertical-head">
+                <h3>Abeta Bites</h3>
+                <span class="badge badge-amber">AMBER</span>
+              </div>
+              <div class="vertical-subtitle">Restaurant &amp; Food Delivery &middot; <code>bites-home</code></div>
+              <p class="vertical-desc">
+                Drives cuisine <code>chip_group</code> filters, promotional <code>carousel</code> banners, restaurant menu <code>product_card</code> grids, and live progress order tracking from pure JSON.
+              </p>
+            </div>
+          </article>
+
+          <article class="vertical-card">
+            <div class="phone-frame" data-zoom-src="./assets/screenshots/vertical-pulse-phone.png" data-zoom-title="Abeta Pulse — Live Events, Concerts &amp; Cinema (412×915)">
+              <img src="./assets/screenshots/vertical-pulse-phone.png" alt="Abeta Pulse live events and cinema mobile screen rendered by Compose Multiplatform" loading="lazy">
+            </div>
+            <div class="vertical-body">
+              <div class="vertical-head">
+                <h3>Abeta Pulse</h3>
+                <span class="badge badge-indigo">INDIGO</span>
+              </div>
+              <div class="vertical-subtitle">Live Events, Concerts &amp; Cinema &middot; <code>pulse-home</code></div>
+              <p class="vertical-desc">
+                Showcases event discovery via <code>search_bar</code>, category <code>chip_group</code>, rich editorial <code>card_v1</code> feeds, and seat/tier booking with <code>celebration</code> feedback.
+              </p>
+            </div>
+          </article>
+
+          <article class="vertical-card">
+            <div class="phone-frame" data-zoom-src="./assets/screenshots/vertical-mart-phone.png" data-zoom-title="Abeta Mart — Multi-Category Retail Marketplace (412×915)">
+              <img src="./assets/screenshots/vertical-mart-phone.png" alt="Abeta Mart multi-category retail marketplace mobile screen rendered by Compose Multiplatform" loading="lazy">
+            </div>
+            <div class="vertical-body">
+              <div class="vertical-head">
+                <h3>Abeta Mart</h3>
+                <span class="badge badge-amber">AMBER</span>
+              </div>
+              <div class="vertical-subtitle">Retail Marketplace &middot; <code>mart-home</code></div>
+              <p class="vertical-desc">
+                Pairs department chips, lightning-deal <code>carousel</code> rails, multi-column <code>product_card</code> listings, <code>accordion</code> specs &amp; reviews, and native OS <code>share</code> actions.
+              </p>
+            </div>
+          </article>
+
+          <article class="vertical-card">
+            <div class="phone-frame" data-zoom-src="./assets/screenshots/vertical-spark-phone.png" data-zoom-title="Abeta Spark — Swipe-Based Profile Discovery (412×915)">
+              <img src="./assets/screenshots/vertical-spark-phone.png" alt="Abeta Spark swipe-based profile discovery mobile screen rendered by Compose Multiplatform" loading="lazy">
+            </div>
+            <div class="vertical-body">
+              <div class="vertical-head">
+                <h3>Abeta Spark</h3>
+                <span class="badge badge-indigo">INDIGO</span>
+              </div>
+              <div class="vertical-subtitle">Swipe Profile Discovery &middot; <code>spark-deck</code></div>
+              <p class="vertical-desc">
+                Features interest <code>chip_group</code> filtering, stacked gesture <code>swipe_deck</code> cards (<code>on_like</code> / <code>on_nope</code> / <code>on_super_like</code>), mutual match celebrations, and inbox flows.
+              </p>
+            </div>
+          </article>
+
+          <article class="vertical-card">
+            <div class="phone-frame" data-zoom-src="./assets/screenshots/vertical-trade-phone.png" data-zoom-title="Abeta Trade — B2B Wholesale &amp; Direct RFQ (412×915)">
+              <img src="./assets/screenshots/vertical-trade-phone.png" alt="Abeta Trade B2B wholesale and RFQ mobile screen rendered by Compose Multiplatform" loading="lazy">
+            </div>
+            <div class="vertical-body">
+              <div class="vertical-head">
+                <h3>Abeta Trade</h3>
+                <span class="badge badge-emerald">EMERALD</span>
+              </div>
+              <div class="vertical-subtitle">B2B Wholesale &amp; Direct RFQ &middot; <code>trade-home</code></div>
+              <p class="vertical-desc">
+                Combines supplier search, verification <code>chip_group</code>, MOQ <code>metric_card</code> KPIs, verified directory listings, and declarative validated <code>form_v1</code> RFQ workflows.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dokka v2 API Reference Index -->
+    <section id="api-docs">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Dokka v2 KMP API Reference</div>
+            <h2 class="section-title">Layered Architecture Module Docs</h2>
+            <p class="section-desc">
+              Every module adheres strictly to the Uncle Bob Dependency Rule (<code>Layer 3 &rarr; Layer 2 &rarr; Layer 1 &rarr; Layer 0</code>) with Binary Compatibility Validator ABI baselines.
+            </p>
+          </div>
+        </div>
+
+        <div class="api-grid">
+          <a class="api-card" href="./api/core/">
+            <div class="api-card-top">
+              <span class="api-card-name">:core</span>
+              <span class="badge badge-emerald">Layer 0</span>
+            </div>
+            <p>Primitives (<code>AppResult</code>, <code>AppError</code>, concurrency guards) plus OS hardware &amp; security ports (Keychain, AES-GCM, Biometrics, Deep Links, Haptics).</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/database/">
+            <div class="api-card-top">
+              <span class="api-card-name">:database</span>
+              <span class="badge badge-emerald">Layer 0</span>
+            </div>
+            <p>Room 3 (<code>3.0.3</code>) KMP SQLite persistence (<code>cached_screens</code>, <code>offline_mutations</code>, <code>key_value_records</code>) with Bundled &amp; WasmJS OPFS Web Worker drivers.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/design-tokens/">
+            <div class="api-card-top">
+              <span class="api-card-name">:design-tokens</span>
+              <span class="badge badge-indigo">Layer 1</span>
+            </div>
+            <p>Semantic color palettes, 17 typography roles, spacing, motion, WCAG AA contrast utilities, 3 theme presets, and <code>ResponsiveTokens</code> breakpoints.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/sdui-contracts/">
+            <div class="api-card-top">
+              <span class="api-card-name">:sdui-contracts</span>
+              <span class="badge badge-indigo">Layer 1</span>
+            </div>
+            <p>Pure <code>@Serializable</code> v1 wire DTOs: 15 Wire Atoms, 17 <code>SnippetTypes</code>, <code>MotionSpec</code>, <code>AdaptivePageSpec</code>, <code>FloatingCartSpec</code>, and <code>SduiJson</code>.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/ui-atoms/">
+            <div class="api-card-top">
+              <span class="api-card-name">:ui-atoms</span>
+              <span class="badge badge-indigo">Layer 1</span>
+            </div>
+            <p>16 stateless Compose Multiplatform atoms (incl. animated <code>UiStepper</code>), <code>UiCelebrationOverlay</code>, <code>UiHapticFeedback</code>, and <code>MotionModifier</code>.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/action-engine/">
+            <div class="api-card-top">
+              <span class="api-card-name">:action-engine</span>
+              <span class="badge badge-amber">Layer 2</span>
+            </div>
+            <p>Open/Closed action pipeline: 18 built-in <code>ActionTypes</code>, <code>ActionDecoderRegistry</code>, <code>ActionRegistry</code>, <code>ActionValidator</code>, and <code>DefaultActionDispatcher</code>.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/network/">
+            <div class="api-card-top">
+              <span class="api-card-name">:network</span>
+              <span class="badge badge-amber">Layer 2</span>
+            </div>
+            <p>DIP-compliant Ktor 3.6.1 HTTP/2 ALPN + Brotli client, automatic bearer token refresh, and shared JVM/Apple SPKI <code>CertificatePinMatcher</code>.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/sdui-layout/">
+            <div class="api-card-top">
+              <span class="api-card-name">:sdui-layout</span>
+              <span class="badge badge-emerald">Layer 3</span>
+            </div>
+            <p><code>LayoutController</code>, 17 built-in snippet renderers, <code>FloatingCartDockHost</code>, <code>PlatformBridgeBundle</code>, Koin DI, iOS <code>AbetaSduiKit</code>, and macOS Cocoa hosts.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/watch-companion/">
+            <div class="api-card-top">
+              <span class="api-card-name">:watch-companion</span>
+              <span class="badge badge-emerald">Layer 3</span>
+            </div>
+            <p>Headless wearable SDUI orchestrator powering watchOS (<code>AbetaWatchKit.xcframework</code>) and Wear OS JVM hosts with zero Compose UI dependencies.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI & LLM Context -->
+    <section id="ai-llms">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">AI &amp; LLM Ready (llmstxt.org)</div>
+            <h2 class="section-title">Direct Context for Coding Agents &amp; Assistants</h2>
+            <p class="section-desc">
+              Point Claude, Gemini, Cursor, Copilot, or custom RAG pipelines straight at our hosted plain-text indexes—no scraping required.
+            </p>
+          </div>
+        </div>
+
+        <div class="llm-grid">
+          <div class="llm-card">
+            <div>
+              <h3>
+                <span>llms.txt</span>
+                <span class="badge badge-emerald">Index</span>
+              </h3>
+              <p>
+                Concise <code>llmstxt.org</code> index mapping core architecture docs, sibling repository links, all 10 AI agent skills, and all 17 per-module Code Owner personas.
+              </p>
+            </div>
+            <div class="llm-actions">
+              <a class="btn btn-primary btn-sm" href="./llms.txt">Open ./llms.txt &rarr;</a>
+              <a class="btn btn-secondary btn-sm" href="https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt" target="_blank" rel="noopener noreferrer">layout-engine llms.txt</a>
+              <a class="btn btn-secondary btn-sm" href="https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt" target="_blank" rel="noopener noreferrer">sdui-bff llms.txt</a>
+            </div>
+          </div>
+
+          <div class="llm-card">
+            <div>
+              <h3>
+                <span>llms-full.txt</span>
+                <span class="badge badge-indigo">Complete Reference</span>
+              </h3>
+              <p>
+                Self-contained single-file technical reference covering the 3-repo Abeta SDUI Platform, 4-layer module matrix, Room 3 schema, full Wire Protocol <code>v1</code> payloads, install snippets, and verification commands.
+              </p>
+            </div>
+            <div class="llm-actions">
+              <a class="btn btn-indigo btn-sm" href="./llms-full.txt">Open ./llms-full.txt &rarr;</a>
+              <a class="btn btn-secondary btn-sm" href="https://github.com/Abeta-dev/kmp/blob/main/AGENTS.md" target="_blank" rel="noopener noreferrer">AGENTS.md</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Screenshot preview">
+    <div class="lightbox-head">
+      <span id="lightboxTitle">Preview</span>
+      <button class="copy-btn" type="button" id="lightboxClose">Close (Esc)</button>
+    </div>
+    <div class="lightbox-body">
+      <img id="lightboxImg" src="" alt="">
+    </div>
+  </dialog>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>
+        <strong>Abeta KMP Kit</strong> &middot; Apache License 2.0 &middot; Built with Kotlin Multiplatform, Compose Multiplatform &amp; Go 1.26.0
+      </div>
+      <div class="footer-links">
+        <a href="./storybook/">Live Storybook</a>
+        <a href="./api/core/">API Docs</a>
+        <a href="./llms.txt">llms.txt</a>
+        <a href="./llms-full.txt">llms-full.txt</a>
+        <a href="https://github.com/Abeta-dev/kmp" target="_blank" rel="noopener noreferrer">Abeta-dev/kmp</a>
+        <a href="https://github.com/Abeta-dev/layout-engine" target="_blank" rel="noopener noreferrer">layout-engine</a>
+        <a href="https://github.com/Abeta-dev/sdui-bff" target="_blank" rel="noopener noreferrer">sdui-bff</a>
+        <a href="https://github.com/Abeta-dev/kmp-spm" target="_blank" rel="noopener noreferrer">kmp-spm</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // Theme toggle (respects OS preference by default)
+      const root = document.documentElement;
+      const toggle = document.getElementById("themeToggle");
+      try {
+        const saved = localStorage.getItem("abeta-portal-theme");
+        if (saved === "light" || saved === "dark") {
+          root.setAttribute("data-theme", saved);
+        }
+      } catch (_) {}
+
+      if (toggle) {
+        toggle.addEventListener("click", function () {
+          const current = root.getAttribute("data-theme");
+          const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const next = current ? (current === "dark" ? "light" : "dark") : (prefersDark ? "light" : "dark");
+          root.setAttribute("data-theme", next);
+          try { localStorage.setItem("abeta-portal-theme", next); } catch (_) {}
+        });
+      }
+
+      // Install tabs
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+      const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+      function activateTab(tab) {
+        tabs.forEach(function (t) {
+          t.setAttribute("aria-selected", t === tab ? "true" : "false");
+        });
+        const targetId = tab.getAttribute("aria-controls");
+        panels.forEach(function (p) {
+          p.classList.toggle("active", p.id === targetId);
+        });
+      }
+
+      tabs.forEach(function (tab, idx) {
+        tab.addEventListener("click", function () { activateTab(tab); });
+        tab.addEventListener("keydown", function (e) {
+          if (e.key === "ArrowRight") {
+            const next = tabs[(idx + 1) % tabs.length];
+            activateTab(next);
+            next.focus();
+          } else if (e.key === "ArrowLeft") {
+            const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+            activateTab(prev);
+            prev.focus();
+          }
+        });
+      });
+
+      // Copy buttons
+      document.querySelectorAll("[data-copy-target]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const el = document.getElementById(btn.getAttribute("data-copy-target"));
+          if (!el) return;
+          const text = el.textContent || "";
+          const done = function () {
+            btn.textContent = "Copied!";
+            btn.classList.add("copied");
+            setTimeout(function () {
+              btn.textContent = "Copy";
+              btn.classList.remove("copied");
+            }, 1600);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(done);
+          } else {
+            done();
+          }
+        });
+      });
+
+      // Lightbox for Retina screenshots
+      const dialog = document.getElementById("lightbox");
+      const dialogImg = document.getElementById("lightboxImg");
+      const dialogTitle = document.getElementById("lightboxTitle");
+      const dialogClose = document.getElementById("lightboxClose");
+
+      if (dialog && typeof dialog.showModal === "function") {
+        document.querySelectorAll("[data-zoom-src]").forEach(function (trigger) {
+          trigger.addEventListener("click", function () {
+            const src = trigger.getAttribute("data-zoom-src");
+            const title = trigger.getAttribute("data-zoom-title") || "Preview";
+            if (!src) return;
+            dialogImg.src = src;
+            dialogImg.alt = title;
+            dialogTitle.textContent = title;
+            dialog.showModal();
+          });
+        });
+
+        dialogClose.addEventListener("click", function () { dialog.close(); });
+        dialog.addEventListener("click", function (e) {
+          if (e.target === dialog) dialog.close();
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

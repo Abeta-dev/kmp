@@ -1,14 +1,18 @@
 # abeta-dev/kmp
 
+[![Live Portal](https://img.shields.io/badge/Live_Portal-GitHub_Pages-0ea5e9?logo=githubpages&logoColor=white)](https://abeta-dev.github.io/kmp/)
+[![Live WasmJS Storybook](https://img.shields.io/badge/Live_Storybook-Compose_WasmJS-10b981?logo=kotlin&logoColor=white)](https://abeta-dev.github.io/kmp/storybook/)
 [![KMP CI](https://github.com/abeta-dev/kmp/actions/workflows/kmp-ci.yml/badge.svg)](https://github.com/abeta-dev/kmp/actions/workflows/kmp-ci.yml)
 [![BFF CI](https://github.com/abeta-dev/kmp/actions/workflows/bff-ci.yml/badge.svg)](https://github.com/abeta-dev/kmp/actions/workflows/bff-ci.yml)
 [![Quality & Security](https://github.com/abeta-dev/kmp/actions/workflows/quality-security.yml/badge.svg)](https://github.com/abeta-dev/kmp/actions/workflows/quality-security.yml)
+[![Deploy GitHub Pages](https://github.com/abeta-dev/kmp/actions/workflows/pages.yml/badge.svg)](https://github.com/abeta-dev/kmp/actions/workflows/pages.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **Abeta KMP Kit (`dev.abeta.kmp`)** is an open-source, Server-Driven UI (SDUI) monorepo pairing a layered **Kotlin Multiplatform + Compose Multiplatform UI, Wearable & SDUI Kit (`kmp/`)** (**11 publishable library modules** plus `kmp-bom` and `dependencyManagement`) with a **Go 1.26.0 Clean Architecture SDUI Backend-for-Frontend (`bff/`)**.
 
 Designed around **Clean Architecture**, the **Uncle Bob Dependency Rule**, **SOLID principles**, and strict **Atomic / Action decoupling**, the repository shares a 1:1 versioned JSON wire contract (`v1` — **15 Wire Atoms**, **17 Standard Snippet Types** incl. `swipe_deck`, `search_bar`, and `chip_group`, **18 Built-in Action Types**, declarative **`MotionSpec` / `FeedbackEffect`**, and **responsive `AdaptivePageSpec`**) between the Go BFF and KMP client modules—powering a **6-in-1 Super-App Showcase Launcher** (**Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**) and a **13-story Storybook**—managed through a published **Gradle BOM (`dev.abeta.kmp:bom`)**, **Gradle Version Catalog (`dev.abeta.kmp:dependencies`)**, and **Binary Compatibility Validator (`apiCheck`)**.
 
+> **Live Portal & Interactive WasmJS Storybook**: Explore [**abeta-dev.github.io/kmp**](https://abeta-dev.github.io/kmp/) · [**Launch Live Compose WasmJS Storybook →**](https://abeta-dev.github.io/kmp/storybook/) · [**Dokka v2 API Reference**](https://abeta-dev.github.io/kmp/api/core/).
 > **AI / LLM Documentation (`llmstxt.org`)**: Ingest [`llms.txt`](llms.txt) (concise documentation & skill index) or [`llms-full.txt`](llms-full.txt) (self-contained full technical reference).
 > **Abeta SDUI Platform (3-Repo Ecosystem)**: **Abeta KMP Kit** (`Abeta-dev/kmp`, this repo) · [**Abeta Layout Engine**](https://github.com/Abeta-dev/layout-engine) ([`llms.txt`](https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt)) · [**Abeta SDUI BFF**](https://github.com/Abeta-dev/sdui-bff) ([`llms.txt`](https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt)).
 
