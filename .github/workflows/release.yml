@@ -161,10 +161,12 @@ jobs:
           chmod +x ./gradlew
           ./gradlew check --no-daemon
 
-  publish-kmp-apple-and-maven:
-    name: Publish Multiplatform Artifacts & Apple XCFrameworks (macOS)
+  publish-apple-xcframeworks:
+    name: Assemble & Package Apple Release XCFrameworks (macOS)
     needs: plan-and-verify
-    if: needs.plan-and-verify.outputs.release_kind == 'kmp'
+    if: >
+      needs.plan-and-verify.outputs.release_kind == 'kmp' &&
+      needs.plan-and-verify.outputs.publish_target != 'maven-central'
     runs-on: macos-latest
 
     steps:
@@ -183,10 +185,84 @@ jobs:
       - name: Make gradlew and packaging scripts executable
         run: chmod +x ./kmp/gradlew ./scripts/package_xcframeworks.sh ./scripts/verify_spm_package.sh
 
+      - name: Assemble Release Apple XCFrameworks (AbetaWatchKit & AbetaSduiKit)
+        working-directory: kmp
+        run: |
+          ./gradlew \
+            :watch-companion:assembleAbetaWatchKitReleaseXCFramework \
+            :sdui-layout:assembleAbetaSduiKitReleaseXCFramework \
+            --max-workers=1 --no-daemon \
+            -Dorg.gradle.jvmargs="-Xmx6g -Dfile.encoding=UTF-8" \
+            -Dkotlin.daemon.jvm.options="-Xmx6g"
+
+      - name: Package XCFrameworks, SHA256SUMS.txt & SwiftPM Package.swift
+        run: |
+          ./scripts/package_xcframeworks.sh \
+            --tag "${{ needs.plan-and-verify.outputs.release_tag }}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --out-dir dist/xcframeworks
+
+      - name: Verify generated SwiftPM Package.swift manifest
+        env:
+          RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
+        run: |
+          ./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag "${RELEASE_TAG}"
+
+      - name: Upload XCFramework & SwiftPM release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: abeta-xcframeworks
+          path: dist/xcframeworks/
+          if-no-files-found: error
+
+      - name: Write Apple XCFramework summary
+        run: |
+          {
+            echo "## Apple Release XCFrameworks & SwiftPM Summary"
+            echo "- **Tag**: \`${{ needs.plan-and-verify.outputs.release_tag }}\`"
+            echo "- **Products**: \`AbetaSduiKit\` (iOS 15+), \`AbetaWatchKit\` (watchOS 9+)"
+            echo "- **SwiftPM Mirror Repo Sync Configured**: \`${{ needs.plan-and-verify.outputs.spm_mirror_configured }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-maven:
+    name: Publish Multiplatform Maven Artifacts (macOS)
+    needs: plan-and-verify
+    if: >
+      needs.plan-and-verify.outputs.release_kind == 'kmp' &&
+      needs.plan-and-verify.outputs.publish_target != 'xcframeworks-only' &&
+      (
+        needs.plan-and-verify.outputs.publish_target == 'maven-central' ||
+        needs.plan-and-verify.outputs.publish_target == 'cloudsmith' ||
+        needs.plan-and-verify.outputs.publish_target == 'github-packages' ||
+        (needs.plan-and-verify.outputs.publish_target == 'auto' &&
+         ((vars.ENABLE_MAVEN_CENTRAL == 'true' && needs.plan-and-verify.outputs.maven_central_configured == 'true') ||
+          needs.plan-and-verify.outputs.cloudsmith_configured == 'true' ||
+          needs.plan-and-verify.outputs.custom_maven_configured == 'true' ||
+          vars.ENABLE_GITHUB_PACKAGES_MIRROR == 'true'))
+      )
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./kmp/gradlew
+
       - name: Publish to Maven Central (Sonatype Central Portal)
         if: >
           needs.plan-and-verify.outputs.publish_target == 'maven-central' ||
           (needs.plan-and-verify.outputs.publish_target == 'auto' &&
+           vars.ENABLE_MAVEN_CENTRAL == 'true' &&
            needs.plan-and-verify.outputs.maven_central_configured == 'true')
         working-directory: kmp
         env:
@@ -253,57 +329,26 @@ jobs:
           ./gradlew publishAllPublicationsToGitHubPackagesRepository --no-daemon \
             -Pabeta.kmpLocalBuild=false
 
-      - name: Assemble Release Apple XCFrameworks (AbetaWatchKit & AbetaSduiKit)
-        working-directory: kmp
-        run: |
-          ./gradlew \
-            :watch-companion:assembleAbetaWatchKitReleaseXCFramework \
-            :sdui-layout:assembleAbetaSduiKitReleaseXCFramework \
-            --max-workers=1 --no-daemon \
-            -Dorg.gradle.jvmargs="-Xmx6g -Dfile.encoding=UTF-8" \
-            -Dkotlin.daemon.jvm.options="-Xmx6g"
-
-      - name: Package XCFrameworks, SHA256SUMS.txt & SwiftPM Package.swift
-        run: |
-          ./scripts/package_xcframeworks.sh \
-            --tag "${{ needs.plan-and-verify.outputs.release_tag }}" \
-            --repo "${GITHUB_REPOSITORY}" \
-            --out-dir dist/xcframeworks
-
-      - name: Verify generated SwiftPM Package.swift manifest
-        env:
-          RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
-        run: |
-          ./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag "${RELEASE_TAG}"
-
-      - name: Upload XCFramework & SwiftPM release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: abeta-xcframeworks
-          path: dist/xcframeworks/
-          if-no-files-found: error
-
-      - name: Write release summary
+      - name: Write Maven publish summary
         run: |
           {
-            echo "## Abeta KMP Kit Release Summary"
+            echo "## Abeta KMP Kit Maven Publish Summary"
             echo "- **Tag**: \`${{ needs.plan-and-verify.outputs.release_tag }}\`"
             echo "- **Published Version**: \`${{ needs.plan-and-verify.outputs.publish_version }}\`"
-            echo "- **Maven Central (Central Portal)**: \`${{ needs.plan-and-verify.outputs.maven_central_configured }}\`"
+            echo "- **Maven Central Enabled**: \`${{ vars.ENABLE_MAVEN_CENTRAL || 'false' }}\` (configured: \`${{ needs.plan-and-verify.outputs.maven_central_configured }}\`)"
             echo "- **Cloudsmith Open Source**: \`${{ needs.plan-and-verify.outputs.cloudsmith_configured }}\`"
-            echo "- **SwiftPM Direct-URL Mirror Repo Sync**: \`${{ needs.plan-and-verify.outputs.spm_mirror_configured }}\`"
-            echo "- **Apple Release XCFrameworks + SwiftPM \`Package.swift\`**: Packaged, checksummed & verified"
           } >> "$GITHUB_STEP_SUMMARY"
 
   github-release:
     name: Create GitHub Release & Warm Go Proxy
-    needs: [plan-and-verify, publish-kmp-apple-and-maven]
+    needs: [plan-and-verify, publish-apple-xcframeworks]
     if: >
       always() &&
       needs.plan-and-verify.result == 'success' &&
-      (needs.publish-kmp-apple-and-maven.result == 'success' ||
-       needs.publish-kmp-apple-and-maven.result == 'skipped') &&
-      startsWith(github.ref, 'refs/tags/') &&
+      (needs.publish-apple-xcframeworks.result == 'success' ||
+       needs.publish-apple-xcframeworks.result == 'skipped') &&
+      needs.plan-and-verify.outputs.publish_target != 'maven-central' &&
+      (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch') &&
       inputs.skip_release_upload != true
     runs-on: ubuntu-latest
 
@@ -322,23 +367,35 @@ jobs:
         if: needs.plan-and-verify.outputs.release_kind == 'kmp'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            dist/xcframeworks/*.xcframework.zip \
-            dist/xcframeworks/SHA256SUMS.txt \
-            dist/xcframeworks/Package.swift \
-            --title "Abeta KMP Kit ${GITHUB_REF_NAME}" \
-            --generate-notes
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" \
+              dist/xcframeworks/*.xcframework.zip \
+              dist/xcframeworks/SHA256SUMS.txt \
+              dist/xcframeworks/Package.swift \
+              --clobber
+          else
+            gh release create "${RELEASE_TAG}" \
+              dist/xcframeworks/*.xcframework.zip \
+              dist/xcframeworks/SHA256SUMS.txt \
+              dist/xcframeworks/Package.swift \
+              --title "Abeta KMP Kit ${RELEASE_TAG}" \
+              --generate-notes
+          fi
 
       - name: Publish Go BFF GitHub Release & warm proxy.golang.org
         if: needs.plan-and-verify.outputs.release_kind == 'bff'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
         run: |
-          BFF_VER="${GITHUB_REF_NAME#bff/}"
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "Abeta SDUI Go BFF ${BFF_VER}" \
-            --generate-notes
+          BFF_VER="${RELEASE_TAG#bff/}"
+          if ! gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release create "${RELEASE_TAG}" \
+              --title "Abeta SDUI Go BFF ${BFF_VER}" \
+              --generate-notes
+          fi
           curl -fsSL "https://proxy.golang.org/github.com/abeta-dev/kmp/bff/@v/${BFF_VER}.info" || true
 
   publish-spm-mirror:
@@ -347,7 +404,7 @@ jobs:
     if: >
       needs.plan-and-verify.outputs.release_kind == 'kmp' &&
       needs.plan-and-verify.outputs.spm_mirror_configured == 'true' &&
-      startsWith(github.ref, 'refs/tags/')
+      (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: read
