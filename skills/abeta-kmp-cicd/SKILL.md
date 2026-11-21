@@ -5,7 +5,7 @@ description: Complete CI/CD, GitHub Actions workflows, automated Module Code Own
 
 # Abeta KMP Kit — CI/CD & Quality Gates Skill (`abeta-kmp-cicd`)
 
-Use this skill whenever configuring, extending, debugging, or executing CI/CD pipelines, automated code-owner reviews, ABI checks, or GitHub Packages releases in `abeta-dev/kmp`.
+Use this skill whenever configuring, extending, debugging, or executing CI/CD pipelines, automated code-owner reviews, ABI checks, or open-registry releases (Maven Central, Cloudsmith Open Source, SwiftPM XCFrameworks, Go `proxy.golang.org`) in `abeta-dev/kmp`.
 
 ## 1. GitHub Actions Workflows Map
 
@@ -13,9 +13,10 @@ Use this skill whenever configuring, extending, debugging, or executing CI/CD pi
 | :--- | :--- | :--- |
 | [kmp-ci.yml](../../.github/workflows/kmp-ci.yml) | PR / push (`kmp/**`, `scripts/**`) | Java 21 + Gradle 9.7.0 `./gradlew check --no-daemon --stacktrace` (Spotless, Detekt, BCV `apiCheck`, JVM tests, WasmJS compile) |
 | [bff-ci.yml](../../.github/workflows/bff-ci.yml) | PR / push (`bff/**`, `scripts/**`) | Go 1.26.0 `gofmt`, `go vet ./...`, `go test -race -coverprofile=coverage.out ./...` |
-| [quality-security.yml](../../.github/workflows/quality-security.yml) | PR / push | Brand & machine-path hygiene (`check_brand_hygiene.sh`), Architecture & Code Owner gate (`check_architecture_and_owners.sh`), `gitleaks` secret scan, Spotless & Detekt |
+| [quality-security.yml](../../.github/workflows/quality-security.yml) | PR / push | Brand & machine-path hygiene (`check_brand_hygiene.sh`), Architecture & Code Owner gate (`check_architecture_and_owners.sh`), SHA-256-verified open-source `gitleaks` CLI secret scan (`.gitleaks.toml`), Spotless & Detekt |
 | [module-owner-architecture-review.yml](../../.github/workflows/module-owner-architecture-review.yml) | PR / manual dispatch | Deterministic Uncle Bob Dependency Rule, BOM/Catalog/ABI parity, 1:1 KMP<->BFF wire parity, per-module Code Owner PR review comment, Spotless/Detekt/`apiCheck`/Go `arch_test`, and optional multi-model AI diff review (Claude / Gemini / OpenAI) |
-| [release.yml](../../.github/workflows/release.yml) | SemVer tags `v*` | Full KMP + Go verification -> Maven publish (`publishAllPublicationsToGitHubPackagesRepository -Pabeta.kmpLocalBuild=false`) -> GitHub Release |
+| [release.yml](../../.github/workflows/release.yml) | Tags `v*`, `bff/v*` or `workflow_dispatch` | Full KMP + Go verification -> `macos-latest` publish to **Maven Central (Sonatype Central Portal)**, **Cloudsmith Open Source**, optional custom Maven mirror, plus Release Apple XCFrameworks (`AbetaSduiKit`, `AbetaWatchKit`) + SwiftPM `Package.swift` + `SHA256SUMS.txt` -> GitHub Release & `proxy.golang.org` warmup |
+| [snapshot-publish.yml](../../.github/workflows/snapshot-publish.yml) | Push (`main` `kmp/**`) or `workflow_dispatch` | Publishes multiplatform `*-SNAPSHOT` builds to **Cloudsmith Open Source** on `macos-latest` automatically whenever `CLOUDSMITH_API_KEY` is configured |
 | [wiki-sync.yml](../../.github/workflows/wiki-sync.yml) | Push (`wiki/**`) | Mirrors `wiki/*.md` to the GitHub repository wiki |
 
 ## 2. Automated Module Code Owner & Architecture Gate
@@ -65,9 +66,18 @@ What `check_architecture_and_owners.sh` enforces automatically:
   -Dorg.gradle.jvmargs="-Xmx6g -Dfile.encoding=UTF-8" \
   -Dkotlin.daemon.jvm.options="-Xmx6g")
 
-# 5. Cut a SemVer release (triggers .github/workflows/release.yml)
+# 5. Package Apple XCFrameworks + SwiftPM Package.swift locally
+./scripts/package_xcframeworks.sh --tag v0.1.0 --out-dir dist/xcframeworks
+
+# 6. Verify all 12 Maven artifacts locally (zero credentials required)
+(cd kmp && ./gradlew publishToMavenLocal -Pabeta.kmpLocalBuild=false --no-daemon)
+
+# 7. Cut SemVer releases (triggers .github/workflows/release.yml — see docs/publishing-and-hosting.md)
 git tag -a v0.1.0 -m "Release v0.1.0"
 git push origin v0.1.0
+# For Go BFF module proxy (proxy.golang.org):
+git tag -a bff/v0.1.0 -m "Release Go BFF v0.1.0"
+git push origin bff/v0.1.0
 ```
 
 ## 5. CI Troubleshooting Notes

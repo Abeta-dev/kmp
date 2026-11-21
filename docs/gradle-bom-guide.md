@@ -46,20 +46,15 @@ cd kmp
 
 ### 1. Configure Repositories & Catalog (`settings.gradle.kts`)
 
+All stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`dl.cloudsmith.io`) — **zero credentials required** for consumers. See [Open Package Hosting & Release Publishing Guide](publishing-and-hosting.md) for SwiftPM XCFrameworks and Go `proxy.golang.org` distribution.
+
 ```kotlin
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
         google()
-        maven {
-            url = uri("https://maven.pkg.github.com/abeta-dev/kmp")
-            credentials {
-                username = providers.gradleProperty("gpr.user")
-                    .orElse(providers.environmentVariable("GITHUB_USER")).orNull
-                password = providers.gradleProperty("gpr.token")
-                    .orElse(providers.environmentVariable("GITHUB_TOKEN")).orNull
-            }
-        }
+        // Optional — anonymous public snapshots / JFrog-style mirror via Cloudsmith Open Source:
+        // maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
     }
 
     versionCatalogs {

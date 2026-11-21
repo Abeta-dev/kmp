@@ -35,4 +35,5 @@ verification_command: "./scripts/check_architecture_and_owners.sh && (cd kmp && 
    4. `kmp/settings.gradle.kts` (`include(...)` & `moduleMappings` for `abeta.kmpLocalBuild`)
    plus maintain a checked-in `api/<module>.api` descriptor validated by `apiCheck`.
 3. **Cross-Host Build Determinism**: Keep `build.gradle.kts` clean on macOS (including hosts without Xcode iOS/watchOS simulator runtimes), Linux CI (`ubuntu-latest`), and Windows without machine-specific paths.
-4. **Quality Gates**: Preserve Spotless (`ktlint`), Detekt (`detekt.yml`), BCV (`apiCheck`), and Dokka v2 wiring across all subprojects.
+4. **Open Registry Publishing Hygiene**: Keep `com.vanniktech.maven.publish` Central Portal (`publishToMavenCentral(automaticRelease = true)` + conditional GPG `signAllPublications()`), Cloudsmith Open Source (`publishAllPublicationsToCloudsmithRepository`), optional `CustomMaven`, and `-Pabeta.publishVersion` overrides working without breaking credential-free `./gradlew publishToMavenLocal`.
+5. **Quality Gates**: Preserve Spotless (`ktlint`), Detekt (`detekt.yml`), BCV (`apiCheck`), and Dokka v2 wiring across all subprojects.

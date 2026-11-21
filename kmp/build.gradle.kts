@@ -105,9 +105,46 @@ subprojects {
     }
 
     if (name in publishableModules) {
+        val publishVersionOverride =
+            (findProperty("abeta.publishVersion") as String?)
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?: System.getenv("ABETA_PUBLISH_VERSION")?.trim()?.takeIf { it.isNotEmpty() }
+
+        if (publishVersionOverride != null) {
+            afterEvaluate {
+                version = publishVersionOverride
+            }
+        }
+
         plugins.withId("com.vanniktech.maven.publish") {
+            val cloudsmithOrg =
+                (findProperty("cloudsmith.org") as String?)?.takeIf { it.isNotBlank() }
+                    ?: System.getenv("CLOUDSMITH_ORG")?.takeIf { it.isNotBlank() }
+                    ?: "abeta-dev"
+            val cloudsmithRepo =
+                (findProperty("cloudsmith.repo") as String?)?.takeIf { it.isNotBlank() }
+                    ?: System.getenv("CLOUDSMITH_REPO")?.takeIf { it.isNotBlank() }
+                    ?: "kmp"
+            val customMavenUrl =
+                (findProperty("abeta.customMavenUrl") as String?)?.takeIf { it.isNotBlank() }
+                    ?: System.getenv("CUSTOM_MAVEN_URL")?.takeIf { it.isNotBlank() }
+
             configure<PublishingExtension> {
                 repositories {
+                    maven {
+                        name = "Cloudsmith"
+                        url = uri("https://maven.cloudsmith.io/$cloudsmithOrg/$cloudsmithRepo/")
+                        credentials {
+                            username =
+                                (findProperty("cloudsmith.user") as String?)?.takeIf { it.isNotBlank() }
+                                    ?: System.getenv("CLOUDSMITH_USER")?.takeIf { it.isNotBlank() }
+                                    ?: "token"
+                            password =
+                                (findProperty("cloudsmith.apiKey") as String?)?.takeIf { it.isNotBlank() }
+                                    ?: System.getenv("CLOUDSMITH_API_KEY")
+                        }
+                    }
                     maven {
                         name = "GitHubPackages"
                         url = uri("https://maven.pkg.github.com/abeta-dev/kmp")
@@ -116,18 +153,52 @@ subprojects {
                             password = findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
                         }
                     }
+                    if (customMavenUrl != null) {
+                        maven {
+                            name = "CustomMaven"
+                            url = uri(customMavenUrl)
+                            credentials {
+                                username =
+                                    findProperty("abeta.customMavenUser") as String?
+                                        ?: System.getenv("CUSTOM_MAVEN_USER")
+                                password =
+                                    findProperty("abeta.customMavenPassword") as String?
+                                        ?: System.getenv("CUSTOM_MAVEN_PASSWORD")
+                            }
+                        }
+                    }
+                }
+                if (publishVersionOverride != null) {
+                    publications.withType<MavenPublication>().configureEach {
+                        version = publishVersionOverride
+                    }
                 }
             }
 
             configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+                publishToMavenCentral(automaticRelease = true)
+
+                val signingInMemoryKey =
+                    (findProperty("signingInMemoryKey") as String?)?.takeIf { it.isNotBlank() }
+                        ?: System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKey")?.takeIf { it.isNotBlank() }
+                val signingKeyRingFile =
+                    (findProperty("signing.secretKeyRingFile") as String?)?.takeIf { it.isNotBlank() }
+                val forceSigning =
+                    (findProperty("abeta.signPublications") as String?)?.toBooleanStrictOrNull() == true
+                if (signingInMemoryKey != null || signingKeyRingFile != null || forceSigning) {
+                    signAllPublications()
+                }
+
                 pom {
                     name.set("abeta-kmp-${project.name}")
                     description.set("Abeta KMP Kit module: ${project.name}")
+                    inceptionYear.set("2026")
                     url.set("https://github.com/abeta-dev/kmp")
                     licenses {
                         license {
-                            name.set("Apache-2.0")
+                            name.set("The Apache License, Version 2.0")
                             url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                            distribution.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                         }
                     }
                     developers {

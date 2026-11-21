@@ -35,6 +35,24 @@ dependencies {
     }
 }
 
+val publishVersionOverride =
+    (findProperty("abeta.publishVersion") as String?)
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: System.getenv("ABETA_PUBLISH_VERSION")?.trim()?.takeIf { it.isNotEmpty() }
+
+if (publishVersionOverride != null) {
+    configurations.named("api").configure {
+        dependencyConstraints.configureEach {
+            if (group == "dev.abeta.kmp") {
+                version {
+                    require(publishVersionOverride)
+                }
+            }
+        }
+    }
+}
+
 mavenPublishing {
     configure(JavaPlatform())
     coordinates(

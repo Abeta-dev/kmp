@@ -30,14 +30,18 @@ Use this skill when onboarding to `abeta-dev/kmp`, consuming `dev.abeta.kmp:*` m
 (cd kmp && ./gradlew :storybook:wasmJsBrowserDevelopmentRun)
 ```
 
-## 2. Consuming via Gradle BOM & Version Catalog
+## 2. Consuming via Gradle BOM & Version Catalog (Zero Auth Required)
+
+Stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for SwiftPM XCFrameworks and Go `proxy.golang.org` setup.
 
 In your consumer project's `settings.gradle.kts`:
 ```kotlin
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven("https://maven.pkg.github.com/abeta-dev/kmp")
+        google()
+        // Optional — anonymous public snapshots / mirror via Cloudsmith Open Source:
+        // maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
     }
     versionCatalogs {
         create("abeta") {

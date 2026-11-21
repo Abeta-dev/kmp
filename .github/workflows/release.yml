@@ -4,39 +4,120 @@ on:
   push:
     tags:
       - "v*"
+      - "bff/v*"
+  workflow_dispatch:
+    inputs:
+      publish_target:
+        description: "Open package registries to publish to"
+        type: choice
+        default: auto
+        options:
+          - auto
+          - maven-central
+          - cloudsmith
+          - github-packages
+          - xcframeworks-only
+      version_override:
+        description: "Optional Maven version override (e.g. 0.1.0-SNAPSHOT); leave empty to use tag/catalog version"
+        type: string
+        default: ""
+      skip_release_upload:
+        description: "Skip creating/updating a GitHub Release (useful for dry-runs or manual snapshot publishes)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
   packages: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  verify:
-    name: Full Release Verification
+  plan-and-verify:
+    name: Verify & Plan Release Channels
     runs-on: ubuntu-latest
+    outputs:
+      release_kind: ${{ steps.plan.outputs.release_kind }}
+      release_tag: ${{ steps.plan.outputs.release_tag }}
+      publish_version: ${{ steps.plan.outputs.publish_version }}
+      publish_target: ${{ steps.plan.outputs.publish_target }}
+      maven_central_configured: ${{ steps.plan.outputs.maven_central_configured }}
+      cloudsmith_configured: ${{ steps.plan.outputs.cloudsmith_configured }}
+      custom_maven_configured: ${{ steps.plan.outputs.custom_maven_configured }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Brand hygiene check
+      - name: Brand hygiene & architecture/owner gates
         run: |
-          chmod +x ./scripts/check_brand_hygiene.sh
+          chmod +x ./scripts/check_brand_hygiene.sh ./scripts/check_architecture_and_owners.sh
           ./scripts/check_brand_hygiene.sh
+          ./scripts/check_architecture_and_owners.sh
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Run KMP check
-        working-directory: kmp
+      - name: Resolve release plan & configured channels
+        id: plan
+        env:
+          INPUT_TARGET: ${{ inputs.publish_target || 'auto' }}
+          INPUT_VERSION: ${{ inputs.version_override || '' }}
+          MC_USER: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MC_PASS: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          GPG_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          CS_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          CUSTOM_URL: ${{ vars.CUSTOM_MAVEN_URL }}
         run: |
-          chmod +x ./gradlew
-          ./gradlew check --no-daemon
+          set -euo pipefail
+          if [[ "${GITHUB_REF_NAME}" == bff/v* ]]; then
+            RELEASE_KIND="bff"
+            RELEASE_TAG="${GITHUB_REF_NAME}"
+            DEFAULT_VER="${GITHUB_REF_NAME#bff/v}"
+          else
+            RELEASE_KIND="kmp"
+            if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+              RELEASE_TAG="${GITHUB_REF_NAME}"
+              DEFAULT_VER="${GITHUB_REF_NAME#v}"
+            else
+              DEFAULT_VER="$(grep -E '^kmpBom\s*=' kmp/dependencyManagement/gradle/internal.versions.toml | sed -E 's/.*"([^"]+)".*/\1/')"
+              RELEASE_TAG="v${DEFAULT_VER}"
+            fi
+          fi
+
+          PUBLISH_VERSION="${INPUT_VERSION:-$DEFAULT_VER}"
+          MC_OK="false"
+          if [[ -n "${MC_USER:-}" && -n "${MC_PASS:-}" && -n "${GPG_KEY:-}" ]]; then
+            MC_OK="true"
+          fi
+          CS_OK="false"
+          if [[ -n "${CS_KEY:-}" ]]; then
+            CS_OK="true"
+          fi
+          CUSTOM_OK="false"
+          if [[ -n "${CUSTOM_URL:-}" ]]; then
+            CUSTOM_OK="true"
+          fi
+
+          if [[ "${INPUT_TARGET}" == "maven-central" && "${MC_OK}" != "true" ]]; then
+            echo "::error::maven-central target requested, but MAVEN_CENTRAL_USERNAME, MAVEN_CENTRAL_PASSWORD, or GPG_SIGNING_KEY secret is missing. See docs/publishing-and-hosting.md."
+            exit 1
+          fi
+          if [[ "${INPUT_TARGET}" == "cloudsmith" && "${CS_OK}" != "true" ]]; then
+            echo "::error::cloudsmith target requested, but CLOUDSMITH_API_KEY secret is missing. See docs/publishing-and-hosting.md."
+            exit 1
+          fi
+
+          {
+            echo "release_kind=${RELEASE_KIND}"
+            echo "release_tag=${RELEASE_TAG}"
+            echo "publish_version=${PUBLISH_VERSION}"
+            echo "publish_target=${INPUT_TARGET}"
+            echo "maven_central_configured=${MC_OK}"
+            echo "cloudsmith_configured=${CS_OK}"
+            echo "custom_maven_configured=${CUSTOM_OK}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Release plan: kind=${RELEASE_KIND} tag=${RELEASE_TAG} version=${PUBLISH_VERSION} target=${INPUT_TARGET} (mavenCentral=${MC_OK}, cloudsmith=${CS_OK}, customMaven=${CUSTOM_OK})"
 
       - name: Set up Go 1.26.0
         uses: actions/setup-go@v5
@@ -44,19 +125,40 @@ jobs:
           go-version: "1.26.0"
           cache-dependency-path: bff/go.sum
 
-      - name: Run Go BFF vet & tests
+      - name: Verify Go BFF (gofmt, vet, race tests)
         working-directory: bff
         run: |
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then
+            echo "Unformatted Go files: $unformatted"
+            exit 1
+          fi
           go vet ./...
           go test -race -cover ./...
 
-  publish-kmp-packages:
-    name: Publish KMP BOM & Modules to GitHub Packages
-    needs: verify
-    runs-on: ubuntu-latest
-    defaults:
-      run:
+      - name: Set up JDK 21
+        if: steps.plan.outputs.release_kind == 'kmp'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        if: steps.plan.outputs.release_kind == 'kmp'
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run KMP verification suite
+        if: steps.plan.outputs.release_kind == 'kmp'
         working-directory: kmp
+        run: |
+          chmod +x ./gradlew
+          ./gradlew check --no-daemon
+
+  publish-kmp-apple-and-maven:
+    name: Publish Multiplatform Artifacts & Apple XCFrameworks (macOS)
+    needs: plan-and-verify
+    if: needs.plan-and-verify.outputs.release_kind == 'kmp'
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repository
@@ -71,27 +173,156 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Publish Maven artifacts to GitHub Packages
+      - name: Make gradlew and packaging script executable
+        run: chmod +x ./kmp/gradlew ./scripts/package_xcframeworks.sh
+
+      - name: Publish to Maven Central (Sonatype Central Portal)
+        if: >
+          needs.plan-and-verify.outputs.publish_target == 'maven-central' ||
+          (needs.plan-and-verify.outputs.publish_target == 'auto' &&
+           needs.plan-and-verify.outputs.maven_central_configured == 'true')
+        working-directory: kmp
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+          ABETA_PUBLISH_VERSION: ${{ needs.plan-and-verify.outputs.publish_version }}
+        run: |
+          if [[ "${ABETA_PUBLISH_VERSION}" == *-SNAPSHOT ]]; then
+            MC_TASK="publishToMavenCentral"
+          else
+            MC_TASK="publishAndReleaseToMavenCentral"
+          fi
+          ./gradlew "${MC_TASK}" --no-daemon \
+            -Pabeta.kmpLocalBuild=false \
+            -Pabeta.signPublications=true
+
+      - name: Publish to Cloudsmith Open Source (Anonymous Public Maven)
+        if: >
+          needs.plan-and-verify.outputs.publish_target == 'cloudsmith' ||
+          (needs.plan-and-verify.outputs.publish_target == 'auto' &&
+           needs.plan-and-verify.outputs.cloudsmith_configured == 'true')
+        working-directory: kmp
+        env:
+          CLOUDSMITH_ORG: ${{ vars.CLOUDSMITH_ORG || 'abeta-dev' }}
+          CLOUDSMITH_REPO: ${{ vars.CLOUDSMITH_REPO || 'kmp' }}
+          CLOUDSMITH_USER: ${{ vars.CLOUDSMITH_USER || 'token' }}
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+          ABETA_PUBLISH_VERSION: ${{ needs.plan-and-verify.outputs.publish_version }}
+        run: |
+          ./gradlew publishAllPublicationsToCloudsmithRepository --no-daemon \
+            -Pabeta.kmpLocalBuild=false
+
+      - name: Publish to Custom Public Maven Mirror (Optional)
+        if: >
+          needs.plan-and-verify.outputs.publish_target == 'auto' &&
+          needs.plan-and-verify.outputs.custom_maven_configured == 'true'
+        working-directory: kmp
+        env:
+          CUSTOM_MAVEN_URL: ${{ vars.CUSTOM_MAVEN_URL }}
+          CUSTOM_MAVEN_USER: ${{ vars.CUSTOM_MAVEN_USER }}
+          CUSTOM_MAVEN_PASSWORD: ${{ secrets.CUSTOM_MAVEN_PASSWORD }}
+          ABETA_PUBLISH_VERSION: ${{ needs.plan-and-verify.outputs.publish_version }}
+        run: |
+          ./gradlew publishAllPublicationsToCustomMavenRepository --no-daemon \
+            -Pabeta.kmpLocalBuild=false
+
+      - name: Publish to GitHub Packages (Opt-in Mirror)
+        if: >
+          needs.plan-and-verify.outputs.publish_target == 'github-packages' ||
+          (needs.plan-and-verify.outputs.publish_target == 'auto' &&
+           vars.ENABLE_GITHUB_PACKAGES_MIRROR == 'true')
+        working-directory: kmp
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ABETA_PUBLISH_VERSION: ${{ needs.plan-and-verify.outputs.publish_version }}
         run: |
-          chmod +x ./gradlew
-          ./gradlew publishAllPublicationsToGitHubPackagesRepository --no-daemon -Pabeta.kmpLocalBuild=false
+          ./gradlew publishAllPublicationsToGitHubPackagesRepository --no-daemon \
+            -Pabeta.kmpLocalBuild=false
+
+      - name: Assemble Release Apple XCFrameworks (AbetaWatchKit & AbetaSduiKit)
+        working-directory: kmp
+        run: |
+          ./gradlew \
+            :watch-companion:assembleAbetaWatchKitReleaseXCFramework \
+            :sdui-layout:assembleAbetaSduiKitReleaseXCFramework \
+            --max-workers=1 --no-daemon \
+            -Dorg.gradle.jvmargs="-Xmx6g -Dfile.encoding=UTF-8" \
+            -Dkotlin.daemon.jvm.options="-Xmx6g"
+
+      - name: Package XCFrameworks, SHA256SUMS.txt & SwiftPM Package.swift
+        run: |
+          ./scripts/package_xcframeworks.sh \
+            --tag "${{ needs.plan-and-verify.outputs.release_tag }}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --out-dir dist/xcframeworks
+
+      - name: Upload XCFramework & SwiftPM release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: abeta-xcframeworks
+          path: dist/xcframeworks/
+          if-no-files-found: error
+
+      - name: Write release summary
+        run: |
+          {
+            echo "## Abeta KMP Kit Release Summary"
+            echo "- **Tag**: \`${{ needs.plan-and-verify.outputs.release_tag }}\`"
+            echo "- **Published Version**: \`${{ needs.plan-and-verify.outputs.publish_version }}\`"
+            echo "- **Maven Central (Central Portal)**: \`${{ needs.plan-and-verify.outputs.maven_central_configured }}\`"
+            echo "- **Cloudsmith Open Source**: \`${{ needs.plan-and-verify.outputs.cloudsmith_configured }}\`"
+            echo "- **Apple Release XCFrameworks + SwiftPM \`Package.swift\`**: Packaged & checksummed"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   github-release:
-    name: Create GitHub Release
-    needs: publish-kmp-packages
+    name: Create GitHub Release & Warm Go Proxy
+    needs: [plan-and-verify, publish-kmp-apple-and-maven]
+    if: >
+      always() &&
+      needs.plan-and-verify.result == 'success' &&
+      (needs.publish-kmp-apple-and-maven.result == 'success' ||
+       needs.publish-kmp-apple-and-maven.result == 'skipped') &&
+      startsWith(github.ref, 'refs/tags/') &&
+      inputs.skip_release_upload != true
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create GitHub Release
+      - name: Download Apple XCFramework & SwiftPM artifacts
+        if: needs.plan-and-verify.outputs.release_kind == 'kmp'
+        uses: actions/download-artifact@v4
+        with:
+          name: abeta-xcframeworks
+          path: dist/xcframeworks
+
+      - name: Publish KMP GitHub Release with XCFrameworks & SwiftPM manifest
+        if: needs.plan-and-verify.outputs.release_kind == 'kmp'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
+            dist/xcframeworks/*.xcframework.zip \
+            dist/xcframeworks/SHA256SUMS.txt \
+            dist/xcframeworks/Package.swift \
+            --title "Abeta KMP Kit ${GITHUB_REF_NAME}" \
             --generate-notes
+
+      - name: Publish Go BFF GitHub Release & warm proxy.golang.org
+        if: needs.plan-and-verify.outputs.release_kind == 'bff'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BFF_VER="${GITHUB_REF_NAME#bff/}"
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "Abeta SDUI Go BFF ${BFF_VER}" \
+            --generate-notes
+          curl -fsSL "https://proxy.golang.org/github.com/abeta-dev/kmp/bff/@v/${BFF_VER}.info" || true

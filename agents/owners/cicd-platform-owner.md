@@ -30,7 +30,7 @@ verification_command: "./scripts/check_brand_hygiene.sh && ./scripts/check_archi
 
 ## Ownership Scope
 - **Paths**: `.github/**`, `scripts/**`, `agents/**`, `skills/**`, root/IDE AI configs (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.claude/**`, `.agent/**`, `.gemini/**`, `.cursor/**`, `.junie/**`, `.aiignore`, `.geminiignore`, `.cursorignore`, `.antigravityignore`)
-- **Core Responsibilities**: CI/CD workflows (`kmp-ci.yml`, `bff-ci.yml`, `quality-security.yml`, `module-owner-architecture-review.yml`, `release.yml`, `wiki-sync.yml`), `.github/CODEOWNERS`, deterministic architecture/owner/parity/hygiene scripts, and universal multi-IDE/multi-model agent governance.
+- **Core Responsibilities**: CI/CD workflows (`kmp-ci.yml`, `bff-ci.yml`, `quality-security.yml`, `module-owner-architecture-review.yml`, `release.yml`, `snapshot-publish.yml`, `wiki-sync.yml`), `.github/CODEOWNERS`, `.gitleaks.toml`, deterministic architecture/owner/parity/hygiene/packaging scripts (`scripts/package_xcframeworks.sh`), and universal multi-IDE/multi-model agent governance.
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Least-Privilege CI Security**: Every GitHub Actions workflow MUST declare explicit minimal `permissions:`, `concurrency:` groups, and safe fork behavior (never require paid LLM secrets for PR checks to pass).

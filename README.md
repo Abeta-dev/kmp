@@ -112,7 +112,7 @@ flowchart TB
 
 ## Gradle BOM Quick Start
 
-Consumers align all `dev.abeta.kmp` modules through the published BOM (`dev.abeta.kmp:bom:0.1.0`) and optional version catalog (`dev.abeta.kmp:dependencies:0.1.0`).
+Consumers align all `dev.abeta.kmp` modules through the published BOM (`dev.abeta.kmp:bom:0.1.0`) and optional version catalog (`dev.abeta.kmp:dependencies:0.1.0`) — downloadable anonymously with **zero credentials required** via **Maven Central** (stable) or **Cloudsmith Open Source** (snapshots & mirrors).
 
 ```kotlin
 // settings.gradle.kts
@@ -120,7 +120,8 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         google()
-        maven("https://maven.pkg.github.com/abeta-dev/kmp")
+        // Optional — anonymous public snapshots / mirror via Cloudsmith Open Source:
+        // maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
     }
     versionCatalogs {
         create("abetaKmp") {
@@ -145,7 +146,7 @@ dependencies {
 }
 ```
 
-Inside this monorepo, `abeta.kmpLocalBuild=true` (set in `kmp/gradle.properties`) automatically substitutes `dev.abeta.kmp:*` module coordinates with local Gradle project references. Pass `-Pabeta.kmpLocalBuild=false` to resolve against published artifacts instead. See [docs/gradle-bom-guide.md](docs/gradle-bom-guide.md) for details.
+Inside this monorepo, `abeta.kmpLocalBuild=true` (set in `kmp/gradle.properties`) automatically substitutes `dev.abeta.kmp:*` module coordinates with local Gradle project references. Pass `-Pabeta.kmpLocalBuild=false` to resolve against published artifacts instead. See [docs/gradle-bom-guide.md](docs/gradle-bom-guide.md) and [docs/publishing-and-hosting.md](docs/publishing-and-hosting.md) for Maven Central, Cloudsmith Open Source, SwiftPM XCFrameworks, and Go BFF (`proxy.golang.org`) publishing details.
 
 ---
 
@@ -212,6 +213,7 @@ cd kmp
   - [Architecture & Dependency Rule](docs/architecture.md)
   - [Atomic & Action Separation](docs/atomic-and-action-separation.md)
   - [Gradle BOM & Version Catalog Guide](docs/gradle-bom-guide.md)
+  - [Open Package Hosting & Release Publishing Guide](docs/publishing-and-hosting.md)
   - [SDUI Wire Protocol (`v1`)](docs/sdui-wire-protocol.md)
   - [Go BFF Integration Guide](docs/bff-integration.md)
   - [Per-Module Code Owners & CI/CD Governance](docs/module-owners-and-cicd.md)

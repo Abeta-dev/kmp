@@ -1,0 +1,88 @@
+name: Snapshot Publish (Cloudsmith Open Source)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "kmp/**"
+      - ".github/workflows/snapshot-publish.yml"
+  workflow_dispatch:
+    inputs:
+      snapshot_version:
+        description: "Snapshot version to publish (must end in -SNAPSHOT; defaults to <catalogVersion>-SNAPSHOT)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snapshot-publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-snapshot-config:
+    name: Check Cloudsmith Snapshot Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+      snapshot_version: ${{ steps.check.outputs.snapshot_version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect Cloudsmith Open Source credentials
+        id: check
+        env:
+          CS_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          INPUT_VER: ${{ inputs.snapshot_version || '' }}
+        run: |
+          set -euo pipefail
+          BASE_VER="$(grep -E '^kmpBom\s*=' kmp/dependencyManagement/gradle/internal.versions.toml | sed -E 's/.*"([^"]+)".*/\1/')"
+          SNAP_VER="${INPUT_VER:-${BASE_VER}-SNAPSHOT}"
+          if [[ "$SNAP_VER" != *-SNAPSHOT ]]; then
+            SNAP_VER="${SNAP_VER}-SNAPSHOT"
+          fi
+          if [[ -n "${CS_KEY:-}" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "Cloudsmith snapshot publishing enabled for ${SNAP_VER}."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLOUDSMITH_API_KEY secret is not configured; skipping automated Cloudsmith snapshot publish. See docs/publishing-and-hosting.md."
+          fi
+          echo "snapshot_version=${SNAP_VER}" >> "$GITHUB_OUTPUT"
+
+  publish-cloudsmith-snapshot:
+    name: Publish Multiplatform SNAPSHOT to Cloudsmith (macOS)
+    needs: check-snapshot-config
+    if: needs.check-snapshot-config.outputs.enabled == 'true'
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: kmp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish SNAPSHOT artifacts to Cloudsmith Open Source
+        env:
+          CLOUDSMITH_ORG: ${{ vars.CLOUDSMITH_ORG || 'abeta-dev' }}
+          CLOUDSMITH_REPO: ${{ vars.CLOUDSMITH_REPO || 'kmp' }}
+          CLOUDSMITH_USER: ${{ vars.CLOUDSMITH_USER || 'token' }}
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          ABETA_PUBLISH_VERSION: ${{ needs.check-snapshot-config.outputs.snapshot_version }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew publishAllPublicationsToCloudsmithRepository --no-daemon \
+            -Pabeta.kmpLocalBuild=false

@@ -24,6 +24,9 @@ bff/coverage.out
 *.test
 *.prof
 
+# Release Packaging
+dist/
+
 # Env & Secrets
 .env
 .env.*

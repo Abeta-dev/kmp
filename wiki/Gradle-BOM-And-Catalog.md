@@ -27,7 +27,9 @@ cd kmp
 
 ---
 
-## Consumer Setup
+## Consumer Setup (Zero Auth Required)
+
+Stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`dl.cloudsmith.io`) — completely free and open to download without consumer tokens. Apple XCFrameworks (`AbetaSduiKit`, `AbetaWatchKit`) and `Package.swift` are attached to GitHub Releases; the Go BFF (`github.com/abeta-dev/kmp/bff`) publishes automatically to `proxy.golang.org` on `bff/v*` tags.
 
 ### `settings.gradle.kts`
 
@@ -36,7 +38,8 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         google()
-        maven("https://maven.pkg.github.com/abeta-dev/kmp")
+        // Optional — anonymous public snapshots / mirror via Cloudsmith Open Source:
+        // maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
     }
     versionCatalogs {
         create("abetaLibs") {
