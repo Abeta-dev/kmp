@@ -200,40 +200,50 @@ internal class NudgeBarSnippetRenderer(
         onAction: (ActionRef) -> Unit,
     ) {
         val spacing = ThemeTokens.spacing
-        Row(
+        val hasMetaRow = model.badge != null || model.countdown != null || model.icon != null
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+            verticalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {
-            model.icon?.let { icon ->
-                UiIcon(atom = icon, onAction = onAction)
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(spacing.space4),
-            ) {
+            if (hasMetaRow) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(spacing.space8),
                 ) {
+                    model.icon?.let { icon ->
+                        UiIcon(atom = icon, onAction = onAction)
+                    }
                     model.badge?.let { badge ->
                         UiTag(atom = badge, onAction = onAction)
                     }
+                    Box(modifier = Modifier.weight(1f))
+                    model.countdown?.let { countdown ->
+                        UiCountdown(atom = countdown, onAction = onAction)
+                    }
+                    if (model.dismissible) {
+                        NudgeDismissButton(nudgeId = model.nudgeId, onDismiss = onDismiss)
+                    }
+                }
+                UiText(atom = model.title, onAction = onAction)
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+                ) {
                     UiText(
                         atom = model.title,
-                        modifier = Modifier.weight(1f, fill = false),
+                        modifier = Modifier.weight(1f),
                         onAction = onAction,
                     )
-                }
-                model.subtitle?.let { subtitle ->
-                    UiText(atom = subtitle, onAction = onAction)
+                    if (model.dismissible) {
+                        NudgeDismissButton(nudgeId = model.nudgeId, onDismiss = onDismiss)
+                    }
                 }
             }
-            model.countdown?.let { countdown ->
-                UiCountdown(atom = countdown, onAction = onAction)
-            }
-            if (model.dismissible) {
-                NudgeDismissButton(nudgeId = model.nudgeId, onDismiss = onDismiss)
+            model.subtitle?.let { subtitle ->
+                UiText(atom = subtitle, onAction = onAction)
             }
         }
     }
