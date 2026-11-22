@@ -2,7 +2,12 @@ package dev.abeta.kmp.sample
 
 import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.ComposedBlockSnippetData
 import dev.abeta.kmp.contracts.FeedbackEffect
+import dev.abeta.kmp.contracts.MarqueeStripSnippetData
+import dev.abeta.kmp.contracts.MotionLoopEffect
+import dev.abeta.kmp.contracts.NudgeBarSnippetData
+import dev.abeta.kmp.contracts.OrderTrackerSnippetData
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetTypes
@@ -346,5 +351,88 @@ class SampleWiringTest {
 
             val tradeResult = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("trade-home?q=cartons"))
             assertEquals("trade-home", tradeResult.value.pageId)
+        }
+
+    @Test
+    fun wave6ExpressCommercePrimitivesPopulateFreshAndStoreHome() =
+        runTest {
+            val pages = SampleScreens.allPages()
+            for (screenId in listOf("fresh-home", "store-home")) {
+                val page = assertNotNull(pages[screenId], "Missing screen $screenId")
+                val types = page.snippets.map { it.snippetType }.toSet()
+                assertTrue(SnippetTypes.MARQUEE_STRIP in types, "Expected marquee_strip on $screenId")
+                assertTrue(SnippetTypes.NUDGE_BAR in types, "Expected nudge_bar on $screenId")
+                assertTrue(SnippetTypes.COMPOSED_BLOCK in types, "Expected composed_block on $screenId")
+
+                val marquee =
+                    SduiJson.decodeFromJsonElement(
+                        MarqueeStripSnippetData.serializer(),
+                        page.snippets.first { it.snippetType == SnippetTypes.MARQUEE_STRIP }.data,
+                    )
+                assertEquals(3, marquee.items.size)
+
+                val nudge =
+                    SduiJson.decodeFromJsonElement(
+                        NudgeBarSnippetData.serializer(),
+                        page.snippets.first { it.snippetType == SnippetTypes.NUDGE_BAR }.data,
+                    )
+                assertEquals(420, nudge.countdown?.remainingSeconds)
+                assertEquals(MotionLoopEffect.WIGGLE, nudge.badge?.motion?.loopEffect)
+
+                val composed =
+                    SduiJson.decodeFromJsonElement(
+                        ComposedBlockSnippetData.serializer(),
+                        page.snippets.first { it.snippetType == SnippetTypes.COMPOSED_BLOCK }.data,
+                    )
+                assertEquals("loyalty_stamp_card", composed.recipeName)
+
+                val cart = assertNotNull(page.floatingCart)
+                assertEquals(1500, cart.freeDeliveryThresholdCents)
+                assertEquals("Add", cart.nudgePrefix)
+                assertEquals("FREE 8-min delivery unlocked!", cart.unlockedLabel)
+            }
+        }
+
+    @Test
+    fun wave6OrderTrackerNudgesAndMoldedBlocksPopulateVerticalScreens() =
+        runTest {
+            val pages = SampleScreens.allPages()
+            val bitesTrack = assertNotNull(pages["bites-order-track"])
+            val trackerEnvelope = bitesTrack.snippets.first { it.snippetType == SnippetTypes.ORDER_TRACKER }
+            val tracker = SduiJson.decodeFromJsonElement(OrderTrackerSnippetData.serializer(), trackerEnvelope.data)
+            assertEquals("#BTS-4091", tracker.orderCode)
+            assertEquals(660, tracker.etaCountdown?.remainingSeconds)
+            assertEquals(4, tracker.steps.size)
+            assertTrue(tracker.steps.any { it.label == "Rider En Route" && it.active })
+            assertNotNull(tracker.riderName)
+            assertNotNull(tracker.primaryAction)
+            assertNotNull(tracker.secondaryAction)
+
+            val martTypes = assertNotNull(pages["mart-home"]).snippets.map { it.snippetType }.toSet()
+            assertTrue(SnippetTypes.MARQUEE_STRIP in martTypes)
+
+            val pulsePage = assertNotNull(pages["pulse-home"])
+            val pulseNudge =
+                SduiJson.decodeFromJsonElement(
+                    NudgeBarSnippetData.serializer(),
+                    pulsePage.snippets.first { it.snippetType == SnippetTypes.NUDGE_BAR }.data,
+                )
+            assertNotNull(pulseNudge.countdown)
+
+            val sparkPage = assertNotNull(pages["spark-deck"])
+            val sparkNudge =
+                SduiJson.decodeFromJsonElement(
+                    NudgeBarSnippetData.serializer(),
+                    sparkPage.snippets.first { it.snippetType == SnippetTypes.NUDGE_BAR }.data,
+                )
+            assertEquals(MotionLoopEffect.HEARTBEAT, sparkNudge.badge?.motion?.loopEffect)
+
+            val tradePage = assertNotNull(pages["trade-home"])
+            val tradeBlock =
+                SduiJson.decodeFromJsonElement(
+                    ComposedBlockSnippetData.serializer(),
+                    tradePage.snippets.first { it.snippetType == SnippetTypes.COMPOSED_BLOCK }.data,
+                )
+            assertEquals("moq_bulk_savings_card", tradeBlock.recipeName)
         }
 }

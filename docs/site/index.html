@@ -1063,11 +1063,11 @@
           <p class="hero-lead">
             <strong>Abeta KMP Kit</strong> pairs a strict 4-layer <strong>Kotlin Multiplatform + Compose Multiplatform</strong>
             SDUI, Wearable &amp; Room 3 Database kit with a <strong>Go 1.26.0 Clean Architecture BFF</strong>—sharing one
-            1:1 <code>v1</code> JSON wire contract across Android, Wear OS, iOS, iPadOS, watchOS, macOS, Desktop JVM, and Web (<code>wasmJs</code>).
+            1:1 <code>v1</code> JSON wire contract (21 snippets incl. the <strong>Atomic Snippet Molding Engine</strong> &amp; 7 ambient motion loops) across Android, Wear OS, iOS, iPadOS, watchOS, macOS, Desktop JVM, and Web (<code>wasmJs</code>).
           </p>
 
           <div class="hero-cta-group">
-            <a class="btn btn-primary" href="./storybook/">Open Live WasmJS Storybook &rarr;</a>
+            <a class="btn btn-primary" href="./storybook/">Open 16-Story WasmJS Storybook &mdash; Snippet Crafter &amp; Nudges Lab &rarr;</a>
             <a class="btn btn-secondary" href="./api/core/">API Reference</a>
             <a class="btn btn-secondary" href="./llms.txt">llms.txt</a>
             <a class="btn btn-secondary" href="https://github.com/Abeta-dev/kmp" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -1098,16 +1098,16 @@
               <div class="metric-label">Publishable KMP libs + Gradle BOM &amp; Version Catalog, ABI-checked via BCV</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">15 / 16 Atoms</div>
-              <div class="metric-label">15 pure wire atoms &amp; 16 stateless Compose UI atoms with haptic + motion hooks</div>
+              <div class="metric-value">16 / 18 Atoms</div>
+              <div class="metric-label">16 pure wire atoms &amp; 18 stateless Compose UI atoms (incl. <code>UiCountdown</code>, <code>UiRollingCounter</code> &amp; 7 ambient motion loops)</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">17 / 18 Wire</div>
-              <div class="metric-label">17 canonical SDUI snippets &amp; 18 OCP action types with 1:1 KMP &harr; Go parity</div>
+              <div class="metric-value">21 / 18 Wire</div>
+              <div class="metric-label">21 canonical SDUI snippets (incl. <code>composed_block</code> Molding Engine) &amp; 18 OCP action types with 1:1 KMP &harr; Go parity</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">8 Targets</div>
-              <div class="metric-label">Android, Wear OS, iOS, watchOS, macOS, Desktop JVM, WasmJS &amp; Go 1.26.0</div>
+              <div class="metric-value">16 Stories</div>
+              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>Animation &amp; Nudges Lab</strong>, <strong>Atomic Snippet Crafter</strong> &amp; <strong>End-to-End App Journeys</strong></div>
             </div>
           </div>
         </div>
@@ -1193,14 +1193,14 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
             <div class="tab-panel" id="panel-go" role="tabpanel" aria-labelledby="tab-go">
               <div class="tab-meta">
                 <span>Canonical <code>v1</code> Go wire builders &amp; BFF contracts via <strong>proxy.golang.org</strong></span>
-                <span class="badge badge-emerald">bff@v0.2.0</span>
+                <span class="badge badge-emerald">bff@v0.3.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
                   <span>Terminal + Go imports</span>
                   <button class="copy-btn" type="button" data-copy-target="code-go">Copy</button>
                 </div>
-                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.2.0
+                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.3.0
 
 // Import 1:1 v1 wire packages in your Go BFF:
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
@@ -1209,7 +1209,7 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/theming"</code></pre>
               </div>
               <p class="code-note">
-                Golden-tested 1:1 parity across all 15 wire atoms, 17 canonical snippet types, and 18 built-in action types.
+                Golden-tested 1:1 parity across all 16 wire atoms, 21 canonical snippet types (incl. <code>composed_block</code> recipe builders), 7 motion loops, and 18 built-in action types.
               </p>
             </div>
 
@@ -1292,7 +1292,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               Pixel-accurate Retina (2&times;) PNG captures rendered directly by Compose Multiplatform from <code>kmp/sample-app</code>—zero hand-edited mockups. Click any capture to inspect full-size.
             </p>
           </div>
-          <a class="btn btn-secondary btn-sm" href="./storybook/">Explore Live in Storybook &rarr;</a>
+          <a class="btn btn-secondary btn-sm" href="./storybook/">Try Atomic Snippet Crafter &amp; Nudges Lab (16 Stories) &rarr;</a>
         </div>
 
         <!-- Desktop Feature Capture -->
@@ -1322,7 +1322,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               </div>
               <div class="vertical-subtitle">8-Min Quick-Commerce Grocery &middot; <code>fresh-home</code></div>
               <p class="vertical-desc">
-                Combines <code>search_bar</code>, category <code>chip_group</code>, responsive <code>product_card</code> grid with animated <code>UiStepper</code>, <code>FloatingCartDockHost</code>, and express celebration bursts.
+                Combines <code>search_bar</code>, live <code>marquee_strip</code>, urgency <code>nudge_bar</code> + <code>CountdownAtom</code>, molded <code>composed_block</code> loyalty card, responsive <code>product_card</code> grid, and <code>FloatingCartDockHost</code> threshold nudges.
               </p>
             </div>
           </article>
@@ -1338,7 +1338,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               </div>
               <div class="vertical-subtitle">Restaurant &amp; Food Delivery &middot; <code>bites-home</code></div>
               <p class="vertical-desc">
-                Drives cuisine <code>chip_group</code> filters, promotional <code>carousel</code> banners, restaurant menu <code>product_card</code> grids, and live progress order tracking from pure JSON.
+                Drives cuisine <code>chip_group</code> filters, promotional <code>carousel</code> banners, restaurant menu <code>product_card</code> grids, and an animated 4-stage <code>order_tracker</code> with live ETA countdown.
               </p>
             </div>
           </article>
@@ -1456,7 +1456,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <span class="api-card-name">:sdui-contracts</span>
               <span class="badge badge-indigo">Layer 1</span>
             </div>
-            <p>Pure <code>@Serializable</code> v1 wire DTOs: 15 Wire Atoms, 17 <code>SnippetTypes</code>, <code>MotionSpec</code>, <code>AdaptivePageSpec</code>, <code>FloatingCartSpec</code>, and <code>SduiJson</code>.</p>
+            <p>Pure <code>@Serializable</code> v1 wire DTOs: 16 Wire Atoms (incl. <code>CountdownAtom</code>), 21 <code>SnippetTypes</code> (incl. <code>nudge_bar</code>, <code>marquee_strip</code>, <code>order_tracker</code>, <code>composed_block</code>), 7 motion loops, <code>FloatingCartSpec</code> nudges, and <code>SduiJson</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1465,7 +1465,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <span class="api-card-name">:ui-atoms</span>
               <span class="badge badge-indigo">Layer 1</span>
             </div>
-            <p>16 stateless Compose Multiplatform atoms (incl. animated <code>UiStepper</code>), <code>UiCelebrationOverlay</code>, <code>UiHapticFeedback</code>, and <code>MotionModifier</code>.</p>
+            <p>18 stateless Compose Multiplatform atoms (incl. <code>UiStepper</code>, <code>UiCountdown</code>, <code>UiRollingCounter</code>), 7 ambient <code>MotionLoopEffect</code>s, <code>pressBounce</code>, <code>UiCelebrationOverlay</code>, and <code>UiHapticFeedback</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1492,7 +1492,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <span class="api-card-name">:sdui-layout</span>
               <span class="badge badge-emerald">Layer 3</span>
             </div>
-            <p><code>LayoutController</code>, 17 built-in snippet renderers, <code>FloatingCartDockHost</code>, <code>PlatformBridgeBundle</code>, Koin DI, iOS <code>AbetaSduiKit</code>, and macOS Cocoa hosts.</p>
+            <p><code>LayoutController</code>, 21 built-in snippet renderers (incl. <code>ComposedBlockSnippetRenderer</code> Molding Engine), <code>FloatingCartDockHost</code> threshold nudges, <code>PlatformBridgeBundle</code>, Koin DI, iOS <code>AbetaSduiKit</code>, and macOS Cocoa hosts.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 

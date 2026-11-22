@@ -330,4 +330,57 @@ class GoldenFixturesParityTest {
         )
         assertNotNull(deck.onUndo)
     }
+
+    @Test
+    fun decodesNudgesAndComposedGoldenFixture() {
+        val page = SduiJson.decodeFromString<PageResponse>(loadGoldenJson("nudges_and_composed_screen.json"))
+        assertEquals("nudges-and-composed-demo", page.pageId)
+        assertEquals("Abeta Live Deals & Tracker", page.title)
+        assertEquals(6, page.snippets.size)
+        assertEquals(2500, page.floatingCart?.freeDeliveryThresholdCents)
+        assertEquals("FREE express delivery unlocked!", page.floatingCart?.unlockedLabel)
+        assertEquals(
+            MotionLoopEffect.FLOAT,
+            page.floatingCart
+                ?.etaBadge
+                ?.motion
+                ?.loopEffect,
+        )
+
+        val nudge = SduiJson.decodeFromJsonElement<NudgeBarSnippetData>(page.snippets[0].data)
+        assertEquals(SnippetTypes.NUDGE_BAR, page.snippets[0].snippetType)
+        assertEquals("free_delivery_nudge", nudge.nudgeId)
+        assertEquals("bottom", nudge.pointerEdge)
+        assertEquals(MotionLoopEffect.WIGGLE, nudge.badge?.motion?.loopEffect)
+        assertEquals(MotionLoopEffect.HEARTBEAT, nudge.countdown?.motion?.loopEffect)
+        assertEquals(420, nudge.countdown?.remainingSeconds)
+        assertTrue(nudge.dismissible)
+
+        val marquee = SduiJson.decodeFromJsonElement<MarqueeStripSnippetData>(page.snippets[1].data)
+        assertEquals(SnippetTypes.MARQUEE_STRIP, page.snippets[1].snippetType)
+        assertEquals("fresh_live_ticker", marquee.stripId)
+        assertEquals(3, marquee.items.size)
+        assertEquals(48, marquee.velocityDpPerSec)
+        assertEquals(MotionLoopEffect.MARQUEE, page.snippets[1].motion?.loopEffect)
+
+        val tracker = SduiJson.decodeFromJsonElement<OrderTrackerSnippetData>(page.snippets[2].data)
+        assertEquals(SnippetTypes.ORDER_TRACKER, page.snippets[2].snippetType)
+        assertEquals("order_af_4092", tracker.trackerId)
+        assertEquals("#AF-4092", tracker.orderCode)
+        assertEquals(4, tracker.steps.size)
+        assertEquals("Aarav K.", tracker.riderName)
+        assertEquals(480, tracker.etaCountdown?.remainingSeconds)
+
+        val flashDeal = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[3].data)
+        assertEquals(SnippetTypes.COMPOSED_BLOCK, page.snippets[3].snippetType)
+        assertEquals("flash_deal_card", flashDeal.recipeName)
+        assertEquals("deal_hass_avocados_root", flashDeal.root.nodeId)
+        assertEquals(ComposedNodeKind.CARD, flashDeal.root.kind)
+        assertEquals(MotionLoopEffect.GLOW_RING, flashDeal.root.motion?.loopEffect)
+
+        val loyalty = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[4].data)
+        assertEquals("loyalty_stamp_card", loyalty.recipeName)
+        val promo = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[5].data)
+        assertEquals("live_eta_promo_card", promo.recipeName)
+    }
 }

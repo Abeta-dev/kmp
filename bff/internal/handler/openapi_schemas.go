@@ -97,7 +97,9 @@ func openAPIComponentSchemas() map[string]any {
 			snippets.SnippetTypeGrid, snippets.SnippetTypeTabs,
 			snippets.SnippetTypeAccordion, snippets.SnippetTypeProductCard,
 			snippets.SnippetTypeSwipeDeck, snippets.SnippetTypeSearchBar,
-			snippets.SnippetTypeChipGroup,
+			snippets.SnippetTypeChipGroup, snippets.SnippetTypeNudgeBar,
+			snippets.SnippetTypeMarqueeStrip, snippets.SnippetTypeOrderTracker,
+			snippets.SnippetTypeComposedBlock,
 		),
 		"PaginationSpec": objSchema([]string{"has_more"}, map[string]any{
 			"next_cursor": p.str, "has_more": p.bool, "load_more_action": p.action,
@@ -124,6 +126,7 @@ func openAPIComponentSchemas() map[string]any {
 		}),
 		"FloatingCartSpec": objSchema([]string{"label", "cta"}, map[string]any{
 			"label": p.str, "eta_badge": p.anyObj, "cta": p.anyObj, "motion": p.motion,
+			"free_delivery_threshold_cents": p.int, "nudge_prefix": p.str, "unlocked_label": p.str,
 		}),
 		"PageResponse": objSchema([]string{"page_id", "title", "snippets"}, map[string]any{
 			"page_id":         p.str,
@@ -185,11 +188,20 @@ func openAPIComponentSchemas() map[string]any {
 			"duration_ms":    p.int,
 			"stagger_ms":     p.int,
 			"delay_ms":       p.int,
-			"loop_effect":    enumSchema(atoms.MotionLoopNone, atoms.MotionLoopPulse, atoms.MotionLoopShimmer),
+			"loop_effect": enumSchema(
+				atoms.MotionLoopNone, atoms.MotionLoopPulse, atoms.MotionLoopShimmer,
+				atoms.MotionLoopWiggle, atoms.MotionLoopFloat, atoms.MotionLoopHeartbeat,
+				atoms.MotionLoopGlowRing, atoms.MotionLoopMarquee,
+			),
 		}),
 		"StepperAtom": objSchema([]string{"field_id", "quantity"}, map[string]any{
 			"field_id": p.str, "label": p.str, "quantity": p.int, "min_quantity": p.int, "max_quantity": p.int,
 			"enabled": p.bool, "on_increment": p.action, "on_decrement": p.action, "layout": p.anyObj,
+		}),
+		"CountdownAtom": objSchema([]string{"countdown_id", "remaining_seconds"}, map[string]any{
+			"countdown_id": p.str, "remaining_seconds": p.int, "label": p.str,
+			"urgent_threshold_seconds": p.int, "show_hours": p.bool, "expired_text": p.str,
+			"on_expire": p.action, "motion": p.motion,
 		}),
 		"ProductCardSnippetData": objSchema([]string{"product_id", "title", "price", "unit_price_cents", "stepper"}, map[string]any{
 			"product_id": p.str, "title": p.anyObj, "subtitle": p.anyObj, "price": p.anyObj, "original_price": p.anyObj,
@@ -222,6 +234,56 @@ func openAPIComponentSchemas() map[string]any {
 		"ChipGroupSnippetData": objSchema([]string{"group_id", "multi_select", "chips"}, map[string]any{
 			"group_id": p.str, "title": p.anyObj, "multi_select": p.bool,
 			"chips": arrSchema(refSchema("FilterChipItem")), "layout": p.anyObj,
+		}),
+		"NudgeBarSnippetData": objSchema([]string{"nudge_id", "title", "dismissible"}, map[string]any{
+			"nudge_id": p.str, "title": p.anyObj, "subtitle": p.anyObj, "icon": p.anyObj,
+			"badge": p.anyObj, "countdown": refSchema("CountdownAtom"), "progress": p.num,
+			"cta": p.anyObj, "dismissible": p.bool,
+			"pointer_edge": enumSchema(
+				snippets.PointerEdgeNone, snippets.PointerEdgeTop, snippets.PointerEdgeBottom,
+				snippets.PointerEdgeStart, snippets.PointerEdgeEnd,
+			),
+			"on_dismiss": p.action, "on_click": p.action, "layout": p.anyObj,
+		}),
+		"MarqueeItem": objSchema([]string{"id", "text"}, map[string]any{
+			"id": p.str, "text": p.str, "icon": p.anyObj, "badge": p.anyObj, "on_click": p.action,
+		}),
+		"MarqueeStripSnippetData": objSchema([]string{"strip_id", "items"}, map[string]any{
+			"strip_id": p.str, "items": arrSchema(refSchema("MarqueeItem")),
+			"velocity_dp_per_sec": p.int, "separator": p.str, "layout": p.anyObj,
+		}),
+		"OrderTrackerStep": objSchema([]string{"id", "label", "completed", "active"}, map[string]any{
+			"id": p.str, "label": p.str, "caption": p.str, "icon": p.anyObj,
+			"completed": p.bool, "active": p.bool,
+		}),
+		"OrderTrackerSnippetData": objSchema([]string{"tracker_id", "order_code", "headline", "steps"}, map[string]any{
+			"tracker_id": p.str, "order_code": p.str, "headline": p.anyObj,
+			"eta_countdown": refSchema("CountdownAtom"), "eta_badge": p.anyObj,
+			"rider_name": p.str, "rider_caption": p.str,
+			"steps":          arrSchema(refSchema("OrderTrackerStep")),
+			"primary_action": p.anyObj, "secondary_action": p.anyObj, "layout": p.anyObj,
+		}),
+		"ComposedNodeKind": enumSchema(
+			snippets.ComposedNodeColumn, snippets.ComposedNodeRow, snippets.ComposedNodeBox,
+			snippets.ComposedNodeCard, snippets.ComposedNodeFlowRow, snippets.ComposedNodeText,
+			snippets.ComposedNodeButton, snippets.ComposedNodeTag, snippets.ComposedNodeIcon,
+			snippets.ComposedNodeImage, snippets.ComposedNodeAvatar, snippets.ComposedNodeProgress,
+			snippets.ComposedNodeDivider, snippets.ComposedNodeSpacer, snippets.ComposedNodeStepper,
+			snippets.ComposedNodeCountdown, snippets.ComposedNodeRollingCounter,
+		),
+		"ComposedNode": objSchema([]string{"kind"}, map[string]any{
+			"node_id": p.str, "kind": refSchema("ComposedNodeKind"),
+			"spacing_dp": p.int, "alignment": enumSchema(snippets.ComposedAlignStart, snippets.ComposedAlignCenter, snippets.ComposedAlignEnd),
+			"horizontal_alignment": p.str, "vertical_alignment": p.str, "main_axis_arrangement": p.str,
+			"weight": p.num, "children": arrSchema(refSchema("ComposedNode")),
+			"text": p.anyObj, "button": p.anyObj, "tag": p.anyObj, "icon": p.anyObj,
+			"image": p.anyObj, "avatar": p.anyObj, "progress": p.anyObj, "divider": p.anyObj,
+			"spacer": p.anyObj, "stepper": refSchema("StepperAtom"), "countdown": refSchema("CountdownAtom"),
+			"counter_value": p.str, "counter_typography": p.anyObj, "counter_color": p.anyObj,
+			"on_click": p.action, "layout": p.anyObj, "motion": p.motion,
+		}),
+		"ComposedBlockSnippetData": objSchema([]string{"block_id", "root"}, map[string]any{
+			"block_id": p.str, "recipe_name": p.str, "root": refSchema("ComposedNode"), "layout": p.anyObj,
 		}),
 	}
 

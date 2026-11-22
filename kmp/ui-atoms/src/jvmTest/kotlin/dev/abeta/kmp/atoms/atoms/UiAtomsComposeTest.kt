@@ -9,6 +9,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -24,6 +26,7 @@ import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -32,10 +35,13 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.modifiers.LocalUiHapticFeedback
 import dev.abeta.kmp.atoms.modifiers.UiHapticKind
+import dev.abeta.kmp.atoms.modifiers.applyMotionSpec
+import dev.abeta.kmp.atoms.modifiers.pressBounce
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.AvatarAtom
 import dev.abeta.kmp.contracts.ButtonAtom
 import dev.abeta.kmp.contracts.CheckboxAtom
+import dev.abeta.kmp.contracts.CountdownAtom
 import dev.abeta.kmp.contracts.IconAtom
 import dev.abeta.kmp.contracts.MotionDurationToken
 import dev.abeta.kmp.contracts.MotionLoopEffect
@@ -457,6 +463,105 @@ class UiAtomsComposeTest {
 
             onNodeWithText("8 MINS").assertExists()
             onNodeWithText("Order Now").performClick()
+            assertEquals(1, clicks)
+        }
+
+    @Test
+    fun rollingCounterUpdatesDisplayedTextInFullAndReducedMotion() =
+        runComposeUiTest {
+            setContent {
+                var counterValue by remember { mutableStateOf("2 items · $8.48") }
+                DesignTheme(darkTheme = false, reducedMotion = false) {
+                    Column {
+                        UiRollingCounter(
+                            value = counterValue,
+                            modifier = Modifier.testTag("rolling_total"),
+                        )
+                        UiButton(
+                            atom = ButtonAtom(label = "Increment", onClick = ActionRef(id = "inc", type = "noop")),
+                            onAction = { counterValue = "3 items · $11.97" },
+                        )
+                    }
+                }
+            }
+
+            onNodeWithText("2 items · $8.48").assertIsDisplayed()
+            onNodeWithText("Increment").performClick()
+            onNodeWithText("3 items · $11.97").assertIsDisplayed()
+        }
+
+    @Test
+    fun countdownTicksDownAndFiresOnExpireOnce() =
+        runComposeUiTest {
+            mainClock.autoAdvance = false
+            val expiredActions = mutableListOf<ActionRef>()
+            val expireAction = ActionRef(id = "flash_expired", type = "refresh_page")
+
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = true) {
+                    UiCountdown(
+                        atom =
+                            CountdownAtom(
+                                countdownId = "flash_1",
+                                remainingSeconds = 2,
+                                label = "Ends in",
+                                urgentThresholdSeconds = 60,
+                                expiredText = "DONE",
+                                onExpire = expireAction,
+                            ),
+                        onAction = { expiredActions.add(it) },
+                    )
+                }
+            }
+
+            mainClock.advanceTimeByFrame()
+            onNodeWithTag("countdown_flash_1").assertIsDisplayed()
+            onNodeWithContentDescription("Ends in 00:02").assertIsDisplayed()
+
+            mainClock.advanceTimeBy(1100L)
+            onNodeWithContentDescription("Ends in 00:01").assertIsDisplayed()
+            assertTrue(expiredActions.isEmpty())
+
+            mainClock.advanceTimeBy(1100L)
+            onNodeWithContentDescription("Ends in DONE").assertIsDisplayed()
+            assertEquals(listOf(expireAction), expiredActions)
+        }
+
+    @Test
+    fun allMotionLoopEffectsAndPressBounceRenderCleanly() =
+        runComposeUiTest {
+            var clicks = 0
+            val effects =
+                listOf(
+                    MotionLoopEffect.WIGGLE,
+                    MotionLoopEffect.FLOAT,
+                    MotionLoopEffect.HEARTBEAT,
+                    MotionLoopEffect.GLOW_RING,
+                    MotionLoopEffect.MARQUEE,
+                )
+
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = false) {
+                    Column {
+                        effects.forEach { effect ->
+                            Text(
+                                text = "Loop ${effect.name}",
+                                modifier = Modifier.applyMotionSpec(MotionSpec(loopEffect = effect)),
+                            )
+                        }
+                        UiButton(
+                            atom = ButtonAtom(label = "Bouncy CTA", onClick = ActionRef(id = "tap", type = "noop")),
+                            modifier = Modifier.pressBounce(),
+                            onAction = { clicks += 1 },
+                        )
+                    }
+                }
+            }
+
+            effects.forEach { effect ->
+                onNodeWithText("Loop ${effect.name}").assertExists()
+            }
+            onNodeWithText("Bouncy CTA").performClick()
             assertEquals(1, clicks)
         }
 }

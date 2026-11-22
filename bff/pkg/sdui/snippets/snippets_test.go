@@ -289,6 +289,89 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithTracking("chips_view", map[string]any{"group": "catalog_filters"}).
 		Build()
 
+	countdown := atoms.NewCountdown("flash_cd", 420, "Ends in")
+	nudgeEnv := snippets.NewNudgeBarSnippet("nudge1", "free_delivery_nudge", title).
+		WithParentID("root").
+		WithSubtitle(sub).
+		WithIcon(icon).
+		WithBadge(tag).
+		WithCountdown(countdown).
+		WithProgress(0.75).
+		WithCTA(btn).
+		WithDismissible(true).
+		WithPointerEdge(snippets.PointerEdgeBottom).
+		WithOnDismiss(act).
+		WithOnClick(act).
+		WithLayout(layout).
+		WithMotion(motion).
+		WithTracking("nudge_view", map[string]any{"nudge_id": "free_delivery_nudge"}).
+		Build()
+
+	marqueeItem1 := snippets.MarqueeItem{ID: "mq_1", Text: "Free express delivery over $25", Icon: &icon, Badge: &tag, OnClick: &act}
+	marqueeItem2 := snippets.MarqueeItem{ID: "mq_2", Text: "Fresh drop ends soon"}
+	marqueeItem3 := snippets.MarqueeItem{ID: "mq_3", Text: "Zero-release SDUI"}
+	marqueeEnv := snippets.NewMarqueeStripSnippet("marquee1", "promo_ticker", marqueeItem1).
+		WithParentID("root").
+		AddItem(marqueeItem2).
+		AddItems(marqueeItem3).
+		WithVelocityDpPerSec(56).
+		WithSeparator("✦").
+		WithLayout(layout).
+		WithMotion(atoms.MotionSpec{LoopEffect: atoms.MotionLoopMarquee}).
+		WithTracking("marquee_view", map[string]any{"strip_id": "promo_ticker"}).
+		Build()
+
+	step1 := snippets.OrderTrackerStep{ID: "s_packed", Label: "Packed", Caption: "2 mins ago", Icon: &icon, Completed: true, Active: false}
+	step2 := snippets.OrderTrackerStep{ID: "s_transit", Label: "On the way", Caption: "0.8 km away", Completed: false, Active: true}
+	step3 := snippets.OrderTrackerStep{ID: "s_door", Label: "Arriving", Completed: false, Active: false}
+	trackerEnv := snippets.NewOrderTrackerSnippet("tracker1", "live_order_1", "#AF-4092", title, step1).
+		WithParentID("root").
+		WithEtaCountdown(countdown).
+		WithEtaBadge(tag).
+		WithRider("Aarav K.", "4.9★ · Insulated pack").
+		AddStep(step2).
+		AddSteps(step3).
+		WithPrimaryAction(btn).
+		WithSecondaryAction(btn).
+		WithLayout(layout).
+		WithMotion(motion).
+		WithTracking("tracker_view", map[string]any{"order_code": "#AF-4092"}).
+		Build()
+
+	composedRoot := snippets.CardNode(
+		layout,
+		snippets.VStack(
+			8,
+			snippets.HStack(
+				8,
+				snippets.AvatarNode(avatar),
+				snippets.TextNode(title).WithWeight(1),
+				snippets.TagNode(tag),
+			).WithArrangement(snippets.ComposedAlignSpaceBetween).WithAlignment(snippets.ComposedAlignStart, snippets.ComposedAlignCenter),
+			snippets.BoxNode(
+				snippets.ImageNode(img),
+				snippets.IconNode(icon),
+			).WithContentAlignment(snippets.ComposedAlignCenter),
+			snippets.FlowRowNode(
+				6,
+				snippets.RollingCounterNode("$12.40", theming.TypographyHeadlineSmall, theming.ColorBrandPrimary),
+				snippets.CountdownNode(countdown),
+				snippets.StepperNode(stepper),
+			),
+			snippets.ProgressNode(atoms.ProgressAtom{Kind: "linear", Progress: atoms.Float64Ptr(0.6)}),
+			snippets.DividerNode(atoms.DividerAtom{ThicknessDp: atoms.Float64Ptr(1)}),
+			snippets.SpacerNode(atoms.SpacerAtom{HeightDp: atoms.IntPtr(4)}),
+			snippets.ButtonNode(btn).WithOnClick(act),
+		).WithLayout(layout).WithMotion(motion),
+	).WithNodeID("composed_root")
+	composedEnv := snippets.NewComposedBlockSnippet("composed1", "molded_block_1", composedRoot).
+		WithParentID("root").
+		WithRecipeName("custom_card").
+		WithLayout(layout).
+		WithMotion(motion).
+		WithTracking("composed_view", map[string]any{"block_id": "molded_block_1"}).
+		Build()
+
 	page := snippets.NewPage("demo", "Demo Page").
 		WithToolbar(snippets.ToolbarSpec{Title: &title, Subtitle: &sub}).
 		AddSnippet(headerEnv).
@@ -296,13 +379,17 @@ func TestBuildersAndWireFormat(t *testing.T) {
 			bannerEnv, metricEnv, cardEnv, rowEnv, formEnv, emptyEnv, divEnv, spcEnv,
 			carouselEnv, gridEnv, tabsEnv, accEnv, productEnv,
 			swipeDeckEnv, searchBarEnv, chipGroupEnv,
+			nudgeEnv, marqueeEnv, trackerEnv, composedEnv,
 		).
 		WithBottomBar(snippets.BottomBarSpec{PrimaryButton: &btn, HelperText: &sub, Motion: &motion}).
 		WithFloatingCart(snippets.FloatingCartSpec{
-			Label:    "1 item · $3.49",
-			EtaBadge: &tag,
-			CTA:      btn,
-			Motion:   &motion,
+			Label:                      "1 item · $3.49",
+			EtaBadge:                   &tag,
+			CTA:                        btn,
+			Motion:                     &motion,
+			FreeDeliveryThresholdCents: atoms.IntPtr(2500),
+			NudgePrefix:                "Add more for FREE delivery",
+			UnlockedLabel:              "FREE delivery unlocked!",
 		}).
 		AddPageAction(act).
 		WithPagination(snippets.PaginationSpec{
@@ -338,6 +425,10 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		snippets.SnippetTypeSwipeDeck,
 		snippets.SnippetTypeSearchBar,
 		snippets.SnippetTypeChipGroup,
+		snippets.SnippetTypeNudgeBar,
+		snippets.SnippetTypeMarqueeStrip,
+		snippets.SnippetTypeOrderTracker,
+		snippets.SnippetTypeComposedBlock,
 	}
 	if len(page.Snippets) != len(expectedTypes) {
 		t.Fatalf("expected %d snippets, got %d", len(expectedTypes), len(page.Snippets))
@@ -361,6 +452,9 @@ func TestBuildersAndWireFormat(t *testing.T) {
 	}
 	if decoded.BottomBar == nil || decoded.BottomBar.Motion == nil || decoded.FloatingCart.Label != "1 item · $3.49" || decoded.FloatingCart.EtaBadge == nil || decoded.FloatingCart.Motion == nil {
 		t.Fatalf("unexpected floating cart or bottom bar motion: %+v", decoded)
+	}
+	if decoded.FloatingCart.FreeDeliveryThresholdCents == nil || *decoded.FloatingCart.FreeDeliveryThresholdCents != 2500 || decoded.FloatingCart.NudgePrefix == "" || decoded.FloatingCart.UnlockedLabel == "" {
+		t.Fatalf("expected floating cart free delivery nudge fields, got %+v", decoded.FloatingCart)
 	}
 	if decoded.Snippets[0].Motion == nil || decoded.Snippets[0].Motion.Enter != atoms.MotionTransitionSlideUp {
 		t.Fatalf("expected snippet envelope motion, got %+v", decoded.Snippets[0].Motion)
@@ -416,8 +510,24 @@ func TestBuildersAndWireFormat(t *testing.T) {
 	if err != nil || chipsDecoded.GroupID != "catalog_filters" || !chipsDecoded.MultiSelect || chipsDecoded.Title == nil || len(chipsDecoded.Chips) != 3 || !chipsDecoded.Chips[0].Selected || chipsDecoded.Chips[0].Icon == nil || chipsDecoded.Chips[0].Badge != "12" || chipsDecoded.Chips[0].OnClick == nil {
 		t.Fatalf("chip_group DecodeSnippetData failed: %+v, err=%v", chipsDecoded, err)
 	}
+	nudgeDecoded, err := snippets.DecodeSnippetData[snippets.NudgeBarSnippetData](decoded.Snippets[17])
+	if err != nil || nudgeDecoded.NudgeID != "free_delivery_nudge" || nudgeDecoded.Subtitle == nil || nudgeDecoded.Icon == nil || nudgeDecoded.Badge == nil || nudgeDecoded.Countdown == nil || nudgeDecoded.Progress == nil || *nudgeDecoded.Progress != 0.75 || nudgeDecoded.CTA == nil || !nudgeDecoded.Dismissible || nudgeDecoded.PointerEdge != snippets.PointerEdgeBottom || nudgeDecoded.OnDismiss == nil || nudgeDecoded.OnClick == nil {
+		t.Fatalf("nudge_bar DecodeSnippetData failed: %+v, err=%v", nudgeDecoded, err)
+	}
+	marqueeDecoded, err := snippets.DecodeSnippetData[snippets.MarqueeStripSnippetData](decoded.Snippets[18])
+	if err != nil || marqueeDecoded.StripID != "promo_ticker" || len(marqueeDecoded.Items) != 3 || marqueeDecoded.VelocityDpPerSec != 56 || marqueeDecoded.Separator != "✦" || marqueeDecoded.Items[0].Badge == nil || marqueeDecoded.Items[0].OnClick == nil {
+		t.Fatalf("marquee_strip DecodeSnippetData failed: %+v, err=%v", marqueeDecoded, err)
+	}
+	trackerDecoded, err := snippets.DecodeSnippetData[snippets.OrderTrackerSnippetData](decoded.Snippets[19])
+	if err != nil || trackerDecoded.TrackerID != "live_order_1" || trackerDecoded.OrderCode != "#AF-4092" || trackerDecoded.EtaCountdown == nil || trackerDecoded.EtaBadge == nil || trackerDecoded.RiderName != "Aarav K." || len(trackerDecoded.Steps) != 3 || !trackerDecoded.Steps[0].Completed || !trackerDecoded.Steps[1].Active || trackerDecoded.PrimaryAction == nil || trackerDecoded.SecondaryAction == nil {
+		t.Fatalf("order_tracker DecodeSnippetData failed: %+v, err=%v", trackerDecoded, err)
+	}
+	composedDecoded, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](decoded.Snippets[20])
+	if err != nil || composedDecoded.BlockID != "molded_block_1" || composedDecoded.RecipeName != "custom_card" || composedDecoded.Root.NodeID != "composed_root" || composedDecoded.Root.Kind != snippets.ComposedNodeCard || len(composedDecoded.Root.Children) != 1 {
+		t.Fatalf("composed_block DecodeSnippetData failed: %+v, err=%v", composedDecoded, err)
+	}
 
-	// Direct typed fast path for interactive snippets
+	// Direct typed fast path for interactive & nudge/composed snippets
 	if directDeck, err := snippets.DecodeSnippetData[snippets.SwipeDeckSnippetData](swipeDeckEnv); err != nil || directDeck.DeckID != "discover_deck" {
 		t.Fatalf("direct swipe_deck DecodeSnippetData failed: %+v, err=%v", directDeck, err)
 	}
@@ -426,6 +536,18 @@ func TestBuildersAndWireFormat(t *testing.T) {
 	}
 	if directChips, err := snippets.DecodeSnippetData[snippets.ChipGroupSnippetData](chipGroupEnv); err != nil || directChips.GroupID != "catalog_filters" {
 		t.Fatalf("direct chip_group DecodeSnippetData failed: %+v, err=%v", directChips, err)
+	}
+	if directNudge, err := snippets.DecodeSnippetData[snippets.NudgeBarSnippetData](nudgeEnv); err != nil || directNudge.NudgeID != "free_delivery_nudge" {
+		t.Fatalf("direct nudge_bar DecodeSnippetData failed: %+v, err=%v", directNudge, err)
+	}
+	if directMarquee, err := snippets.DecodeSnippetData[snippets.MarqueeStripSnippetData](marqueeEnv); err != nil || directMarquee.StripID != "promo_ticker" {
+		t.Fatalf("direct marquee_strip DecodeSnippetData failed: %+v, err=%v", directMarquee, err)
+	}
+	if directTracker, err := snippets.DecodeSnippetData[snippets.OrderTrackerSnippetData](trackerEnv); err != nil || directTracker.TrackerID != "live_order_1" {
+		t.Fatalf("direct order_tracker DecodeSnippetData failed: %+v, err=%v", directTracker, err)
+	}
+	if directComposed, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](composedEnv); err != nil || directComposed.BlockID != "molded_block_1" {
+		t.Fatalf("direct composed_block DecodeSnippetData failed: %+v, err=%v", directComposed, err)
 	}
 
 	// Error paths for DecodeSnippetData
@@ -543,5 +665,143 @@ func TestInteractiveSnippets_WireJSONAndDefaults(t *testing.T) {
 	decodedCopiedChips, err := snippets.DecodeSnippetData[snippets.ChipGroupSnippetData](copiedChips)
 	if err != nil || decodedCopiedChips.Chips[0].ID != "ch_1" {
 		t.Fatalf("expected defensive copy of chips slice, got %+v, err=%v", decodedCopiedChips, err)
+	}
+}
+
+func TestNudgesAndComposed_WireJSONDefensiveCopiesAndRecipes(t *testing.T) {
+	// 1. NudgeBar defaults Dismissible=true and omits unset optional keys
+	defaultNudge := snippets.NewNudgeBarSnippet("n_def", "nudge_default", atoms.NewText("Free delivery", theming.TypographyTitleSmall, theming.ColorTextPrimary)).Build()
+	rawNudge, err := json.Marshal(defaultNudge)
+	if err != nil {
+		t.Fatalf("marshal default nudge_bar: %v", err)
+	}
+	var nudgeEnv map[string]any
+	if err := json.Unmarshal(rawNudge, &nudgeEnv); err != nil {
+		t.Fatalf("unmarshal default nudge_bar: %v", err)
+	}
+	nudgeData := nudgeEnv["data"].(map[string]any)
+	if nudgeData["nudge_id"] != "nudge_default" || nudgeData["dismissible"] != true {
+		t.Fatalf("unexpected default nudge_bar data: %+v", nudgeData)
+	}
+	for _, omitted := range []string{"subtitle", "icon", "badge", "countdown", "progress", "cta", "pointer_edge", "on_dismiss", "on_click", "layout"} {
+		if _, exists := nudgeData[omitted]; exists {
+			t.Errorf("expected optional nudge_bar key %q to be omitted", omitted)
+		}
+	}
+
+	// Explicit WithDismissible(false) emits "dismissible": false
+	lockedNudge := snippets.NewNudgeBarSnippet("n_lock", "nudge_locked", atoms.NewText("Locked", theming.TypographyBodyMedium, theming.ColorTextPrimary)).
+		WithDismissible(false).
+		Build()
+	rawLocked, _ := json.Marshal(lockedNudge)
+	var lockedEnv map[string]any
+	_ = json.Unmarshal(rawLocked, &lockedEnv)
+	if v, ok := lockedEnv["data"].(map[string]any)["dismissible"]; !ok || v != false {
+		t.Fatalf("expected dismissible=false on wire, got %v (present=%v)", v, ok)
+	}
+
+	// 2. Empty MarqueeStrip serializes items as [] (never null) and defensive-copies input
+	emptyMarquee := snippets.NewMarqueeStripSnippet("m_empty", "empty_strip").Build()
+	rawMarquee, err := json.Marshal(emptyMarquee)
+	if err != nil {
+		t.Fatalf("marshal empty marquee_strip: %v", err)
+	}
+	var marqueeEnv map[string]any
+	if err := json.Unmarshal(rawMarquee, &marqueeEnv); err != nil {
+		t.Fatalf("unmarshal empty marquee_strip: %v", err)
+	}
+	marqueeData := marqueeEnv["data"].(map[string]any)
+	itemsArr, ok := marqueeData["items"].([]any)
+	if !ok || len(itemsArr) != 0 {
+		t.Fatalf("expected empty JSON array for marquee items, got %#v", marqueeData["items"])
+	}
+	seedItems := []snippets.MarqueeItem{{ID: "m1", Text: "Original"}}
+	copiedMarquee := snippets.NewMarqueeStripSnippet("m_copy", "copy_strip", seedItems...).Build()
+	seedItems[0].Text = "Mutated"
+	decodedMarquee, err := snippets.DecodeSnippetData[snippets.MarqueeStripSnippetData](copiedMarquee)
+	if err != nil || decodedMarquee.Items[0].Text != "Original" {
+		t.Fatalf("expected defensive copy of marquee items, got %+v, err=%v", decodedMarquee, err)
+	}
+
+	// 3. Empty OrderTracker serializes steps as [] (never null) and defensive-copies input
+	emptyTracker := snippets.NewOrderTrackerSnippet("t_empty", "tr_empty", "#AF-0001", atoms.NewText("Preparing", theming.TypographyTitleSmall, theming.ColorTextPrimary)).Build()
+	rawTracker, err := json.Marshal(emptyTracker)
+	if err != nil {
+		t.Fatalf("marshal empty order_tracker: %v", err)
+	}
+	var trackerEnv map[string]any
+	if err := json.Unmarshal(rawTracker, &trackerEnv); err != nil {
+		t.Fatalf("unmarshal empty order_tracker: %v", err)
+	}
+	stepsArr, ok := trackerEnv["data"].(map[string]any)["steps"].([]any)
+	if !ok || len(stepsArr) != 0 {
+		t.Fatalf("expected empty JSON array for tracker steps, got %#v", trackerEnv["data"].(map[string]any)["steps"])
+	}
+	seedSteps := []snippets.OrderTrackerStep{{ID: "st1", Label: "Placed", Completed: true}}
+	copiedTracker := snippets.NewOrderTrackerSnippet("t_copy", "tr_copy", "#AF-0002", atoms.NewText("Confirmed", theming.TypographyTitleSmall, theming.ColorTextPrimary), seedSteps...).Build()
+	seedSteps[0].Label = "Mutated"
+	decodedTracker, err := snippets.DecodeSnippetData[snippets.OrderTrackerSnippetData](copiedTracker)
+	if err != nil || decodedTracker.Steps[0].Label != "Placed" {
+		t.Fatalf("expected defensive copy of tracker steps, got %+v, err=%v", decodedTracker, err)
+	}
+
+	// 4. ComposedBlock defensive deep-copy + non-nil container Children
+	emptyContainer := snippets.NewComposedBlockSnippet("cb_empty", "empty_box", snippets.VStack(0)).Build()
+	decodedEmptyCB, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](emptyContainer)
+	if err != nil || decodedEmptyCB.Root.Kind != snippets.ComposedNodeColumn || decodedEmptyCB.Root.Children == nil {
+		t.Fatalf("expected non-nil empty children slice on container node, got %+v, err=%v", decodedEmptyCB, err)
+	}
+	// Verify empty FlowRow/HStack/BoxNode without spacing
+	emptyRow := snippets.HStack(0)
+	emptyFlow := snippets.FlowRowNode(0)
+	if emptyRow.SpacingDp != nil || emptyFlow.SpacingDp != nil || emptyRow.Children == nil || emptyFlow.Children == nil {
+		t.Fatalf("expected non-nil empty children and nil zero spacing: row=%+v flow=%+v", emptyRow, emptyFlow)
+	}
+
+	childNodes := []snippets.ComposedNode{
+		snippets.TextNode(atoms.NewText("Original Leaf", theming.TypographyBodyMedium, theming.ColorTextPrimary)),
+	}
+	rootWithSlice := snippets.ComposedNode{Kind: snippets.ComposedNodeColumn, Children: childNodes}
+	copiedBlock := snippets.NewComposedBlockSnippet("cb_copy", "copy_block", rootWithSlice).Build()
+	childNodes[0] = snippets.TextNode(atoms.NewText("Mutated Leaf", theming.TypographyBodyMedium, theming.ColorTextPrimary))
+	decodedCB, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](copiedBlock)
+	if err != nil || len(decodedCB.Root.Children) != 1 || decodedCB.Root.Children[0].Text.Text != "Original Leaf" {
+		t.Fatalf("expected defensive deep copy of ComposedNode children, got %+v, err=%v", decodedCB, err)
+	}
+
+	// 5. All 3 showcase recipes + clamping edge cases in MoldLoyaltyStampRecipe
+	cta := actions.NewShowToastAction("act_recipe", actions.ShowToastPayload{Message: "Triggered"})
+
+	flashEnv := snippets.MoldFlashDealRecipe("rc_flash", "deal_avocado", "Organic Hass Avocados (4-pack)", "$3.99", "$5.99", 540, cta)
+	flashData, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](flashEnv)
+	if err != nil || flashEnv.SnippetType != snippets.SnippetTypeComposedBlock || flashData.RecipeName != "flash_deal_card" || flashData.Root.Kind != snippets.ComposedNodeCard {
+		t.Fatalf("unexpected MoldFlashDealRecipe output: env=%+v data=%+v err=%v", flashEnv, flashData, err)
+	}
+
+	loyaltyPartial := snippets.MoldLoyaltyStampRecipe("rc_loyal_1", "fresh_club", "Abeta Fresh Club", 3, 5, "2 more orders for $5 off", cta)
+	loyaltyData, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](loyaltyPartial)
+	if err != nil || loyaltyData.RecipeName != "loyalty_stamp_card" || loyaltyData.BlockID != "fresh_club" {
+		t.Fatalf("unexpected MoldLoyaltyStampRecipe partial output: %+v err=%v", loyaltyData, err)
+	}
+
+	// Edge cases: totalStamps <= 0, earnedStamps < 0, earnedStamps > totalStamps (triggers Redeem Reward)
+	loyaltyNeg := snippets.MoldLoyaltyStampRecipe("rc_loyal_neg", "neg_club", "Fresh Club", -2, 0, "Free delivery", cta)
+	if loyaltyNeg.SnippetType != snippets.SnippetTypeComposedBlock {
+		t.Fatalf("expected composed_block for negative clamp test, got %q", loyaltyNeg.SnippetType)
+	}
+	loyaltyFull := snippets.MoldLoyaltyStampRecipe("rc_loyal_full", "full_club", "Fresh Club", 8, 5, "Reward ready", cta)
+	fullData, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](loyaltyFull)
+	if err != nil || len(fullData.Root.Children) != 1 {
+		t.Fatalf("unexpected MoldLoyaltyStampRecipe full output: %+v err=%v", fullData, err)
+	}
+	colChildren := fullData.Root.Children[0].Children
+	if btn := colChildren[len(colChildren)-1].Button; btn == nil || btn.Label != "Redeem Reward" {
+		t.Fatalf("expected 'Redeem Reward' CTA when stamps complete, got %+v", btn)
+	}
+
+	etaEnv := snippets.MoldLiveEtaPromoRecipe("rc_eta", "eta_8m", "Groceries at your door", "Chilled dairy & produce packed fresh", "8 MINS", 480, cta)
+	etaData, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](etaEnv)
+	if err != nil || etaData.RecipeName != "live_eta_promo_card" || etaData.BlockID != "eta_8m" {
+		t.Fatalf("unexpected MoldLiveEtaPromoRecipe output: %+v err=%v", etaData, err)
 	}
 }

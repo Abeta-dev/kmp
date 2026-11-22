@@ -350,9 +350,17 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"header_v1", "banner_v1", "metric_card", "card_v1", "action_row", "form_v1",
 		"empty_state", "divider", "spacer", "carousel", "grid", "tabs", "accordion",
 		"product_card", "swipe_deck", "search_bar", "chip_group",
+		"nudge_bar", "marquee_strip", "order_tracker", "composed_block",
 	} {
 		if !strings.Contains(rawSpec, `"`+snippetType+`"`) {
 			t.Errorf("openapi.json missing snippet type %q", snippetType)
+		}
+	}
+	for _, loopEffect := range []string{
+		"none", "pulse", "shimmer", "wiggle", "float", "heartbeat", "glow_ring", "marquee",
+	} {
+		if !strings.Contains(rawSpec, `"`+loopEffect+`"`) {
+			t.Errorf("openapi.json missing motion loop effect %q", loopEffect)
 		}
 	}
 	for _, schema := range []string{
@@ -372,12 +380,21 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"AvatarAtom",
 		"SkeletonAtom",
 		"StepperAtom",
+		"CountdownAtom",
 		"ProductCardSnippetData",
 		"SwipeCardItem",
 		"SwipeDeckSnippetData",
 		"SearchBarSnippetData",
 		"FilterChipItem",
 		"ChipGroupSnippetData",
+		"NudgeBarSnippetData",
+		"MarqueeItem",
+		"MarqueeStripSnippetData",
+		"OrderTrackerStep",
+		"OrderTrackerSnippetData",
+		"ComposedNodeKind",
+		"ComposedNode",
+		"ComposedBlockSnippetData",
 		"NavigatePayload",
 		"BackPressPayload",
 		"OpenDialogPayload",

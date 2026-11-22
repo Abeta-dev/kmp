@@ -283,6 +283,40 @@ class SduiScreenComposeTest {
         }
 
     @Test
+    fun nudgesAndComposedGoldenScreenRendersAllWave6SnippetsAndFloatingCartNudge() =
+        runComposeUiTest {
+            val page = readGoldenPage("nudges_and_composed_screen.json")
+            val registry = BuiltInSnippetModule.createDefaultRegistry()
+
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = true) {
+                    SduiScreen(
+                        state = LayoutUiState.Ready(page = page),
+                        snippetRegistry = registry,
+                        onAction = {},
+                        onFormValueChange = { _, _ -> },
+                    )
+                }
+            }
+
+            onNodeWithText("Abeta Live Deals & Tracker").assertIsDisplayed()
+            onNodeWithTag("nudge_bar_free_delivery_nudge").assertIsDisplayed()
+            onNodeWithTag("floating_cart_dock").assertIsDisplayed()
+            onNodeWithTag("floating_cart_nudge").assertIsDisplayed()
+            onNodeWithText("2 items · $18.50").assertIsDisplayed()
+
+            onNode(verticalListMatcher).performScrollToIndex(1)
+            onNodeWithTag("marquee_strip_fresh_live_ticker").assertIsDisplayed()
+
+            onNode(verticalListMatcher).performScrollToIndex(2)
+            onNodeWithTag("order_tracker_order_af_4092").assertIsDisplayed()
+
+            onNode(verticalListMatcher).performScrollToIndex(3)
+            onNodeWithTag("composed_block_deal_hass_avocados").assertIsDisplayed()
+            onNodeWithText("$3.99").assertIsDisplayed()
+        }
+
+    @Test
     fun offlineBannerRendersOnReadyScreenWhenOffline() =
         runComposeUiTest {
             val storePage = readGoldenPage("store_home.json")

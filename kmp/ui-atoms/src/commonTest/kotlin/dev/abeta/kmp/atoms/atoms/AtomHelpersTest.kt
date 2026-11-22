@@ -6,6 +6,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import dev.abeta.kmp.atoms.modifiers.isLoopEffectActive
 import dev.abeta.kmp.atoms.modifiers.resolveMotionDelayMs
 import dev.abeta.kmp.atoms.modifiers.resolveMotionDurationMs
 import dev.abeta.kmp.contracts.AlignmentToken
@@ -40,8 +41,10 @@ import dev.abeta.kmp.tokens.LightColorTokens
 import dev.abeta.kmp.tokens.ReducedMotionTokens
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class AtomHelpersTest {
     @Test
@@ -243,5 +246,43 @@ class AtomHelpersTest {
         assertEquals(90, resolveMotionDelayMs(explicitSpec, itemIndex = 4, tokens = DefaultMotionTokens))
         assertEquals(180, resolveMotionDelayMs(fastSpec, itemIndex = 3, tokens = DefaultMotionTokens))
         assertEquals(0, resolveMotionDelayMs(fastSpec, itemIndex = 3, tokens = ReducedMotionTokens))
+    }
+
+    @Test
+    fun countdownFormatAndUrgencyHelpersBehaveDeterministically() {
+        assertEquals("02:05", formatCountdownSeconds(seconds = 125))
+        assertEquals("00:02:05", formatCountdownSeconds(seconds = 125, showHours = true))
+        assertEquals("01:01:05", formatCountdownSeconds(seconds = 3665))
+        assertEquals("00:00", formatCountdownSeconds(seconds = 0))
+        assertEquals("ENDED", formatCountdownSeconds(seconds = -10, expiredText = "ENDED"))
+
+        assertTrue(isCountdownUrgent(remainingSeconds = 60, urgentThresholdSeconds = 60))
+        assertTrue(isCountdownUrgent(remainingSeconds = 1, urgentThresholdSeconds = 60))
+        assertFalse(isCountdownUrgent(remainingSeconds = 61, urgentThresholdSeconds = 60))
+        assertFalse(isCountdownUrgent(remainingSeconds = 0, urgentThresholdSeconds = 60))
+    }
+
+    @Test
+    fun rollingCounterAndMotionLoopHelpersBehaveDeterministically() {
+        assertTrue(shouldRollDigitUp(previous = '2', current = '3'))
+        assertFalse(shouldRollDigitUp(previous = '5', current = '4'))
+        assertTrue(shouldRollDigitUp(previous = '9', current = '9'))
+        assertTrue(shouldRollDigitUp(previous = ':', current = '1'))
+
+        assertFalse(isLoopEffectActive(MotionLoopEffect.NONE, reducedMotion = false))
+        val activeEffects =
+            listOf(
+                MotionLoopEffect.PULSE,
+                MotionLoopEffect.SHIMMER,
+                MotionLoopEffect.WIGGLE,
+                MotionLoopEffect.FLOAT,
+                MotionLoopEffect.HEARTBEAT,
+                MotionLoopEffect.GLOW_RING,
+                MotionLoopEffect.MARQUEE,
+            )
+        activeEffects.forEach { effect ->
+            assertTrue(isLoopEffectActive(effect, reducedMotion = false), "Expected $effect active")
+            assertFalse(isLoopEffectActive(effect, reducedMotion = true), "Expected $effect disabled under reduced")
+        }
     }
 }

@@ -69,6 +69,13 @@ public final class dev/abeta/kmp/atoms/atoms/UiCheckboxKt {
 	public static final fun formatCheckboxContentDescription (Ldev/abeta/kmp/contracts/CheckboxAtom;)Ljava/lang/String;
 }
 
+public final class dev/abeta/kmp/atoms/atoms/UiCountdownKt {
+	public static final fun UiCountdown (Ldev/abeta/kmp/contracts/CountdownAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun formatCountdownSeconds (IZLjava/lang/String;)Ljava/lang/String;
+	public static synthetic fun formatCountdownSeconds$default (IZLjava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun isCountdownUrgent (II)Z
+}
+
 public final class dev/abeta/kmp/atoms/atoms/UiDividerKt {
 	public static final fun UiDivider (Ldev/abeta/kmp/contracts/DividerAtom;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 }
@@ -98,6 +105,11 @@ public final class dev/abeta/kmp/atoms/atoms/UiImageRendererKt {
 public final class dev/abeta/kmp/atoms/atoms/UiProgressKt {
 	public static final fun UiProgress (Ldev/abeta/kmp/contracts/ProgressAtom;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 	public static final fun clampProgress (Ljava/lang/Float;)Ljava/lang/Float;
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiRollingCounterKt {
+	public static final fun UiRollingCounter-cf5BqRc (Ljava/lang/String;Landroidx/compose/ui/text/TextStyle;JLandroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
+	public static final fun shouldRollDigitUp (CC)Z
 }
 
 public final class dev/abeta/kmp/atoms/atoms/UiSkeletonKt {
@@ -153,6 +165,11 @@ public final class dev/abeta/kmp/atoms/atoms/UiTextKt {
 public final class dev/abeta/kmp/atoms/modifiers/LayoutConfigModifierKt {
 	public static final fun applyLayoutConfig (Landroidx/compose/ui/Modifier;Ldev/abeta/kmp/contracts/LayoutConfig;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/Modifier;
 	public static final fun toPaddingValues (Ldev/abeta/kmp/contracts/SpacingValues;)Landroidx/compose/foundation/layout/PaddingValues;
+}
+
+public final class dev/abeta/kmp/atoms/modifiers/MotionLoopModifiersKt {
+	public static final fun isLoopEffectActive (Ldev/abeta/kmp/contracts/MotionLoopEffect;Z)Z
+	public static final fun pressBounce (Landroidx/compose/ui/Modifier;ZLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
 }
 
 public final class dev/abeta/kmp/atoms/modifiers/MotionModifierKt {

@@ -9,12 +9,17 @@ import dev.abeta.kmp.contracts.BannerSnippetData
 import dev.abeta.kmp.contracts.CardSnippetData
 import dev.abeta.kmp.contracts.CarouselSnippetData
 import dev.abeta.kmp.contracts.ChipGroupSnippetData
+import dev.abeta.kmp.contracts.ComposedBlockSnippetData
+import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.DividerSnippetData
 import dev.abeta.kmp.contracts.EmptyStateSnippetData
 import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.GridSnippetData
 import dev.abeta.kmp.contracts.HeaderSnippetData
+import dev.abeta.kmp.contracts.MarqueeStripSnippetData
 import dev.abeta.kmp.contracts.MetricCardSnippetData
+import dev.abeta.kmp.contracts.NudgeBarSnippetData
+import dev.abeta.kmp.contracts.OrderTrackerSnippetData
 import dev.abeta.kmp.contracts.SearchBarSnippetData
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
@@ -83,7 +88,7 @@ class SnippetRegistryTest {
     }
 
     @Test
-    fun allSeventeenBuiltInSnippetRenderersRegisterAndDecodeCoreSnippets() {
+    fun allTwentyOneBuiltInSnippetRenderersRegisterAndDecodeCoreSnippets() {
         val registry = BuiltInSnippetModule.createDefaultRegistry()
 
         val expectedTypes =
@@ -105,6 +110,10 @@ class SnippetRegistryTest {
                 SnippetTypes.SWIPE_DECK,
                 SnippetTypes.SEARCH_BAR,
                 SnippetTypes.CHIP_GROUP,
+                SnippetTypes.NUDGE_BAR,
+                SnippetTypes.MARQUEE_STRIP,
+                SnippetTypes.ORDER_TRACKER,
+                SnippetTypes.COMPOSED_BLOCK,
             )
         assertEquals(expectedTypes, registry.registeredTypes())
 
@@ -263,6 +272,54 @@ class SnippetRegistryTest {
                 ),
             ).value
         assertEquals("filters", chipGroup.groupId)
+    }
+
+    @Test
+    fun builtInNudgeMarqueeOrderTrackerAndComposedBlockDecodersSucceed() {
+        val registry = BuiltInSnippetModule.createDefaultRegistry()
+
+        val nudge =
+            assertIs<AppResult.Success<NudgeBarSnippetData>>(
+                registry.resolve(SnippetTypes.NUDGE_BAR)!!.decode(
+                    buildJsonObject {
+                        put("nudge_id", "nudge_1")
+                        put("title", buildJsonObject { put("text", "Free shipping close") })
+                    },
+                ),
+            ).value
+        assertEquals("nudge_1", nudge.nudgeId)
+
+        val marquee =
+            assertIs<AppResult.Success<MarqueeStripSnippetData>>(
+                registry.resolve(SnippetTypes.MARQUEE_STRIP)!!.decode(
+                    buildJsonObject { put("strip_id", "offers") },
+                ),
+            ).value
+        assertEquals("offers", marquee.stripId)
+
+        val tracker =
+            assertIs<AppResult.Success<OrderTrackerSnippetData>>(
+                registry.resolve(SnippetTypes.ORDER_TRACKER)!!.decode(
+                    buildJsonObject {
+                        put("tracker_id", "trk_1")
+                        put("order_code", "#AB-101")
+                        put("headline", buildJsonObject { put("text", "Arriving soon") })
+                    },
+                ),
+            ).value
+        assertEquals("trk_1", tracker.trackerId)
+
+        val composed =
+            assertIs<AppResult.Success<ComposedBlockSnippetData>>(
+                registry.resolve(SnippetTypes.COMPOSED_BLOCK)!!.decode(
+                    buildJsonObject {
+                        put("block_id", "blk_1")
+                        put("root", buildJsonObject { put("kind", "column") })
+                    },
+                ),
+            ).value
+        assertEquals("blk_1", composed.blockId)
+        assertEquals(ComposedNodeKind.COLUMN, composed.root.kind)
     }
 
     @Test

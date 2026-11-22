@@ -33,9 +33,9 @@ class StorybookComposeTest {
             onNodeWithText("115%").performClick()
             onNodeWithText("1.0x").assertIsDisplayed()
 
-            onNodeWithText("All 17 Snippets").performScrollTo().performClick()
+            onNodeWithText("All 21 Snippets").performScrollTo().performClick()
             onNodeWithText("SDUI Snippet Registry Gallery").assertIsDisplayed()
-            onNodeWithText("17 / 17 Registered").assertIsDisplayed()
+            onNodeWithText("21 / 21 Registered").assertIsDisplayed()
             onNode(hasText("Accordion") and hasClickAction()).performClick()
             onNodeWithText("SnippetEnvelope Wire JSON (accordion)").performScrollTo().assertIsDisplayed()
 
@@ -74,8 +74,8 @@ class StorybookComposeTest {
         }
 
     @Test
-    fun allThirteenStoriesRenderCleanlyInStorybook() {
-        assertEquals(13, StoryCatalog.entries.size)
+    fun allSixteenStoriesRenderCleanlyInStorybook() {
+        assertEquals(16, StoryCatalog.entries.size)
         StoryCatalog.entries.forEach { entry ->
             runComposeUiTest {
                 setContent {
@@ -85,4 +85,77 @@ class StorybookComposeTest {
             }
         }
     }
+
+    @Test
+    fun animationNudgesStoryAdvancesTrackerUpdatesCounterAndTogglesUrgency() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_ANIMATION_NUDGES)
+            }
+
+            onNodeWithText("Animation & Nudges Test Bench").assertIsDisplayed()
+            onNodeWithText("PULSE").performScrollTo().assertIsDisplayed()
+            onNodeWithText("GLOW_RING").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("+$1.50").performScrollTo().performClick()
+            onNodeWithText("$4.99").assertIsDisplayed()
+
+            onNodeWithText("Set 12s Urgent").performScrollTo().performClick()
+            onNodeWithText("STAGE 1 / 4").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Advance Rider Step").performScrollTo().performClick()
+            onNodeWithText("STAGE 2 / 4").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Fresh produce packed & quality checked").performScrollTo().assertIsDisplayed()
+        }
+
+    @Test
+    fun snippetCrafterStoryTogglesAtomsAndUpdatesLivePreview() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_SNIPPET_CRAFTER)
+            }
+
+            onNodeWithText("Preset Snippet Molds").assertIsDisplayed()
+            onNodeWithText("FLASH COMBO").performScrollTo().assertIsDisplayed()
+
+            onNode(hasText("Badge Tag") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("FLASH COMBO").assertDoesNotExist()
+
+            onNode(hasText("Loyalty Stamp Card") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("Abeta Rewards · 6 of 8 Stamps").performScrollTo().assertIsDisplayed()
+            onNode(hasText("Row") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("Live SduiJson Wire Payload (composed_block · ready for sdui-bff)")
+                .performScrollTo()
+                .assertIsDisplayed()
+        }
+
+    @Test
+    fun endToEndJourneysStoryWalksFreshSparkAndTradeFlows() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_E2E_JOURNEYS)
+            }
+
+            onNodeWithText("Super-App End-to-End Journeys").assertIsDisplayed()
+            onNodeWithText("Place Express Order").performScrollTo().performClick()
+            onNodeWithText("Express Order Placed!").assertIsDisplayed()
+            onNodeWithContentDescription("Dismiss celebration").performClick()
+            onNodeWithText("STEP 1 OF 4").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Advance Step").performScrollTo().performClick()
+            onNodeWithText("STEP 2 OF 4").performScrollTo().assertIsDisplayed()
+
+            onNode(hasText("Abeta Spark Match") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("Matches Inbox (0)").performScrollTo().assertIsDisplayed()
+            onNodeWithContentDescription("Like").performScrollTo().performClick()
+            onNodeWithText("It's a Match!").assertIsDisplayed()
+            onNodeWithContentDescription("Dismiss celebration").performClick()
+            onNodeWithText("Matches Inbox (1)").performScrollTo().assertIsDisplayed()
+
+            onNode(hasText("Abeta Trade B2B RFQ") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("Submit Verified RFQ").performScrollTo().performClick()
+            onNodeWithText("RFQ Dispatched!").assertIsDisplayed()
+            onNodeWithContentDescription("Dismiss celebration").performClick()
+            onNodeWithText("RFQ #TRD-1041 confirmed for 10 cartons · Sent to 3 GST suppliers")
+                .performScrollTo()
+                .assertIsDisplayed()
+        }
 }

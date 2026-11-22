@@ -604,6 +604,146 @@ public final class dev/abeta/kmp/contracts/ColorTokenRef$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/abeta/kmp/contracts/ComposedBlockSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/ComposedBlockSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNode;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNode;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/ComposedNode;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNode;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/ComposedBlockSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/ComposedBlockSnippetData;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNode;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/ComposedBlockSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBlockId ()Ljava/lang/String;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getRecipeName ()Ljava/lang/String;
+	public final fun getRoot ()Ldev/abeta/kmp/contracts/ComposedNode;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/ComposedBlockSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/ComposedBlockSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/ComposedBlockSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/ComposedBlockSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/ComposedBlockSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/ComposedNode {
+	public static final field Companion Ldev/abeta/kmp/contracts/ComposedNode$Companion;
+	public fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNodeKind;ILdev/abeta/kmp/contracts/AlignmentToken;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Float;Ljava/util/List;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ldev/abeta/kmp/contracts/AvatarAtom;Ldev/abeta/kmp/contracts/ProgressAtom;Ldev/abeta/kmp/contracts/DividerAtom;Ldev/abeta/kmp/contracts/SpacerAtom;Ldev/abeta/kmp/contracts/StepperAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/TypographyTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;Ldev/abeta/kmp/contracts/MotionSpec;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNodeKind;ILdev/abeta/kmp/contracts/AlignmentToken;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Float;Ljava/util/List;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ldev/abeta/kmp/contracts/AvatarAtom;Ldev/abeta/kmp/contracts/ProgressAtom;Ldev/abeta/kmp/contracts/DividerAtom;Ldev/abeta/kmp/contracts/SpacerAtom;Ldev/abeta/kmp/contracts/StepperAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/TypographyTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;Ldev/abeta/kmp/contracts/MotionSpec;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component11 ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun component12 ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun component13 ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun component14 ()Ldev/abeta/kmp/contracts/ImageAtom;
+	public final fun component15 ()Ldev/abeta/kmp/contracts/AvatarAtom;
+	public final fun component16 ()Ldev/abeta/kmp/contracts/ProgressAtom;
+	public final fun component17 ()Ldev/abeta/kmp/contracts/DividerAtom;
+	public final fun component18 ()Ldev/abeta/kmp/contracts/SpacerAtom;
+	public final fun component19 ()Ldev/abeta/kmp/contracts/StepperAtom;
+	public final fun component2 ()Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public final fun component20 ()Ldev/abeta/kmp/contracts/CountdownAtom;
+	public final fun component21 ()Ljava/lang/String;
+	public final fun component22 ()Ldev/abeta/kmp/contracts/TypographyTokenRef;
+	public final fun component23 ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun component24 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component25 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun component26 ()Ldev/abeta/kmp/contracts/MotionSpec;
+	public final fun component3 ()I
+	public final fun component4 ()Ldev/abeta/kmp/contracts/AlignmentToken;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/Float;
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNodeKind;ILdev/abeta/kmp/contracts/AlignmentToken;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Float;Ljava/util/List;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ldev/abeta/kmp/contracts/AvatarAtom;Ldev/abeta/kmp/contracts/ProgressAtom;Ldev/abeta/kmp/contracts/DividerAtom;Ldev/abeta/kmp/contracts/SpacerAtom;Ldev/abeta/kmp/contracts/StepperAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/TypographyTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;Ldev/abeta/kmp/contracts/MotionSpec;)Ldev/abeta/kmp/contracts/ComposedNode;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/ComposedNode;Ljava/lang/String;Ldev/abeta/kmp/contracts/ComposedNodeKind;ILdev/abeta/kmp/contracts/AlignmentToken;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Float;Ljava/util/List;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/ImageAtom;Ldev/abeta/kmp/contracts/AvatarAtom;Ldev/abeta/kmp/contracts/ProgressAtom;Ldev/abeta/kmp/contracts/DividerAtom;Ldev/abeta/kmp/contracts/SpacerAtom;Ldev/abeta/kmp/contracts/StepperAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/String;Ldev/abeta/kmp/contracts/TypographyTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;Ldev/abeta/kmp/contracts/MotionSpec;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/ComposedNode;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlignment ()Ldev/abeta/kmp/contracts/AlignmentToken;
+	public final fun getAvatar ()Ldev/abeta/kmp/contracts/AvatarAtom;
+	public final fun getButton ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun getChildren ()Ljava/util/List;
+	public final fun getCountdown ()Ldev/abeta/kmp/contracts/CountdownAtom;
+	public final fun getCounterColor ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun getCounterTypography ()Ldev/abeta/kmp/contracts/TypographyTokenRef;
+	public final fun getCounterValue ()Ljava/lang/String;
+	public final fun getDivider ()Ldev/abeta/kmp/contracts/DividerAtom;
+	public final fun getHorizontalAlignment ()Ljava/lang/String;
+	public final fun getIcon ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun getImage ()Ldev/abeta/kmp/contracts/ImageAtom;
+	public final fun getKind ()Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getMainAxisArrangement ()Ljava/lang/String;
+	public final fun getMotion ()Ldev/abeta/kmp/contracts/MotionSpec;
+	public final fun getNodeId ()Ljava/lang/String;
+	public final fun getOnClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getProgress ()Ldev/abeta/kmp/contracts/ProgressAtom;
+	public final fun getSpacer ()Ldev/abeta/kmp/contracts/SpacerAtom;
+	public final fun getSpacingDp ()I
+	public final fun getStepper ()Ldev/abeta/kmp/contracts/StepperAtom;
+	public final fun getTag ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun getText ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getVerticalAlignment ()Ljava/lang/String;
+	public final fun getWeight ()Ljava/lang/Float;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/ComposedNode$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/ComposedNode$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/ComposedNode;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/ComposedNode;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/ComposedNode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/ComposedNodeKind : java/lang/Enum {
+	public static final field AVATAR Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field BOX Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field BUTTON Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field CARD Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field COLUMN Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field COUNTDOWN Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field Companion Ldev/abeta/kmp/contracts/ComposedNodeKind$Companion;
+	public static final field DIVIDER Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field FLOW_ROW Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field ICON Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field IMAGE Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field PROGRESS Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field ROLLING_COUNTER Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field ROW Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field SPACER Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field STEPPER Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field TAG Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static final field TEXT Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/contracts/ComposedNodeKind;
+	public static fun values ()[Ldev/abeta/kmp/contracts/ComposedNodeKind;
+}
+
+public final class dev/abeta/kmp/contracts/ComposedNodeKind$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/abeta/kmp/contracts/CornerRadiusSpec {
 	public static final field Companion Ldev/abeta/kmp/contracts/CornerRadiusSpec$Companion;
 	public fun <init> ()V
@@ -640,6 +780,48 @@ public final synthetic class dev/abeta/kmp/contracts/CornerRadiusSpec$$serialize
 }
 
 public final class dev/abeta/kmp/contracts/CornerRadiusSpec$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/CountdownAtom {
+	public static final field Companion Ldev/abeta/kmp/contracts/CountdownAtom$Companion;
+	public fun <init> (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()I
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component8 ()Ldev/abeta/kmp/contracts/MotionSpec;
+	public final fun copy (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;)Ldev/abeta/kmp/contracts/CountdownAtom;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/CountdownAtom;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCountdownId ()Ljava/lang/String;
+	public final fun getExpiredText ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getMotion ()Ldev/abeta/kmp/contracts/MotionSpec;
+	public final fun getOnExpire ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getRemainingSeconds ()I
+	public final fun getShowHours ()Z
+	public final fun getUrgentThresholdSeconds ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/CountdownAtom$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/CountdownAtom$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/CountdownAtom;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/CountdownAtom;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/CountdownAtom$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -804,19 +986,25 @@ public final class dev/abeta/kmp/contracts/FilterChipItem$Companion {
 
 public final class dev/abeta/kmp/contracts/FloatingCartSpec {
 	public static final field Companion Ldev/abeta/kmp/contracts/FloatingCartSpec$Companion;
-	public fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;)V
-	public synthetic fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ldev/abeta/kmp/contracts/TagAtom;
 	public final fun component3 ()Ldev/abeta/kmp/contracts/ButtonAtom;
 	public final fun component4 ()Ldev/abeta/kmp/contracts/MotionSpec;
-	public final fun copy (Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;)Ldev/abeta/kmp/contracts/FloatingCartSpec;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/FloatingCartSpec;Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/FloatingCartSpec;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/contracts/FloatingCartSpec;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/FloatingCartSpec;Ljava/lang/String;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/FloatingCartSpec;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCta ()Ldev/abeta/kmp/contracts/ButtonAtom;
 	public final fun getEtaBadge ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun getFreeDeliveryThresholdCents ()Ljava/lang/Integer;
 	public final fun getLabel ()Ljava/lang/String;
 	public final fun getMotion ()Ldev/abeta/kmp/contracts/MotionSpec;
+	public final fun getNudgePrefix ()Ljava/lang/String;
+	public final fun getUnlockedLabel ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -1127,6 +1315,78 @@ public final class dev/abeta/kmp/contracts/LayoutConfig$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/abeta/kmp/contracts/MarqueeItem {
+	public static final field Companion Ldev/abeta/kmp/contracts/MarqueeItem$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/contracts/MarqueeItem;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/MarqueeItem;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/MarqueeItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBadge ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun getIcon ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getOnClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/MarqueeItem$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/MarqueeItem$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/MarqueeItem;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/MarqueeItem;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/MarqueeItem$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/MarqueeStripSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/MarqueeStripSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()I
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/MarqueeStripSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/MarqueeStripSnippetData;Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/MarqueeStripSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getItems ()Ljava/util/List;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getSeparator ()Ljava/lang/String;
+	public final fun getStripId ()Ljava/lang/String;
+	public final fun getVelocityDpPerSec ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/MarqueeStripSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/MarqueeStripSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/MarqueeStripSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/MarqueeStripSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/MarqueeStripSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/abeta/kmp/contracts/MetricCardSnippetData {
 	public static final field Companion Ldev/abeta/kmp/contracts/MetricCardSnippetData$Companion;
 	public fun <init> (Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/ProgressAtom;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)V
@@ -1186,9 +1446,14 @@ public final class dev/abeta/kmp/contracts/MotionDurationToken$Companion {
 
 public final class dev/abeta/kmp/contracts/MotionLoopEffect : java/lang/Enum {
 	public static final field Companion Ldev/abeta/kmp/contracts/MotionLoopEffect$Companion;
+	public static final field FLOAT Ldev/abeta/kmp/contracts/MotionLoopEffect;
+	public static final field GLOW_RING Ldev/abeta/kmp/contracts/MotionLoopEffect;
+	public static final field HEARTBEAT Ldev/abeta/kmp/contracts/MotionLoopEffect;
+	public static final field MARQUEE Ldev/abeta/kmp/contracts/MotionLoopEffect;
 	public static final field NONE Ldev/abeta/kmp/contracts/MotionLoopEffect;
 	public static final field PULSE Ldev/abeta/kmp/contracts/MotionLoopEffect;
 	public static final field SHIMMER Ldev/abeta/kmp/contracts/MotionLoopEffect;
+	public static final field WIGGLE Ldev/abeta/kmp/contracts/MotionLoopEffect;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/contracts/MotionLoopEffect;
 	public static fun values ()[Ldev/abeta/kmp/contracts/MotionLoopEffect;
@@ -1253,6 +1518,144 @@ public final class dev/abeta/kmp/contracts/MotionTransition : java/lang/Enum {
 }
 
 public final class dev/abeta/kmp/contracts/MotionTransition$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/NudgeBarSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/NudgeBarSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/Float;Ldev/abeta/kmp/contracts/ButtonAtom;ZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/Float;Ldev/abeta/kmp/contracts/ButtonAtom;ZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component12 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component13 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun component2 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/CountdownAtom;
+	public final fun component7 ()Ljava/lang/Float;
+	public final fun component8 ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/Float;Ldev/abeta/kmp/contracts/ButtonAtom;ZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/NudgeBarSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/NudgeBarSnippetData;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/IconAtom;Ldev/abeta/kmp/contracts/TagAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/Float;Ldev/abeta/kmp/contracts/ButtonAtom;ZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/NudgeBarSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBadge ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun getCountdown ()Ldev/abeta/kmp/contracts/CountdownAtom;
+	public final fun getCta ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun getDismissible ()Z
+	public final fun getIcon ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getNudgeId ()Ljava/lang/String;
+	public final fun getOnClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnDismiss ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPointerEdge ()Ljava/lang/String;
+	public final fun getProgress ()Ljava/lang/Float;
+	public final fun getSubtitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getTitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/NudgeBarSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/NudgeBarSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/NudgeBarSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/NudgeBarSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/NudgeBarSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/OrderTrackerSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/OrderTrackerSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ldev/abeta/kmp/contracts/TagAtom;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ldev/abeta/kmp/contracts/TagAtom;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun component11 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/CountdownAtom;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ldev/abeta/kmp/contracts/TagAtom;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/OrderTrackerSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/OrderTrackerSnippetData;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/CountdownAtom;Ldev/abeta/kmp/contracts/TagAtom;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/ButtonAtom;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/OrderTrackerSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEtaBadge ()Ldev/abeta/kmp/contracts/TagAtom;
+	public final fun getEtaCountdown ()Ldev/abeta/kmp/contracts/CountdownAtom;
+	public final fun getHeadline ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getOrderCode ()Ljava/lang/String;
+	public final fun getPrimaryAction ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun getRiderCaption ()Ljava/lang/String;
+	public final fun getRiderName ()Ljava/lang/String;
+	public final fun getSecondaryAction ()Ldev/abeta/kmp/contracts/ButtonAtom;
+	public final fun getSteps ()Ljava/util/List;
+	public final fun getTrackerId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/OrderTrackerSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/OrderTrackerSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/OrderTrackerSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/OrderTrackerSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/OrderTrackerSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/OrderTrackerStep {
+	public static final field Companion Ldev/abeta/kmp/contracts/OrderTrackerStep$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;ZZ)Ldev/abeta/kmp/contracts/OrderTrackerStep;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/OrderTrackerStep;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/IconAtom;ZZILjava/lang/Object;)Ldev/abeta/kmp/contracts/OrderTrackerStep;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getActive ()Z
+	public final fun getCaption ()Ljava/lang/String;
+	public final fun getCompleted ()Z
+	public final fun getIcon ()Ldev/abeta/kmp/contracts/IconAtom;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/OrderTrackerStep$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/OrderTrackerStep$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/OrderTrackerStep;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/OrderTrackerStep;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/OrderTrackerStep$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -1745,13 +2148,17 @@ public final class dev/abeta/kmp/contracts/SnippetTypes {
 	public static final field CARD Ljava/lang/String;
 	public static final field CAROUSEL Ljava/lang/String;
 	public static final field CHIP_GROUP Ljava/lang/String;
+	public static final field COMPOSED_BLOCK Ljava/lang/String;
 	public static final field DIVIDER Ljava/lang/String;
 	public static final field EMPTY_STATE Ljava/lang/String;
 	public static final field FORM Ljava/lang/String;
 	public static final field GRID Ljava/lang/String;
 	public static final field HEADER Ljava/lang/String;
 	public static final field INSTANCE Ldev/abeta/kmp/contracts/SnippetTypes;
+	public static final field MARQUEE_STRIP Ljava/lang/String;
 	public static final field METRIC_CARD Ljava/lang/String;
+	public static final field NUDGE_BAR Ljava/lang/String;
+	public static final field ORDER_TRACKER Ljava/lang/String;
 	public static final field PRODUCT_CARD Ljava/lang/String;
 	public static final field SEARCH_BAR Ljava/lang/String;
 	public static final field SPACER Ljava/lang/String;

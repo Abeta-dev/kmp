@@ -136,7 +136,13 @@ internal object SampleVerticalsDiscovery {
             pageId = "pulse-home",
             title = "Abeta Pulse",
             toolbar = ui.verticalToolbar("Abeta Pulse", "Metro City · Events, Movies & Dining", "back_pulse"),
-            snippets = listOf(search, chips, banner) + pulseEvents.map(ui::listingCardEnvelope),
+            snippets =
+                listOf(
+                    search,
+                    chips,
+                    SampleNudgeAndTrackerPrimitives.pulseUrgencyNudgeBar(PULSE_DETAIL),
+                    banner,
+                ) + pulseEvents.map(ui::listingCardEnvelope),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
@@ -182,7 +188,13 @@ internal object SampleVerticalsDiscovery {
             pageId = "spark-deck",
             title = "Abeta Spark",
             toolbar = ui.verticalToolbar("Abeta Spark", "Curated Discovery · 12 nearby", "back_spark"),
-            snippets = listOf(header, chips, buildSparkDeckEnvelope()),
+            snippets =
+                listOf(
+                    header,
+                    SampleNudgeAndTrackerPrimitives.sparkBoostNudgeBar(),
+                    chips,
+                    buildSparkDeckEnvelope(),
+                ),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
@@ -237,7 +249,12 @@ internal object SampleVerticalsDiscovery {
             pageId = "trade-home",
             title = "Abeta Trade",
             toolbar = ui.verticalToolbar("Abeta Trade", "Verified B2B Wholesale & Direct RFQ", "back_trade"),
-            snippets = listOf(search, chips) + tradeSuppliers.map(ui::listingCardEnvelope),
+            snippets =
+                listOf(
+                    search,
+                    chips,
+                    SampleComposedBlockRecipes.tradeMoqSavingsComposedBlock(TRADE_SUP),
+                ) + tradeSuppliers.map(ui::listingCardEnvelope),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }

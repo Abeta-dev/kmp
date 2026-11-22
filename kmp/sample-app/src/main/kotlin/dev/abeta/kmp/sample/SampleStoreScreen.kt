@@ -47,8 +47,11 @@ internal object SampleStoreScreen {
             toolbar = buildStoreToolbar(checkoutAction),
             snippets =
                 listOf(
+                    SampleNudgeAndTrackerPrimitives.expressPerksMarquee("store_perks_marquee", "store_express_perks"),
+                    SampleNudgeAndTrackerPrimitives.flashDropNudgeBar("store_flash_nudge", "store_flash_drop"),
                     buildEtaBanner(),
                     buildPromoCarousel(),
+                    SampleComposedBlockRecipes.loyaltyStampComposedBlock("store_loyalty_block", "store_loyalty_stamps"),
                     buildCategoryTabs(),
                     SampleStoreCatalog.buildOffersAccordion(),
                 ),
@@ -333,6 +336,9 @@ private fun buildFloatingCart(checkoutAction: ActionRef): FloatingCartSpec =
                 exit = MotionTransition.SLIDE_DOWN,
                 durationToken = MotionDurationToken.NORMAL,
             ),
+        freeDeliveryThresholdCents = FREE_DELIVERY_THRESHOLD_CENTS,
+        nudgePrefix = FREE_DELIVERY_NUDGE_PREFIX,
+        unlockedLabel = FREE_DELIVERY_UNLOCKED_LABEL,
     )
 
 private fun buildCheckoutSheetAction(): ActionRef {

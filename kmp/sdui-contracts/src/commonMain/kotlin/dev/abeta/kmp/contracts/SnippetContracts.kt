@@ -25,6 +25,10 @@ object SnippetTypes {
     const val SWIPE_DECK = "swipe_deck"
     const val SEARCH_BAR = "search_bar"
     const val CHIP_GROUP = "chip_group"
+    const val NUDGE_BAR = "nudge_bar"
+    const val MARQUEE_STRIP = "marquee_strip"
+    const val ORDER_TRACKER = "order_tracker"
+    const val COMPOSED_BLOCK = "composed_block"
 }
 
 /**
@@ -84,6 +88,12 @@ data class FloatingCartSpec(
     val etaBadge: TagAtom? = null,
     val cta: ButtonAtom,
     val motion: MotionSpec? = null,
+    @SerialName("free_delivery_threshold_cents")
+    val freeDeliveryThresholdCents: Int? = null,
+    @SerialName("nudge_prefix")
+    val nudgePrefix: String? = null,
+    @SerialName("unlocked_label")
+    val unlockedLabel: String? = null,
 )
 
 /**

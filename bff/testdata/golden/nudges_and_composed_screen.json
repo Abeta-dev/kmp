@@ -1,0 +1,991 @@
+{
+  "page_id": "nudges-and-composed-demo",
+  "title": "Abeta Live Deals & Tracker",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Live Deals & Tracker",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "Nudges, marquee, live order tracking & atomic molding",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_nudges",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "demo_nudge_bar",
+      "snippet_type": "nudge_bar",
+      "data": {
+        "nudge_id": "free_delivery_nudge",
+        "title": {
+          "text": "Add $6.50 more for FREE express delivery",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.small"
+          }
+        },
+        "subtitle": {
+          "text": "74% unlocked · arrives chilled in 8 mins",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "icon": {
+          "name": "local_shipping",
+          "size_dp": 20,
+          "color": {
+            "token": "status.success"
+          }
+        },
+        "badge": {
+          "label": "NEARLY THERE",
+          "bg_color": {
+            "token": "status.success_container"
+          },
+          "motion": {
+            "loop_effect": "wiggle"
+          }
+        },
+        "countdown": {
+          "countdown_id": "nudge_slot_cd",
+          "remaining_seconds": 420,
+          "label": "Slot holds for",
+          "urgent_threshold_seconds": 60,
+          "expired_text": "00:00",
+          "on_expire": {
+            "id": "nudge_slot_expired",
+            "type": "show_toast",
+            "payload": {
+              "message": "Express slot refreshed",
+              "duration_ms": 1600,
+              "variant": "info"
+            }
+          },
+          "motion": {
+            "loop_effect": "heartbeat"
+          }
+        },
+        "progress": 0.74,
+        "cta": {
+          "id": "btn_add_filler",
+          "label": "Add $6.50",
+          "variant": "primary",
+          "size": "sm",
+          "enabled": true,
+          "on_click": {
+            "id": "nav_fresh_fillers",
+            "type": "navigate",
+            "payload": {
+              "route": "/screens/store-home",
+              "params": {
+                "section": "fillers"
+              }
+            }
+          }
+        },
+        "dismissible": true,
+        "pointer_edge": "bottom",
+        "on_dismiss": {
+          "id": "dismiss_delivery_nudge",
+          "type": "track_event",
+          "payload": {
+            "event_name": "nudge_dismissed",
+            "properties": {
+              "nudge_id": "free_delivery_nudge",
+              "surface": "nudges-and-composed-demo"
+            }
+          }
+        },
+        "on_click": {
+          "id": "tap_delivery_nudge",
+          "type": "show_toast",
+          "payload": {
+            "message": "Showing quick basket toppers",
+            "duration_ms": 1500,
+            "variant": "info"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "nudge_id": "free_delivery_nudge",
+          "snippet_id": "demo_nudge_bar"
+        }
+      },
+      "motion": {
+        "enter": "slide_down",
+        "duration_token": "fast"
+      }
+    },
+    {
+      "snippet_id": "demo_marquee_strip",
+      "snippet_type": "marquee_strip",
+      "data": {
+        "strip_id": "fresh_live_ticker",
+        "items": [
+          {
+            "id": "mq_free_delivery",
+            "text": "FREE express delivery over $25",
+            "icon": {
+              "name": "bolt",
+              "size_dp": 16,
+              "color": {
+                "token": "brand.primary"
+              }
+            },
+            "badge": {
+              "label": "LIVE",
+              "bg_color": {
+                "token": "status.success_container"
+              }
+            },
+            "on_click": {
+              "id": "tap_mq_delivery",
+              "type": "track_event",
+              "payload": {
+                "event_name": "marquee_item_tapped",
+                "properties": {
+                  "item_id": "mq_free_delivery",
+                  "strip_id": "fresh_live_ticker"
+                }
+              }
+            }
+          },
+          {
+            "id": "mq_harvest",
+            "text": "Organic Hass Avocados 33% OFF",
+            "icon": {
+              "name": "eco",
+              "size_dp": 16,
+              "color": {
+                "token": "status.success"
+              }
+            },
+            "badge": {
+              "label": "FLASH",
+              "bg_color": {
+                "token": "status.error_container"
+              }
+            }
+          },
+          {
+            "id": "mq_club",
+            "text": "Earn double Abeta Club stamps today",
+            "icon": {
+              "name": "stars",
+              "size_dp": 16,
+              "color": {
+                "token": "status.warning"
+              }
+            }
+          }
+        ],
+        "velocity_dp_per_sec": 48,
+        "separator": "•",
+        "layout": {
+          "padding": {
+            "start": 12,
+            "top": 8,
+            "end": 12,
+            "bottom": 8
+          },
+          "bg_color": {
+            "token": "surface.secondary"
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "demo_marquee_strip",
+          "strip_id": "fresh_live_ticker"
+        }
+      },
+      "motion": {
+        "enter": "fade_in",
+        "duration_token": "fast",
+        "loop_effect": "marquee"
+      }
+    },
+    {
+      "snippet_id": "demo_order_tracker",
+      "snippet_type": "order_tracker",
+      "data": {
+        "tracker_id": "order_af_4092",
+        "order_code": "#AF-4092",
+        "headline": {
+          "text": "Your Abeta Fresh basket is on the way",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "eta_countdown": {
+          "countdown_id": "order_eta_cd",
+          "remaining_seconds": 480,
+          "label": "Arriving in",
+          "urgent_threshold_seconds": 60,
+          "expired_text": "00:00",
+          "motion": {
+            "loop_effect": "pulse"
+          }
+        },
+        "eta_badge": {
+          "label": "8 MINS",
+          "bg_color": {
+            "token": "status.success_container"
+          }
+        },
+        "rider_name": "Aarav K.",
+        "rider_caption": "4.9★ · Insulated thermal pack · Zero-contact drop",
+        "steps": [
+          {
+            "id": "step_confirmed",
+            "label": "Confirmed",
+            "caption": "14:02",
+            "icon": {
+              "name": "check_circle",
+              "size_dp": 18,
+              "color": {
+                "token": "status.success"
+              }
+            },
+            "completed": true,
+            "active": false
+          },
+          {
+            "id": "step_packed",
+            "label": "Chilled & Packed",
+            "caption": "14:04",
+            "icon": {
+              "name": "inventory_2",
+              "size_dp": 18,
+              "color": {
+                "token": "status.success"
+              }
+            },
+            "completed": true,
+            "active": false
+          },
+          {
+            "id": "step_transit",
+            "label": "Out for Delivery",
+            "caption": "0.8 km away",
+            "icon": {
+              "name": "two_wheeler",
+              "size_dp": 18,
+              "color": {
+                "token": "brand.primary"
+              }
+            },
+            "completed": false,
+            "active": true
+          },
+          {
+            "id": "step_doorstep",
+            "label": "At Doorstep",
+            "caption": "ETA 8m",
+            "icon": {
+              "name": "home",
+              "size_dp": 18,
+              "color": {
+                "token": "text.tertiary"
+              }
+            },
+            "completed": false,
+            "active": false
+          }
+        ],
+        "primary_action": {
+          "id": "btn_call_courier",
+          "label": "Call Courier",
+          "variant": "primary",
+          "size": "sm",
+          "enabled": true,
+          "on_click": {
+            "id": "toast_call_courier",
+            "type": "show_toast",
+            "payload": {
+              "message": "Connecting masked voice line to Aarav K.",
+              "duration_ms": 1800,
+              "variant": "info"
+            }
+          }
+        },
+        "secondary_action": {
+          "id": "btn_order_help",
+          "label": "Order Help",
+          "variant": "outline",
+          "size": "sm",
+          "enabled": true,
+          "on_click": {
+            "id": "open_order_help",
+            "type": "open_dialog",
+            "payload": {
+              "dialog_id": "order_help_sheet",
+              "title": "Need help with #AF-4092?",
+              "message": "Live support responds in under 30 seconds for active express deliveries.",
+              "presentation": "bottom_sheet",
+              "dismissible": true
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "order_code": "#AF-4092",
+          "snippet_id": "demo_order_tracker"
+        }
+      },
+      "motion": {
+        "enter": "slide_up",
+        "duration_token": "normal"
+      }
+    },
+    {
+      "snippet_id": "demo_flash_deal_recipe",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "deal_hass_avocados",
+        "recipe_name": "flash_deal_card",
+        "root": {
+          "node_id": "deal_hass_avocados_root",
+          "kind": "card",
+          "children": [
+            {
+              "kind": "column",
+              "spacing_dp": 12,
+              "children": [
+                {
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "main_axis_arrangement": "space_between",
+                  "children": [
+                    {
+                      "kind": "tag",
+                      "tag": {
+                        "label": "FLASH DROP",
+                        "bg_color": {
+                          "token": "status.error_container"
+                        },
+                        "motion": {
+                          "loop_effect": "pulse"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "countdown",
+                      "countdown": {
+                        "countdown_id": "deal_hass_avocados_timer",
+                        "remaining_seconds": 540,
+                        "label": "Ends in",
+                        "urgent_threshold_seconds": 60,
+                        "expired_text": "00:00",
+                        "motion": {
+                          "loop_effect": "heartbeat"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "Organic Hass Avocados · Farm Pack (4 pcs)",
+                    "color": {
+                      "token": "text.primary"
+                    },
+                    "typography": {
+                      "token": "title.medium"
+                    }
+                  }
+                },
+                {
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "children": [
+                    {
+                      "kind": "rolling_counter",
+                      "counter_value": "$3.99",
+                      "counter_typography": {
+                        "token": "headline.small"
+                      },
+                      "counter_color": {
+                        "token": "brand.primary"
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "text": {
+                        "text": "$5.99",
+                        "color": {
+                          "token": "text.tertiary"
+                        },
+                        "typography": {
+                          "token": "body.small"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "divider",
+                  "divider": {
+                    "thickness_dp": 1,
+                    "color": {
+                      "token": "divider.default"
+                    }
+                  }
+                },
+                {
+                  "kind": "button",
+                  "button": {
+                    "id": "deal_hass_avocados_claim",
+                    "label": "Claim Deal",
+                    "variant": "primary",
+                    "size": "md",
+                    "enabled": true,
+                    "on_click": {
+                      "id": "claim_flash_deal_fx",
+                      "type": "trigger_feedback",
+                      "payload": {
+                        "effect": "celebration",
+                        "title": "Flash Deal Claimed!",
+                        "subtitle": "Added to your Abeta Fresh basket",
+                        "duration_ms": 1800
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 16,
+              "end": 16,
+              "bottom": 16
+            },
+            "bg_color": {
+              "token": "surface.primary"
+            },
+            "corner_radius": {
+              "all": 16
+            },
+            "border": {
+              "width_dp": 1,
+              "color": {
+                "token": "status.warning"
+              }
+            },
+            "fill_max_width": true
+          },
+          "motion": {
+            "enter": "scale_in",
+            "duration_token": "normal",
+            "loop_effect": "glow_ring"
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "composed_recipe_viewed",
+        "properties": {
+          "deal_id": "deal_hass_avocados",
+          "recipe": "flash_deal_card"
+        }
+      },
+      "motion": {
+        "enter": "slide_up",
+        "duration_token": "normal"
+      }
+    },
+    {
+      "snippet_id": "demo_loyalty_stamp_recipe",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "abeta_fresh_club",
+        "recipe_name": "loyalty_stamp_card",
+        "root": {
+          "node_id": "abeta_fresh_club_root",
+          "kind": "card",
+          "children": [
+            {
+              "kind": "column",
+              "spacing_dp": 12,
+              "children": [
+                {
+                  "kind": "row",
+                  "spacing_dp": 12,
+                  "vertical_alignment": "center",
+                  "children": [
+                    {
+                      "kind": "avatar",
+                      "avatar": {
+                        "initials": "AB",
+                        "size_dp": 36,
+                        "bg_color": {
+                          "token": "brand.container"
+                        },
+                        "text_color": {
+                          "token": "text.brand"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "column",
+                      "spacing_dp": 2,
+                      "weight": 1,
+                      "children": [
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "Abeta Fresh Club",
+                            "color": {
+                              "token": "text.primary"
+                            },
+                            "typography": {
+                              "token": "title.medium"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "2 more express orders to unlock $5 reward credit",
+                            "color": {
+                              "token": "text.secondary"
+                            },
+                            "typography": {
+                              "token": "body.small"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "tag",
+                      "tag": {
+                        "label": "3/5",
+                        "bg_color": {
+                          "token": "brand.container"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "flow_row",
+                  "spacing_dp": 8,
+                  "children": [
+                    {
+                      "kind": "icon",
+                      "icon": {
+                        "name": "check_circle",
+                        "size_dp": 24,
+                        "color": {
+                          "token": "status.success"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "icon",
+                      "icon": {
+                        "name": "check_circle",
+                        "size_dp": 24,
+                        "color": {
+                          "token": "status.success"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "icon",
+                      "icon": {
+                        "name": "check_circle",
+                        "size_dp": 24,
+                        "color": {
+                          "token": "status.success"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "icon",
+                      "icon": {
+                        "name": "radio_button_unchecked",
+                        "size_dp": 24,
+                        "color": {
+                          "token": "text.tertiary"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "icon",
+                      "icon": {
+                        "name": "radio_button_unchecked",
+                        "size_dp": 24,
+                        "color": {
+                          "token": "text.tertiary"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "progress",
+                  "progress": {
+                    "kind": "linear",
+                    "progress": 0.6,
+                    "label": "3 of 5 stamps",
+                    "color": {
+                      "token": "status.success"
+                    }
+                  }
+                },
+                {
+                  "kind": "button",
+                  "button": {
+                    "id": "abeta_fresh_club_cta",
+                    "label": "Keep Collecting",
+                    "variant": "primary",
+                    "size": "sm",
+                    "enabled": true,
+                    "on_click": {
+                      "id": "nav_loyalty_details",
+                      "type": "navigate",
+                      "payload": {
+                        "route": "/screens/profile"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 16,
+              "end": 16,
+              "bottom": 16
+            },
+            "bg_color": {
+              "token": "surface.secondary"
+            },
+            "corner_radius": {
+              "all": 16
+            },
+            "border": {
+              "width_dp": 1,
+              "color": {
+                "token": "border.subtle"
+              }
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "composed_recipe_viewed",
+        "properties": {
+          "program_id": "abeta_fresh_club",
+          "recipe": "loyalty_stamp_card"
+        }
+      },
+      "motion": {
+        "enter": "fade_in",
+        "duration_token": "normal"
+      }
+    },
+    {
+      "snippet_id": "demo_live_eta_promo_recipe",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_8min_promo",
+        "recipe_name": "live_eta_promo_card",
+        "root": {
+          "node_id": "express_8min_promo_root",
+          "kind": "card",
+          "children": [
+            {
+              "kind": "column",
+              "spacing_dp": 12,
+              "children": [
+                {
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "children": [
+                    {
+                      "kind": "icon",
+                      "icon": {
+                        "name": "bolt",
+                        "size_dp": 22,
+                        "color": {
+                          "token": "brand.primary"
+                        }
+                      },
+                      "motion": {
+                        "loop_effect": "wiggle"
+                      }
+                    },
+                    {
+                      "kind": "column",
+                      "spacing_dp": 2,
+                      "weight": 1,
+                      "children": [
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "Cold-chain groceries at your door",
+                            "color": {
+                              "token": "text.primary"
+                            },
+                            "typography": {
+                              "token": "title.medium"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "Fresh produce, artisan bakery & chilled dairy",
+                            "color": {
+                              "token": "text.secondary"
+                            },
+                            "typography": {
+                              "token": "body.small"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "tag",
+                      "tag": {
+                        "label": "8 MINS",
+                        "bg_color": {
+                          "token": "status.success_container"
+                        },
+                        "motion": {
+                          "loop_effect": "float"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "main_axis_arrangement": "space_between",
+                  "children": [
+                    {
+                      "kind": "countdown",
+                      "countdown": {
+                        "countdown_id": "express_8min_promo_slot_timer",
+                        "remaining_seconds": 480,
+                        "label": "Express slot",
+                        "urgent_threshold_seconds": 60,
+                        "expired_text": "00:00"
+                      }
+                    },
+                    {
+                      "kind": "button",
+                      "button": {
+                        "id": "express_8min_promo_shop",
+                        "label": "Shop Express",
+                        "variant": "primary",
+                        "size": "sm",
+                        "enabled": true,
+                        "on_click": {
+                          "id": "nav_express_store",
+                          "type": "navigate",
+                          "payload": {
+                            "route": "/screens/store-home"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 16,
+              "end": 16,
+              "bottom": 16
+            },
+            "bg_color": {
+              "token": "brand.container"
+            },
+            "corner_radius": {
+              "all": 16
+            },
+            "border": {
+              "width_dp": 1,
+              "color": {
+                "token": "brand.primary"
+              }
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "composed_recipe_viewed",
+        "properties": {
+          "promo_id": "express_8min_promo",
+          "recipe": "live_eta_promo_card"
+        }
+      },
+      "motion": {
+        "enter": "slide_up",
+        "duration_token": "fast"
+      }
+    }
+  ],
+  "floating_cart": {
+    "label": "2 items · $18.50",
+    "eta_badge": {
+      "label": "8 mins",
+      "bg_color": {
+        "token": "status.success_container"
+      },
+      "motion": {
+        "loop_effect": "float"
+      }
+    },
+    "cta": {
+      "id": "btn_view_cart_nudge",
+      "label": "View Cart",
+      "variant": "primary",
+      "size": "sm",
+      "enabled": true,
+      "on_click": {
+        "id": "toast_view_cart",
+        "type": "show_toast",
+        "payload": {
+          "message": "Opening express cart drawer",
+          "duration_ms": 1500,
+          "variant": "info"
+        }
+      }
+    },
+    "motion": {
+      "enter": "slide_up",
+      "exit": "slide_down",
+      "duration_token": "fast"
+    },
+    "free_delivery_threshold_cents": 2500,
+    "nudge_prefix": "Add $6.50 more for FREE express delivery",
+    "unlocked_label": "FREE express delivery unlocked!"
+  },
+  "adaptive_layout": {
+    "layout_mode": "centered",
+    "max_width_dp": 960
+  },
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "nudges-and-composed-demo",
+      "version": "v1"
+    }
+  }
+}

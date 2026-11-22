@@ -6,6 +6,8 @@ import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.actions.model.BatchPayload
 import dev.abeta.kmp.actions.model.CallApiPayload
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.ComposedBlockSnippetData
+import dev.abeta.kmp.contracts.ComposedNode
 import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.PageResponse
@@ -18,6 +20,7 @@ import dev.abeta.kmp.core.error.NetworkError
 import dev.abeta.kmp.core.error.OfflineError
 import dev.abeta.kmp.core.error.TimeoutError
 import dev.abeta.kmp.core.error.ValidationError
+import dev.abeta.kmp.layout.snippet.canRenderComposedDepth
 import dev.abeta.kmp.state.session.SessionStore
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -53,9 +56,35 @@ internal object LayoutFormSeeder {
                         seedControlValue(card.stepper.fieldId, defaultQty, existingState, sessionStore, values)
                     }
                 }
+
+                SnippetTypes.COMPOSED_BLOCK -> {
+                    runCatching {
+                        SduiJson.decodeFromJsonElement(ComposedBlockSnippetData.serializer(), snippet.data)
+                    }.getOrNull()?.let { block ->
+                        seedComposedSteppers(block.root, 0, existingState, sessionStore, values)
+                    }
+                }
             }
         }
         return values
+    }
+
+    private fun seedComposedSteppers(
+        node: ComposedNode,
+        depth: Int,
+        existingState: Map<String, JsonElement>,
+        sessionStore: SessionStore,
+        values: MutableMap<String, String>,
+    ) {
+        if (!canRenderComposedDepth(depth)) return
+        node.stepper?.let { stepper ->
+            val minQty = stepper.minQuantity.coerceAtLeast(0)
+            val defaultQty = stepper.quantity.coerceAtLeast(minQty).toString()
+            seedControlValue(stepper.fieldId, defaultQty, existingState, sessionStore, values)
+        }
+        node.children.forEach { child ->
+            seedComposedSteppers(child, depth + 1, existingState, sessionStore, values)
+        }
     }
 
     private fun seedFormValues(

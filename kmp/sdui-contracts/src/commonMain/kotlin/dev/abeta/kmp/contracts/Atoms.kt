@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 private const val DEFAULT_MAX_STEPPER_QUANTITY = 20
+private const val DEFAULT_COUNTDOWN_URGENT_SECONDS = 60
 
 /**
  * Pure wire contract for a text UI atom.
@@ -311,4 +312,25 @@ data class StepperAtom(
     @SerialName("on_decrement")
     val onDecrement: ActionRef? = null,
     val layout: LayoutConfig? = null,
+)
+
+/**
+ * Pure wire contract for a live ticking countdown timer UI atom.
+ */
+@Serializable
+data class CountdownAtom(
+    @SerialName("countdown_id")
+    val countdownId: String,
+    @SerialName("remaining_seconds")
+    val remainingSeconds: Int,
+    val label: String? = null,
+    @SerialName("urgent_threshold_seconds")
+    val urgentThresholdSeconds: Int = DEFAULT_COUNTDOWN_URGENT_SECONDS,
+    @SerialName("show_hours")
+    val showHours: Boolean = false,
+    @SerialName("expired_text")
+    val expiredText: String = "00:00",
+    @SerialName("on_expire")
+    val onExpire: ActionRef? = null,
+    val motion: MotionSpec? = null,
 )

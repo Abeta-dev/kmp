@@ -86,7 +86,7 @@ class OfflineApiCallExecutor : ApiCallExecutor {
                     idPrefix = "bites_order",
                     title = "Meal Order Placed!",
                     subtitle = "Saffron Hearth Kitchen is preparing your order",
-                    toastMessage = "Order #AB-4821 placed! Live tracking ready.",
+                    toastMessage = "Order #BTS-4091 placed! Live tracking ready.",
                 ) +
                     ActionRef(
                         id = "bites_order_nav_track",

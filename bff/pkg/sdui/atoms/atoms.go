@@ -241,9 +241,14 @@ const (
 
 // MotionLoopEffect wire identifiers for MotionSpec.LoopEffect.
 const (
-	MotionLoopNone    = "none"
-	MotionLoopPulse   = "pulse"
-	MotionLoopShimmer = "shimmer"
+	MotionLoopNone      = "none"
+	MotionLoopPulse     = "pulse"
+	MotionLoopShimmer   = "shimmer"
+	MotionLoopWiggle    = "wiggle"
+	MotionLoopFloat     = "float"
+	MotionLoopHeartbeat = "heartbeat"
+	MotionLoopGlowRing  = "glow_ring"
+	MotionLoopMarquee   = "marquee"
 )
 
 // MotionSpec describes declarative entrance/exit transitions, timing, and ambient loop effects.
@@ -268,6 +273,18 @@ type StepperAtom struct {
 	OnIncrement *actions.ActionTrigger `json:"on_increment,omitempty"`
 	OnDecrement *actions.ActionTrigger `json:"on_decrement,omitempty"`
 	Layout      *LayoutConfig          `json:"layout,omitempty"`
+}
+
+// CountdownAtom describes a live ticking countdown timer primitive with optional expiry action.
+type CountdownAtom struct {
+	CountdownID            string                 `json:"countdown_id"`
+	RemainingSeconds       int                    `json:"remaining_seconds"`
+	Label                  string                 `json:"label,omitempty"`
+	UrgentThresholdSeconds int                    `json:"urgent_threshold_seconds,omitempty"`
+	ShowHours              bool                   `json:"show_hours,omitempty"`
+	ExpiredText            string                 `json:"expired_text,omitempty"`
+	OnExpire               *actions.ActionTrigger `json:"on_expire,omitempty"`
+	Motion                 *MotionSpec            `json:"motion,omitempty"`
 }
 
 // ── Pure Constructors & Pointer Helpers ────────────────────────────────────────
@@ -413,5 +430,17 @@ func NewStepper(fieldID, label string, quantity int, onIncrement, onDecrement *a
 		Enabled:     BoolPtr(true),
 		OnIncrement: onIncrement,
 		OnDecrement: onDecrement,
+	}
+}
+
+// NewCountdown creates a CountdownAtom with default urgency threshold (60s)
+// and expired display text ("00:00").
+func NewCountdown(id string, remainingSeconds int, label string) CountdownAtom {
+	return CountdownAtom{
+		CountdownID:            id,
+		RemainingSeconds:       remainingSeconds,
+		Label:                  label,
+		UrgentThresholdSeconds: 60,
+		ExpiredText:            "00:00",
 	}
 }

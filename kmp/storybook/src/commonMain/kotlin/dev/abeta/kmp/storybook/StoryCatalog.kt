@@ -40,6 +40,9 @@ object StoryCatalog {
     const val STORY_LIVE_BFF = "live-bff-explorer"
     const val STORY_RESPONSIVE_BRIDGES = "responsive-bridges"
     const val STORY_DISCOVERY_SEARCH = "discovery-search"
+    const val STORY_ANIMATION_NUDGES = "animation-nudges"
+    const val STORY_SNIPPET_CRAFTER = "snippet-crafter"
+    const val STORY_E2E_JOURNEYS = "e2e-journeys"
 
     val entries: List<StoryEntry> =
         listOf(
@@ -94,10 +97,10 @@ object StoryCatalog {
             ),
             StoryEntry(
                 id = STORY_SNIPPETS,
-                title = "All 17 Snippets",
+                title = "All 21 Snippets",
                 category = StoryCategory.SNIPPETS,
-                subtitle = "BuiltInSnippetModule · All 17 Canonical SDUI SnippetTypes",
-                description = "Interactive gallery rendering all 17 SDUI snippets via SnippetRegistry.",
+                subtitle = "BuiltInSnippetModule · All 21 Canonical SDUI SnippetTypes",
+                description = "Interactive gallery rendering all 21 SDUI snippets via SnippetRegistry.",
             ),
             StoryEntry(
                 id = STORY_PLAYGROUND,
@@ -134,6 +137,31 @@ object StoryCatalog {
                 subtitle = "SwipeDeck · SearchBar · ChipGroup · Live Match Celebration",
                 description =
                     "Interactive swipe card stack with drag gestures, search bar query binding, and filter chips.",
+            ),
+            StoryEntry(
+                id = STORY_ANIMATION_NUDGES,
+                title = "Animation & Nudges Lab",
+                category = StoryCategory.PLAYGROUND,
+                subtitle = "7 Motion Loops · Rolling Counter · Urgency Countdown · Cart Threshold Nudge",
+                description =
+                    "Interactive test bench for quick-commerce nudges, press bounce, live order tracker, " +
+                        "and reduced motion.",
+            ),
+            StoryEntry(
+                id = STORY_SNIPPET_CRAFTER,
+                title = "Atomic Snippet Crafter",
+                category = StoryCategory.PLAYGROUND,
+                subtitle = "ComposedBlock Molding Engine · Live Visual Builder · Real-Time Wire JSON",
+                description =
+                    "Mold unlimited server-driven snippets from stateless atoms and containers with zero app releases.",
+            ),
+            StoryEntry(
+                id = STORY_E2E_JOURNEYS,
+                title = "End-to-End App Journeys",
+                category = StoryCategory.PLAYGROUND,
+                subtitle = "Complete Multi-Step Super-App Flows · Browse -> Cart Nudge -> Confetti -> Rider Tracker",
+                description =
+                    "Walk through full Abeta Fresh, Abeta Spark, and Abeta Trade user journeys inside Storybook.",
             ),
         )
 

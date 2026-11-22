@@ -16,8 +16,6 @@ import dev.abeta.kmp.contracts.MotionSpec
 import dev.abeta.kmp.contracts.MotionTransition
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.ProductCardSnippetData
-import dev.abeta.kmp.contracts.ProgressAtom
-import dev.abeta.kmp.contracts.ProgressKind
 import dev.abeta.kmp.contracts.ResponsiveColumnsSpec
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
@@ -139,11 +137,19 @@ internal object SampleVerticalsCommerce {
             snippets =
                 listOf(
                     search,
+                    SampleNudgeAndTrackerPrimitives.expressPerksMarquee("fresh_perks_marquee", "fresh_express_perks"),
                     ui.chipGroupEnvelope("fresh_category_chips", "fresh_categories", "fresh-home", chips),
+                    SampleNudgeAndTrackerPrimitives.flashDropNudgeBar("fresh_flash_nudge", "fresh_flash_drop"),
                     banner,
+                    SampleComposedBlockRecipes.loyaltyStampComposedBlock("fresh_loyalty_block", "fresh_loyalty_stamps"),
                     buildProductGrid("fresh_grid", "Express Essentials", freshSkus),
                 ),
-            floatingCart = ui.floatingCart("2 items · \$6.78", "8 MINS", "Express Checkout", expressOrder),
+            floatingCart =
+                SampleNudgeAndTrackerPrimitives.expressFloatingCart(
+                    label = "2 items · \$6.78",
+                    ctaLabel = "Express Checkout",
+                    action = expressOrder,
+                ),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
@@ -207,32 +213,20 @@ internal object SampleVerticalsCommerce {
     }
 
     fun bitesOrderTrack(): PageResponse {
-        val steps =
-            listOf(
-                Triple("Order Confirmed", "Saffron Hearth Kitchen accepted #AB-4821", "DONE"),
-                Triple("Chef Preparing", "Sealed hot in insulated eco-packaging", "DONE"),
-                Triple("Rider En Route", "Karan M. is 1.2 km away on e-bike", "LIVE"),
-                Triple("Doorstep Handoff", "Contactless drop with live photo proof", "NEXT"),
-            ).mapIndexed { idx, (title, subtitle, state) ->
-                val icon = if (state == "DONE") "check" to "status.success" else "info" to "brand.primary"
-                val tagBg = if (state == "LIVE") BRAND_BG else OK_BG
-                ui.actionRowEnvelope("track_step_$idx", title, subtitle, icon, state to tagBg)
-            }
-        val progress =
-            ProgressAtom(
-                kind = ProgressKind.LINEAR,
-                progress = 0.72f,
-                label = "1.2 km remaining",
-                color = ColorTokenRef("brand.primary"),
+        val dropInfo =
+            ui.actionRowEnvelope(
+                snippetId = "bites_contactless_row",
+                title = "Contactless Doorstep Drop",
+                subtitle = "Photo proof uploaded automatically when Karan M. arrives",
+                icon = "check" to "status.success",
+                tag = "ACTIVE" to OK_BG,
+                onClick = ui.toastAction("bites_drop_pref", "Contactless drop instructions confirmed", "success"),
             )
-        val banner = ui.bannerEnvelope("track_eta_banner", "Rider On The Way", "Arriving in 14 mins.", "14 MINS")
-        val metric =
-            ui.metricEnvelope("track_progress", "Delivery Progress", "72% Complete", "ON TIME", progress = progress)
         return PageResponse(
             pageId = "bites-order-track",
-            title = "Track Order #AB-4821",
-            toolbar = ui.verticalToolbar("Order #AB-4821", "Arriving in 14 mins · Abeta Bites", "back_bites_track"),
-            snippets = listOf(banner, metric) + steps,
+            title = "Track Order #BTS-4091",
+            toolbar = ui.verticalToolbar("Order #BTS-4091", "Arriving in 11 mins · Abeta Bites", "back_bites_track"),
+            snippets = listOf(SampleNudgeAndTrackerPrimitives.bitesOrderTrackerEnvelope(), dropInfo),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
@@ -267,6 +261,7 @@ internal object SampleVerticalsCommerce {
             snippets =
                 listOf(
                     search,
+                    SampleNudgeAndTrackerPrimitives.martPerksMarquee(),
                     ui.chipGroupEnvelope("mart_category_chips", "mart_categories", "mart-home", cats),
                     carousel,
                     buildProductGrid("mart_products_grid", "Trending on Abeta Mart", martSkus),

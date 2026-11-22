@@ -79,7 +79,12 @@ func TestAtomsJSONWireCompatibility(t *testing.T) {
 	}
 	if atoms.MotionLoopNone != "none" ||
 		atoms.MotionLoopPulse != "pulse" ||
-		atoms.MotionLoopShimmer != "shimmer" {
+		atoms.MotionLoopShimmer != "shimmer" ||
+		atoms.MotionLoopWiggle != "wiggle" ||
+		atoms.MotionLoopFloat != "float" ||
+		atoms.MotionLoopHeartbeat != "heartbeat" ||
+		atoms.MotionLoopGlowRing != "glow_ring" ||
+		atoms.MotionLoopMarquee != "marquee" {
 		t.Fatal("unexpected MotionLoopEffect constant values")
 	}
 
@@ -197,4 +202,14 @@ func TestAtomsJSONWireCompatibility(t *testing.T) {
 	stp.MaxQuantity = 10
 	stp.Layout = layout
 	assertHasKeys(t, stp, "field_id", "label", "quantity", "min_quantity", "max_quantity", "enabled", "on_increment", "on_decrement", "layout")
+
+	cd := atoms.NewCountdown("flash_timer", 540, "Ends in")
+	if cd.CountdownID != "flash_timer" || cd.RemainingSeconds != 540 || cd.Label != "Ends in" || cd.UrgentThresholdSeconds != 60 || cd.ExpiredText != "00:00" || cd.ShowHours {
+		t.Fatalf("unexpected default CountdownAtom: %+v", cd)
+	}
+	expireAct := actions.NewShowToastAction("cd_expired", actions.ShowToastPayload{Message: "Offer expired"})
+	cd.ShowHours = true
+	cd.OnExpire = &expireAct
+	cd.Motion = &atoms.MotionSpec{LoopEffect: atoms.MotionLoopHeartbeat}
+	assertHasKeys(t, cd, "countdown_id", "remaining_seconds", "label", "urgent_threshold_seconds", "show_hours", "expired_text", "on_expire", "motion")
 }

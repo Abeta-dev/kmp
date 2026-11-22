@@ -447,6 +447,20 @@ private fun PlaygroundAndSnippetStage(
         StoryCatalog.STORY_LIVE_BFF -> LiveBffStory(onAction)
         StoryCatalog.STORY_RESPONSIVE_BRIDGES -> ResponsiveAndBridgesStory(onAction)
         StoryCatalog.STORY_DISCOVERY_SEARCH -> DiscoveryAndSearchStory(onAction)
+        else -> LabAndJourneyStage(storyId = storyId, onAction = onAction)
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun LabAndJourneyStage(
+    storyId: String,
+    onAction: (ActionRef) -> Unit,
+) {
+    when (storyId) {
+        StoryCatalog.STORY_ANIMATION_NUDGES -> AnimationNudgesStory(onAction)
+        StoryCatalog.STORY_SNIPPET_CRAFTER -> SnippetCrafterStory(onAction)
+        StoryCatalog.STORY_E2E_JOURNEYS -> EndToEndJourneysStory(onAction)
         else -> IntroductionStory()
     }
 }

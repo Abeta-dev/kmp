@@ -114,7 +114,7 @@ class SduiKoinModuleTest {
         assertNotNull(koin.get<HttpTransport>())
         assertIs<CachedScreenRepository>(koin.get<ScreenRepository>())
         assertNotNull(koin.get<ApiCallExecutor>())
-        assertEquals(17, koin.get<SnippetRegistry>().registeredTypes().size)
+        assertEquals(21, koin.get<SnippetRegistry>().registeredTypes().size)
         assertNotNull(koin.get<ActionDecoderRegistry>())
         assertNotNull(koin.get<ActionRegistry>())
         assertNotNull(koin.get<ActionDispatcher>())

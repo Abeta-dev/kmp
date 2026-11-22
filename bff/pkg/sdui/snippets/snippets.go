@@ -12,23 +12,27 @@ import (
 
 // Snippet type wire identifiers.
 const (
-	SnippetTypeHeader      = "header_v1"
-	SnippetTypeBanner      = "banner_v1"
-	SnippetTypeMetricCard  = "metric_card"
-	SnippetTypeCard        = "card_v1"
-	SnippetTypeActionRow   = "action_row"
-	SnippetTypeForm        = "form_v1"
-	SnippetTypeEmptyState  = "empty_state"
-	SnippetTypeDivider     = "divider"
-	SnippetTypeSpacer      = "spacer"
-	SnippetTypeCarousel    = "carousel"
-	SnippetTypeGrid        = "grid"
-	SnippetTypeTabs        = "tabs"
-	SnippetTypeAccordion   = "accordion"
-	SnippetTypeProductCard = "product_card"
-	SnippetTypeSwipeDeck   = "swipe_deck"
-	SnippetTypeSearchBar   = "search_bar"
-	SnippetTypeChipGroup   = "chip_group"
+	SnippetTypeHeader        = "header_v1"
+	SnippetTypeBanner        = "banner_v1"
+	SnippetTypeMetricCard    = "metric_card"
+	SnippetTypeCard          = "card_v1"
+	SnippetTypeActionRow     = "action_row"
+	SnippetTypeForm          = "form_v1"
+	SnippetTypeEmptyState    = "empty_state"
+	SnippetTypeDivider       = "divider"
+	SnippetTypeSpacer        = "spacer"
+	SnippetTypeCarousel      = "carousel"
+	SnippetTypeGrid          = "grid"
+	SnippetTypeTabs          = "tabs"
+	SnippetTypeAccordion     = "accordion"
+	SnippetTypeProductCard   = "product_card"
+	SnippetTypeSwipeDeck     = "swipe_deck"
+	SnippetTypeSearchBar     = "search_bar"
+	SnippetTypeChipGroup     = "chip_group"
+	SnippetTypeNudgeBar      = "nudge_bar"
+	SnippetTypeMarqueeStrip  = "marquee_strip"
+	SnippetTypeOrderTracker  = "order_tracker"
+	SnippetTypeComposedBlock = "composed_block"
 )
 
 // SnippetEnvelope wraps any typed snippet payload with identity, hierarchy, and tracking metadata.
@@ -79,10 +83,13 @@ type BottomBarSpec struct {
 
 // FloatingCartSpec describes a persistent floating cart dock overlaid on an SDUI page.
 type FloatingCartSpec struct {
-	Label    string            `json:"label"`
-	EtaBadge *atoms.TagAtom    `json:"eta_badge,omitempty"`
-	CTA      atoms.ButtonAtom  `json:"cta"`
-	Motion   *atoms.MotionSpec `json:"motion,omitempty"`
+	Label                      string            `json:"label"`
+	EtaBadge                   *atoms.TagAtom    `json:"eta_badge,omitempty"`
+	CTA                        atoms.ButtonAtom  `json:"cta"`
+	Motion                     *atoms.MotionSpec `json:"motion,omitempty"`
+	FreeDeliveryThresholdCents *int              `json:"free_delivery_threshold_cents,omitempty"`
+	NudgePrefix                string            `json:"nudge_prefix,omitempty"`
+	UnlockedLabel              string            `json:"unlocked_label,omitempty"`
 }
 
 // PaginationSpec describes cursor-based pagination metadata and an optional load-more trigger.

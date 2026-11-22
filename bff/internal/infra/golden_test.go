@@ -513,4 +513,52 @@ func TestGoldenFixtures_RoundTrip(t *testing.T) {
 	if deckData.Cards[0].CardID != "card_maya_chen" || deckData.Cards[0].DistanceText == nil || len(deckData.Cards[0].Tags) != 2 || deckData.Cards[0].OnSuperLike == nil {
 		t.Fatalf("unexpected interactive swipe_deck card[0]: %+v", deckData.Cards[0])
 	}
+
+	nudgesPage := canonicalNudgesAndComposedScreen()
+	nudgesBytes := writeOrCompareGolden(t, "nudges_and_composed_screen.json", nudgesPage)
+	assertStringOnlyTrackingProperties(t, nudgesBytes)
+
+	var decodedNudges snippets.PageResponse
+	if err := json.Unmarshal(nudgesBytes, &decodedNudges); err != nil {
+		t.Fatalf("round-trip unmarshal nudges_and_composed_screen.json: %v", err)
+	}
+	if decodedNudges.PageID != "nudges-and-composed-demo" || len(decodedNudges.Snippets) != 6 || decodedNudges.FloatingCart == nil {
+		t.Fatalf("unexpected decoded nudges_and_composed screen: %+v", decodedNudges)
+	}
+	if decodedNudges.FloatingCart.FreeDeliveryThresholdCents == nil || *decodedNudges.FloatingCart.FreeDeliveryThresholdCents != 2500 || decodedNudges.FloatingCart.NudgePrefix == "" || decodedNudges.FloatingCart.UnlockedLabel == "" {
+		t.Fatalf("unexpected floating_cart free-delivery nudge fields: %+v", decodedNudges.FloatingCart)
+	}
+	if decodedNudges.Snippets[0].SnippetType != snippets.SnippetTypeNudgeBar ||
+		decodedNudges.Snippets[1].SnippetType != snippets.SnippetTypeMarqueeStrip ||
+		decodedNudges.Snippets[2].SnippetType != snippets.SnippetTypeOrderTracker ||
+		decodedNudges.Snippets[3].SnippetType != snippets.SnippetTypeComposedBlock ||
+		decodedNudges.Snippets[4].SnippetType != snippets.SnippetTypeComposedBlock ||
+		decodedNudges.Snippets[5].SnippetType != snippets.SnippetTypeComposedBlock {
+		t.Fatalf("unexpected snippet types in nudges_and_composed_screen.json")
+	}
+
+	nudgeData, err := snippets.DecodeSnippetData[snippets.NudgeBarSnippetData](decodedNudges.Snippets[0])
+	if err != nil || nudgeData.NudgeID != "free_delivery_nudge" || nudgeData.Countdown == nil || nudgeData.Progress == nil || *nudgeData.Progress != 0.74 || !nudgeData.Dismissible || nudgeData.PointerEdge != snippets.PointerEdgeBottom {
+		t.Fatalf("unexpected nudge_bar golden data: %+v, err=%v", nudgeData, err)
+	}
+	marqueeData, err := snippets.DecodeSnippetData[snippets.MarqueeStripSnippetData](decodedNudges.Snippets[1])
+	if err != nil || marqueeData.StripID != "fresh_live_ticker" || len(marqueeData.Items) != 3 || marqueeData.VelocityDpPerSec != 48 || marqueeData.Separator != "•" {
+		t.Fatalf("unexpected marquee_strip golden data: %+v, err=%v", marqueeData, err)
+	}
+	trackerData, err := snippets.DecodeSnippetData[snippets.OrderTrackerSnippetData](decodedNudges.Snippets[2])
+	if err != nil || trackerData.TrackerID != "order_af_4092" || trackerData.OrderCode != "#AF-4092" || trackerData.EtaCountdown == nil || trackerData.EtaBadge == nil || len(trackerData.Steps) != 4 || trackerData.PrimaryAction == nil || trackerData.SecondaryAction == nil {
+		t.Fatalf("unexpected order_tracker golden data: %+v, err=%v", trackerData, err)
+	}
+	flashData, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](decodedNudges.Snippets[3])
+	if err != nil || flashData.RecipeName != "flash_deal_card" || flashData.Root.Kind != snippets.ComposedNodeCard {
+		t.Fatalf("unexpected flash_deal composed_block golden data: %+v, err=%v", flashData, err)
+	}
+	loyaltyData, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](decodedNudges.Snippets[4])
+	if err != nil || loyaltyData.RecipeName != "loyalty_stamp_card" || loyaltyData.Root.Kind != snippets.ComposedNodeCard {
+		t.Fatalf("unexpected loyalty_stamp composed_block golden data: %+v, err=%v", loyaltyData, err)
+	}
+	etaPromoData, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](decodedNudges.Snippets[5])
+	if err != nil || etaPromoData.RecipeName != "live_eta_promo_card" || etaPromoData.Root.Kind != snippets.ComposedNodeCard {
+		t.Fatalf("unexpected live_eta_promo composed_block golden data: %+v, err=%v", etaPromoData, err)
+	}
 }

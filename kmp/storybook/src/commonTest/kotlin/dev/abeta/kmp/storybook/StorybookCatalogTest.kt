@@ -40,14 +40,17 @@ class StorybookCatalogTest {
                 StoryCatalog.STORY_LIVE_BFF,
                 StoryCatalog.STORY_RESPONSIVE_BRIDGES,
                 StoryCatalog.STORY_DISCOVERY_SEARCH,
+                StoryCatalog.STORY_ANIMATION_NUDGES,
+                StoryCatalog.STORY_SNIPPET_CRAFTER,
+                StoryCatalog.STORY_E2E_JOURNEYS,
             )
-        assertEquals(13, entries.size)
+        assertEquals(16, entries.size)
         assertEquals(expectedIds, uniqueIds)
         assertEquals(StoryCatalog.STORY_INTRODUCTION, StoryCatalog.findById("unknown").id)
     }
 
     @Test
-    fun `snippet gallery samples cover all 17 canonical snippet types`() {
+    fun `snippet gallery samples cover all 21 canonical snippet types`() {
         val registry = BuiltInSnippetModule.createDefaultRegistry()
         val samples = SnippetsSamples.allItems()
         val sampleTypes = samples.map { it.envelope.snippetType }.toSet()
@@ -70,6 +73,10 @@ class StorybookCatalogTest {
                 SnippetTypes.SEARCH_BAR,
                 SnippetTypes.CHIP_GROUP,
                 SnippetTypes.SWIPE_DECK,
+                SnippetTypes.NUDGE_BAR,
+                SnippetTypes.MARQUEE_STRIP,
+                SnippetTypes.ORDER_TRACKER,
+                SnippetTypes.COMPOSED_BLOCK,
             )
 
         assertEquals(expectedTypes.size, samples.size)
@@ -80,6 +87,22 @@ class StorybookCatalogTest {
             val renderer = assertNotNull(registry.resolve(sample.envelope.snippetType))
             val decoded = renderer.decode(sample.envelope.data)
             assertTrue(decoded is AppResult.Success, "Failed to decode ${sample.envelope.snippetType}")
+        }
+    }
+
+    @Test
+    fun `snippet crafter presets mold valid composed block wire contracts`() {
+        val registry = BuiltInSnippetModule.createDefaultRegistry()
+        val composedRenderer = assertNotNull(registry.resolve(SnippetTypes.COMPOSED_BLOCK))
+        for (preset in CrafterPreset.entries) {
+            for (root in CrafterRootContainer.entries) {
+                val config = SnippetCrafterPresets.defaultConfigFor(preset).copy(rootContainer = root)
+                val envelope = SnippetCrafterPresets.buildMoldedEnvelope(config = config, stepperQty = 2)
+                assertEquals(SnippetTypes.COMPOSED_BLOCK, envelope.snippetType)
+                assertTrue(composedRenderer.decode(envelope.data) is AppResult.Success)
+                val json = SnippetCrafterPresets.formatEnvelopeJson(envelope)
+                assertTrue(json.contains(preset.recipeName))
+            }
         }
     }
 

@@ -217,6 +217,21 @@ enum class MotionLoopEffect {
 
     @SerialName("shimmer")
     SHIMMER,
+
+    @SerialName("wiggle")
+    WIGGLE,
+
+    @SerialName("float")
+    FLOAT,
+
+    @SerialName("heartbeat")
+    HEARTBEAT,
+
+    @SerialName("glow_ring")
+    GLOW_RING,
+
+    @SerialName("marquee")
+    MARQUEE,
 }
 
 /**
