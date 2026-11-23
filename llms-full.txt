@@ -12,7 +12,7 @@ The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source r
 1. **`Abeta-dev/kmp` (this repository — Client Kit & Canonical `v1` Wire Contracts)**:
    - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** + `bom` + `dependencies`).
    - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.3.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
-   - Runnable **6-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **16-story End-to-End Interactive Storybook** (`kmp/storybook`).
+   - Runnable **6-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **17-story End-to-End Interactive Storybook** (`kmp/storybook`, with all 6 Super-App verticals playable live in WasmJS browser).
 2. **`Abeta-dev/layout-engine`** (`https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt`):
    - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics.
 3. **`Abeta-dev/sdui-bff`** (`https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt`):
@@ -331,12 +331,13 @@ import (
 
 Core reference screens in `sample-app` & `bff/`: `home`, `store-home` (with `marquee_strip`, Flash Drop `nudge_bar`, `composed_block` loyalty stamp card, and `$15` free-delivery `FloatingCartSpec`), `catalog`, `profile`, `form-demo`, `containers`, `watch-status`.
 
-### Interactive 16-Story End-to-End Storybook (`kmp/storybook`)
-4 categories across Desktop JVM, WasmJS Browser, macOS Cocoa, and iOS (`AbetaStorybookKit.xcframework`):
+### Interactive 17-Story End-to-End Storybook (`kmp/storybook`)
+5 categories across Desktop JVM, WasmJS Browser (`?story=<id>&app=<screenId>` deep linking), macOS Cocoa, and iOS (`AbetaStorybookKit.xcframework`):
+- **Live Super-App Demos**: `super-app-demos` — all 6 multi-screen Super-App verticals (**Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**) + **Abeta Watch** running interactively in browser with zero backend required, live `?q=` search & `?filter=` chip filtering, Phone/Tablet/Full viewport switcher, and celebration overlays
 - **Foundations**: `introduction`, `design-tokens` (WCAG contrast, 17 type roles, 3 theme presets)
 - **UI Atoms**: `atom-button`, `atom-text-tag`, `atom-text-field`, `atom-media-feedback`, `atom-controls-data`
 - **SDUI Snippets**: `sdui-snippets` ("All 21 Snippets" via `BuiltInSnippetModule`)
-- **Playground**: `sdui-playground`, `motion-store`, `live-bff-explorer` (all 6 Super-App slugs + `watch-status`), `responsive-bridges`, `discovery-search` (`SwipeDeck`, `SearchBar`, `ChipGroup`), `animation-nudges` (**Animation & Nudges Lab** — 7 motion loops, `UiRollingCounter`, `UiCountdown`, cart threshold nudge, `order_tracker`), `snippet-crafter` (**Atomic Snippet Crafter** — live `ComposedBlock` visual builder & wire JSON inspector), `e2e-journeys` (**End-to-End App Journeys** — multi-step Abeta Fresh, Spark & Trade walkthroughs)
+- **Playground**: `sdui-playground`, `motion-store`, `live-bff-explorer` (Built-in Demo Backend + Remote Go BFF across all 6 Super-App slugs + `watch-status`), `responsive-bridges`, `discovery-search` (`SwipeDeck`, `SearchBar`, `ChipGroup`), `animation-nudges` (**Animation & Nudges Lab** — 7 motion loops, `UiRollingCounter`, `UiCountdown`, cart threshold nudge, `order_tracker`), `snippet-crafter` (**Atomic Snippet Crafter** — live `ComposedBlock` visual builder & wire JSON inspector), `e2e-journeys` (**End-to-End App Journeys** — multi-step Abeta Fresh, Spark & Trade walkthroughs)
 
 ---
 

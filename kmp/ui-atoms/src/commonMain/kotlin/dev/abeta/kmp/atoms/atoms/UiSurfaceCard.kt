@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,45 +40,31 @@ fun UiSurfaceCard(
     val spacing = ThemeTokens.spacing
     val cornerRadius = ThemeTokens.cornerRadius
     val strokeWidth = ThemeTokens.strokeWidth
-    val motion = ThemeTokens.motion
 
     val interactionSource = if (onClick != null) remember { MutableInteractionSource() } else null
-    val isPressed = interactionSource?.collectIsPressedAsState()?.value == true
-    val pressScale by animateFloatAsState(
-        targetValue = if (isPressed && !motion.reducedMotion) CARD_PRESS_SCALE else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
-        label = "surface_card_press_scale",
-    )
-
-    val scaledModifier =
-        if (onClick != null) {
-            modifier.graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            }
-        } else {
-            modifier
-        }
-
+    val scaledModifier = applyCardPressScale(modifier = modifier, interactionSource = interactionSource)
     val defaultShape = RoundedCornerShape(cornerRadius.md)
     val baseModifier =
-        if (layout == null) {
-            scaledModifier
-                .clip(defaultShape)
-                .background(colors.surface.elevated, defaultShape)
-                .border(strokeWidth.thin, colors.border.subtle, defaultShape)
-                .padding(spacing.space16)
-        } else {
-            if (layout.bgColor == null && layout.cornerRadius == null) {
+        when {
+            layout == null -> {
+                scaledModifier
+                    .clip(defaultShape)
+                    .background(colors.surface.elevated, defaultShape)
+                    .border(strokeWidth.thin, colors.border.subtle, defaultShape)
+                    .padding(spacing.space16)
+            }
+
+            layout.bgColor == null && layout.cornerRadius == null -> {
                 scaledModifier
                     .clip(defaultShape)
                     .background(colors.surface.elevated, defaultShape)
                     .applyLayoutConfig(layout)
-            } else {
+            }
+
+            else -> {
                 scaledModifier.applyLayoutConfig(layout)
             }
         }
-
     val interactiveModifier =
         if (onClick != null && interactionSource != null) {
             baseModifier.clickable(
@@ -91,8 +76,26 @@ fun UiSurfaceCard(
             baseModifier
         }
 
-    Column(
-        modifier = interactiveModifier,
-        content = content,
-    )
+    Column(modifier = interactiveModifier, content = content)
+}
+
+@Composable
+private fun applyCardPressScale(
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource?,
+): Modifier {
+    if (interactionSource == null) return modifier
+    val motion = ThemeTokens.motion
+    val isPressed = interactionSource.collectIsPressedAsState().value
+    val pressScaleState =
+        animateFloatAsState(
+            targetValue = if (isPressed && !motion.reducedMotion) CARD_PRESS_SCALE else 1f,
+            animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
+            label = "surface_card_press_scale",
+        )
+    return modifier.graphicsLayer {
+        val scale = pressScaleState.value
+        scaleX = scale
+        scaleY = scale
+    }
 }

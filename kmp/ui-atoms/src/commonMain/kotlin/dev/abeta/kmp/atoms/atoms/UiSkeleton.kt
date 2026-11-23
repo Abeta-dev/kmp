@@ -15,10 +15,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.modifiers.applyLayoutConfig
 import dev.abeta.kmp.contracts.SkeletonAtom
@@ -73,11 +74,11 @@ fun UiSkeleton(
     val motion = ThemeTokens.motion
     val opacity = ThemeTokens.opacity
 
-    val fillAlpha =
+    val shimmerAlphaState =
         if (motion.reducedMotion) {
-            opacity.muted
+            null
         } else {
-            rememberShimmerAlpha(durationMs = motion.slowMs * SHIMMER_CYCLE_MULTIPLIER)
+            rememberShimmerAlphaState(durationMs = motion.slowMs * SHIMMER_CYCLE_MULTIPLIER)
         }
 
     val shape = resolveSkeletonShape(atom.kind, cornerRadius)
@@ -86,19 +87,31 @@ fun UiSkeleton(
             atom = atom,
             baseModifier = modifier.applyLayoutConfig(atom.layout),
         )
+    val alphaModifier =
+        if (shimmerAlphaState != null) {
+            sizedModifier.graphicsLayer { alpha = shimmerAlphaState.value }
+        } else {
+            sizedModifier
+        }
+    val fillColor =
+        if (shimmerAlphaState != null) {
+            colors.background.tertiary
+        } else {
+            colors.background.tertiary.copy(alpha = opacity.muted)
+        }
 
     Box(
         modifier =
-            sizedModifier
+            alphaModifier
                 .clip(shape)
-                .background(colors.background.tertiary.copy(alpha = fillAlpha), shape),
+                .background(fillColor, shape),
     )
 }
 
 @Composable
-private fun rememberShimmerAlpha(durationMs: Int): Float {
+private fun rememberShimmerAlphaState(durationMs: Int): State<Float> {
     val transition = rememberInfiniteTransition(label = "skeleton_shimmer")
-    val alpha by transition.animateFloat(
+    return transition.animateFloat(
         initialValue = SHIMMER_MIN_ALPHA,
         targetValue = SHIMMER_MAX_ALPHA,
         animationSpec =
@@ -108,7 +121,6 @@ private fun rememberShimmerAlpha(durationMs: Int): Float {
             ),
         label = "skeleton_alpha",
     )
-    return alpha
 }
 
 private fun resolveSkeletonSizeModifier(

@@ -112,15 +112,19 @@ private class LiveBffHolder(
 fun LiveBffStory(onAction: (ActionRef) -> Unit) {
     val spacing = ThemeTokens.spacing
     val scope = rememberCoroutineScope()
+    var useBuiltInDemo by remember { mutableStateOf(true) }
     var urlInput by remember { mutableStateOf(DEFAULT_BFF_URL) }
     var activeUrl by remember { mutableStateOf(DEFAULT_BFF_URL) }
-    var selectedScreen by remember { mutableStateOf(BFF_SCREENS.first()) }
-    var fetchCount by remember { mutableIntStateOf(0) }
+    var selectedScreen by remember { mutableStateOf("fresh-home") }
+    var fetchCount by remember { mutableIntStateOf(1) }
     var previewOverlay by remember { mutableStateOf<ActionOutcome.OverlayRequested?>(null) }
 
-    val holder = remember(activeUrl) { createLiveBffHolder(activeUrl, scope) { selectedScreen = it } }
+    val holder =
+        remember(activeUrl, useBuiltInDemo) {
+            createLiveBffHolder(activeUrl, useBuiltInDemo, scope) { selectedScreen = it }
+        }
     DisposableEffect(holder) { onDispose { holder.httpClient.close() } }
-    LaunchedEffect(holder, fetchCount) {
+    LaunchedEffect(holder, fetchCount, selectedScreen, useBuiltInDemo) {
         if (fetchCount > 0) holder.controller.loadScreen(selectedScreen)
     }
 
@@ -137,11 +141,19 @@ fun LiveBffStory(onAction: (ActionRef) -> Unit) {
 
     Column(verticalArrangement = Arrangement.spacedBy(spacing.space16)) {
         LiveBffControlsCard(
+            useBuiltInDemo = useBuiltInDemo,
             urlInput = urlInput,
             selectedScreen = selectedScreen,
             uiState = uiState,
+            onModeChange = { builtIn ->
+                useBuiltInDemo = builtIn
+                fetchCount += 1
+            },
             onUrlChange = { urlInput = it },
-            onSelectScreen = { selectedScreen = it },
+            onSelectScreen = { screen ->
+                selectedScreen = screen
+                if (useBuiltInDemo) fetchCount += 1
+            },
             onFetch = {
                 previewOverlay = null
                 activeUrl = urlInput.trim().ifEmpty { DEFAULT_BFF_URL }
@@ -165,9 +177,11 @@ fun LiveBffStory(onAction: (ActionRef) -> Unit) {
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
 private fun LiveBffControlsCard(
+    useBuiltInDemo: Boolean,
     urlInput: String,
     selectedScreen: String,
     uiState: LayoutUiState,
+    onModeChange: (Boolean) -> Unit,
     onUrlChange: (String) -> Unit,
     onSelectScreen: (String) -> Unit,
     onFetch: () -> Unit,
@@ -185,25 +199,14 @@ private fun LiveBffControlsCard(
             UiText(TextAtom(text = "Live Go BFF Screen Explorer", typography = TypographyTokenRef("title.large")))
             UiTag(TagAtom(label = statusText, variant = statusTone))
         }
-        OutlinedTextField(
-            value = urlInput,
-            onValueChange = onUrlChange,
-            label = { Text("BFF Base URL") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(top = spacing.space8),
+        LiveBffModeAndScreenSelectors(
+            useBuiltInDemo = useBuiltInDemo,
+            urlInput = urlInput,
+            selectedScreen = selectedScreen,
+            onModeChange = onModeChange,
+            onUrlChange = onUrlChange,
+            onSelectScreen = onSelectScreen,
         )
-        FlowRow(
-            modifier = Modifier.padding(top = spacing.space8),
-            horizontalArrangement = Arrangement.spacedBy(spacing.space8),
-        ) {
-            BFF_SCREENS.forEach { screenId ->
-                FilterChip(
-                    selected = selectedScreen == screenId,
-                    onClick = { onSelectScreen(screenId) },
-                    label = { Text(screenId) },
-                )
-            }
-        }
         FlowRow(
             modifier = Modifier.padding(top = spacing.space8),
             horizontalArrangement = Arrangement.spacedBy(spacing.space8),
@@ -216,6 +219,56 @@ private fun LiveBffControlsCard(
             OutlinedButton(onClick = { onPreviewOverlay(OverlayPresentation.DIALOG) }) {
                 Text("Preview Dialog Overlay")
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
+private fun LiveBffModeAndScreenSelectors(
+    useBuiltInDemo: Boolean,
+    urlInput: String,
+    selectedScreen: String,
+    onModeChange: (Boolean) -> Unit,
+    onUrlChange: (String) -> Unit,
+    onSelectScreen: (String) -> Unit,
+) {
+    val spacing = ThemeTokens.spacing
+    FlowRow(
+        modifier = Modifier.padding(top = spacing.space8),
+        horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+    ) {
+        FilterChip(
+            selected = useBuiltInDemo,
+            onClick = { onModeChange(true) },
+            label = { Text("Built-in Demo Backend (Instant)") },
+        )
+        FilterChip(
+            selected = !useBuiltInDemo,
+            onClick = { onModeChange(false) },
+            label = { Text("Remote Go BFF URL") },
+        )
+    }
+    if (!useBuiltInDemo) {
+        OutlinedTextField(
+            value = urlInput,
+            onValueChange = onUrlChange,
+            label = { Text("BFF Base URL") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(top = spacing.space8),
+        )
+    }
+    FlowRow(
+        modifier = Modifier.padding(top = spacing.space8),
+        horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+    ) {
+        BFF_SCREENS.forEach { screenId ->
+            FilterChip(
+                selected = selectedScreen == screenId,
+                onClick = { onSelectScreen(screenId) },
+                label = { Text(screenId) },
+            )
         }
     }
 }
@@ -318,6 +371,7 @@ private fun PreviewOverlayModal(
 
 private fun createLiveBffHolder(
     baseUrl: String,
+    useBuiltInDemo: Boolean,
     scope: CoroutineScope,
     onNavigate: (String) -> Unit,
 ): LiveBffHolder {
@@ -337,8 +391,10 @@ private fun createLiveBffHolder(
             json = SduiJson,
         )
     val transport = KtorHttpTransport(httpClient = httpClient, json = SduiJson)
-    val repository = RemoteScreenRepository(httpClient = transport)
-    val apiExecutor = RemoteApiCallExecutor(httpClient = transport)
+    val repository =
+        if (useBuiltInDemo) StorybookDemoScreenRepository() else RemoteScreenRepository(httpClient = transport)
+    val apiExecutor =
+        if (useBuiltInDemo) StorybookDemoApiExecutor() else RemoteApiCallExecutor(httpClient = transport)
     val dispatcher =
         DefaultActionDispatcher(
             decoderRegistry = BuiltInActionDecoders.createDefaultRegistry(),

@@ -20,7 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -172,18 +172,19 @@ internal class OrderTrackerSnippetRenderer(
         val cornerRadius = ThemeTokens.cornerRadius
         val motion = ThemeTokens.motion
         val progress = resolveOrderTrackerProgress(steps)
-        val animatedProgress by animateFloatAsState(
-            targetValue = progress,
-            animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.normalMs),
-            label = "order_tracker_progress",
-        )
+        val animatedProgressState =
+            animateFloatAsState(
+                targetValue = progress,
+                animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.normalMs),
+                label = "order_tracker_progress",
+            )
 
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(spacing.space8),
         ) {
             LinearProgressIndicator(
-                progress = { animatedProgress },
+                progress = { animatedProgressState.value },
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -218,16 +219,17 @@ internal class OrderTrackerSnippetRenderer(
         val spacing = ThemeTokens.spacing
         val typography = ThemeTokens.typography
         val motion = ThemeTokens.motion
-        val dotScale by animateFloatAsState(
-            targetValue = if (step.active && !motion.reducedMotion) STEP_ACTIVE_SCALE else ONE,
-            animationSpec =
-                if (motion.reducedMotion) {
-                    snap()
-                } else {
-                    spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
-                },
-            label = "order_step_scale_${step.id}",
-        )
+        val dotScaleState =
+            animateFloatAsState(
+                targetValue = if (step.active && !motion.reducedMotion) STEP_ACTIVE_SCALE else ONE,
+                animationSpec =
+                    if (motion.reducedMotion) {
+                        snap()
+                    } else {
+                        spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+                    },
+                label = "order_step_scale_${step.id}",
+            )
 
         Column(
             modifier = modifier.testTag("order_step_${step.id}"),
@@ -236,7 +238,7 @@ internal class OrderTrackerSnippetRenderer(
         ) {
             OrderTrackerStepDot(
                 step = step,
-                scale = dotScale,
+                scaleState = dotScaleState,
                 onAction = onAction,
             )
             Text(
@@ -265,7 +267,7 @@ internal class OrderTrackerSnippetRenderer(
     @Suppress("ktlint:standard:function-naming", "FunctionName")
     private fun OrderTrackerStepDot(
         step: OrderTrackerStep,
-        scale: Float,
+        scaleState: State<Float>,
         onAction: (ActionRef) -> Unit,
     ) {
         val colors = ThemeTokens.colors
@@ -274,6 +276,7 @@ internal class OrderTrackerSnippetRenderer(
             Modifier
                 .size(STEP_DOT_SIZE_DP.dp)
                 .graphicsLayer {
+                    val scale = scaleState.value
                     scaleX = scale
                     scaleY = scale
                 }.let { base ->

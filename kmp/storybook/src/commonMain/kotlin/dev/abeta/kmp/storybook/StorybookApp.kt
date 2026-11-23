@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -42,7 +43,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.LocalImageRenderer
 import dev.abeta.kmp.atoms.atoms.UiDivider
-import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiTag
 import dev.abeta.kmp.atoms.atoms.UiText
 import dev.abeta.kmp.contracts.ActionRef
@@ -68,7 +68,8 @@ import kotlin.math.roundToInt
 private const val SIDEBAR_WIDTH_DP = 250
 private const val ACTION_LOG_LIMIT = 8
 private const val ACTION_CONSOLE_PREVIEW_COUNT = 3
-private const val CONSOLE_MAX_HEIGHT_DP = 130
+private const val CONSOLE_EXPANDED_HEIGHT_DP = 112
+private const val CONSOLE_COLLAPSED_HEIGHT_DP = 44
 private const val MIN_FONT_SCALE = 0.85f
 private const val DEFAULT_FONT_SCALE = 1.0f
 private const val MAX_FONT_SCALE = 1.5f
@@ -76,6 +77,24 @@ private const val FONT_SCALE_STEP = 0.15f
 private const val FONT_SCALE_EPSILON = 0.01f
 private const val PERCENT_MULTIPLIER = 100
 private const val DEFAULT_IMAGE_BASE_URL = "http://localhost:8080"
+
+/**
+ * Stable isolated holder for ActionRef logs so mutating logs only recomposes [ActionConsoleBar]
+ * and never triggers recomposition or viewport resize jitter in the active story stage.
+ */
+@Stable
+private class ActionLogState {
+    val entries = mutableStateListOf<String>()
+
+    fun record(action: ActionRef) {
+        entries.add(0, "[${action.type}] id=${action.id} payload=${action.payload}")
+        if (entries.size > ACTION_LOG_LIMIT) entries.removeAt(entries.lastIndex)
+    }
+
+    fun clear() {
+        entries.clear()
+    }
+}
 
 /**
  * Multiplatform root composable rendering the interactive Abeta KMP Storybook.
@@ -86,13 +105,14 @@ fun StorybookApp(
     initialStoryId: String = StoryCatalog.STORY_INTRODUCTION,
     initialPreset: ThemePreset = ThemePreset.EMERALD,
     initialDarkTheme: Boolean = false,
+    initialAppScreenId: String = SuperAppDemoCatalog.DEFAULT_SCREEN_ID,
 ) {
-    var selectedStoryId by remember { mutableStateOf(initialStoryId) }
+    var selectedStoryId by remember { mutableStateOf(StoryCatalog.findById(initialStoryId).id) }
     var preset by remember { mutableStateOf(initialPreset) }
     var darkTheme by remember { mutableStateOf(initialDarkTheme) }
     var reducedMotion by remember { mutableStateOf(false) }
     var fontScale by remember { mutableFloatStateOf(DEFAULT_FONT_SCALE) }
-    val actionLogs = remember { mutableStateListOf<String>() }
+    val actionLogState = remember { ActionLogState() }
 
     val imageHttpClient =
         remember {
@@ -105,12 +125,13 @@ fun StorybookApp(
             )
         }
     DisposableEffect(imageHttpClient) { onDispose { imageHttpClient.close() } }
-    val imageRenderer = remember(imageHttpClient) { KtorImageRenderer(KtorImageBytesFetcher(imageHttpClient)) }
-
-    val recordAction: (ActionRef) -> Unit = { action ->
-        actionLogs.add(0, "[${action.type}] id=${action.id} payload=${action.payload}")
-        if (actionLogs.size > ACTION_LOG_LIMIT) actionLogs.removeAt(actionLogs.lastIndex)
-    }
+    val imageRenderer =
+        remember(imageHttpClient) {
+            StorybookDemoImageRenderer(
+                remoteFallback = KtorImageRenderer(KtorImageBytesFetcher(imageHttpClient)),
+            )
+        }
+    val recordAction: (ActionRef) -> Unit = remember(actionLogState) { { action -> actionLogState.record(action) } }
 
     val currentDensity = LocalDensity.current
     CompositionLocalProvider(
@@ -120,17 +141,17 @@ fun StorybookApp(
         DesignTheme(preset = preset, darkTheme = darkTheme, reducedMotion = reducedMotion) {
             StorybookScaffold(
                 selectedStoryId = selectedStoryId,
+                initialAppScreenId = initialAppScreenId,
                 preset = preset,
                 darkTheme = darkTheme,
                 reducedMotion = reducedMotion,
                 fontScale = fontScale,
-                actionLogs = actionLogs,
+                actionLogState = actionLogState,
                 onSelectStory = { selectedStoryId = it },
                 onPresetChange = { preset = it },
                 onDarkThemeChange = { darkTheme = it },
                 onReducedMotionChange = { reducedMotion = it },
                 onFontScaleChange = { fontScale = it.coerceIn(MIN_FONT_SCALE, MAX_FONT_SCALE) },
-                onClearLogs = { actionLogs.clear() },
                 onAction = recordAction,
             )
         }
@@ -141,17 +162,17 @@ fun StorybookApp(
 @Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
 private fun StorybookScaffold(
     selectedStoryId: String,
+    initialAppScreenId: String,
     preset: ThemePreset,
     darkTheme: Boolean,
     reducedMotion: Boolean,
     fontScale: Float,
-    actionLogs: List<String>,
+    actionLogState: ActionLogState,
     onSelectStory: (String) -> Unit,
     onPresetChange: (ThemePreset) -> Unit,
     onDarkThemeChange: (Boolean) -> Unit,
     onReducedMotionChange: (Boolean) -> Unit,
     onFontScaleChange: (Float) -> Unit,
-    onClearLogs: () -> Unit,
     onAction: (ActionRef) -> Unit,
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = ThemeTokens.colors.background.primary) {
@@ -164,16 +185,16 @@ private fun StorybookScaffold(
                         UiDivider(DividerAtom())
                         StoryStagePane(
                             selectedStoryId = selectedStoryId,
+                            initialAppScreenId = initialAppScreenId,
                             preset = preset,
                             darkTheme = darkTheme,
                             reducedMotion = reducedMotion,
                             fontScale = fontScale,
-                            actionLogs = actionLogs,
+                            actionLogState = actionLogState,
                             onPresetChange = onPresetChange,
                             onDarkThemeChange = onDarkThemeChange,
                             onReducedMotionChange = onReducedMotionChange,
                             onFontScaleChange = onFontScaleChange,
-                            onClearLogs = onClearLogs,
                             onAction = onAction,
                             modifier = Modifier.weight(1f).fillMaxWidth(),
                         )
@@ -184,16 +205,16 @@ private fun StorybookScaffold(
                         UiDivider(DividerAtom(), modifier = Modifier.fillMaxHeight().width(1.dp))
                         StoryStagePane(
                             selectedStoryId = selectedStoryId,
+                            initialAppScreenId = initialAppScreenId,
                             preset = preset,
                             darkTheme = darkTheme,
                             reducedMotion = reducedMotion,
                             fontScale = fontScale,
-                            actionLogs = actionLogs,
+                            actionLogState = actionLogState,
                             onPresetChange = onPresetChange,
                             onDarkThemeChange = onDarkThemeChange,
                             onReducedMotionChange = onReducedMotionChange,
                             onFontScaleChange = onFontScaleChange,
-                            onClearLogs = onClearLogs,
                             onAction = onAction,
                             modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
@@ -234,16 +255,16 @@ private fun CompactStoryStrip(
 @Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
 private fun StoryStagePane(
     selectedStoryId: String,
+    initialAppScreenId: String,
     preset: ThemePreset,
     darkTheme: Boolean,
     reducedMotion: Boolean,
     fontScale: Float,
-    actionLogs: List<String>,
+    actionLogState: ActionLogState,
     onPresetChange: (ThemePreset) -> Unit,
     onDarkThemeChange: (Boolean) -> Unit,
     onReducedMotionChange: (Boolean) -> Unit,
     onFontScaleChange: (Float) -> Unit,
-    onClearLogs: () -> Unit,
     onAction: (ActionRef) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -260,19 +281,36 @@ private fun StoryStagePane(
             onFontScaleChange = onFontScaleChange,
         )
         UiDivider(DividerAtom())
-        val stageScrollState = rememberScrollState()
-        LaunchedEffect(selectedStoryId) { stageScrollState.scrollTo(0) }
-        Box(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(stageScrollState)
-                    .padding(ThemeTokens.spacing.space24),
-        ) {
-            StoryStage(selectedStoryId, preset, darkTheme, reducedMotion, onAction)
+        if (selectedStoryId == StoryCatalog.STORY_SUPER_APP_DEMOS) {
+            Box(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(ThemeTokens.spacing.space16),
+            ) {
+                SuperAppDemosStory(
+                    initialScreenId = initialAppScreenId,
+                    darkTheme = darkTheme,
+                    reducedMotion = reducedMotion,
+                    onAction = onAction,
+                )
+            }
+        } else {
+            val stageScrollState = rememberScrollState()
+            LaunchedEffect(selectedStoryId) { stageScrollState.scrollTo(0) }
+            Box(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .verticalScroll(stageScrollState)
+                        .padding(ThemeTokens.spacing.space24),
+            ) {
+                StoryStage(selectedStoryId, preset, darkTheme, reducedMotion, onAction)
+            }
         }
-        ActionConsoleBar(logs = actionLogs, onClear = onClearLogs)
+        ActionConsoleBar(logState = actionLogState)
     }
 }
 
@@ -467,18 +505,22 @@ private fun LabAndJourneyStage(
 
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")
-private fun ActionConsoleBar(
-    logs: List<String>,
-    onClear: () -> Unit,
-) {
+private fun ActionConsoleBar(logState: ActionLogState) {
     val colors = ThemeTokens.colors
+    val spacing = ThemeTokens.spacing
+    val logs = logState.entries
+    var expanded by remember { mutableStateOf(true) }
+    val consoleHeight = if (expanded) CONSOLE_EXPANDED_HEIGHT_DP.dp else CONSOLE_COLLAPSED_HEIGHT_DP.dp
+
     UiDivider(DividerAtom())
-    UiSurfaceCard(
+    Column(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .heightIn(max = CONSOLE_MAX_HEIGHT_DP.dp)
-                .background(colors.surface.secondary),
+                .height(consoleHeight)
+                .background(colors.surface.secondary)
+                .padding(horizontal = spacing.space16, vertical = spacing.space4),
+        verticalArrangement = Arrangement.spacedBy(spacing.space2),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -492,22 +534,28 @@ private fun ActionConsoleBar(
                     color = ColorTokenRef("text.primary"),
                 ),
             )
-            TextButton(onClick = onClear) { Text("Clear") }
+            Row(horizontalArrangement = Arrangement.spacedBy(spacing.space4)) {
+                TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Hide" else "Show") }
+                TextButton(onClick = { logState.clear() }) { Text("Clear") }
+            }
         }
-        if (logs.isEmpty()) {
-            Text(
-                text = "Interact with any atom, snippet, or BFF explorer story to inspect emitted ActionRefs.",
-                style = ThemeTokens.typography.caption,
-                color = colors.text.tertiary,
-            )
-        } else {
-            logs.take(ACTION_CONSOLE_PREVIEW_COUNT).forEach { entry ->
+        if (expanded) {
+            if (logs.isEmpty()) {
                 Text(
-                    text = entry,
-                    style = ThemeTokens.typography.caption.copy(fontFamily = ThemeTokens.typography.fonts.mono),
-                    color = colors.text.secondary,
+                    text = "Interact with any demo, atom, or snippet to inspect emitted ActionRefs.",
+                    style = ThemeTokens.typography.caption,
+                    color = colors.text.tertiary,
                     maxLines = 1,
                 )
+            } else {
+                logs.take(ACTION_CONSOLE_PREVIEW_COUNT).forEach { entry ->
+                    Text(
+                        text = entry,
+                        style = ThemeTokens.typography.caption.copy(fontFamily = ThemeTokens.typography.fonts.mono),
+                        color = colors.text.secondary,
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }

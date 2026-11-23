@@ -174,6 +174,7 @@ public final class dev/abeta/kmp/atoms/modifiers/MotionLoopModifiersKt {
 
 public final class dev/abeta/kmp/atoms/modifiers/MotionModifierKt {
 	public static final fun applyMotionSpec (Landroidx/compose/ui/Modifier;Ldev/abeta/kmp/contracts/MotionSpec;ILjava/lang/Object;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
+	public static final fun getLocalEnteredMotionKeys ()Landroidx/compose/runtime/ProvidableCompositionLocal;
 	public static final fun resolveEnterTransition (Ldev/abeta/kmp/contracts/MotionTransition;I)Landroidx/compose/animation/EnterTransition;
 	public static final fun resolveExitTransition (Ldev/abeta/kmp/contracts/MotionTransition;I)Landroidx/compose/animation/ExitTransition;
 	public static final fun resolveMotionDelayMs (Ldev/abeta/kmp/contracts/MotionSpec;ILdev/abeta/kmp/tokens/MotionTokens;)I

@@ -9,8 +9,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import dev.abeta.kmp.atoms.modifiers.applyMotionSpec
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetEnvelope
+import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.core.error.AppError
 import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.result.AppResult
@@ -87,7 +89,17 @@ class SnippetEntry<T : Any>(
             }
         when (decodeResult) {
             is AppResult.Success -> {
-                val motion = envelope.motion
+                val rawMotion = envelope.motion
+                val motion =
+                    if (
+                        rawMotion != null &&
+                        envelope.snippetType == SnippetTypes.MARQUEE_STRIP &&
+                        rawMotion.loopEffect == MotionLoopEffect.MARQUEE
+                    ) {
+                        rawMotion.copy(loopEffect = MotionLoopEffect.NONE)
+                    } else {
+                        rawMotion
+                    }
                 if (motion != null) {
                     val staggerIndex = LocalMotionStaggerIndex.current
                     Box(

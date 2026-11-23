@@ -389,23 +389,25 @@ internal class MarqueeStripSnippetRenderer(
                 velocityDpPerSec = model.velocityDpPerSec,
             )
         val transition = rememberInfiniteTransition(label = "marquee_ticker_${model.stripId}")
-        val progress by transition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec =
-                infiniteRepeatable(
-                    animation = tween(durationMillis = durationMs, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart,
-                ),
-            label = "marquee_progress_${model.stripId}",
-        )
+        val progressState =
+            transition.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(durationMillis = durationMs, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart,
+                    ),
+                label = "marquee_progress_${model.stripId}",
+            )
 
         Row(
             modifier =
                 Modifier
                     .wrapContentWidth(unbounded = true, align = Alignment.Start)
                     .graphicsLayer {
-                        translationX = if (cycleWidthPx > 0) -(progress * cycleWidthPx) else 0f
+                        val widthPx = cycleWidthPx
+                        translationX = if (widthPx > 0) -(progressState.value * widthPx) else 0f
                     },
             verticalAlignment = Alignment.CenterVertically,
         ) {

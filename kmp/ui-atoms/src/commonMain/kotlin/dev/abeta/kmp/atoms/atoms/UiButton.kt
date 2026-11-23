@@ -67,11 +67,12 @@ fun UiButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isInteractive = atom.enabled && !atom.loading
-    val pressScale by animateFloatAsState(
-        targetValue = if (isPressed && isInteractive && !motion.reducedMotion) BUTTON_PRESS_SCALE else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
-        label = "button_press_scale",
-    )
+    val pressScaleState =
+        animateFloatAsState(
+            targetValue = if (isPressed && isInteractive && !motion.reducedMotion) BUTTON_PRESS_SCALE else 1f,
+            animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
+            label = "button_press_scale",
+        )
     val spec =
         ButtonRenderSpec(
             style = style,
@@ -83,8 +84,9 @@ fun UiButton(
         modifier
             .applyMotionSpec(atom.motion)
             .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
+                val scale = pressScaleState.value
+                scaleX = scale
+                scaleY = scale
             }.applyLayoutConfig(atom.layout)
             .let { if (atom.fullWidth) it.fillMaxWidth() else it }
             .heightIn(min = style.minHeight)

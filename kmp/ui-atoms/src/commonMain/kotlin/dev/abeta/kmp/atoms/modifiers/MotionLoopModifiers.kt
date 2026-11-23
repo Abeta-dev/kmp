@@ -17,6 +17,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,13 +83,13 @@ private const val MARQUEE_SWAY_PX = 8f
 private const val PRESS_BOUNCE_SCALE = 0.96f
 
 internal data class LoopTransformState(
-    val scale: Float = ONE,
-    val alpha: Float = ONE,
-    val rotationZ: Float = ZERO,
-    val translationX: Float = ZERO,
-    val translationY: Float = ZERO,
-    val shimmerPhase: Float = ZERO,
-    val glowProgress: Float = ZERO,
+    val scale: State<Float>? = null,
+    val alpha: State<Float>? = null,
+    val rotationZ: State<Float>? = null,
+    val translationX: State<Float>? = null,
+    val translationY: State<Float>? = null,
+    val shimmerPhase: State<Float>? = null,
+    val glowProgress: State<Float>? = null,
 )
 
 /**
@@ -102,7 +103,9 @@ fun isLoopEffectActive(
 
 /**
  * Adds tactile spring press-bounce scaling (`0.96f`) using non-consuming pointer observation so
- * child or chained `clickable` modifiers remain unaffected. Collapses to a no-op under
+ * child or chained `clickable` modifiers remain unaffected. Cancels press feedback automatically
+ * once pointer movement exceeds touch slop (preventing scroll-drag jitter) and defers scale reads
+ * into [graphicsLayer] for zero-recomposition frames. Collapses to a no-op under
  * [dev.abeta.kmp.tokens.MotionTokens.reducedMotion] or when [enabled] is `false`.
  */
 @Composable
@@ -111,31 +114,43 @@ fun Modifier.pressBounce(enabled: Boolean = true): Modifier {
         return this
     }
     var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) PRESS_BOUNCE_SCALE else ONE,
-        animationSpec =
-            spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium,
-            ),
-        label = "press_bounce_scale",
-    )
+    val scaleState =
+        animateFloatAsState(
+            targetValue = if (isPressed) PRESS_BOUNCE_SCALE else ONE,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            label = "press_bounce_scale",
+        )
     return this
         .pointerInput(enabled) {
+            val touchSlopSq = viewConfiguration.touchSlop * viewConfiguration.touchSlop
             awaitEachGesture {
-                awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                val downPos = down.position
                 isPressed = true
                 try {
                     do {
                         val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+                        val activeChange = event.changes.firstOrNull { it.id == down.id }
+                        if (activeChange != null && isPressed) {
+                            val dx = activeChange.position.x - downPos.x
+                            val dy = activeChange.position.y - downPos.y
+                            if (dx * dx + dy * dy > touchSlopSq) {
+                                isPressed = false
+                            }
+                        }
                     } while (event.changes.any { it.pressed })
                 } finally {
                     isPressed = false
                 }
             }
         }.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
+            val currentScale = scaleState.value
+            scaleX = currentScale
+            scaleY = currentScale
         }
 }
 
@@ -203,20 +218,20 @@ private val MARQUEE_SPEC =
 
 internal fun Modifier.applyLoopOverlays(
     loopEffect: MotionLoopEffect,
-    shimmerPhase: Float,
-    glowProgress: Float,
+    shimmerPhase: State<Float>?,
+    glowProgress: State<Float>?,
     glowColor: Color,
 ): Modifier =
     when (loopEffect) {
-        MotionLoopEffect.SHIMMER -> applyShimmerSweep(shimmerPhase)
-        MotionLoopEffect.GLOW_RING -> applyGlowRingHalo(glowProgress, glowColor)
+        MotionLoopEffect.SHIMMER -> if (shimmerPhase != null) applyShimmerSweep(shimmerPhase) else this
+        MotionLoopEffect.GLOW_RING -> if (glowProgress != null) applyGlowRingHalo(glowProgress, glowColor) else this
         else -> this
     }
 
 @Composable
-private fun rememberLinearLoop(spec: RepeatingFloatSpec): Float {
+private fun rememberLinearLoop(spec: RepeatingFloatSpec): State<Float> {
     val transition = rememberInfiniteTransition(label = "motion_${spec.label}")
-    val value by transition.animateFloat(
+    return transition.animateFloat(
         initialValue = spec.initialValue,
         targetValue = spec.targetValue,
         animationSpec =
@@ -226,39 +241,40 @@ private fun rememberLinearLoop(spec: RepeatingFloatSpec): Float {
             ),
         label = spec.label,
     )
-    return value
 }
 
 @Composable
 private fun rememberPulseLoop(): LoopTransformState {
     val transition = rememberInfiniteTransition(label = "motion_pulse")
-    val scale by transition.animateFloat(
-        initialValue = ONE,
-        targetValue = PULSE_MAX_SCALE,
-        animationSpec =
-            infiniteRepeatable(
-                animation = tween(durationMillis = PULSE_PERIOD_MS, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        label = "pulse_scale",
-    )
-    val alpha by transition.animateFloat(
-        initialValue = PULSE_MIN_ALPHA,
-        targetValue = ONE,
-        animationSpec =
-            infiniteRepeatable(
-                animation = tween(durationMillis = PULSE_PERIOD_MS, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        label = "pulse_alpha",
-    )
+    val scale =
+        transition.animateFloat(
+            initialValue = ONE,
+            targetValue = PULSE_MAX_SCALE,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = PULSE_PERIOD_MS, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+            label = "pulse_scale",
+        )
+    val alpha =
+        transition.animateFloat(
+            initialValue = PULSE_MIN_ALPHA,
+            targetValue = ONE,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = PULSE_PERIOD_MS, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+            label = "pulse_alpha",
+        )
     return LoopTransformState(scale = scale, alpha = alpha)
 }
 
 @Composable
-private fun rememberWiggleDegrees(): Float {
+private fun rememberWiggleDegrees(): State<Float> {
     val transition = rememberInfiniteTransition(label = "motion_wiggle")
-    val degrees by transition.animateFloat(
+    return transition.animateFloat(
         initialValue = ZERO,
         targetValue = ZERO,
         animationSpec =
@@ -278,13 +294,12 @@ private fun rememberWiggleDegrees(): Float {
             ),
         label = "wiggle_degrees",
     )
-    return degrees
 }
 
 @Composable
-private fun rememberHeartbeatScale(): Float {
+private fun rememberHeartbeatScale(): State<Float> {
     val transition = rememberInfiniteTransition(label = "motion_heartbeat")
-    val scale by transition.animateFloat(
+    return transition.animateFloat(
         initialValue = ONE,
         targetValue = ONE,
         animationSpec =
@@ -303,15 +318,15 @@ private fun rememberHeartbeatScale(): Float {
             ),
         label = "heartbeat_scale",
     )
-    return scale
 }
 
-private fun Modifier.applyShimmerSweep(phase: Float): Modifier =
+private fun Modifier.applyShimmerSweep(phaseState: State<Float>): Modifier =
     drawWithContent {
         drawContent()
         val width = size.width
         val height = size.height
         if (width > ZERO && height > ZERO) {
+            val phase = phaseState.value
             val highlight = Color.White.copy(alpha = SHIMMER_ALPHA)
             val startX = width * (phase - SHIMMER_BAND_WIDTH)
             val endX = width * phase
@@ -327,7 +342,7 @@ private fun Modifier.applyShimmerSweep(phase: Float): Modifier =
     }
 
 private fun Modifier.applyGlowRingHalo(
-    progress: Float,
+    progressState: State<Float>,
     glowColor: Color,
 ): Modifier =
     drawWithContent {
@@ -335,6 +350,7 @@ private fun Modifier.applyGlowRingHalo(
         val width = size.width
         val height = size.height
         if (width > ZERO && height > ZERO) {
+            val progress = progressState.value
             val innerStroke = GLOW_MIN_STROKE_PX + (GLOW_MAX_STROKE_PX - GLOW_MIN_STROKE_PX) * progress
             val outerStroke = innerStroke * GLOW_OUTER_STROKE_MULTIPLIER
             val innerAlpha = GLOW_MIN_ALPHA + (GLOW_MAX_ALPHA - GLOW_MIN_ALPHA) * progress

@@ -27,6 +27,7 @@ class StorybookCatalogTest {
 
         val expectedIds =
             setOf(
+                StoryCatalog.STORY_SUPER_APP_DEMOS,
                 StoryCatalog.STORY_INTRODUCTION,
                 StoryCatalog.STORY_DESIGN_TOKENS,
                 StoryCatalog.STORY_BUTTON,
@@ -44,9 +45,24 @@ class StorybookCatalogTest {
                 StoryCatalog.STORY_SNIPPET_CRAFTER,
                 StoryCatalog.STORY_E2E_JOURNEYS,
             )
-        assertEquals(16, entries.size)
+        assertEquals(17, entries.size)
         assertEquals(expectedIds, uniqueIds)
         assertEquals(StoryCatalog.STORY_INTRODUCTION, StoryCatalog.findById("unknown").id)
+    }
+
+    @Test
+    fun `super app demo catalog covers all 6 verticals and watch screen`() {
+        val appIds = SuperAppDemoCatalog.apps.map { it.id }.toSet()
+        assertTrue("abeta-fresh" in appIds)
+        assertTrue("abeta-bites" in appIds)
+        assertTrue("abeta-pulse" in appIds)
+        assertTrue("abeta-mart" in appIds)
+        assertTrue("abeta-spark" in appIds)
+        assertTrue("abeta-trade" in appIds)
+        assertTrue("abeta-watch" in appIds)
+        assertEquals("bites-home", SuperAppDemoCatalog.resolveInitialScreen("abeta-bites"))
+        assertEquals("spark-deck", SuperAppDemoCatalog.resolveInitialScreen("spark-deck"))
+        assertEquals("fresh-home", SuperAppDemoCatalog.resolveInitialScreen("unknown"))
     }
 
     @Test

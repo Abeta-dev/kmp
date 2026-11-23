@@ -6,6 +6,7 @@ package dev.abeta.kmp.storybook
 enum class StoryCategory(
     val title: String,
 ) {
+    LIVE_DEMOS("Live Super-App Demos"),
     FOUNDATIONS("Foundations & Docs"),
     ATOMS("UI Atoms"),
     SNIPPETS("SDUI Snippets"),
@@ -27,6 +28,7 @@ data class StoryEntry(
  * Canonical registry of all stories rendered by [StorybookApp].
  */
 object StoryCatalog {
+    const val STORY_SUPER_APP_DEMOS = "super-app-demos"
     const val STORY_INTRODUCTION = "introduction"
     const val STORY_DESIGN_TOKENS = "design-tokens"
     const val STORY_BUTTON = "atom-button"
@@ -46,6 +48,15 @@ object StoryCatalog {
 
     val entries: List<StoryEntry> =
         listOf(
+            StoryEntry(
+                id = STORY_SUPER_APP_DEMOS,
+                title = "6-in-1 Super-App Demos",
+                category = StoryCategory.LIVE_DEMOS,
+                subtitle = "Live Interactive Demos · Fresh, Bites, Pulse, Mart, Spark, Trade & Watch",
+                description =
+                    "Play all 6 full multi-screen SDUI vertical apps live in the browser with " +
+                        "Phone, Tablet & Full viewports.",
+            ),
             StoryEntry(
                 id = STORY_INTRODUCTION,
                 title = "Introduction",
@@ -166,5 +177,8 @@ object StoryCatalog {
         )
 
     /** Returns the [StoryEntry] matching [id], falling back to Introduction if missing. */
-    fun findById(id: String): StoryEntry = entries.firstOrNull { it.id == id } ?: entries.first()
+    fun findById(id: String): StoryEntry {
+        val exact = entries.firstOrNull { it.id == id }
+        return exact ?: entries.first { it.id == STORY_INTRODUCTION }
+    }
 }

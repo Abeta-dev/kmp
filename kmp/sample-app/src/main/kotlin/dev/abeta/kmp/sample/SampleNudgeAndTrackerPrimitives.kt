@@ -358,7 +358,6 @@ internal object SampleNudgeAndTrackerPrimitives {
                 MotionSpec(
                     enter = MotionTransition.FADE_IN,
                     durationToken = MotionDurationToken.FAST,
-                    loopEffect = MotionLoopEffect.MARQUEE,
                 ),
         )
 }

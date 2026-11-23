@@ -74,8 +74,8 @@ class StorybookComposeTest {
         }
 
     @Test
-    fun allSixteenStoriesRenderCleanlyInStorybook() {
-        assertEquals(16, StoryCatalog.entries.size)
+    fun allSeventeenStoriesRenderCleanlyInStorybook() {
+        assertEquals(17, StoryCatalog.entries.size)
         StoryCatalog.entries.forEach { entry ->
             runComposeUiTest {
                 setContent {
@@ -85,6 +85,26 @@ class StorybookComposeTest {
             }
         }
     }
+
+    @Test
+    fun superAppDemosStorySwitchesAcrossAllSixVerticalsInteractively() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_SUPER_APP_DEMOS)
+            }
+
+            onNodeWithText("/screens/fresh-home").assertIsDisplayed()
+            onNode(hasText("Abeta Bites") and hasClickAction()).performClick()
+            onNodeWithText("/screens/bites-home").assertIsDisplayed()
+            onNode(hasText("Abeta Pulse") and hasClickAction()).performClick()
+            onNodeWithText("/screens/pulse-home").assertIsDisplayed()
+            onNode(hasText("Abeta Mart") and hasClickAction()).performClick()
+            onNodeWithText("/screens/mart-home").assertIsDisplayed()
+            onNode(hasText("Abeta Spark") and hasClickAction()).performClick()
+            onNodeWithText("/screens/spark-deck").assertIsDisplayed()
+            onNode(hasText("Abeta Trade") and hasClickAction()).performClick()
+            onNodeWithText("/screens/trade-home").assertIsDisplayed()
+        }
 
     @Test
     fun animationNudgesStoryAdvancesTrackerUpdatesCounterAndTogglesUrgency() =

@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -167,7 +168,7 @@ fun UiStepper(
 }
 
 @Composable
-private fun rememberStepperBounceScale(currentQuantity: Int): Float {
+private fun rememberStepperBounceScaleState(currentQuantity: Int): State<Float> {
     val motion = ThemeTokens.motion
     var previousQuantity by remember { mutableIntStateOf(currentQuantity) }
     var bounceActive by remember { mutableStateOf(false) }
@@ -183,7 +184,7 @@ private fun rememberStepperBounceScale(currentQuantity: Int): Float {
         }
     }
 
-    val bounceScale by animateFloatAsState(
+    return animateFloatAsState(
         targetValue = if (bounceActive && !motion.reducedMotion) STEPPER_BOUNCE_SCALE else 1f,
         animationSpec =
             if (motion.reducedMotion) {
@@ -193,7 +194,6 @@ private fun rememberStepperBounceScale(currentQuantity: Int): Float {
             },
         label = "stepper_bounce_scale",
     )
-    return bounceScale
 }
 
 @Composable
@@ -206,7 +206,7 @@ private fun UiStepperControl(
 ) {
     val motion = ThemeTokens.motion
     val hapticFeedback = LocalUiHapticFeedback.current
-    val bounceScale = rememberStepperBounceScale(currentQuantity)
+    val bounceScaleState = rememberStepperBounceScaleState(currentQuantity)
     val nextIncrement = stepQuantityIncrement(atom, currentQuantity)
     val nextDecrement = stepQuantityDecrement(atom, currentQuantity)
     val onIncrementClick: () -> Unit = {
@@ -226,27 +226,21 @@ private fun UiStepperControl(
 
     AnimatedContent(
         targetState = currentQuantity > 0,
+        contentAlignment = Alignment.CenterEnd,
         modifier =
             Modifier.graphicsLayer {
-                scaleX = bounceScale
-                scaleY = bounceScale
+                val scale = bounceScaleState.value
+                scaleX = scale
+                scaleY = scale
             },
         transitionSpec = {
             if (motion.reducedMotion) {
                 EnterTransition.None togetherWith ExitTransition.None
             } else {
-                val springSpec =
-                    spring<Float>(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMediumLow,
-                    )
-                val enter =
-                    fadeIn(tween(motion.fastMs)) +
-                        scaleIn(animationSpec = springSpec, initialScale = STEPPER_ENTER_SCALE)
-                val exit =
-                    fadeOut(tween(motion.fastMs)) +
-                        scaleOut(animationSpec = tween(motion.fastMs), targetScale = STEPPER_EXIT_SCALE)
-                (enter togetherWith exit).using(SizeTransform(clip = false))
+                val springSpec = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow)
+                val enter = fadeIn(tween(motion.fastMs)) + scaleIn(springSpec, STEPPER_ENTER_SCALE)
+                val exit = fadeOut(tween(motion.fastMs)) + scaleOut(tween(motion.fastMs), STEPPER_EXIT_SCALE)
+                (enter togetherWith exit).using(SizeTransform(clip = false, sizeAnimationSpec = { _, _ -> snap() }))
             }
         },
         label = "stepper_mode_morph",
@@ -280,11 +274,12 @@ private fun UiStepperAddButton(
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val pressScale by animateFloatAsState(
-        targetValue = if (isPressed && canIncrement && !motion.reducedMotion) STEPPER_PRESS_SCALE else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
-        label = "stepper_add_press_scale",
-    )
+    val pressScaleState =
+        animateFloatAsState(
+            targetValue = if (isPressed && canIncrement && !motion.reducedMotion) STEPPER_PRESS_SCALE else 1f,
+            animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
+            label = "stepper_add_press_scale",
+        )
 
     val shape = RoundedCornerShape(cornerRadius.full)
     val bgColor = if (canIncrement) colors.surface.primary else colors.button.disabledBackground
@@ -295,8 +290,9 @@ private fun UiStepperAddButton(
         modifier =
             Modifier
                 .graphicsLayer {
-                    scaleX = pressScale
-                    scaleY = pressScale
+                    val scale = pressScaleState.value
+                    scaleX = scale
+                    scaleY = scale
                 }.defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
                 .clip(shape)
                 .background(bgColor, shape)
@@ -424,19 +420,21 @@ private fun UiStepperStepButton(
     val motion = ThemeTokens.motion
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val pressScale by animateFloatAsState(
-        targetValue = if (isPressed && enabled && !motion.reducedMotion) STEPPER_PRESS_SCALE else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
-        label = "stepper_step_press_scale",
-    )
+    val pressScaleState =
+        animateFloatAsState(
+            targetValue = if (isPressed && enabled && !motion.reducedMotion) STEPPER_PRESS_SCALE else 1f,
+            animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
+            label = "stepper_step_press_scale",
+        )
     val vector = LocalIconResolver.current?.resolve(iconName) ?: UiBuiltinIcons.resolve(iconName)
 
     Box(
         modifier =
             Modifier
                 .graphicsLayer {
-                    scaleX = pressScale
-                    scaleY = pressScale
+                    val scale = pressScaleState.value
+                    scaleX = scale
+                    scaleY = scale
                 }.defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
                 .clickable(
                     enabled = enabled,

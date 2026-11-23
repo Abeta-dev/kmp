@@ -15,7 +15,10 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import dev.abeta.kmp.contracts.MotionDurationToken
@@ -158,8 +161,16 @@ fun resolveExitTransition(
     }
 
 /**
+ * Optional per-screen registry of `motionKey` values whose enter transition has already played,
+ * preventing `LazyColumn` scroll recycling from replaying entrance slides/scales repeatedly.
+ */
+val LocalEnteredMotionKeys: ProvidableCompositionLocal<MutableSet<Any>?> =
+    staticCompositionLocalOf { null }
+
+/**
  * Applies SDUI declarative enter transitions and all 7 ambient loop animations from [motion] while
- * keeping the element mounted in semantics and collapsing to zero motion under
+ * keeping the element mounted in semantics, deferring animation reads into [graphicsLayer] and
+ * draw-phase overlays for zero per-frame recompositions, and collapsing to zero motion under
  * [dev.abeta.kmp.tokens.MotionTokens.reducedMotion].
  */
 @Composable
@@ -178,14 +189,14 @@ fun Modifier.applyMotionSpec(
     val spec = checkNotNull(motion)
     val durationMs = resolveMotionDurationMs(spec, motionTokens)
     val delayMs = resolveMotionDelayMs(spec, itemIndex, motionTokens)
-    val enterProgress = rememberEnterProgress(spec, delayMs, durationMs, motionKey)
+    val enterProgressState = rememberEnterProgressState(spec, delayMs, durationMs, motionKey)
     val loopState = rememberLoopTransformState(spec.loopEffect)
     val glowColor = ThemeTokens.colors.brand.primary
 
     return this
         .applyMotionGraphicsLayer(
             enter = spec.enter,
-            progress = enterProgress,
+            progressState = enterProgressState,
             loop = loopState,
         ).applyLoopOverlays(
             loopEffect = spec.loopEffect,
@@ -196,15 +207,28 @@ fun Modifier.applyMotionSpec(
 }
 
 @Composable
-private fun rememberEnterProgress(
+private fun rememberEnterProgressState(
     motion: MotionSpec,
     delayMs: Int,
     durationMs: Int,
     motionKey: Any?,
-): Float {
-    if (motion.enter == MotionTransition.NONE) return ONE
-    val animatable = remember(motionKey, motion.enter) { Animatable(ZERO) }
+): State<Float>? {
+    if (motion.enter == MotionTransition.NONE) return null
+    val enteredKeys = LocalEnteredMotionKeys.current
+    val trackableKey = motionKey?.takeIf { it !== Unit }
+    val alreadyEntered = trackableKey != null && enteredKeys?.contains(trackableKey) == true
+    val animatable =
+        remember(motionKey, motion.enter) {
+            Animatable(if (alreadyEntered) ONE else ZERO)
+        }
     LaunchedEffect(motionKey, motion.enter, delayMs, durationMs) {
+        if (alreadyEntered) {
+            animatable.snapTo(ONE)
+            return@LaunchedEffect
+        }
+        if (trackableKey != null) {
+            enteredKeys?.add(trackableKey)
+        }
         if (delayMs > 0) {
             delay(delayMs.toLong())
         }
@@ -224,35 +248,50 @@ private fun rememberEnterProgress(
             )
         }
     }
-    return animatable.value
+    return animatable.asState()
 }
+
+private fun LoopTransformState.hasGraphicsLayerState(): Boolean =
+    scale != null || alpha != null || rotationZ != null || translationX != null || translationY != null
+
+private fun resolveEnterScale(
+    enter: MotionTransition,
+    progress: Float,
+): Float =
+    when (enter) {
+        MotionTransition.SCALE_IN -> SCALE_INITIAL + (ONE - SCALE_INITIAL) * progress
+        MotionTransition.SPRING_BOUNCE -> SPRING_SCALE_INITIAL + (ONE - SPRING_SCALE_INITIAL) * progress
+        else -> ONE
+    }
+
+private fun resolveEnterTranslationY(
+    enter: MotionTransition,
+    progress: Float,
+): Float =
+    when (enter) {
+        MotionTransition.SLIDE_UP -> (ONE - progress) * SLIDE_DISTANCE_PX
+        MotionTransition.SLIDE_DOWN -> -(ONE - progress) * SLIDE_DISTANCE_PX
+        else -> ZERO
+    }
 
 private fun Modifier.applyMotionGraphicsLayer(
     enter: MotionTransition,
-    progress: Float,
+    progressState: State<Float>?,
     loop: LoopTransformState,
-): Modifier =
-    graphicsLayer {
-        val enterScale =
-            when (enter) {
-                MotionTransition.SCALE_IN -> SCALE_INITIAL + (ONE - SCALE_INITIAL) * progress
-                MotionTransition.SPRING_BOUNCE -> SPRING_SCALE_INITIAL + (ONE - SPRING_SCALE_INITIAL) * progress
-                else -> ONE
-            }
-        val enterTranslationY =
-            when (enter) {
-                MotionTransition.SLIDE_UP -> (ONE - progress) * SLIDE_DISTANCE_PX
-                MotionTransition.SLIDE_DOWN -> -(ONE - progress) * SLIDE_DISTANCE_PX
-                else -> ZERO
-            }
-        val combinedScale = enterScale * loop.scale
+): Modifier {
+    if (progressState == null && !loop.hasGraphicsLayerState()) return this
+
+    return graphicsLayer {
+        val progress = progressState?.value ?: ONE
+        val combinedScale = resolveEnterScale(enter, progress) * (loop.scale?.value ?: ONE)
         scaleX = combinedScale
         scaleY = combinedScale
-        rotationZ = loop.rotationZ
-        translationX = loop.translationX
-        translationY = enterTranslationY + loop.translationY
-        alpha = (progress * loop.alpha).coerceIn(ZERO, ONE)
+        rotationZ = loop.rotationZ?.value ?: ZERO
+        translationX = loop.translationX?.value ?: ZERO
+        translationY = resolveEnterTranslationY(enter, progress) + (loop.translationY?.value ?: ZERO)
+        alpha = (progress * (loop.alpha?.value ?: ONE)).coerceIn(ZERO, ONE)
     }
+}
 
 /**
  * Triggers a short horizontal error-shake animation whenever [shakeSequence] increments above `0`,

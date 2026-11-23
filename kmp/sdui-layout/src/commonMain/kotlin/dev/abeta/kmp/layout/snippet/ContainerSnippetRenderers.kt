@@ -33,7 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.UiIcon
 import dev.abeta.kmp.atoms.atoms.UiTag
@@ -464,11 +464,12 @@ internal class AccordionSnippetRenderer(
     ) {
         val spacing = ThemeTokens.spacing
         val motion = ThemeTokens.motion
-        val chevronDegrees by animateFloatAsState(
-            targetValue = if (expanded) ACCORDION_EXPANDED_DEGREES else 0f,
-            animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
-            label = "accordion_chevron_rotation",
-        )
+        val chevronDegreesState =
+            animateFloatAsState(
+                targetValue = if (expanded) ACCORDION_EXPANDED_DEGREES else 0f,
+                animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
+                label = "accordion_chevron_rotation",
+            )
         Row(
             modifier =
                 Modifier
@@ -493,7 +494,7 @@ internal class AccordionSnippetRenderer(
                         sizeDp = ACCORDION_CHEVRON_SIZE_DP,
                         contentDescription = if (expanded) "Collapse" else "Expand",
                     ),
-                modifier = Modifier.rotate(chevronDegrees),
+                modifier = Modifier.graphicsLayer { rotationZ = chevronDegreesState.value },
             )
         }
     }

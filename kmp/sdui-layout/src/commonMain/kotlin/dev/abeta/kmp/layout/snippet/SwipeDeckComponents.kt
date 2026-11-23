@@ -138,7 +138,7 @@ internal fun SwipeCardContent(
 @Suppress("ktlint:standard:function-naming", "FunctionName")
 internal fun SwipeStampOverlays(
     model: SwipeDeckSnippetData,
-    offset: Offset,
+    offsetProvider: () -> Offset,
     thresholds: SwipeThresholds,
     reducedMotion: Boolean,
 ) {
@@ -146,46 +146,43 @@ internal fun SwipeStampOverlays(
     val spacing = ThemeTokens.spacing
     val horizontalSpan = (thresholds.horizontalPx - thresholds.stampActivationPx).coerceAtLeast(1f)
     val verticalSpan = (thresholds.verticalPx - thresholds.stampActivationPx).coerceAtLeast(1f)
-    val likeAlpha = ((offset.x - thresholds.stampActivationPx) / horizontalSpan).coerceIn(0f, 1f)
-    val nopeAlpha = ((-offset.x - thresholds.stampActivationPx) / horizontalSpan).coerceIn(0f, 1f)
-    val superLikeAlpha =
-        if (abs(offset.y) > abs(offset.x)) {
-            ((-offset.y - thresholds.stampActivationPx) / verticalSpan).coerceIn(0f, 1f)
-        } else {
-            0f
-        }
 
     Box(modifier = Modifier.fillMaxWidth().padding(spacing.space16)) {
-        if (likeAlpha > 0f) {
-            SwipeStampBadge(
-                label = model.likeLabel,
-                accentColor = colors.status.success,
-                backgroundColor = colors.status.successSubtle,
-                alpha = likeAlpha,
-                rotationDegrees = if (reducedMotion) 0f else -STAMP_TILT_DEG,
-                modifier = Modifier.align(Alignment.TopStart),
-            )
-        }
-        if (nopeAlpha > 0f) {
-            SwipeStampBadge(
-                label = model.nopeLabel,
-                accentColor = colors.status.error,
-                backgroundColor = colors.status.errorSubtle,
-                alpha = nopeAlpha,
-                rotationDegrees = if (reducedMotion) 0f else STAMP_TILT_DEG,
-                modifier = Modifier.align(Alignment.TopEnd),
-            )
-        }
-        if (superLikeAlpha > 0f) {
-            SwipeStampBadge(
-                label = model.superLikeLabel,
-                accentColor = colors.status.info,
-                backgroundColor = colors.status.infoSubtle,
-                alpha = superLikeAlpha,
-                rotationDegrees = 0f,
-                modifier = Modifier.align(Alignment.BottomCenter),
-            )
-        }
+        SwipeStampBadge(
+            label = model.likeLabel,
+            accentColor = colors.status.success,
+            backgroundColor = colors.status.successSubtle,
+            alphaProvider = {
+                ((offsetProvider().x - thresholds.stampActivationPx) / horizontalSpan).coerceIn(0f, 1f)
+            },
+            rotationDegrees = if (reducedMotion) 0f else -STAMP_TILT_DEG,
+            modifier = Modifier.align(Alignment.TopStart),
+        )
+        SwipeStampBadge(
+            label = model.nopeLabel,
+            accentColor = colors.status.error,
+            backgroundColor = colors.status.errorSubtle,
+            alphaProvider = {
+                ((-offsetProvider().x - thresholds.stampActivationPx) / horizontalSpan).coerceIn(0f, 1f)
+            },
+            rotationDegrees = if (reducedMotion) 0f else STAMP_TILT_DEG,
+            modifier = Modifier.align(Alignment.TopEnd),
+        )
+        SwipeStampBadge(
+            label = model.superLikeLabel,
+            accentColor = colors.status.info,
+            backgroundColor = colors.status.infoSubtle,
+            alphaProvider = {
+                val offset = offsetProvider()
+                if (abs(offset.y) > abs(offset.x)) {
+                    ((-offset.y - thresholds.stampActivationPx) / verticalSpan).coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
+            },
+            rotationDegrees = 0f,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
 
@@ -195,7 +192,7 @@ private fun SwipeStampBadge(
     label: String,
     accentColor: Color,
     backgroundColor: Color,
-    alpha: Float,
+    alphaProvider: () -> Float,
     rotationDegrees: Float,
     modifier: Modifier = Modifier,
 ) {
@@ -205,7 +202,7 @@ private fun SwipeStampBadge(
         modifier =
             modifier
                 .graphicsLayer {
-                    this.alpha = alpha
+                    this.alpha = alphaProvider()
                     rotationZ = rotationDegrees
                 }.clip(shape)
                 .background(backgroundColor.copy(alpha = STAMP_BG_ALPHA), shape)

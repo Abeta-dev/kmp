@@ -114,7 +114,7 @@ fun UiCountdown(
         modifier =
             modifier
                 .testTag("countdown_${atom.countdownId}")
-                .applyMotionSpec(motion = effectiveMotion, motionKey = "${atom.countdownId}_$isUrgent")
+                .applyMotionSpec(motion = effectiveMotion, motionKey = atom.countdownId)
                 .clip(pillShape)
                 .background(palette.background, pillShape)
                 .border(strokeWidth.thin, palette.border, pillShape)

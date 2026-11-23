@@ -1067,7 +1067,8 @@
           </p>
 
           <div class="hero-cta-group">
-            <a class="btn btn-primary" href="./storybook/">Open 16-Story WasmJS Storybook &mdash; Snippet Crafter &amp; Nudges Lab &rarr;</a>
+            <a class="btn btn-primary" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Play All 6 Live Super-App Demos in Browser &rarr;</a>
+            <a class="btn btn-secondary" href="./storybook/?story=introduction">17-Story Storybook</a>
             <a class="btn btn-secondary" href="./api/core/">API Reference</a>
             <a class="btn btn-secondary" href="./llms.txt">llms.txt</a>
             <a class="btn btn-secondary" href="https://github.com/Abeta-dev/kmp" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -1106,8 +1107,8 @@
               <div class="metric-label">21 canonical SDUI snippets (incl. <code>composed_block</code> Molding Engine) &amp; 18 OCP action types with 1:1 KMP &harr; Go parity</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">16 Stories</div>
-              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>Animation &amp; Nudges Lab</strong>, <strong>Atomic Snippet Crafter</strong> &amp; <strong>End-to-End App Journeys</strong></div>
+              <div class="metric-value">17 Stories</div>
+              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>6-in-1 Live Super-App Demos</strong>, <strong>Animation &amp; Nudges Lab</strong>, <strong>Atomic Snippet Crafter</strong> &amp; <strong>End-to-End App Journeys</strong></div>
             </div>
           </div>
         </div>
@@ -1225,10 +1226,10 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
                   <button class="copy-btn" type="button" data-copy-target="code-docker">Copy</button>
                 </div>
                 <pre id="code-docker"><code># Pull Visual Layout Studio &amp; Composition Engine
-docker pull ghcr.io/abeta-dev/layout-engine:0.1.0
+docker pull ghcr.io/abeta-dev/layout-engine:0.2.0
 
 # Pull Multi-Tenant 6-App SDUI BFF
-docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
+docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
               </div>
               <p class="code-note">
                 Run locally and point the <a href="./storybook/" style="text-decoration: underline;">Live WasmJS Storybook</a> or <code>sample-app --bff-url</code> directly at your container.
@@ -1292,7 +1293,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               Pixel-accurate Retina (2&times;) PNG captures rendered directly by Compose Multiplatform from <code>kmp/sample-app</code>—zero hand-edited mockups. Click any capture to inspect full-size.
             </p>
           </div>
-          <a class="btn btn-secondary btn-sm" href="./storybook/">Try Atomic Snippet Crafter &amp; Nudges Lab (16 Stories) &rarr;</a>
+          <a class="btn btn-primary btn-sm" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Launch Live 6-App Showcase in Browser &rarr;</a>
         </div>
 
         <!-- Desktop Feature Capture -->
@@ -1302,7 +1303,10 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <span class="window-dots" aria-hidden="true"><span></span><span></span><span></span></span>
               <span>Abeta Fresh &mdash; Super-App Launcher &amp; Adaptive Desktop Split-Pane (<code>1280&times;860</code>)</span>
             </div>
-            <span class="badge badge-emerald">EMERALD &middot; AdaptivePageSpec</span>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span class="badge badge-emerald">EMERALD &middot; AdaptivePageSpec</span>
+              <a class="btn btn-primary btn-sm" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Try Live &rarr;</a>
+            </div>
           </div>
           <div class="desktop-feature-media" data-zoom-src="./assets/screenshots/vertical-fresh-desktop.png" data-zoom-title="Abeta Fresh — Desktop 1280×860 Super-App Launcher &amp; Adaptive Grid">
             <img src="./assets/screenshots/vertical-fresh-desktop.png" alt="Abeta Fresh desktop 1280x860 Super-App Launcher and adaptive responsive product grid rendered in Compose Multiplatform">
@@ -1324,6 +1328,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <p class="vertical-desc">
                 Combines <code>search_bar</code>, live <code>marquee_strip</code>, urgency <code>nudge_bar</code> + <code>CountdownAtom</code>, molded <code>composed_block</code> loyalty card, responsive <code>product_card</code> grid, and <code>FloatingCartDockHost</code> threshold nudges.
               </p>
+              <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Play Abeta Fresh Live &rarr;</a>
             </div>
           </article>
 
@@ -1340,6 +1345,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <p class="vertical-desc">
                 Drives cuisine <code>chip_group</code> filters, promotional <code>carousel</code> banners, restaurant menu <code>product_card</code> grids, and an animated 4-stage <code>order_tracker</code> with live ETA countdown.
               </p>
+              <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=bites-home">Play Abeta Bites Live &rarr;</a>
             </div>
           </article>
 
@@ -1356,6 +1362,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <p class="vertical-desc">
                 Showcases event discovery via <code>search_bar</code>, category <code>chip_group</code>, rich editorial <code>card_v1</code> feeds, and seat/tier booking with <code>celebration</code> feedback.
               </p>
+              <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=pulse-home">Play Abeta Pulse Live &rarr;</a>
             </div>
           </article>
 
@@ -1372,6 +1379,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <p class="vertical-desc">
                 Pairs department chips, lightning-deal <code>carousel</code> rails, multi-column <code>product_card</code> listings, <code>accordion</code> specs &amp; reviews, and native OS <code>share</code> actions.
               </p>
+              <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=mart-home">Play Abeta Mart Live &rarr;</a>
             </div>
           </article>
 
@@ -1388,6 +1396,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <p class="vertical-desc">
                 Features interest <code>chip_group</code> filtering, stacked gesture <code>swipe_deck</code> cards (<code>on_like</code> / <code>on_nope</code> / <code>on_super_like</code>), mutual match celebrations, and inbox flows.
               </p>
+              <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=spark-deck">Play Abeta Spark Live &rarr;</a>
             </div>
           </article>
 
@@ -1404,6 +1413,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.1.0</code></pre>
               <p class="vertical-desc">
                 Combines supplier search, verification <code>chip_group</code>, MOQ <code>metric_card</code> KPIs, verified directory listings, and declarative validated <code>form_v1</code> RFQ workflows.
               </p>
+              <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=trade-home">Play Abeta Trade Live &rarr;</a>
             </div>
           </article>
         </div>

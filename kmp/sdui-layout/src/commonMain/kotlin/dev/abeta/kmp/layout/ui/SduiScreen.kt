@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedButton
@@ -27,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -38,6 +40,7 @@ import dev.abeta.kmp.atoms.atoms.UiIcon
 import dev.abeta.kmp.atoms.atoms.UiProgress
 import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiText
+import dev.abeta.kmp.atoms.modifiers.LocalEnteredMotionKeys
 import dev.abeta.kmp.atoms.modifiers.LocalUiHapticFeedback
 import dev.abeta.kmp.atoms.modifiers.UiHapticKind
 import dev.abeta.kmp.atoms.modifiers.applyLayoutConfig
@@ -69,6 +72,7 @@ private const val MIN_FEEDBACK_DURATION_MS = 800L
 private const val TOOLBAR_ICON_SPACING_DP = 12
 private const val CONTENT_BOTTOM_EXTRA_DP = 16
 private const val FLOATING_CART_BOTTOM_SPACER_DP = 96
+private const val FLOATING_CART_NUDGE_BOTTOM_SPACER_DP = 148
 private const val ERROR_ICON_SIZE_DP = 32
 
 /**
@@ -312,11 +316,22 @@ internal fun SnippetLazyList(
 ) {
     val spacing = ThemeTokens.spacing
     val reducedMotion = ThemeTokens.motion.reducedMotion
+    val enteredMotionKeys = remember(state.page.pageId) { mutableSetOf<Any>() }
+    val listState = remember(state.page.pageId) { LazyListState() }
+    val cart = state.page.floatingCart
     val bottomExtraDp =
-        if (state.page.floatingCart != null) FLOATING_CART_BOTTOM_SPACER_DP else CONTENT_BOTTOM_EXTRA_DP
+        when {
+            cart == null -> CONTENT_BOTTOM_EXTRA_DP
+            cart.freeDeliveryThresholdCents != null -> FLOATING_CART_NUDGE_BOTTOM_SPACER_DP
+            else -> FLOATING_CART_BOTTOM_SPACER_DP
+        }
 
-    CompositionLocalProvider(LocalFormValidationErrors provides state.validationErrors) {
+    CompositionLocalProvider(
+        LocalFormValidationErrors provides state.validationErrors,
+        LocalEnteredMotionKeys provides enteredMotionKeys,
+    ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(vertical = spacing.space8, horizontal = 0.dp),
             verticalArrangement = Arrangement.spacedBy(spacing.space4),
@@ -324,46 +339,59 @@ internal fun SnippetLazyList(
             itemsIndexed(
                 items = snippets,
                 key = { _, item -> item.snippetId },
+                contentType = { _, item -> item.snippetType },
             ) { index, envelope ->
                 val baseModifier = if (reducedMotion) Modifier else Modifier.animateItem()
-                val shakeTargetMatches =
+                val shakeMatches =
                     state.errorShakeTargetId == null || state.errorShakeTargetId == envelope.snippetId
-                val itemModifier =
-                    baseModifier.shakeOnError(
-                        shakeSequence = state.errorShakeSequence,
-                        enabled = shakeTargetMatches,
-                    )
-                Box(modifier = itemModifier) {
-                    LaunchedEffect(envelope.snippetId) {
-                        onSnippetImpression(envelope)
-                    }
-                    CompositionLocalProvider(LocalMotionStaggerIndex provides index) {
-                        snippetRegistry.Render(
-                            envelope = envelope,
-                            formValues = state.formValues,
-                            onFormValueChange = onFormValueChange,
-                            onAction = onAction,
-                            onUnknownSnippet = { unknown ->
-                                UnknownSnippetPlaceholder(unknown)
-                            },
-                            onDecodeError = { failed, err ->
-                                DecodeErrorPlaceholder(failed, err)
-                            },
-                        )
-                    }
-                }
+                SnippetListItemSlot(
+                    index = index,
+                    envelope = envelope,
+                    formValues = state.formValues,
+                    snippetRegistry = snippetRegistry,
+                    onFormValueChange = onFormValueChange,
+                    onAction = onAction,
+                    onSnippetImpression = onSnippetImpression,
+                    modifier = baseModifier.shakeOnError(state.errorShakeSequence, enabled = shakeMatches),
+                )
             }
             if (state.page.pagination?.hasMore == true) {
                 item(key = "__pagination_load_more__") {
-                    PaginationLoadMoreItem(
-                        isLoadingMore = state.isLoadingMore,
-                        onLoadMore = onLoadMore,
-                    )
+                    PaginationLoadMoreItem(isLoadingMore = state.isLoadingMore, onLoadMore = onLoadMore)
                 }
             }
             item(key = "__bottom_spacer__") {
                 Box(modifier = Modifier.padding(bottom = bottomExtraDp.dp))
             }
+        }
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
+private fun SnippetListItemSlot(
+    index: Int,
+    envelope: SnippetEnvelope,
+    formValues: Map<String, String>,
+    snippetRegistry: SnippetRegistry,
+    onFormValueChange: (String, String) -> Unit,
+    onAction: (ActionRef) -> Unit,
+    onSnippetImpression: (SnippetEnvelope) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        LaunchedEffect(envelope.snippetId) {
+            onSnippetImpression(envelope)
+        }
+        CompositionLocalProvider(LocalMotionStaggerIndex provides index) {
+            snippetRegistry.Render(
+                envelope = envelope,
+                formValues = formValues,
+                onFormValueChange = onFormValueChange,
+                onAction = onAction,
+                onUnknownSnippet = { unknown -> UnknownSnippetPlaceholder(unknown) },
+                onDecodeError = { failed, err -> DecodeErrorPlaceholder(failed, err) },
+            )
         }
     }
 }

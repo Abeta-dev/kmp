@@ -299,14 +299,16 @@ internal class SwipeDeckSnippetRenderer(
         val density = LocalDensity.current.density
         val coroutineScope = rememberCoroutineScope()
         val topCard = model.cards[state.currentIndex]
-        var isDragging by remember(topCard.cardId) { mutableStateOf(false) }
-        var dragOffset by remember(topCard.cardId) { mutableStateOf(Offset.Zero) }
-        val activeOffset = if (isDragging) dragOffset else animatedOffset.value
-        val dragProgress =
-            max(
-                abs(activeOffset.x) / thresholds.horizontalPx,
-                max(0f, -activeOffset.y) / thresholds.verticalPx,
-            ).coerceIn(0f, 1f)
+        val isDraggingState = remember(topCard.cardId) { mutableStateOf(false) }
+        val dragOffsetState = remember(topCard.cardId) { mutableStateOf(Offset.Zero) }
+        val activeOffsetProvider: () -> Offset =
+            remember(topCard.cardId, animatedOffset) {
+                { if (isDraggingState.value) dragOffsetState.value else animatedOffset.value }
+            }
+        val dragProgressProvider: () -> Float =
+            remember(topCard.cardId, animatedOffset, thresholds) {
+                { computeSwipeDragProgress(activeOffsetProvider(), thresholds) }
+            }
         val endExclusive = minOf(state.currentIndex + MAX_VISIBLE_STACK_CARDS, model.cards.size)
         val visibleCards = model.cards.subList(state.currentIndex, endExclusive)
 
@@ -321,58 +323,65 @@ internal class SwipeDeckSnippetRenderer(
                     if (isTop) {
                         topCardModifier(
                             cardId = card.cardId,
-                            activeOffset = activeOffset,
+                            activeOffsetProvider = activeOffsetProvider,
                             reducedMotion = reducedMotion,
                             isAnimatingExit = state.isAnimatingExit,
                             onDragStart = {
-                                isDragging = true
-                                dragOffset = animatedOffset.value
+                                isDraggingState.value = true
+                                dragOffsetState.value = animatedOffset.value
                                 coroutineScope.launch { animatedOffset.stop() }
                             },
-                            onDragDelta = { delta -> dragOffset += delta },
+                            onDragDelta = { delta -> dragOffsetState.value += delta },
                             onDragEnd = { cancelled ->
-                                val finalOffset = dragOffset
-                                isDragging = false
-                                dragOffset = Offset.Zero
+                                val finalOffset = dragOffsetState.value
+                                isDraggingState.value = false
+                                dragOffsetState.value = Offset.Zero
                                 state.handleDragRelease(finalOffset, cancelled, animatedOffset)
                             },
                         )
                     } else {
-                        peekCardModifier(depth, dragProgress, reducedMotion, density)
+                        peekCardModifier(depth, dragProgressProvider, reducedMotion, density)
                     }
 
                 Box(modifier = layerModifier) {
                     SwipeCardContent(card, isTop && !state.isAnimatingExit, onAction)
-                    if (isTop) {
-                        SwipeStampOverlays(model, activeOffset, thresholds, reducedMotion)
-                    }
+                    if (isTop) SwipeStampOverlays(model, activeOffsetProvider, thresholds, reducedMotion)
                 }
             }
         }
     }
 
+    private fun computeSwipeDragProgress(
+        offset: Offset,
+        thresholds: SwipeThresholds,
+    ): Float =
+        max(
+            abs(offset.x) / thresholds.horizontalPx,
+            max(0f, -offset.y) / thresholds.verticalPx,
+        ).coerceIn(0f, 1f)
+
     private fun peekCardModifier(
         depth: Int,
-        dragProgress: Float,
+        dragProgressProvider: () -> Float,
         reducedMotion: Boolean,
         density: Float,
-    ): Modifier {
-        val effectiveDepth = if (reducedMotion) depth.toFloat() else (depth - dragProgress).coerceAtLeast(0f)
-        val scale = 1f - (effectiveDepth * PEEK_SCALE_STEP)
-        val peekTranslateY = effectiveDepth * PEEK_OFFSET_Y_DP * density
-        val layerAlpha = (1f - (effectiveDepth * PEEK_ALPHA_STEP)).coerceIn(MIN_PEEK_ALPHA, 1f)
-        return Modifier.fillMaxWidth().graphicsLayer {
+    ): Modifier =
+        Modifier.fillMaxWidth().graphicsLayer {
+            val dragProgress = if (reducedMotion) 0f else dragProgressProvider()
+            val effectiveDepth = (depth - dragProgress).coerceAtLeast(0f)
+            val scale = 1f - (effectiveDepth * PEEK_SCALE_STEP)
+            val peekTranslateY = effectiveDepth * PEEK_OFFSET_Y_DP * density
+            val layerAlpha = (1f - (effectiveDepth * PEEK_ALPHA_STEP)).coerceIn(MIN_PEEK_ALPHA, 1f)
             scaleX = scale
             scaleY = scale
             translationY = peekTranslateY
             alpha = layerAlpha
         }
-    }
 
     @Suppress("LongParameterList")
     private fun topCardModifier(
         cardId: String,
-        activeOffset: Offset,
+        activeOffsetProvider: () -> Offset,
         reducedMotion: Boolean,
         isAnimatingExit: Boolean,
         onDragStart: () -> Unit,
@@ -382,6 +391,7 @@ internal class SwipeDeckSnippetRenderer(
         Modifier
             .fillMaxWidth()
             .graphicsLayer {
+                val activeOffset = activeOffsetProvider()
                 translationX = activeOffset.x
                 translationY = activeOffset.y
                 rotationZ =

@@ -34,24 +34,26 @@ Every screen in `bff/internal/infra/` is mapped 1:1 to `kmp/sample-app` (`Sample
 (cd bff && go run ./cmd/bff) &
 (cd kmp && ./gradlew :sample-app:run --args="--bff-url=http://localhost:8080")
 
-# 4. Storybook — Desktop JVM (12 interactive stories across FOUNDATIONS, ATOMS, SNIPPETS, PLAYGROUND)
+# 4. Storybook — Desktop JVM (17 interactive stories across LIVE_DEMOS, FOUNDATIONS, ATOMS, SNIPPETS, PLAYGROUND)
 (cd kmp && ./gradlew :storybook:run)
 
-# 5. Storybook — WasmJS Browser Web App
+# 5. Storybook — WasmJS Browser Web App (includes all 6 Live Super-App Demos playable zero-backend)
 (cd kmp && ./gradlew :storybook:wasmJsBrowserDevelopmentRun)
 
-# 6. Export fresh Retina PNG screenshots for Demo (7) & Storybook (5) -> docs/assets/screenshots/
+# 6. Export fresh Retina PNG screenshots for Demo (7), 6 Verticals, & Storybook -> docs/assets/screenshots/
 (cd kmp && ./gradlew :sample-app:run --args="--capture-screenshots=../docs/assets/screenshots")
+(cd kmp && ./gradlew :sample-app:run --args="--capture-verticals=../docs/assets/screenshots")
 (cd kmp && ./gradlew :storybook:run --args="--capture-screenshots=../docs/assets/screenshots")
 # Gallery: docs/demo-screenshots.md
 ```
 
-## 3. Storybook 12-Story Reference Map (`kmp/storybook/`)
+## 3. Storybook 17-Story Reference Map (`kmp/storybook/`)
 
-- **FOUNDATIONS**: Color Palette & Contrast (`FoundationsStories.kt`), Typography & Spacing (`FoundationsStories.kt`), Theme Presets & Dark Mode (`FoundationsStories.kt`)
-- **ATOMS**: Core Text/Buttons/Icons/Tags (`AtomStories.kt`), Inputs/Progress/Dividers (`AtomStories.kt`), Controls & Data Atoms — Switch/Checkbox/Slider/Avatar/Skeleton/Stepper (`ControlsAndDataAtomsStory.kt`)
-- **SNIPPETS**: All 14 Snippets Gallery (`SnippetStories.kt`), Nested Containers — Carousel/Grid/Tabs/Accordion (`SnippetStories.kt`), Motion & Abeta Fresh Store (`MotionAndStoreStory.kt`), Responsive Form Factors & OS Bridges (`ResponsiveAndBridgesStory.kt`)
-- **PLAYGROUND**: Interactive Action Dispatcher Sandbox (`PlaygroundStories.kt`), Live Go BFF Screen Explorer across all 7 screens (`LiveBffStory.kt`)
+- **LIVE_DEMOS**: Live 6-in-1 Super-App Demos — Abeta Fresh, Bites, Pulse, Mart, Spark, Trade & Watch with zero-backend offline parity & `?story=&app=` URL deep links (`SuperAppDemosStory.kt`)
+- **FOUNDATIONS**: Introduction (`FoundationsStories.kt`), Design Tokens — Color Palette, WCAG Contrast, Typography & Theme Presets (`FoundationsStories.kt`)
+- **ATOMS**: Buttons, Text & Tags, TextField, Media & Feedback, Controls & Data Atoms — Switch/Checkbox/Slider/Avatar/Skeleton/Stepper (`AtomStories.kt`, `ControlsAndDataAtomsStory.kt`)
+- **SNIPPETS**: All 21 Snippets Gallery (`SnippetsStory.kt`)
+- **PLAYGROUND**: Interactive Action Dispatcher Sandbox (`PlaygroundStories.kt`), Motion & Abeta Fresh Store (`MotionAndStoreStory.kt`), Live Go BFF Explorer with Built-in Demo + Remote BFF toggle (`LiveBffStory.kt`), Responsive Form Factors & OS Bridges (`ResponsiveAndBridgesStory.kt`), Discovery/Search/Swipe (`DiscoveryAndSearchStory.kt`), Animation & Nudges Lab (`AnimationNudgesStory.kt`), Atomic Snippet Crafter (`SnippetCrafterStory.kt`), End-to-End App Journeys (`EndToEndJourneysStory.kt`)
 
 ## 4. Copying Reference Patterns Into Your App
 

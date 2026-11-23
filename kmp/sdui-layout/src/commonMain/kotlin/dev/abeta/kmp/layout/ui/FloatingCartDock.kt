@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.UiButton
 import dev.abeta.kmp.atoms.atoms.UiIcon
@@ -126,8 +130,8 @@ internal fun FloatingCartDockHost(
             computeFreeDeliveryNudge(floatingCart = floatingCart, totalCents = summary.totalCents)
         }
     val durationMs = resolveMotionDurationMs(floatingCart.motion, motionTokens)
-    val bounceScale =
-        rememberCartBounceScale(
+    val bounceScaleState =
+        rememberCartBounceScaleState(
             feedbackSequence = state.feedbackSequence,
             effect = state.activeFeedback?.effect,
             itemCount = summary.itemCount,
@@ -138,8 +142,9 @@ internal fun FloatingCartDockHost(
             modifier
                 .fillMaxWidth()
                 .graphicsLayer {
-                    scaleX = bounceScale
-                    scaleY = bounceScale
+                    val scale = bounceScaleState.value
+                    scaleX = scale
+                    scaleY = scale
                 },
     ) {
         if (motionTokens.reducedMotion) {
@@ -171,11 +176,11 @@ internal fun FloatingCartDockHost(
 }
 
 @Composable
-private fun rememberCartBounceScale(
+private fun rememberCartBounceScaleState(
     feedbackSequence: Long,
     effect: FeedbackEffect?,
     itemCount: Int,
-): Float {
+): State<Float> {
     val motionTokens = ThemeTokens.motion
     val bounceScale = remember { Animatable(ONE) }
     var previousItemCount by remember { mutableIntStateOf(itemCount) }
@@ -216,7 +221,7 @@ private fun rememberCartBounceScale(
             )
         }
     }
-    return bounceScale.value
+    return bounceScale.asState()
 }
 
 @Composable
@@ -234,13 +239,15 @@ private fun FloatingCartDockContent(
     val elevation = ThemeTokens.elevation
     val strokeWidth = ThemeTokens.strokeWidth
     val shape = RoundedCornerShape(cornerRadius.lg)
+    // AnimatedVisibility already drives enter/exit transitions; only apply ambient loop effects here.
+    val loopOnlyMotion = floatingCart.motion?.copy(enter = MotionTransition.NONE)
 
     Surface(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .testTag("floating_cart_dock")
-                .applyMotionSpec(motion = floatingCart.motion, motionKey = "floating_cart_surface"),
+                .applyMotionSpec(motion = loopOnlyMotion, motionKey = "floating_cart_surface"),
         shape = shape,
         color = colors.surface.elevated,
         shadowElevation = elevation.lg,
@@ -285,12 +292,13 @@ private fun FreeDeliveryNudgeStrip(nudge: FreeDeliveryNudgeState) {
     val cornerRadius = ThemeTokens.cornerRadius
     val motion = ThemeTokens.motion
 
-    val animatedProgress by animateFloatAsState(
-        targetValue = nudge.progress,
-        animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.normalMs),
-        label = "free_delivery_nudge_progress",
-    )
-    val unlockScale = rememberUnlockBounceScale(unlocked = nudge.unlocked)
+    val animatedProgressState =
+        animateFloatAsState(
+            targetValue = nudge.progress,
+            animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.normalMs),
+            label = "free_delivery_nudge_progress",
+        )
+    val unlockScaleState = rememberUnlockBounceScaleState(unlocked = nudge.unlocked)
     val stripBg = if (nudge.unlocked) colors.status.successSubtle else colors.surface.brandSubtle
     val barColor = if (nudge.unlocked) colors.status.success else colors.brand.primary
 
@@ -302,14 +310,15 @@ private fun FreeDeliveryNudgeStrip(nudge: FreeDeliveryNudgeState) {
                 .background(stripBg)
                 .padding(horizontal = spacing.space16, vertical = spacing.space8)
                 .graphicsLayer {
-                    scaleX = unlockScale
-                    scaleY = unlockScale
+                    val scale = unlockScaleState.value
+                    scaleX = scale
+                    scaleY = scale
                 },
         verticalArrangement = Arrangement.spacedBy(spacing.space4),
     ) {
         FreeDeliveryNudgeHeader(nudge = nudge)
         LinearProgressIndicator(
-            progress = { animatedProgress },
+            progress = { animatedProgressState.value },
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -322,7 +331,7 @@ private fun FreeDeliveryNudgeStrip(nudge: FreeDeliveryNudgeState) {
 }
 
 @Composable
-private fun rememberUnlockBounceScale(unlocked: Boolean): Float {
+private fun rememberUnlockBounceScaleState(unlocked: Boolean): State<Float> {
     val motion = ThemeTokens.motion
     val unlockScale = remember { Animatable(ONE) }
     LaunchedEffect(unlocked, motion.reducedMotion) {
@@ -340,7 +349,7 @@ private fun rememberUnlockBounceScale(unlocked: Boolean): Float {
             unlockScale.snapTo(ONE)
         }
     }
-    return unlockScale.value
+    return unlockScale.asState()
 }
 
 @Composable
@@ -372,12 +381,35 @@ private fun FreeDeliveryNudgeHeader(nudge: FreeDeliveryNudgeState) {
                         color = ColorTokenRef(token = "icon.brand"),
                     ),
             )
-            UiRollingCounter(
-                value = nudge.message,
-                style = typography.labelMedium,
-                color = colors.text.brand,
-                modifier = Modifier.weight(1f),
-            )
+            val amountText = formatUsdCents(nudge.remainingCents)
+            val amountStart = nudge.message.indexOf(amountText)
+            if (amountStart >= 0) {
+                val leadText = nudge.message.substring(0, amountStart)
+                val trailText = nudge.message.substring(amountStart + amountText.length)
+                Row(
+                    modifier =
+                        Modifier.weight(1f).clearAndSetSemantics {
+                            text = AnnotatedString(nudge.message)
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (leadText.isNotEmpty()) {
+                        Text(text = leadText, style = typography.labelMedium, color = colors.text.brand, maxLines = 1)
+                    }
+                    UiRollingCounter(value = amountText, style = typography.labelMedium, color = colors.text.brand)
+                    if (trailText.isNotEmpty()) {
+                        Text(text = trailText, style = typography.labelMedium, color = colors.text.brand, maxLines = 1)
+                    }
+                }
+            } else {
+                Text(
+                    text = nudge.message,
+                    style = typography.labelMedium,
+                    color = colors.text.brand,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }

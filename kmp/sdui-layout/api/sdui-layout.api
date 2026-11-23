@@ -366,8 +366,8 @@ public final class dev/abeta/kmp/layout/ui/ComposableSingletons$AdaptiveScreenCo
 public final class dev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt {
 	public static final field INSTANCE Ldev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt;
 	public fun <init> ()V
-	public final fun getLambda$1669617825$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function4;
-	public final fun getLambda$747210127$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-2124544332$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function4;
+	public final fun getLambda$1796766854$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class dev/abeta/kmp/layout/ui/SduiHostRootKt {
