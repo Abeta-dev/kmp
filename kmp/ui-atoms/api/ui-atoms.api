@@ -44,9 +44,19 @@ public final class dev/abeta/kmp/atoms/atoms/ResolvedTagColorsKt {
 	public static final fun resolveTagColors (Ldev/abeta/kmp/contracts/TagVariant;Ldev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/tokens/ColorTokens;)Ldev/abeta/kmp/atoms/atoms/ResolvedTagColors;
 }
 
+public final class dev/abeta/kmp/atoms/atoms/UiAlertBannerKt {
+	public static final fun UiAlertBanner (Ldev/abeta/kmp/contracts/AlertBannerAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+}
+
 public final class dev/abeta/kmp/atoms/atoms/UiAvatarKt {
 	public static final fun UiAvatar (Ldev/abeta/kmp/contracts/AvatarAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 	public static final fun resolveAvatarInitials (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiBadgeKt {
+	public static final fun UiBadge (Ldev/abeta/kmp/contracts/BadgeAtom;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
+	public static final fun formatBadgeCount (II)Ljava/lang/String;
+	public static synthetic fun formatBadgeCount$default (IIILjava/lang/Object;)Ljava/lang/String;
 }
 
 public final class dev/abeta/kmp/atoms/atoms/UiBuiltinIcons {
@@ -67,6 +77,10 @@ public final class dev/abeta/kmp/atoms/atoms/UiCelebrationBurstKt {
 public final class dev/abeta/kmp/atoms/atoms/UiCheckboxKt {
 	public static final fun UiCheckbox (Ldev/abeta/kmp/contracts/CheckboxAtom;Landroidx/compose/ui/Modifier;Ljava/lang/Boolean;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 	public static final fun formatCheckboxContentDescription (Ldev/abeta/kmp/contracts/CheckboxAtom;)Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiChipKt {
+	public static final fun UiChip (Ldev/abeta/kmp/contracts/ChipAtom;Landroidx/compose/ui/Modifier;Ljava/lang/Boolean;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class dev/abeta/kmp/atoms/atoms/UiCountdownKt {
@@ -102,14 +116,52 @@ public final class dev/abeta/kmp/atoms/atoms/UiImageRendererKt {
 	public static final fun getLocalImageRenderer ()Landroidx/compose/runtime/ProvidableCompositionLocal;
 }
 
+public final class dev/abeta/kmp/atoms/atoms/UiKeyValueRowKt {
+	public static final fun UiKeyValueRow (Ldev/abeta/kmp/contracts/KeyValueRowAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiOtpInputKt {
+	public static final fun UiOtpInput (Ldev/abeta/kmp/contracts/OtpInputAtom;Landroidx/compose/ui/Modifier;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun resolveOtpLength (I)I
+	public static final fun sanitizeOtpDigits (Ljava/lang/String;I)Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiPriceKt {
+	public static final fun UiPrice (Ldev/abeta/kmp/contracts/PriceAtom;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
+}
+
 public final class dev/abeta/kmp/atoms/atoms/UiProgressKt {
 	public static final fun UiProgress (Ldev/abeta/kmp/contracts/ProgressAtom;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 	public static final fun clampProgress (Ljava/lang/Float;)Ljava/lang/Float;
 }
 
+public final class dev/abeta/kmp/atoms/atoms/UiQrCodeKt {
+	public static final field QR_MATRIX_SIZE I
+	public static final fun UiQrCode (Ldev/abeta/kmp/contracts/QrCodeAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun generateQrMatrix (Ljava/lang/String;)Ljava/util/List;
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiRadioGroupKt {
+	public static final fun UiRadioGroup (Ldev/abeta/kmp/contracts/RadioGroupAtom;Landroidx/compose/ui/Modifier;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiRatingKt {
+	public static final fun UiRating (Ldev/abeta/kmp/contracts/RatingAtom;Landroidx/compose/ui/Modifier;Ljava/lang/Float;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun formatRatingSummary (FLjava/lang/Integer;)Ljava/lang/String;
+	public static final fun resolveStarFillLevel (FI)F
+}
+
 public final class dev/abeta/kmp/atoms/atoms/UiRollingCounterKt {
 	public static final fun UiRollingCounter-cf5BqRc (Ljava/lang/String;Landroidx/compose/ui/text/TextStyle;JLandroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 	public static final fun shouldRollDigitUp (CC)Z
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiSegmentedControlKt {
+	public static final fun UiSegmentedControl (Ldev/abeta/kmp/contracts/SegmentedControlAtom;Landroidx/compose/ui/Modifier;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiSelectKt {
+	public static final fun UiSelect (Ldev/abeta/kmp/contracts/SelectAtom;Landroidx/compose/ui/Modifier;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class dev/abeta/kmp/atoms/atoms/UiSkeletonKt {
@@ -127,6 +179,11 @@ public final class dev/abeta/kmp/atoms/atoms/UiSliderKt {
 
 public final class dev/abeta/kmp/atoms/atoms/UiSpacerKt {
 	public static final fun UiSpacer (Ldev/abeta/kmp/contracts/SpacerAtom;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class dev/abeta/kmp/atoms/atoms/UiStatTileKt {
+	public static final fun UiStatTile (Ldev/abeta/kmp/contracts/StatTileAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun formatStatDelta (Ljava/lang/String;Ljava/lang/Boolean;)Ljava/lang/String;
 }
 
 public final class dev/abeta/kmp/atoms/atoms/UiStepperKt {

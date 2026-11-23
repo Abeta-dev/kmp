@@ -137,6 +137,66 @@ func RollingCounterNode(value string, typo theming.TypographyToken, color themin
 	}
 }
 
+// RadioGroupNode wraps a RadioGroupAtom as a composed leaf node.
+func RadioGroupNode(radioGroup atoms.RadioGroupAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeRadioGroup, RadioGroup: &radioGroup}
+}
+
+// SelectNode wraps a SelectAtom as a composed leaf node.
+func SelectNode(sel atoms.SelectAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeSelect, Select: &sel}
+}
+
+// OtpInputNode wraps an OtpInputAtom as a composed leaf node.
+func OtpInputNode(otp atoms.OtpInputAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeOtpInput, OtpInput: &otp}
+}
+
+// ChipNode wraps a ChipAtom as a composed leaf node.
+func ChipNode(chip atoms.ChipAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeChip, Chip: &chip}
+}
+
+// SegmentedControlNode wraps a SegmentedControlAtom as a composed leaf node.
+func SegmentedControlNode(segmented atoms.SegmentedControlAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeSegmentedControl, SegmentedControl: &segmented}
+}
+
+// RatingNode wraps a RatingAtom as a composed leaf node.
+func RatingNode(rating atoms.RatingAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeRating, Rating: &rating}
+}
+
+// PriceNode wraps a PriceAtom as a composed leaf node.
+func PriceNode(price atoms.PriceAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodePrice, Price: &price}
+}
+
+// BadgeNode wraps a BadgeAtom as a composed leaf node.
+func BadgeNode(badge atoms.BadgeAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeBadge, Badge: &badge}
+}
+
+// AlertBannerNode wraps an AlertBannerAtom as a composed leaf node.
+func AlertBannerNode(alert atoms.AlertBannerAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeAlertBanner, AlertBanner: &alert}
+}
+
+// StatTileNode wraps a StatTileAtom as a composed leaf node.
+func StatTileNode(stat atoms.StatTileAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeStatTile, StatTile: &stat}
+}
+
+// KeyValueRowNode wraps a KeyValueRowAtom as a composed leaf node.
+func KeyValueRowNode(row atoms.KeyValueRowAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeKeyValueRow, KeyValueRow: &row}
+}
+
+// QrCodeNode wraps a QrCodeAtom as a composed leaf node.
+func QrCodeNode(qr atoms.QrCodeAtom) ComposedNode {
+	return ComposedNode{Kind: ComposedNodeQrCode, QrCode: &qr}
+}
+
 // ── Fluent Value Modifiers on ComposedNode ─────────────────────────────────────
 
 // WithNodeID attaches a stable node_id identifier to a ComposedNode.

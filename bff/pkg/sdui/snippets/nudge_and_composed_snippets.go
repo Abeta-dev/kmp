@@ -76,23 +76,35 @@ type OrderTrackerSnippetData struct {
 
 // ComposedNodeKind wire identifiers for ComposedNode.Kind.
 const (
-	ComposedNodeColumn         = "column"
-	ComposedNodeRow            = "row"
-	ComposedNodeBox            = "box"
-	ComposedNodeCard           = "card"
-	ComposedNodeFlowRow        = "flow_row"
-	ComposedNodeText           = "text"
-	ComposedNodeButton         = "button"
-	ComposedNodeTag            = "tag"
-	ComposedNodeIcon           = "icon"
-	ComposedNodeImage          = "image"
-	ComposedNodeAvatar         = "avatar"
-	ComposedNodeProgress       = "progress"
-	ComposedNodeDivider        = "divider"
-	ComposedNodeSpacer         = "spacer"
-	ComposedNodeStepper        = "stepper"
-	ComposedNodeCountdown      = "countdown"
-	ComposedNodeRollingCounter = "rolling_counter"
+	ComposedNodeColumn           = "column"
+	ComposedNodeRow              = "row"
+	ComposedNodeBox              = "box"
+	ComposedNodeCard             = "card"
+	ComposedNodeFlowRow          = "flow_row"
+	ComposedNodeText             = "text"
+	ComposedNodeButton           = "button"
+	ComposedNodeTag              = "tag"
+	ComposedNodeIcon             = "icon"
+	ComposedNodeImage            = "image"
+	ComposedNodeAvatar           = "avatar"
+	ComposedNodeProgress         = "progress"
+	ComposedNodeDivider          = "divider"
+	ComposedNodeSpacer           = "spacer"
+	ComposedNodeStepper          = "stepper"
+	ComposedNodeCountdown        = "countdown"
+	ComposedNodeRollingCounter   = "rolling_counter"
+	ComposedNodeRadioGroup       = "radio_group"
+	ComposedNodeSelect           = "select"
+	ComposedNodeOtpInput         = "otp_input"
+	ComposedNodeChip             = "chip"
+	ComposedNodeSegmentedControl = "segmented_control"
+	ComposedNodeRating           = "rating"
+	ComposedNodePrice            = "price"
+	ComposedNodeBadge            = "badge"
+	ComposedNodeAlertBanner      = "alert_banner"
+	ComposedNodeStatTile         = "stat_tile"
+	ComposedNodeKeyValueRow      = "key_value_row"
+	ComposedNodeQrCode           = "qr_code"
 )
 
 // ComposedNode alignment and main-axis arrangement wire identifiers.
@@ -110,32 +122,44 @@ const (
 // ComposedNode represents a recursive atomic-molding tree node rendered by
 // the composed_block snippet renderer without requiring a client app release.
 type ComposedNode struct {
-	NodeID              string                    `json:"node_id,omitempty"`
-	Kind                string                    `json:"kind"`
-	SpacingDp           *int                      `json:"spacing_dp,omitempty"`
-	Alignment           string                    `json:"alignment,omitempty"`
-	HorizontalAlignment string                    `json:"horizontal_alignment,omitempty"`
-	VerticalAlignment   string                    `json:"vertical_alignment,omitempty"`
-	MainAxisArrangement string                    `json:"main_axis_arrangement,omitempty"`
-	Weight              *float64                  `json:"weight,omitempty"`
-	Children            []ComposedNode            `json:"children,omitempty"`
-	Text                *atoms.TextAtom           `json:"text,omitempty"`
-	Button              *atoms.ButtonAtom         `json:"button,omitempty"`
-	Tag                 *atoms.TagAtom            `json:"tag,omitempty"`
-	Icon                *atoms.IconAtom           `json:"icon,omitempty"`
-	Image               *atoms.ImageAtom          `json:"image,omitempty"`
-	Avatar              *atoms.AvatarAtom         `json:"avatar,omitempty"`
-	Progress            *atoms.ProgressAtom       `json:"progress,omitempty"`
-	Divider             *atoms.DividerAtom        `json:"divider,omitempty"`
-	Spacer              *atoms.SpacerAtom         `json:"spacer,omitempty"`
-	Stepper             *atoms.StepperAtom        `json:"stepper,omitempty"`
-	Countdown           *atoms.CountdownAtom      `json:"countdown,omitempty"`
-	CounterValue        string                    `json:"counter_value,omitempty"`
-	CounterTypography   *atoms.TypographyTokenRef `json:"counter_typography,omitempty"`
-	CounterColor        *atoms.ColorTokenRef      `json:"counter_color,omitempty"`
-	OnClick             *actions.ActionTrigger    `json:"on_click,omitempty"`
-	Layout              *atoms.LayoutConfig       `json:"layout,omitempty"`
-	Motion              *atoms.MotionSpec         `json:"motion,omitempty"`
+	NodeID              string                      `json:"node_id,omitempty"`
+	Kind                string                      `json:"kind"`
+	SpacingDp           *int                        `json:"spacing_dp,omitempty"`
+	Alignment           string                      `json:"alignment,omitempty"`
+	HorizontalAlignment string                      `json:"horizontal_alignment,omitempty"`
+	VerticalAlignment   string                      `json:"vertical_alignment,omitempty"`
+	MainAxisArrangement string                      `json:"main_axis_arrangement,omitempty"`
+	Weight              *float64                    `json:"weight,omitempty"`
+	Children            []ComposedNode              `json:"children,omitempty"`
+	Text                *atoms.TextAtom             `json:"text,omitempty"`
+	Button              *atoms.ButtonAtom           `json:"button,omitempty"`
+	Tag                 *atoms.TagAtom              `json:"tag,omitempty"`
+	Icon                *atoms.IconAtom             `json:"icon,omitempty"`
+	Image               *atoms.ImageAtom            `json:"image,omitempty"`
+	Avatar              *atoms.AvatarAtom           `json:"avatar,omitempty"`
+	Progress            *atoms.ProgressAtom         `json:"progress,omitempty"`
+	Divider             *atoms.DividerAtom          `json:"divider,omitempty"`
+	Spacer              *atoms.SpacerAtom           `json:"spacer,omitempty"`
+	Stepper             *atoms.StepperAtom          `json:"stepper,omitempty"`
+	Countdown           *atoms.CountdownAtom        `json:"countdown,omitempty"`
+	CounterValue        string                      `json:"counter_value,omitempty"`
+	CounterTypography   *atoms.TypographyTokenRef   `json:"counter_typography,omitempty"`
+	CounterColor        *atoms.ColorTokenRef        `json:"counter_color,omitempty"`
+	RadioGroup          *atoms.RadioGroupAtom       `json:"radio_group,omitempty"`
+	Select              *atoms.SelectAtom           `json:"select,omitempty"`
+	OtpInput            *atoms.OtpInputAtom         `json:"otp_input,omitempty"`
+	Chip                *atoms.ChipAtom             `json:"chip,omitempty"`
+	SegmentedControl    *atoms.SegmentedControlAtom `json:"segmented_control,omitempty"`
+	Rating              *atoms.RatingAtom           `json:"rating,omitempty"`
+	Price               *atoms.PriceAtom            `json:"price,omitempty"`
+	Badge               *atoms.BadgeAtom            `json:"badge,omitempty"`
+	AlertBanner         *atoms.AlertBannerAtom      `json:"alert_banner,omitempty"`
+	StatTile            *atoms.StatTileAtom         `json:"stat_tile,omitempty"`
+	KeyValueRow         *atoms.KeyValueRowAtom      `json:"key_value_row,omitempty"`
+	QrCode              *atoms.QrCodeAtom           `json:"qr_code,omitempty"`
+	OnClick             *actions.ActionTrigger      `json:"on_click,omitempty"`
+	Layout              *atoms.LayoutConfig         `json:"layout,omitempty"`
+	Motion              *atoms.MotionSpec           `json:"motion,omitempty"`
 }
 
 // ComposedBlockSnippetData represents a server-molded atomic composition tree ("composed_block").

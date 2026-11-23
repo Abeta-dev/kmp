@@ -458,6 +458,7 @@ internal object SuperAppDemoCommercePages {
             snippets =
                 listOf(
                     buildMartHeroCard(checkoutNav, share),
+                    SuperAppDemoCommerceWorkflows.buildMartDetailPricingBlock(),
                     buildMartProtectionForm(),
                     ui.accordion("mart_specs_accordion", "Specifications", "Drivers & battery", specs),
                     ui.accordion("mart_reviews_acc", "Customer Reviews", "4.9 ★ (1,284 reviews)", reviews),

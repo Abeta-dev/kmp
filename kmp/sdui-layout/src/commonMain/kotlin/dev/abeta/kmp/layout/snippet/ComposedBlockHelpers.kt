@@ -85,7 +85,7 @@ internal fun RenderComposedLeafNode(
         }
 
         else -> {
-            // Container nodes are handled by ComposedBlockSnippetRenderer.
+            RenderComposedExtendedLeafNode(node, formValues, onFormValueChange, onAction, modifier)
         }
     }
 }

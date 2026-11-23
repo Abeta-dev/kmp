@@ -36,6 +36,9 @@ class StorybookCatalogTest {
                 StoryCatalog.STORY_TEXT_FIELD,
                 StoryCatalog.STORY_MEDIA_FEEDBACK,
                 StoryCatalog.STORY_CONTROLS_DATA,
+                StoryCatalog.STORY_SELECTION_OTP,
+                StoryCatalog.STORY_COMMERCE_FINTECH,
+                StoryCatalog.STORY_FEEDBACK_TELEMETRY,
                 StoryCatalog.STORY_SNIPPETS,
                 StoryCatalog.STORY_PLAYGROUND,
                 StoryCatalog.STORY_MOTION_STORE,
@@ -46,8 +49,13 @@ class StorybookCatalogTest {
                 StoryCatalog.STORY_SNIPPET_CRAFTER,
                 StoryCatalog.STORY_E2E_JOURNEYS,
             )
-        assertEquals(17, entries.size)
+        assertEquals(20, entries.size)
         assertEquals(expectedIds, uniqueIds)
+        val atomStoryIds = entries.filter { it.category == StoryCategory.ATOMS }.map { it.id }.toSet()
+        assertEquals(8, atomStoryIds.size)
+        assertTrue(StoryCatalog.STORY_SELECTION_OTP in atomStoryIds)
+        assertTrue(StoryCatalog.STORY_COMMERCE_FINTECH in atomStoryIds)
+        assertTrue(StoryCatalog.STORY_FEEDBACK_TELEMETRY in atomStoryIds)
         assertEquals(StoryCatalog.STORY_INTRODUCTION, StoryCatalog.findById("unknown").id)
         assertEquals("7-in-1 Super-App Demos", StoryCatalog.findById(StoryCatalog.STORY_SUPER_APP_DEMOS).title)
     }
@@ -125,6 +133,39 @@ class StorybookCatalogTest {
         assertEquals(3, SuperAppDemoNudgeBuilders.nextStage(2))
         assertEquals(4, SuperAppDemoNudgeBuilders.nextStage(3))
         assertEquals(1, SuperAppDemoNudgeBuilders.nextStage(4))
+    }
+
+    @Test
+    fun `upgraded super app workflows embed extended atom composed blocks`() {
+        val upgradedPages =
+            listOf(
+                SuperAppDemoFreshWorkflows.freshItemDetail(),
+                SuperAppDemoFreshWorkflows.freshCart("express", "FRESH20"),
+                SuperAppDemoCommerceWorkflows.bitesCart("BITES50"),
+                SuperAppDemoCommercePages.martProductDetail(),
+                SuperAppDemoDiscoveryWorkflows.pulseTicketPass(),
+                SuperAppDemoDiscoveryWorkflows.tradeQuotes(),
+                SuperAppDemoPayPages.payHome(),
+                SuperAppDemoPayPages.payTransfer("100"),
+                SuperAppDemoPayPages.payReceipt(2),
+            )
+        val allSnippetIds = upgradedPages.flatMap { it.snippets }.map { it.snippetId }.toSet()
+        val expectedExtendedBlocks =
+            listOf(
+                "fresh_price_rating_composed",
+                "fresh_cart_slot_bill_block",
+                "bites_bill_seal_composed",
+                "mart_detail_pricing_composed",
+                "pulse_qr_pass_block",
+                "trade_quotes_telemetry_block",
+                "pay_telemetry_row_block",
+                "pay_receive_qr_block",
+                "pay_rail_pin_composed",
+                "pay_receipt_breakdown_block",
+            )
+        for (blockId in expectedExtendedBlocks) {
+            assertTrue(blockId in allSnippetIds, "Missing extended composed_block snippet $blockId")
+        }
     }
 
     @Test

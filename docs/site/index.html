@@ -1199,7 +1199,7 @@
 
           <div class="hero-cta-group">
             <a class="btn btn-primary" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Play All 7 Live Super-App Demos in Browser &rarr;</a>
-            <a class="btn btn-secondary" href="./storybook/?story=introduction">17-Story Storybook</a>
+            <a class="btn btn-secondary" href="./storybook/?story=introduction">20-Story Storybook (30 Atoms)</a>
             <a class="btn btn-secondary" href="./api/core/">API Reference</a>
             <a class="btn btn-secondary" href="./llms.txt">llms.txt</a>
             <a class="btn btn-secondary" href="https://github.com/Abeta-dev/kmp" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -1230,16 +1230,16 @@
               <div class="metric-label">Publishable KMP libs + Gradle BOM &amp; Version Catalog, ABI-checked via BCV</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">16 / 18 Atoms</div>
-              <div class="metric-label">16 pure wire atoms &amp; 18 stateless Compose UI atoms (incl. <code>UiCountdown</code>, <code>UiRollingCounter</code> &amp; 7 ambient motion loops)</div>
+              <div class="metric-value">28 / 30 Atoms</div>
+              <div class="metric-label">28 pure wire atoms &amp; 30 stateless Compose UI atoms (incl. <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code>, <code>UiQrCode</code> &amp; 7 motion loops)</div>
             </div>
             <div class="metric-card">
               <div class="metric-value">21 / 18 Wire</div>
-              <div class="metric-label">21 canonical SDUI snippets (incl. <code>composed_block</code> Molding Engine) &amp; 18 OCP action types with 1:1 KMP &harr; Go parity</div>
+              <div class="metric-label">21 canonical SDUI snippets (incl. <code>composed_block</code> with 29 node kinds) &amp; 18 OCP action types with 1:1 KMP &harr; Go parity</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">17 Stories</div>
-              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>7-in-1 Live Super-App Demos</strong>, <strong>Animation &amp; Nudges Lab</strong>, <strong>Atomic Snippet Crafter</strong> &amp; <strong>End-to-End App Journeys</strong></div>
+              <div class="metric-value">20 Stories</div>
+              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>7-in-1 Live Super-App Demos</strong>, <strong>30-Atom Gallery</strong>, <strong>Animation &amp; Nudges Lab</strong> &amp; <strong>Atomic Snippet Crafter</strong></div>
             </div>
           </div>
         </div>
@@ -1341,7 +1341,7 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/theming"</code></pre>
               </div>
               <p class="code-note">
-                Golden-tested 1:1 parity across all 16 wire atoms, 21 canonical snippet types (incl. <code>composed_block</code> recipe builders), 7 motion loops, and 18 built-in action types.
+                Golden-tested 1:1 parity across all 28 wire atoms, 21 canonical snippet types (incl. <code>composed_block</code> with 29 node kinds), 7 motion loops, and 18 built-in action types.
               </p>
             </div>
 
@@ -1646,7 +1646,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
               <span class="api-card-name">:sdui-contracts</span>
               <span class="badge badge-indigo">Layer 1</span>
             </div>
-            <p>Pure <code>@Serializable</code> v1 wire DTOs: 16 Wire Atoms (incl. <code>CountdownAtom</code>), 21 <code>SnippetTypes</code> (incl. <code>nudge_bar</code>, <code>marquee_strip</code>, <code>order_tracker</code>, <code>composed_block</code>), 7 motion loops, <code>FloatingCartSpec</code> nudges, and <code>SduiJson</code>.</p>
+            <p>Pure <code>@Serializable</code> v1 wire DTOs: 28 Wire Atoms (incl. <code>RadioGroupAtom</code>, <code>SelectAtom</code>, <code>OtpInputAtom</code>, <code>RatingAtom</code>, <code>PriceAtom</code>, <code>QrCodeAtom</code>, <code>CountdownAtom</code>), 21 <code>SnippetTypes</code> (incl. <code>composed_block</code> with 29 <code>ComposedNodeKind</code>s), 7 motion loops, <code>FloatingCartSpec</code> nudges, and <code>SduiJson</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1655,7 +1655,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
               <span class="api-card-name">:ui-atoms</span>
               <span class="badge badge-indigo">Layer 1</span>
             </div>
-            <p>18 stateless Compose Multiplatform atoms (incl. <code>UiStepper</code>, <code>UiCountdown</code>, <code>UiRollingCounter</code>), 7 ambient <code>MotionLoopEffect</code>s, <code>pressBounce</code>, <code>UiCelebrationOverlay</code>, and <code>UiHapticFeedback</code>.</p>
+            <p>30 stateless Compose Multiplatform atoms (incl. <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiChip</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code>, <code>UiBadge</code>, <code>UiAlertBanner</code>, <code>UiStatTile</code>, <code>UiKeyValueRow</code>, <code>UiQrCode</code>, <code>UiStepper</code>, <code>UiCountdown</code>, <code>UiRollingCounter</code>), 7 ambient <code>MotionLoopEffect</code>s, <code>pressBounce</code>, <code>UiCelebrationOverlay</code>, and <code>UiHapticFeedback</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 

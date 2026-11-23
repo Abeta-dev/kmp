@@ -383,4 +383,36 @@ class GoldenFixturesParityTest {
         val promo = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[5].data)
         assertEquals("live_eta_promo_card", promo.recipeName)
     }
+
+    @Test
+    fun decodesExtendedAtomsGoldenFixture() {
+        val page = SduiJson.decodeFromString<PageResponse>(loadGoldenJson("extended_atoms_screen.json"))
+        assertEquals("extended-atoms-demo", page.pageId)
+        assertEquals(1, page.snippets.size)
+
+        val block = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[0].data)
+        assertEquals(SnippetTypes.COMPOSED_BLOCK, page.snippets[0].snippetType)
+        assertEquals("extended_atoms_showcase", block.blockId)
+
+        val columnChildren =
+            block.root.children
+                .first()
+                .children
+        val nodesById =
+            columnChildren
+                .flatMap { node -> if (node.children.isNotEmpty()) node.children else listOf(node) }
+                .associateBy { it.nodeId }
+        assertEquals("alert_cold_chain", nodesById["node_alert_banner"]?.alertBanner?.id)
+        assertEquals("$3.99", nodesById["node_price"]?.price?.amountText)
+        assertEquals(12, nodesById["node_badge"]?.badge?.count)
+        assertEquals(4.8f, nodesById["node_rating"]?.rating?.value)
+        assertEquals("chip_organic", nodesById["node_chip"]?.chip?.id)
+        assertEquals("annual", nodesById["node_segmented_control"]?.segmentedControl?.selectedId)
+        assertEquals("express", nodesById["node_radio_group"]?.radioGroup?.selectedId)
+        assertEquals("now", nodesById["node_select"]?.select?.selectedId)
+        assertEquals("482", nodesById["node_otp_input"]?.otpInput?.initialValue)
+        assertEquals("99.4%", nodesById["node_stat_tile"]?.statTile?.value)
+        assertEquals("$24.90", nodesById["node_key_value_row"]?.keyValueRow?.value)
+        assertEquals("qr_pickup_pass", nodesById["node_qr_code"]?.qrCode?.id)
+    }
 }

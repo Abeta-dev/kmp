@@ -1,17 +1,27 @@
 package dev.abeta.kmp.storybook
 
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.AlertBannerAtom
 import dev.abeta.kmp.contracts.BottomBarSpec
 import dev.abeta.kmp.contracts.ButtonSize
 import dev.abeta.kmp.contracts.ButtonVariant
 import dev.abeta.kmp.contracts.CardSnippetData
 import dev.abeta.kmp.contracts.ColorTokenRef
+import dev.abeta.kmp.contracts.ComposedBlockSnippetData
+import dev.abeta.kmp.contracts.ComposedNode
+import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.FormSnippetData
+import dev.abeta.kmp.contracts.KeyValueRowAtom
+import dev.abeta.kmp.contracts.OptionItem
 import dev.abeta.kmp.contracts.PageResponse
+import dev.abeta.kmp.contracts.PriceAtom
+import dev.abeta.kmp.contracts.RatingAtom
+import dev.abeta.kmp.contracts.SegmentedControlAtom
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.SwitchAtom
 import dev.abeta.kmp.contracts.TagAtom
+import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.contracts.TextFieldAtom
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -62,6 +72,7 @@ internal object SuperAppDemoCommerceWorkflows {
             snippets =
                 listOf(
                     ui.header("bites_cart_hdr", "Your Meal Bag", "1× Smoked Veg Biryani · 1× Paneer Tikka", "2 ITEMS"),
+                    buildBitesBillAndSealBlock(promoApplied),
                     buildBitesPromoCard(promoApplied),
                     buildBitesCheckoutForm(placeOrder),
                 ),
@@ -74,6 +85,146 @@ internal object SuperAppDemoCommerceWorkflows {
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
+
+    private fun buildBitesBillAndSealBlock(promoApplied: Boolean): SnippetEnvelope {
+        val sealBanner =
+            AlertBannerAtom(
+                id = "bites_kitchen_seal",
+                title = "Contactless Kitchen Seal Guarantee",
+                message = "Tamper-evident thermal bag sealed at Saffron Hearth with doorstep photo proof.",
+                variant = TagVariant.SUCCESS,
+            )
+        val root =
+            ComposedNode(
+                nodeId = "bites_cart_bill_card",
+                kind = ComposedNodeKind.CARD,
+                spacingDp = 8,
+                layout = ui.cardLayout,
+                children =
+                    listOf(
+                        ComposedNode("bites_seal_banner", ComposedNodeKind.ALERT_BANNER, alertBanner = sealBanner),
+                    ) + buildBitesBillRows(promoApplied),
+            )
+        return SnippetEnvelope(
+            snippetId = "bites_bill_seal_composed",
+            snippetType = SnippetTypes.COMPOSED_BLOCK,
+            data = ui.encode(ComposedBlockSnippetData("bites_bill_seal", "meal_bill_and_seal", root)),
+        )
+    }
+
+    private fun buildBitesBillRows(promoApplied: Boolean): List<ComposedNode> {
+        val ok = ColorTokenRef("status.success")
+        val total = if (promoApplied) "\$14.25" else "\$17.75"
+        return buildList {
+            add(kvRow("bites_kv_sub", KeyValueRowAtom(id = "b_sub", label = "Meal Subtotal", value = "\$17.75")))
+            add(
+                kvRow(
+                    "bites_kv_pack",
+                    KeyValueRowAtom(id = "b_pack", label = "Thermal Packaging", value = "FREE", valueColor = ok),
+                ),
+            )
+            add(
+                kvRow(
+                    "bites_kv_del",
+                    KeyValueRowAtom(
+                        id = "b_del",
+                        label = "Priority Delivery",
+                        value = "FREE",
+                        valueColor = ok,
+                        showDivider = !promoApplied,
+                    ),
+                ),
+            )
+            if (promoApplied) {
+                add(
+                    kvRow(
+                        "bites_kv_promo",
+                        KeyValueRowAtom(
+                            id = "b_promo",
+                            label = "Promo (BITES50)",
+                            value = "-\$3.50",
+                            valueColor = ok,
+                            showDivider = true,
+                        ),
+                    ),
+                )
+            }
+            add(
+                kvRow(
+                    "bites_kv_total",
+                    KeyValueRowAtom(
+                        id = "b_total",
+                        label = "Grand Total",
+                        value = total,
+                        valueColor = ColorTokenRef("brand.primary"),
+                        emphasized = true,
+                    ),
+                ),
+            )
+        }
+    }
+
+    fun buildMartDetailPricingBlock(): SnippetEnvelope {
+        val price =
+            PriceAtom(
+                id = "mart_anc_price",
+                amountText = "\$149.00",
+                originalAmountText = "\$219.00",
+                discountLabel = "32% OFF",
+                emphasized = true,
+            )
+        val rating =
+            RatingAtom(
+                id = "mart_anc_rating",
+                fieldId = "mart_anc_user_rating",
+                value = 4.8f,
+                reviewCount = 1420,
+                interactive = true,
+                label = "Buyer Rating",
+                onRate = ui.toastAction("mart_rate_toast", "Thanks for rating Abeta Pulse ANC!", "success"),
+            )
+        val finishOptions =
+            listOf(OptionItem("obsidian", "Obsidian"), OptionItem("silver", "Silver"), OptionItem("sand", "Sand"))
+        val finishSegment =
+            SegmentedControlAtom(
+                fieldId = "mart_anc_finish",
+                options = finishOptions,
+                selectedId = "obsidian",
+                onChange = ui.toastAction("mart_finish_toast", "Updated headphone acoustic finish"),
+            )
+        val finishTitle = ui.text("Acoustic Finish", "label.large")
+        val finishLbl = ComposedNode("mart_finish_lbl", ComposedNodeKind.TEXT, text = finishTitle)
+        val finishNode =
+            ComposedNode(
+                nodeId = "mart_finish_seg",
+                kind = ComposedNodeKind.SEGMENTED_CONTROL,
+                segmentedControl = finishSegment,
+            )
+        val root =
+            ComposedNode(
+                nodeId = "mart_detail_config_card",
+                kind = ComposedNodeKind.CARD,
+                spacingDp = 10,
+                layout = ui.cardLayout,
+                children =
+                    listOf(
+                        ComposedNode("mart_anc_price_node", ComposedNodeKind.PRICE, price = price),
+                        ComposedNode("mart_anc_rating_node", ComposedNodeKind.RATING, rating = rating),
+                        finishLbl,
+                        finishNode,
+                    ),
+            )
+        return SnippetEnvelope(
+            snippetId = "mart_detail_pricing_composed",
+            snippetType = SnippetTypes.COMPOSED_BLOCK,
+            data = ui.encode(ComposedBlockSnippetData("mart_detail_pricing", "product_price_finish_card", root)),
+        )
+    }
+
+    private fun kvRow(
+        nodeId: String,
+        atom: KeyValueRowAtom,
+    ): ComposedNode = ComposedNode(nodeId = nodeId, kind = ComposedNodeKind.KEY_VALUE_ROW, keyValueRow = atom)
 
     private fun buildBitesPromoCard(promoApplied: Boolean): SnippetEnvelope {
         val summary =

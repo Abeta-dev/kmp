@@ -12,9 +12,7 @@ import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.DividerAtom
 import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.GridSnippetData
-import dev.abeta.kmp.contracts.IconAtom
 import dev.abeta.kmp.contracts.KeyboardKind
-import dev.abeta.kmp.contracts.LayoutConfig
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.MotionSpec
 import dev.abeta.kmp.contracts.PageResponse
@@ -22,7 +20,6 @@ import dev.abeta.kmp.contracts.ResponsiveColumnsSpec
 import dev.abeta.kmp.contracts.SliderAtom
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
-import dev.abeta.kmp.contracts.SpacingValues
 import dev.abeta.kmp.contracts.SwitchAtom
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
@@ -203,10 +200,11 @@ internal object SuperAppDemoDiscoveryWorkflows {
                         titleNode,
                         subNode,
                         ComposedNode("qr_div", ComposedNodeKind.DIVIDER, divider = DividerAtom()),
-                        buildQrSeatRow(),
-                        buildQrTokenBox(),
-                        buildQrActionsRow(sharePass, addCalendar),
-                    ),
+                    ) + SuperAppDemoExtendedBlocks.buildPulseQrGateDetailsNodes() +
+                        listOf(
+                            SuperAppDemoExtendedBlocks.buildPulseQrCenterBox(),
+                            buildQrActionsRow(sharePass, addCalendar),
+                        ),
             )
         return SnippetEnvelope(
             snippetId = "pulse_qr_pass_block",
@@ -229,42 +227,6 @@ internal object SuperAppDemoDiscoveryWorkflows {
                 listOf(
                     ComposedNode(nodeId = "qr_live_tag", kind = ComposedNodeKind.TAG, tag = liveTag),
                     ComposedNode(nodeId = "qr_code_tag", kind = ComposedNodeKind.TAG, tag = codeTag),
-                ),
-        )
-    }
-
-    private fun buildQrSeatRow(): ComposedNode {
-        val gateNode = ComposedNode("qr_gate", ComposedNodeKind.TEXT, text = ui.text("Gate 4B", "title.small"))
-        val seatText = ui.text("Row C · Seat 12–13", "title.small", "text.brand")
-        val seatNode = ComposedNode("qr_seats", ComposedNodeKind.TEXT, text = seatText)
-        return ComposedNode(
-            nodeId = "qr_seat_row",
-            kind = ComposedNodeKind.ROW,
-            mainAxisArrangement = "space_between",
-            layout = ui.fullWidthLayout,
-            children = listOf(gateNode, seatNode),
-        )
-    }
-
-    private fun buildQrTokenBox(): ComposedNode {
-        val icon = IconAtom(name = "check", sizeDp = 24, color = ColorTokenRef("brand.primary"))
-        val tokenText = ui.text("QR · PLS-7712 · ARENA GOLD (2×)", "label.large")
-        val boxLayout =
-            LayoutConfig(
-                padding = SpacingValues(all = 12),
-                bgColor = ColorTokenRef("surface.secondary"),
-                fillMaxWidth = true,
-            )
-        return ComposedNode(
-            nodeId = "qr_token_box",
-            kind = ComposedNodeKind.ROW,
-            verticalAlignment = "center",
-            spacingDp = 12,
-            layout = boxLayout,
-            children =
-                listOf(
-                    ComposedNode("qr_icon", ComposedNodeKind.ICON, icon = icon),
-                    ComposedNode("qr_token", ComposedNodeKind.TEXT, weight = 1f, text = tokenText),
                 ),
         )
     }
@@ -519,6 +481,7 @@ internal object SuperAppDemoDiscoveryWorkflows {
             snippets =
                 listOf(
                     ui.header("trade_quotes_hdr", "RFQ #RFQ-9042 Quotes", "500× 5-Ply Shipping Cartons", "3 BIDS"),
+                    SuperAppDemoExtendedBlocks.buildTradeQuotesTelemetryBlock(),
                     grid,
                 ),
             adaptiveLayout = ui.centeredAdaptive,

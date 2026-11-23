@@ -79,8 +79,8 @@ class StorybookComposeTest {
         }
 
     @Test
-    fun allSeventeenStoriesRenderCleanlyInStorybook() {
-        assertEquals(17, StoryCatalog.entries.size)
+    fun allTwentyStoriesRenderCleanlyInStorybook() {
+        assertEquals(20, StoryCatalog.entries.size)
         StoryCatalog.entries.forEach { entry ->
             runComposeUiTest {
                 setContent {
@@ -90,6 +90,99 @@ class StorybookComposeTest {
             }
         }
     }
+
+    @Test
+    fun extendedAtomSelectionStoryInteractsWithRadioSelectOtpChipsAndSegmentedControl() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_SELECTION_OTP, initialReducedMotion = true)
+            }
+
+            onNodeWithText("UiRadioGroup · Delivery Slot").assertIsDisplayed()
+            onNodeWithText("Scheduled 6–7 PM").performScrollTo().performClick()
+            onNodeWithText("SCHEDULED").assertIsDisplayed()
+
+            onNodeWithText("UiSelect · Bank & Unit Dropdown").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Abeta Wallet · $2,480.50").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiOtpInput · OTP & Masked PIN").performScrollTo().assertIsDisplayed()
+            onNode(hasText("4-Digit") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Masked PIN") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Error State") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("4-Digit Security PIN").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Invalid verification code — please retry").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiChip · Selectable & Removable").performScrollTo().assertIsDisplayed()
+            onNodeWithContentDescription("Remove Organic").performScrollTo().performClick()
+            onNodeWithText("Restore Chips").performScrollTo().performClick()
+            onNodeWithText("Organic").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiSegmentedControl · Sliding Pill").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Bank Rail").performScrollTo().performClick()
+            onNodeWithText("BANK").performScrollTo().assertIsDisplayed()
+            onNodeWithText("OtpInputAtom Wire JSON").performScrollTo().assertIsDisplayed()
+        }
+
+    @Test
+    fun extendedAtomCommerceStoryInteractsWithPriceRatingBillQrAndStepper() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_COMMERCE_FINTECH, initialReducedMotion = true)
+            }
+
+            onNodeWithText("UiPrice · MRP, Discount & Unit").assertIsDisplayed()
+            onNodeWithText("$3.49").assertIsDisplayed()
+            onNodeWithText("30% OFF").assertIsDisplayed()
+
+            onNodeWithText("UiRating · Half-Star & Interactive").performScrollTo().assertIsDisplayed()
+            onNodeWithText("4.8 (1420)").performScrollTo().assertIsDisplayed()
+            onNodeWithContentDescription("Rate 5 of 5").performScrollTo().performClick()
+            onNodeWithText("5 / 5 ★").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiKeyValueRow · Checkout Bill Breakdown").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Grand Total").performScrollTo().assertIsDisplayed()
+            onNodeWithText("$14.25").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiQrCode · Deterministic QR Generator").performScrollTo().assertIsDisplayed()
+            onNodeWithText("QR · PLS-7712 · ARENA GOLD (2x)").performScrollTo().assertIsDisplayed()
+            onNode(hasText("Pay Scan") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("Scan to Receive · @abeta.user").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiStepper · ADD ↔ Quantity Morph").performScrollTo().assertIsDisplayed()
+            onNodeWithContentDescription("Add item").performScrollTo().performClick()
+            onNodeWithText("Basket $10.07").performScrollTo().assertIsDisplayed()
+            onNodeWithText("QrCodeAtom Wire JSON").performScrollTo().assertIsDisplayed()
+        }
+
+    @Test
+    fun extendedAtomTelemetryStoryInteractsWithBadgesAlertsStatsCountdownAndCounter() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_FEEDBACK_TELEMETRY, initialReducedMotion = true)
+            }
+
+            onNodeWithText("UiBadge · Counts, Overflow & Live Dot").assertIsDisplayed()
+            onNodeWithText("99+").assertIsDisplayed()
+            onNodeWithText("+1").performScrollTo().performClick()
+            onNodeWithText("Count (4)").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiAlertBanner · 4 Semantic Variants").performScrollTo().assertIsDisplayed()
+            onNodeWithContentDescription("Dismiss Info · Express Slot Reserved").performScrollTo().performClick()
+            onNodeWithText("Restore Banners").performScrollTo().performClick()
+            onNodeWithText("Info · Express Slot Reserved").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiStatTile · Positive & Negative KPIs").performScrollTo().assertIsDisplayed()
+            onNodeWithText("▲ +18.4%").performScrollTo().assertIsDisplayed()
+            onNodeWithText("▼ -2.1%").performScrollTo().assertIsDisplayed()
+
+            onNodeWithText("UiCountdown · Live Urgency Timer").performScrollTo().assertIsDisplayed()
+            onNodeWithText("12s Urgent").performScrollTo().performClick()
+
+            onNodeWithText("UiRollingCounter · Tabular Odometer").performScrollTo().assertIsDisplayed()
+            onNodeWithText("+$1.50").performScrollTo().performClick()
+            onNodeWithText("$13.90").performScrollTo().assertIsDisplayed()
+            onNodeWithText("CountdownAtom Wire JSON").performScrollTo().assertIsDisplayed()
+        }
 
     @Test
     fun superAppDemosStorySwitchesAcrossAllSevenVerticalsAndWatchInteractively() =

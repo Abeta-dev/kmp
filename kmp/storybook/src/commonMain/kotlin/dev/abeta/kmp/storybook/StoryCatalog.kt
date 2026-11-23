@@ -36,6 +36,9 @@ object StoryCatalog {
     const val STORY_TEXT_FIELD = "atom-text-field"
     const val STORY_MEDIA_FEEDBACK = "atom-media-feedback"
     const val STORY_CONTROLS_DATA = "atom-controls-data"
+    const val STORY_SELECTION_OTP = "atom-selection-otp"
+    const val STORY_COMMERCE_FINTECH = "atom-commerce-fintech"
+    const val STORY_FEEDBACK_TELEMETRY = "atom-feedback-telemetry"
     const val STORY_SNIPPETS = "sdui-snippets"
     const val STORY_PLAYGROUND = "sdui-playground"
     const val STORY_MOTION_STORE = "motion-store"
@@ -105,6 +108,33 @@ object StoryCatalog {
                 category = StoryCategory.ATOMS,
                 subtitle = "UiSwitch, UiCheckbox, UiSlider, UiAvatar & UiSkeleton",
                 description = "Interactive controls, monogram/URL avatars, and reduced-motion skeletons.",
+            ),
+            StoryEntry(
+                id = STORY_SELECTION_OTP,
+                title = "Selection, Chips & OTP",
+                category = StoryCategory.ATOMS,
+                subtitle = "UiRadioGroup, UiSelect, UiOtpInput, UiChip & UiSegmentedControl",
+                description =
+                    "Interactive radio groups, dropdown selects, OTP/PIN verification boxes, " +
+                        "removable chips, and sliding segmented controls.",
+            ),
+            StoryEntry(
+                id = STORY_COMMERCE_FINTECH,
+                title = "Commerce, Pricing & QR",
+                category = StoryCategory.ATOMS,
+                subtitle = "UiPrice, UiRating, UiKeyValueRow, UiQrCode & UiStepper",
+                description =
+                    "Sale pricing with MRP strikethrough, interactive star ratings, itemized bill rows, " +
+                        "deterministic QR codes, and animated quantity steppers.",
+            ),
+            StoryEntry(
+                id = STORY_FEEDBACK_TELEMETRY,
+                title = "Badges, Alerts & Telemetry",
+                category = StoryCategory.ATOMS,
+                subtitle = "UiBadge, UiAlertBanner, UiStatTile, UiCountdown & UiRollingCounter",
+                description =
+                    "Notification badges, semantic alert banners, KPI trend tiles, " +
+                        "live urgency countdowns, and rolling odometer counters.",
             ),
             StoryEntry(
                 id = STORY_SNIPPETS,

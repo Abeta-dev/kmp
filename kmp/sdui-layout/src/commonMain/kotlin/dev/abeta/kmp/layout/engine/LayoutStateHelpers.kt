@@ -61,7 +61,7 @@ internal object LayoutFormSeeder {
                     runCatching {
                         SduiJson.decodeFromJsonElement(ComposedBlockSnippetData.serializer(), snippet.data)
                     }.getOrNull()?.let { block ->
-                        seedComposedSteppers(block.root, 0, existingState, sessionStore, values)
+                        seedComposedControls(block.root, 0, existingState, sessionStore, values)
                     }
                 }
             }
@@ -69,7 +69,7 @@ internal object LayoutFormSeeder {
         return values
     }
 
-    private fun seedComposedSteppers(
+    private fun seedComposedControls(
         node: ComposedNode,
         depth: Int,
         existingState: Map<String, JsonElement>,
@@ -77,13 +77,49 @@ internal object LayoutFormSeeder {
         values: MutableMap<String, String>,
     ) {
         if (!canRenderComposedDepth(depth)) return
+        seedComposedNodeValues(node, existingState, sessionStore, values)
+        node.children.forEach { child ->
+            seedComposedControls(child, depth + 1, existingState, sessionStore, values)
+        }
+    }
+
+    private fun seedComposedNodeValues(
+        node: ComposedNode,
+        existingState: Map<String, JsonElement>,
+        sessionStore: SessionStore,
+        values: MutableMap<String, String>,
+    ) {
         node.stepper?.let { stepper ->
             val minQty = stepper.minQuantity.coerceAtLeast(0)
             val defaultQty = stepper.quantity.coerceAtLeast(minQty).toString()
             seedControlValue(stepper.fieldId, defaultQty, existingState, sessionStore, values)
         }
-        node.children.forEach { child ->
-            seedComposedSteppers(child, depth + 1, existingState, sessionStore, values)
+        node.radioGroup?.let { radio ->
+            radio.selectedId?.takeIf { it.isNotBlank() }?.let { selected ->
+                seedControlValue(radio.fieldId, selected, existingState, sessionStore, values)
+            }
+        }
+        node.select?.let { select ->
+            select.selectedId?.takeIf { it.isNotBlank() }?.let { selected ->
+                seedControlValue(select.fieldId, selected, existingState, sessionStore, values)
+            }
+        }
+        node.otpInput?.let { otp ->
+            if (otp.initialValue.isNotEmpty()) {
+                seedControlValue(otp.fieldId, otp.initialValue, existingState, sessionStore, values)
+            }
+        }
+        node.segmentedControl?.let { segmented ->
+            val defaultSelection =
+                segmented.selectedId?.takeIf { it.isNotBlank() } ?: segmented.options.firstOrNull()?.id
+            defaultSelection?.let { selected ->
+                seedControlValue(segmented.fieldId, selected, existingState, sessionStore, values)
+            }
+        }
+        node.rating?.let { rating ->
+            rating.fieldId?.takeIf { it.isNotBlank() }?.let { fieldId ->
+                seedControlValue(fieldId, rating.value.toString(), existingState, sessionStore, values)
+            }
         }
     }
 

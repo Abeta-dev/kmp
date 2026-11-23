@@ -25,9 +25,9 @@ verification_command: "(cd kmp && ./gradlew :ui-atoms:spotlessCheck :ui-atoms:de
 
 ## Ownership Scope
 - **Paths**: `kmp/ui-atoms/**`
-- **Maven Coordinate**: `dev.abeta.kmp:ui-atoms`
+- **Maven Coordinate**: `io.github.abeta-dev:ui-atoms` (Kotlin package `dev.abeta.kmp.atoms`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`
-- **Core Responsibilities**: **18 stateless Compose Multiplatform atoms** (`UiText`, `UiIcon`, `UiTag`, `UiButton`, `UiImage`, `UiTextField`, `UiDivider`, `UiSpacer`, `UiProgress`, `UiSurfaceCard`, `UiSwitch`, `UiCheckbox`, `UiSlider`, `UiAvatar`, `UiSkeleton`, `UiStepper`, live urgency `UiCountdown`, odometer `UiRollingCounter`), `UiCelebrationOverlay`, `UiHapticFeedback.kt`, `MotionModifier.kt` + `MotionLoopModifiers.kt` (`applyMotionSpec`, **7 Ambient `MotionLoopEffect`s**, `Modifier.pressBounce`, `Modifier.shakeOnError`), `LayoutConfigModifier`, `TokenResolvers`.
+- **Core Responsibilities**: **30 stateless Compose Multiplatform atoms** (`UiText`, `UiIcon`, `UiTag`, `UiButton`, `UiImage`, `UiTextField`, `UiDivider`, `UiSpacer`, `UiProgress`, `UiSurfaceCard`, `UiSwitch`, `UiCheckbox`, `UiSlider`, `UiAvatar`, `UiSkeleton`, `UiStepper`, live urgency `UiCountdown`, odometer `UiRollingCounter`, plus 12 extended atoms: `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`, `UiRating`, `UiPrice`, `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiKeyValueRow`, `UiQrCode`), `UiCelebrationOverlay`, `UiHapticFeedback.kt`, `MotionModifier.kt` + `MotionLoopModifiers.kt` (`applyMotionSpec`, **7 Ambient `MotionLoopEffect`s**, `Modifier.pressBounce`, `Modifier.shakeOnError`), `LayoutConfigModifier`, `TokenResolvers`.
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Strict Atomic / Action Separation**: May ONLY depend on `design-tokens` and `sdui-contracts`. NEVER import `core`, `ActionHandler`, `ActionDispatcher`, `LayoutController`, or Ktor. Emit pure `ActionRef` via `onAction: (ActionRef) -> Unit` and haptics via `LocalUiHapticFeedback`.

@@ -12,7 +12,7 @@ The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source r
 1. **`Abeta-dev/kmp` (this repository — Client Kit & Canonical `v1` Wire Contracts)**:
    - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** + `bom` + `dependencies`).
    - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.3.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
-   - Runnable **7-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **17-story End-to-End Interactive Storybook** (`kmp/storybook`, with all 7 Super-App verticals — Fresh, Bites, Pulse, Mart, Spark, Trade, Pay + Watch — playable live in WasmJS browser with multi-step workflows).
+   - Runnable **7-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **20-story End-to-End Interactive Storybook** (`kmp/storybook`, featuring all 30 stateless UI atoms across 8 dedicated UI Atom stories and all 7 Super-App verticals — Fresh, Bites, Pulse, Mart, Spark, Trade, Pay + Watch — playable live in WasmJS browser with multi-step workflows).
 2. **`Abeta-dev/layout-engine`** (`https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt`):
    - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics.
 3. **`Abeta-dev/sdui-bff`** (`https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt`):

@@ -208,7 +208,7 @@ class NudgeAndComposedContractsTest {
 
     @Test
     fun composedBlockRoundTripsAllKinds() {
-        assertEquals(17, ComposedNodeKind.entries.size)
+        assertEquals(29, ComposedNodeKind.entries.size)
         ComposedNodeKind.entries.forEach { kind ->
             assertEquals(kind, SduiJson.decodeFromString<ComposedNodeKind>(SduiJson.encodeToString(kind)))
         }

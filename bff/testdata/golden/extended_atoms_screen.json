@@ -1,0 +1,449 @@
+{
+  "page_id": "extended-atoms-demo",
+  "title": "Abeta Extended Atoms",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Extended Atoms",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "12 extended UI atoms molded inside composed_block",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_extended_atoms",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "demo_extended_atoms_block",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "extended_atoms_showcase",
+        "recipe_name": "extended_atoms_all_12",
+        "root": {
+          "node_id": "extended_atoms_root",
+          "kind": "card",
+          "children": [
+            {
+              "kind": "column",
+              "spacing_dp": 12,
+              "children": [
+                {
+                  "node_id": "node_alert_banner",
+                  "kind": "alert_banner",
+                  "alert_banner": {
+                    "id": "alert_cold_chain",
+                    "title": "Cold-chain guarantee active",
+                    "message": "Insulated thermal bag maintained below 4°C until doorstep handoff.",
+                    "variant": "info",
+                    "icon": {
+                      "name": "info",
+                      "size_dp": 20,
+                      "color": {
+                        "token": "status.info"
+                      }
+                    },
+                    "action_label": "Learn more",
+                    "on_action": {
+                      "id": "alert_cold_chain_info",
+                      "type": "show_toast",
+                      "payload": {
+                        "message": "Sensors verified every 30s",
+                        "duration_ms": 1600,
+                        "variant": "info"
+                      }
+                    },
+                    "dismissible": true,
+                    "on_dismiss": {
+                      "id": "dismiss_cold_chain_alert",
+                      "type": "track_event",
+                      "payload": {
+                        "event_name": "alert_dismissed",
+                        "properties": {
+                          "alert_id": "alert_cold_chain"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "main_axis_arrangement": "space_between",
+                  "children": [
+                    {
+                      "node_id": "node_price",
+                      "kind": "price",
+                      "price": {
+                        "id": "price_avocados",
+                        "amount_text": "$3.99",
+                        "original_amount_text": "$5.99",
+                        "discount_label": "33% OFF",
+                        "unit_suffix": "/ pack",
+                        "emphasized": true
+                      }
+                    },
+                    {
+                      "node_id": "node_badge",
+                      "kind": "badge",
+                      "badge": {
+                        "id": "badge_unread_alerts",
+                        "count": 12,
+                        "max_count": 99,
+                        "variant": "error",
+                        "motion": {
+                          "loop_effect": "pulse"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "main_axis_arrangement": "space_between",
+                  "children": [
+                    {
+                      "node_id": "node_rating",
+                      "kind": "rating",
+                      "rating": {
+                        "id": "rating_merchant",
+                        "field_id": "merchant_rating",
+                        "value": 4.8,
+                        "max_stars": 5,
+                        "interactive": true,
+                        "review_count": 1248,
+                        "label": "4.8 out of 5",
+                        "star_size_dp": 20,
+                        "on_rate": {
+                          "id": "rate_merchant",
+                          "type": "track_event",
+                          "payload": {
+                            "event_name": "rating_submitted",
+                            "properties": {
+                              "field_id": "merchant_rating"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "node_chip",
+                      "kind": "chip",
+                      "chip": {
+                        "id": "chip_organic",
+                        "label": "Organic",
+                        "selected": true,
+                        "enabled": true,
+                        "removable": true,
+                        "leading_icon": {
+                          "name": "eco",
+                          "size_dp": 16,
+                          "color": {
+                            "token": "status.success"
+                          }
+                        },
+                        "on_click": {
+                          "id": "toggle_chip_organic",
+                          "type": "track_event",
+                          "payload": {
+                            "event_name": "chip_clicked",
+                            "properties": {
+                              "chip_id": "chip_organic"
+                            }
+                          }
+                        },
+                        "on_remove": {
+                          "id": "remove_chip_organic",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "Removed Organic filter",
+                            "duration_ms": 1400,
+                            "variant": "info"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "node_id": "node_segmented_control",
+                  "kind": "segmented_control",
+                  "segmented_control": {
+                    "field_id": "billing_cycle",
+                    "options": [
+                      {
+                        "id": "monthly",
+                        "label": "Monthly"
+                      },
+                      {
+                        "id": "annual",
+                        "label": "Annual",
+                        "badge": "SAVE 20%"
+                      }
+                    ],
+                    "selected_id": "annual",
+                    "enabled": true,
+                    "on_change": {
+                      "id": "save_billing_cycle",
+                      "type": "save_state",
+                      "payload": {
+                        "key": "billing_cycle",
+                        "value": "annual",
+                        "scope": "session"
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "node_radio_group",
+                  "kind": "radio_group",
+                  "radio_group": {
+                    "field_id": "delivery_speed",
+                    "label": "Delivery Speed",
+                    "options": [
+                      {
+                        "id": "express",
+                        "label": "Express 10 min",
+                        "subtitle": "Cold-chain courier",
+                        "enabled": true,
+                        "badge": "FAST"
+                      },
+                      {
+                        "id": "standard",
+                        "label": "Standard 30 min",
+                        "subtitle": "Free with Abeta Club",
+                        "enabled": true
+                      },
+                      {
+                        "id": "scheduled",
+                        "label": "Evening Slot",
+                        "subtitle": "Currently full",
+                        "enabled": false
+                      }
+                    ],
+                    "selected_id": "express",
+                    "enabled": true,
+                    "on_change": {
+                      "id": "save_delivery_speed",
+                      "type": "save_state",
+                      "payload": {
+                        "key": "delivery_speed",
+                        "value": "express",
+                        "scope": "session"
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "node_select",
+                  "kind": "select",
+                  "select": {
+                    "field_id": "delivery_slot",
+                    "label": "Preferred Window",
+                    "placeholder": "Choose a delivery slot",
+                    "options": [
+                      {
+                        "id": "now",
+                        "label": "Right Now (8-10 min)",
+                        "badge": "LIVE"
+                      },
+                      {
+                        "id": "noon",
+                        "label": "12:00 - 13:00",
+                        "subtitle": "Zero surge fee"
+                      }
+                    ],
+                    "selected_id": "now",
+                    "helper_text": "Live availability updated every minute",
+                    "enabled": true,
+                    "on_change": {
+                      "id": "select_slot_changed",
+                      "type": "track_event",
+                      "payload": {
+                        "event_name": "slot_selected",
+                        "properties": {
+                          "field_id": "delivery_slot"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "node_otp_input",
+                  "kind": "otp_input",
+                  "otp_input": {
+                    "field_id": "checkout_otp",
+                    "label": "Verification Code",
+                    "length": 6,
+                    "initial_value": "482",
+                    "masked": true,
+                    "helper_text": "Enter the 6-digit SMS code sent to +1 ***-0192",
+                    "enabled": true,
+                    "on_complete": {
+                      "id": "verify_checkout_otp",
+                      "type": "call_api",
+                      "payload": {
+                        "endpoint": "/api/v1/actions/execute",
+                        "method": "POST",
+                        "body": {
+                          "field_id": "checkout_otp"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "node_stat_tile",
+                  "kind": "stat_tile",
+                  "stat_tile": {
+                    "id": "stat_on_time_rate",
+                    "label": "On-Time Rate",
+                    "value": "99.4%",
+                    "delta_label": "+1.2%",
+                    "delta_positive": true,
+                    "caption": "Last 30 days",
+                    "icon": {
+                      "name": "bolt",
+                      "size_dp": 20,
+                      "color": {
+                        "token": "status.success"
+                      }
+                    },
+                    "on_click": {
+                      "id": "nav_metrics_detail",
+                      "type": "navigate",
+                      "payload": {
+                        "route": "/screens/home"
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "node_key_value_row",
+                  "kind": "key_value_row",
+                  "key_value_row": {
+                    "id": "kv_order_total",
+                    "label": "Express Total",
+                    "value": "$24.90",
+                    "sublabel": "Includes $0.00 Abeta Club delivery",
+                    "value_color": {
+                      "token": "brand.primary"
+                    },
+                    "emphasized": true,
+                    "show_divider": true,
+                    "on_click": {
+                      "id": "tap_order_total",
+                      "type": "show_toast",
+                      "payload": {
+                        "message": "Price breakdown expanded",
+                        "duration_ms": 1400,
+                        "variant": "info"
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "node_qr_code",
+                  "kind": "qr_code",
+                  "qr_code": {
+                    "id": "qr_pickup_pass",
+                    "payload": "abeta://pickup/ORD-84920?sig=v1",
+                    "label": "Express Pickup Pass",
+                    "caption": "Scan at Abeta Fresh locker #14",
+                    "size_dp": 160,
+                    "on_click": {
+                      "id": "copy_pickup_code",
+                      "type": "copy_to_clipboard",
+                      "payload": {
+                        "text": "ORD-84920",
+                        "label": "Pickup Code"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 16,
+              "end": 16,
+              "bottom": 16
+            },
+            "margin": {
+              "start": 16,
+              "top": 4,
+              "end": 16,
+              "bottom": 4
+            },
+            "bg_color": {
+              "token": "surface.primary"
+            },
+            "corner_radius": {
+              "all": 12
+            },
+            "border": {
+              "width_dp": 1,
+              "color": {
+                "token": "border.subtle"
+              }
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "recipe": "extended_atoms_all_12",
+          "snippet_id": "demo_extended_atoms_block"
+        }
+      },
+      "motion": {
+        "enter": "fade_in",
+        "duration_token": "normal"
+      }
+    }
+  ],
+  "adaptive_layout": {
+    "layout_mode": "centered",
+    "max_width_dp": 960
+  },
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "extended-atoms-demo",
+      "version": "v1"
+    }
+  }
+}

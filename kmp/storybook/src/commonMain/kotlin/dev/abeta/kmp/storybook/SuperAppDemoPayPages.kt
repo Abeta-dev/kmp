@@ -83,6 +83,8 @@ internal object SuperAppDemoPayPages {
                     buildPayMarquee(),
                     buildAbetaMetalCardBlock(),
                     buildPayQuickActionsBlock(),
+                    SuperAppDemoExtendedBlocks.buildPayTelemetryRowBlock(),
+                    SuperAppDemoExtendedBlocks.buildPayReceiveQrBlock(),
                     balanceCard,
                     buildPayCashbackNudge(),
                     billCarousel,
@@ -313,6 +315,7 @@ internal object SuperAppDemoPayPages {
                 listOf(
                     ui.header("pay_tx_hdr", "Instant P2P Transfer", "Zero fee · Biometric rail", "INSTANT"),
                     chipRow,
+                    SuperAppDemoExtendedBlocks.buildPayRailAndPinBlock(),
                     buildBiometricSecurityCard(),
                     buildPayTransferForm(selectedAmount),
                 ),
@@ -515,7 +518,12 @@ internal object SuperAppDemoPayPages {
             pageId = "pay-receipt",
             title = "Settlement Receipt #PAY-3081",
             toolbar = ui.toolbar("Receipt #PAY-3081", "Abeta Pay · Stage $current of 4", "back_pay_receipt"),
-            snippets = listOf(tracker, buildPayReceiptSummaryCard(current)),
+            snippets =
+                listOf(
+                    tracker,
+                    SuperAppDemoExtendedBlocks.buildPayReceiptBreakdownBlock(),
+                    buildPayReceiptSummaryCard(current),
+                ),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }

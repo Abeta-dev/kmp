@@ -469,6 +469,9 @@ private fun StoryStage(
         StoryCatalog.STORY_TEXT_FIELD -> TextFieldStory(onAction)
         StoryCatalog.STORY_MEDIA_FEEDBACK -> MediaFeedbackStory(onAction)
         StoryCatalog.STORY_CONTROLS_DATA -> ControlsAndDataAtomsStory(onAction)
+        StoryCatalog.STORY_SELECTION_OTP -> ExtendedAtomSelectionStory(onAction)
+        StoryCatalog.STORY_COMMERCE_FINTECH -> ExtendedAtomCommerceStory(onAction)
+        StoryCatalog.STORY_FEEDBACK_TELEMETRY -> ExtendedAtomTelemetryStory(onAction)
         else -> PlaygroundAndSnippetStage(storyId = storyId, onAction = onAction)
     }
 }

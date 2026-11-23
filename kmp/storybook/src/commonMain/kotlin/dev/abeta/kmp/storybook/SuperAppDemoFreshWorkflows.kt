@@ -1,6 +1,7 @@
 package dev.abeta.kmp.storybook
 
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.AlertBannerAtom
 import dev.abeta.kmp.contracts.BottomBarSpec
 import dev.abeta.kmp.contracts.ButtonSize
 import dev.abeta.kmp.contracts.ButtonVariant
@@ -10,16 +11,23 @@ import dev.abeta.kmp.contracts.ComposedBlockSnippetData
 import dev.abeta.kmp.contracts.ComposedNode
 import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.CornerRadiusSpec
+import dev.abeta.kmp.contracts.DividerAtom
 import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.ImageAtom
 import dev.abeta.kmp.contracts.ImageScaleMode
+import dev.abeta.kmp.contracts.KeyValueRowAtom
 import dev.abeta.kmp.contracts.KeyboardKind
+import dev.abeta.kmp.contracts.OptionItem
 import dev.abeta.kmp.contracts.PageResponse
+import dev.abeta.kmp.contracts.PriceAtom
+import dev.abeta.kmp.contracts.RadioGroupAtom
+import dev.abeta.kmp.contracts.RatingAtom
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.StepperAtom
 import dev.abeta.kmp.contracts.SwitchAtom
 import dev.abeta.kmp.contracts.TagAtom
+import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.contracts.TextFieldAtom
 import dev.abeta.kmp.contracts.TypographyTokenRef
 import kotlinx.serialization.json.buildJsonObject
@@ -69,6 +77,7 @@ internal object SuperAppDemoFreshWorkflows {
             snippets =
                 listOf(
                     buildFreshDetailHero(toCart, share),
+                    buildFreshPriceAndRatingBlock(),
                     buildFreshQuantityBlock(toCart),
                     originMetric,
                     guaranteeAcc,
@@ -116,6 +125,49 @@ internal object SuperAppDemoFreshWorkflows {
                     ),
                 ),
         )
+
+    private fun buildFreshPriceAndRatingBlock(): SnippetEnvelope {
+        val priceNode =
+            ComposedNode(
+                nodeId = "fresh_detail_price",
+                kind = ComposedNodeKind.PRICE,
+                price =
+                    PriceAtom(
+                        id = "fresh_avo_price",
+                        amountText = "\$3.49",
+                        originalAmountText = "\$4.99",
+                        discountLabel = "30% OFF",
+                        unitSuffix = "/ 2 pcs",
+                        emphasized = true,
+                    ),
+            )
+        val ratingNode =
+            ComposedNode(
+                nodeId = "fresh_detail_rating",
+                kind = ComposedNodeKind.RATING,
+                rating =
+                    RatingAtom(
+                        id = "fresh_avo_rating",
+                        value = 4.9f,
+                        reviewCount = 318,
+                        interactive = false,
+                        label = "Orchard Verified",
+                    ),
+            )
+        val root =
+            ComposedNode(
+                nodeId = "fresh_price_rating_card",
+                kind = ComposedNodeKind.CARD,
+                spacingDp = 10,
+                layout = ui.cardLayout,
+                children = listOf(priceNode, ratingNode),
+            )
+        return SnippetEnvelope(
+            snippetId = "fresh_price_rating_composed",
+            snippetType = SnippetTypes.COMPOSED_BLOCK,
+            data = ui.encode(ComposedBlockSnippetData("fresh_price_rating", "item_price_rating_card", root)),
+        )
+    }
 
     private fun buildFreshQuantityBlock(toCart: ActionRef): SnippetEnvelope {
         val row =
@@ -194,6 +246,7 @@ internal object SuperAppDemoFreshWorkflows {
                 listOf(
                     ui.header("fresh_cart_hdr", "Delivery Slot & Basket", "Hass Avocados + A2 Whole Milk", "8 MINS"),
                     slotChips,
+                    buildFreshCartSlotAndBillBlock(activeSlot, promoApplied),
                     buildFreshPromoSummaryCard(activeSlot, promoApplied),
                     buildFreshCheckoutForm(payAction),
                 ),
@@ -206,6 +259,106 @@ internal object SuperAppDemoFreshWorkflows {
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
+
+    private fun buildFreshCartSlotAndBillBlock(
+        activeSlot: String,
+        promoApplied: Boolean,
+    ): SnippetEnvelope {
+        val banner =
+            AlertBannerAtom(
+                id = "fresh_promo_notice",
+                title = if (promoApplied) "FRESH20 Active · Saved \$1.36" else "Save 20% with FRESH20",
+                message =
+                    if (promoApplied) {
+                        "Instant 20% produce discount applied to your express basket."
+                    } else {
+                        "Apply code FRESH20 below to unlock instant 20% produce savings."
+                    },
+                variant = if (promoApplied) TagVariant.SUCCESS else TagVariant.INFO,
+                dismissible = true,
+            )
+        val slotRadio =
+            RadioGroupAtom(
+                fieldId = "fresh_delivery_slot",
+                label = "Delivery Window",
+                options =
+                    listOf(
+                        OptionItem("express", "8-min Express · FREE", "Cold-chain EV courier", badge = "FAST"),
+                        OptionItem("scheduled", "Scheduled 6–7 PM", "Eco-batched evening doorstep drop"),
+                    ),
+                selectedId = activeSlot,
+                onChange = ui.toastAction("fresh_slot_radio_toast", "Express delivery window updated!"),
+            )
+        val root =
+            ComposedNode(
+                nodeId = "fresh_cart_composed_card",
+                kind = ComposedNodeKind.CARD,
+                spacingDp = 10,
+                layout = ui.cardLayout,
+                children =
+                    listOf(
+                        ComposedNode("fresh_cart_banner", ComposedNodeKind.ALERT_BANNER, alertBanner = banner),
+                        ComposedNode("fresh_cart_radio", ComposedNodeKind.RADIO_GROUP, radioGroup = slotRadio),
+                        ComposedNode("fresh_cart_div", ComposedNodeKind.DIVIDER, divider = DividerAtom()),
+                    ) + buildFreshBillNodes(promoApplied),
+            )
+        return SnippetEnvelope(
+            snippetId = "fresh_cart_slot_bill_block",
+            snippetType = SnippetTypes.COMPOSED_BLOCK,
+            data = ui.encode(ComposedBlockSnippetData("fresh_cart_slot_bill", "express_cart_bill", root)),
+        )
+    }
+
+    private fun buildFreshBillNodes(promoApplied: Boolean): List<ComposedNode> {
+        val ok = ColorTokenRef("status.success")
+        val grandTotal = if (promoApplied) "\$7.42" else "\$8.78"
+        return buildList {
+            add(kvNode("fresh_kv_sub", KeyValueRowAtom(id = "f_sub", label = "Item Subtotal", value = "\$6.78")))
+            add(
+                kvNode(
+                    "fresh_kv_chill",
+                    KeyValueRowAtom(id = "f_chill", label = "Chilled Handling", value = "\$0.00", valueColor = ok),
+                ),
+            )
+            add(
+                kvNode(
+                    "fresh_kv_fee",
+                    KeyValueRowAtom(id = "f_fee", label = "Delivery Fee", value = "FREE", valueColor = ok),
+                ),
+            )
+            if (promoApplied) {
+                add(
+                    kvNode(
+                        "fresh_kv_promo",
+                        KeyValueRowAtom(id = "f_promo", label = "Promo (FRESH20)", value = "-\$1.36", valueColor = ok),
+                    ),
+                )
+            }
+            add(
+                kvNode(
+                    "fresh_kv_tip",
+                    KeyValueRowAtom(id = "f_tip", label = "Rider Tip", value = "\$2.00", showDivider = true),
+                ),
+            )
+            add(
+                kvNode(
+                    "fresh_kv_total",
+                    KeyValueRowAtom(
+                        id = "f_total",
+                        label = "Grand Total",
+                        value = grandTotal,
+                        valueColor = ColorTokenRef("brand.primary"),
+                        emphasized = true,
+                    ),
+                ),
+            )
+        }
+    }
+
+    private fun kvNode(
+        nodeId: String,
+        atom: KeyValueRowAtom,
+    ): ComposedNode = ComposedNode(nodeId = nodeId, kind = ComposedNodeKind.KEY_VALUE_ROW, keyValueRow = atom)
 
     private fun buildFreshPromoSummaryCard(
         activeSlot: String,

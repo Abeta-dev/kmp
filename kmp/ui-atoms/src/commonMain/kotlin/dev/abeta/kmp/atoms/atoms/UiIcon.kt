@@ -88,6 +88,12 @@ object UiBuiltinIcons {
                     lineTo(9f, 12f)
                     lineTo(15f, 18f)
                 },
+            "chevron_down" to
+                strokeIcon("chevron_down") {
+                    moveTo(6f, 9f)
+                    lineTo(12f, 15f)
+                    lineTo(18f, 9f)
+                },
             "close" to
                 strokeIcon("close") {
                     moveTo(6f, 6f)

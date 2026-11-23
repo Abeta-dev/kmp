@@ -156,6 +156,42 @@ enum class ComposedNodeKind {
 
     @SerialName("rolling_counter")
     ROLLING_COUNTER,
+
+    @SerialName("radio_group")
+    RADIO_GROUP,
+
+    @SerialName("select")
+    SELECT,
+
+    @SerialName("otp_input")
+    OTP_INPUT,
+
+    @SerialName("chip")
+    CHIP,
+
+    @SerialName("segmented_control")
+    SEGMENTED_CONTROL,
+
+    @SerialName("rating")
+    RATING,
+
+    @SerialName("price")
+    PRICE,
+
+    @SerialName("badge")
+    BADGE,
+
+    @SerialName("alert_banner")
+    ALERT_BANNER,
+
+    @SerialName("stat_tile")
+    STAT_TILE,
+
+    @SerialName("key_value_row")
+    KEY_VALUE_ROW,
+
+    @SerialName("qr_code")
+    QR_CODE,
 }
 
 /**
@@ -197,6 +233,25 @@ data class ComposedNode(
     val counterTypography: TypographyTokenRef? = null,
     @SerialName("counter_color")
     val counterColor: ColorTokenRef? = null,
+    @SerialName("radio_group")
+    val radioGroup: RadioGroupAtom? = null,
+    val select: SelectAtom? = null,
+    @SerialName("otp_input")
+    val otpInput: OtpInputAtom? = null,
+    val chip: ChipAtom? = null,
+    @SerialName("segmented_control")
+    val segmentedControl: SegmentedControlAtom? = null,
+    val rating: RatingAtom? = null,
+    val price: PriceAtom? = null,
+    val badge: BadgeAtom? = null,
+    @SerialName("alert_banner")
+    val alertBanner: AlertBannerAtom? = null,
+    @SerialName("stat_tile")
+    val statTile: StatTileAtom? = null,
+    @SerialName("key_value_row")
+    val keyValueRow: KeyValueRowAtom? = null,
+    @SerialName("qr_code")
+    val qrCode: QrCodeAtom? = null,
     @SerialName("on_click")
     val onClick: ActionRef? = null,
     val layout: LayoutConfig? = null,
