@@ -31,7 +31,7 @@ verification_command: "(cd kmp && ./gradlew :database:spotlessCheck :database:de
 
 ## Ownership Scope
 - **Paths**: `kmp/database/**`
-- **Maven Coordinate**: `dev.abeta.kmp:database`
+- **Maven Coordinate**: `io.github.abeta-dev:database` (Kotlin package `dev.abeta.kmp.database`)
 - **Targets**: `jvm` (Android/Wear OS/Desktop), `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
 - **Core Responsibilities**: Room 3 (`androidx.room3:room3-runtime:3.0.3`) multiplatform local SQLite persistence engine (`AbetaDatabase`, `AbetaLocalDatabase`, `AbetaDatabaseConstructor`), 3 built-in tables (`cached_screens`, `offline_mutations`, `key_value_records`), platform SQLite drivers (`BundledSQLiteDriver` via `androidx.sqlite:sqlite-bundled:2.7.1` on JVM/Apple; `WebWorkerSQLiteDriver` via `androidx.sqlite:sqlite-web:2.7.1` on WasmJS), KSP (`2.3.14`) code generation, and versioned Room schema JSONs under `kmp/database/schemas/`.
 

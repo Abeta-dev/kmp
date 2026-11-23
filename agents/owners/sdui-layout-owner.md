@@ -5,7 +5,7 @@ layer: "Layer 3"
 owned_paths:
   - "kmp/sdui-layout/**"
 allowed_dependencies:
-  - "projects.core, projects.state, projects.analytics"
+  - "projects.core, projects.state, projects.analytics, projects.database"
   - "projects.designTokens, projects.sduiContracts, projects.uiAtoms"
   - "projects.actionEngine, projects.network"
 forbidden_dependencies:
@@ -22,9 +22,9 @@ verification_command: "(cd kmp && ./gradlew :sdui-layout:spotlessCheck :sdui-lay
 
 ## Ownership Scope
 - **Paths**: `kmp/sdui-layout/**`
-- **Maven Coordinate**: `dev.abeta.kmp:sdui-layout`
+- **Maven Coordinate**: `io.github.abeta-dev:sdui-layout` (Kotlin package `dev.abeta.kmp.layout`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs` (+ `AbetaSduiKit.xcframework`)
-- **Core Responsibilities**: `LayoutController`, `LayoutStateHelpers`, `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers`, `SduiScreen`, `SduiHostRoot`, `FloatingCartDockHost` (with live free-delivery threshold nudge progress & unlock bounce) + `PageCartCalculator`, `OverlayHost`, **21 built-in snippet renderers** via `SnippetRegistry` / `BuiltInSnippetModule` (including `SwipeDeckSnippetRenderer`, `SearchBarSnippetRenderer`, `ChipGroupSnippetRenderer`, `NudgeBarSnippetRenderer`, `MarqueeStripSnippetRenderer`, `OrderTrackerSnippetRenderer`, and **`ComposedBlockSnippetRenderer`** Atomic Snippet Molding Engine up to depth 6), `CachedScreenRepository`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, iOS `createSduiViewController`, macOS `launchMacOsSduiWindow`.
+- **Core Responsibilities**: `LayoutController`, `LayoutStateHelpers`, `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers`, `SduiScreen`, `SduiHostRoot`, `FloatingCartDockHost` (with live free-delivery threshold nudge progress & unlock bounce) + `PageCartCalculator`, `OverlayHost`, **21 built-in snippet renderers** via `SnippetRegistry` / `BuiltInSnippetModule` (including `SwipeDeckSnippetRenderer`, `SearchBarSnippetRenderer`, `ChipGroupSnippetRenderer`, `NudgeBarSnippetRenderer`, `MarqueeStripSnippetRenderer`, `OrderTrackerSnippetRenderer`, and **`ComposedBlockSnippetRenderer`** Atomic Snippet Molding Engine supporting **29 `ComposedNodeKind`s** up to depth 6), `CachedScreenRepository`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, iOS `createSduiViewController`, macOS `launchMacOsSduiWindow`.
 
 ## Non-Negotiable Architecture & Review Gates
 1. **OCP Snippet & Action Orchestration**: Register all snippets through `SnippetRegistry` and execute all 18 actions via `ActionDispatcher` + `PlatformBridgeOutcomeExecutor`. Keep snippet renderers bifurcated by domain (never one giant file).

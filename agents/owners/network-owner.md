@@ -25,7 +25,7 @@ verification_command: "(cd kmp && ./gradlew :network:spotlessCheck :network:dete
 
 ## Ownership Scope
 - **Paths**: `kmp/network/**`
-- **Maven Coordinate**: `dev.abeta.kmp:network`
+- **Maven Coordinate**: `io.github.abeta-dev:network` (Kotlin package `dev.abeta.kmp.network`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
 - **Core Responsibilities**: `HttpTransport`, `KtorHttpTransport`, `HttpClientFactory`, `NetworkConfig`, `NetworkPorts` (`AuthTokenProvider`, `RetryPolicy`), HTTP/2 ALPN, Brotli (`br`) decompression, bearer token refresh, and shared `CertificatePinMatcher` SPKI/cert pinning across JVM/OkHttp and Apple Darwin `NSURLSession`.
 

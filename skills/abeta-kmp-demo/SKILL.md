@@ -1,6 +1,6 @@
 ---
 name: abeta-kmp-demo
-description: Reference guide for the abeta-dev/kmp demo & explorer modules (sample-app, storybook, Go BFF 7 screens, and kmp/platforms native hosts). Use when running demos, inspecting reference wiring patterns, testing BFF-to-KMP parity, or copying demo patterns into a production app.
+description: Reference guide for the abeta-dev/kmp demo & explorer modules (sample-app 7-in-1 Super-App Showcase, 20-story End-to-End storybook, Go BFF screens, and kmp/platforms native hosts). Use when running demos, inspecting reference wiring patterns, testing BFF-to-KMP parity, or copying demo patterns into a production app.
 ---
 
 # Abeta KMP Kit — Demo & Reference Modules Skill (`abeta-kmp-demo`)
@@ -34,26 +34,26 @@ Every screen in `bff/internal/infra/` is mapped 1:1 to `kmp/sample-app` (`Sample
 (cd bff && go run ./cmd/bff) &
 (cd kmp && ./gradlew :sample-app:run --args="--bff-url=http://localhost:8080")
 
-# 4. Storybook — Desktop JVM (17 interactive stories across LIVE_DEMOS, FOUNDATIONS, ATOMS, SNIPPETS, PLAYGROUND)
+# 4. Storybook — Desktop JVM (20 interactive stories across LIVE_DEMOS, FOUNDATIONS, ATOMS, SNIPPETS, PLAYGROUND)
 (cd kmp && ./gradlew :storybook:run)
 
-# 5. Storybook — WasmJS Browser Web App (includes all 6 Live Super-App Demos playable zero-backend)
+# 5. Storybook — WasmJS Browser Web App (includes all 7 Live Super-App Demos playable zero-backend + 8 UI Atom stories covering all 30 atoms)
 (cd kmp && ./gradlew :storybook:wasmJsBrowserDevelopmentRun)
 
-# 6. Export fresh Retina PNG screenshots for Demo (7), 6 Verticals, & Storybook -> docs/assets/screenshots/
+# 6. Export fresh Retina PNG screenshots for Demo, Super-App Verticals, & Storybook -> docs/assets/screenshots/
 (cd kmp && ./gradlew :sample-app:run --args="--capture-screenshots=../docs/assets/screenshots")
 (cd kmp && ./gradlew :sample-app:run --args="--capture-verticals=../docs/assets/screenshots")
 (cd kmp && ./gradlew :storybook:run --args="--capture-screenshots=../docs/assets/screenshots")
 # Gallery: docs/demo-screenshots.md
 ```
 
-## 3. Storybook 17-Story Reference Map (`kmp/storybook/`)
+## 3. Storybook 20-Story Reference Map (`kmp/storybook/`)
 
-- **LIVE_DEMOS**: Live 6-in-1 Super-App Demos — Abeta Fresh, Bites, Pulse, Mart, Spark, Trade & Watch with zero-backend offline parity & `?story=&app=` URL deep links (`SuperAppDemosStory.kt`)
-- **FOUNDATIONS**: Introduction (`FoundationsStories.kt`), Design Tokens — Color Palette, WCAG Contrast, Typography & Theme Presets (`FoundationsStories.kt`)
-- **ATOMS**: Buttons, Text & Tags, TextField, Media & Feedback, Controls & Data Atoms — Switch/Checkbox/Slider/Avatar/Skeleton/Stepper (`AtomStories.kt`, `ControlsAndDataAtomsStory.kt`)
+- **LIVE_DEMOS**: Live 7-in-1 Super-App Demos — **Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**, **Abeta Pay** & **Watch** with zero-backend offline parity & `?story=&app=` URL deep links (`SuperAppDemosStory.kt`)
+- **FOUNDATIONS**: Introduction (`IntroductionStory.kt`), Design Tokens — Color Palette, WCAG Contrast, Typography & Theme Presets (`FoundationsStories.kt`)
+- **ATOMS (8 stories covering all 30 atoms)**: Button, Text & Tag, TextField, Icons/Progress/Media, Controls/Avatar/Skeleton (`AtomStories.kt`, `ControlsAndDataAtomsStory.kt`), Selection/Chips/OTP (`ExtendedAtomSelectionStory.kt`: `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`), Commerce/Pricing/QR (`ExtendedAtomCommerceStory.kt`: `UiPrice`, `UiRating`, `UiKeyValueRow`, `UiQrCode`, `UiStepper`), Badges/Alerts/Telemetry (`ExtendedAtomTelemetryStory.kt`: `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiCountdown`, `UiRollingCounter`)
 - **SNIPPETS**: All 21 Snippets Gallery (`SnippetsStory.kt`)
-- **PLAYGROUND**: Interactive Action Dispatcher Sandbox (`PlaygroundStories.kt`), Motion & Abeta Fresh Store (`MotionAndStoreStory.kt`), Live Go BFF Explorer with Built-in Demo + Remote BFF toggle (`LiveBffStory.kt`), Responsive Form Factors & OS Bridges (`ResponsiveAndBridgesStory.kt`), Discovery/Search/Swipe (`DiscoveryAndSearchStory.kt`), Animation & Nudges Lab (`AnimationNudgesStory.kt`), Atomic Snippet Crafter (`SnippetCrafterStory.kt`), End-to-End App Journeys (`EndToEndJourneysStory.kt`)
+- **PLAYGROUND**: Interactive Action Dispatcher Sandbox (`PlaygroundStory.kt`), Motion & Abeta Fresh Store (`MotionAndStoreStory.kt`), Live Go BFF Explorer with Built-in Demo + Remote BFF toggle across all 7 Super-App slugs (`LiveBffStory.kt`), Responsive Form Factors & OS Bridges (`ResponsiveAndBridgesStory.kt`), Discovery/Search/Swipe (`DiscoveryAndSearchStory.kt`), Animation & Nudges Lab (`AnimationNudgesStory.kt`), Atomic Snippet Crafter (`SnippetCrafterStory.kt`), End-to-End App Journeys (`EndToEndJourneysStory.kt`)
 
 ## 4. Copying Reference Patterns Into Your App
 

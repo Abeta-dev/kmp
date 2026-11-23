@@ -24,7 +24,7 @@ verification_command: "./scripts/check_architecture_and_owners.sh && (cd kmp && 
 
 ## Ownership Scope
 - **Paths**: `kmp/kmp-bom/**`, `kmp/dependencyManagement/**`, `kmp/settings.gradle.kts`, `kmp/build.gradle.kts`, `kmp/gradle.properties`, `kmp/detekt.yml`
-- **Maven Coordinates**: `dev.abeta.kmp:bom`, `dev.abeta.kmp:dependencies`
+- **Maven Coordinates**: `io.github.abeta-dev:bom:0.3.0`, `io.github.abeta-dev:dependencies:0.3.0` (Kotlin package namespace `dev.abeta.kmp.*`)
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Single Version Source of Truth**: Every external library & plugin version (including Room 3 `3.0.3`, SQLite `2.7.1`, and KSP `2.3.14`) lives in `kmp/dependencyManagement/gradle/libs.versions.toml`; every internal module coordinate lives in `kmp/dependencyManagement/gradle/internal.versions.toml`. Zero hardcoded versions in module build scripts.

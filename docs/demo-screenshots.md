@@ -4,14 +4,14 @@ All screenshots below are **pixel-accurate Retina (2×) PNG captures** rendered 
 
 ---
 
-## 1. 6-in-1 Super-App Showcase Screenshots (`kmp/sample-app --verticals`)
+## 1. 7-in-1 Super-App Showcase Screenshots (`kmp/sample-app --verticals`)
 
-Six distinct consumer and B2B verticals rendered from one shared Compose Multiplatform SDUI engine (`sdui-layout` + `ui-atoms` + `design-tokens`), powered by `search_bar`, `chip_group`, `swipe_deck`, `product_card`, responsive `grid`/`carousel`, `FloatingCartDockHost`, and adaptive theme presets (`EMERALD`, `AMBER`, `INDIGO`):
+Seven distinct consumer, fintech, and B2B verticals (**Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**, and **Abeta Pay**) rendered from one shared Compose Multiplatform SDUI engine (`sdui-layout` + `ui-atoms` + `design-tokens`), powered by `search_bar`, `chip_group`, `swipe_deck`, `product_card`, `nudge_bar`, `marquee_strip`, `order_tracker`, `composed_block`, responsive `grid`/`carousel`, `FloatingCartDockHost`, and adaptive theme presets (`EMERALD`, `AMBER`, `INDIGO`):
 
 ### Abeta Fresh — Quick-Commerce Grocery (Desktop `1280×860` Super-App Launcher + Adaptive Grid)
 ![Abeta Fresh Desktop](assets/screenshots/vertical-fresh-desktop.png)
 
-### All 6 Vertical Showcase Apps — Mobile Phone Form Factor (`412×915`)
+### Super-App Showcase Verticals — Mobile Phone Form Factor (`412×915`)
 
 | Abeta Fresh (`fresh-home` · 8-Min Grocery) | Abeta Bites (`bites-home` · Food Delivery) | Abeta Pulse (`pulse-home` · Events & Movies) |
 | :---: | :---: | :---: |
@@ -47,13 +47,13 @@ Six distinct consumer and B2B verticals rendered from one shared Compose Multipl
 
 ---
 
-## 3. Interactive Storybook (`kmp/storybook` — 13 Stories Across Desktop, WasmJS, macOS & iOS)
+## 3. Interactive Storybook (`kmp/storybook` — 20 Stories Across Desktop, WasmJS, macOS & iOS)
 
 ### Design Tokens & WCAG AA Contrast Specimen Board
 ![Storybook Design Tokens](assets/screenshots/storybook-design-tokens.png)
 
-### All 17 SDUI Snippets Gallery (Dark Mode)
-![Storybook All 17 Snippets Dark](assets/screenshots/storybook-snippets-dark.png)
+### All 21 SDUI Snippets Gallery (Dark Mode)
+![Storybook All 21 Snippets Dark](assets/screenshots/storybook-snippets-dark.png)
 
 ### Motion Presets & Abeta Fresh Quick-Commerce Sandbox
 ![Storybook Motion and Store](assets/screenshots/storybook-motion-store.png)
@@ -72,10 +72,10 @@ Six distinct consumer and B2B verticals rendered from one shared Compose Multipl
 # Export all 7 Core Demo screenshots (Desktop, Phone Light/Dark, Watch)
 (cd kmp && ./gradlew :sample-app:run --args="--capture-screenshots=../docs/assets/screenshots")
 
-# Export all 6-in-1 Super-App Showcase screenshots (Phone & Desktop across all 6 verticals)
+# Export 7-in-1 Super-App Showcase screenshots (Phone & Desktop across Showcase verticals)
 (cd kmp && ./gradlew :sample-app:run --args="--capture-verticals=../docs/assets/screenshots")
 
-# Export all 5 Storybook screenshots (Tokens, Controls, 17 Snippets Dark, Motion/Store, Responsive/Bridges)
+# Export Storybook screenshots (Tokens, Controls, 21 Snippets Dark, Motion/Store, Responsive/Bridges)
 (cd kmp && ./gradlew :storybook:run --args="--capture-screenshots=../docs/assets/screenshots")
 
 # Optional: capture screenshots directly against a live Go BFF (bff/ or Abeta-dev/sdui-bff)

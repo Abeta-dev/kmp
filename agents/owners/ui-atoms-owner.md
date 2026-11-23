@@ -11,6 +11,7 @@ forbidden_dependencies:
   - "projects.core"
   - "projects.state"
   - "projects.analytics"
+  - "projects.database"
   - "projects.actionEngine"
   - "projects.network"
   - "projects.sduiLayout"
@@ -37,4 +38,4 @@ verification_command: "(cd kmp && ./gradlew :ui-atoms:spotlessCheck :ui-atoms:de
    - NEVER hardcode raw hex colors or fixed `px` typography — resolve every visual token from `ThemeTokens`.
    - Every animation (`applyMotionSpec`, all 7 ambient `MotionLoopEffect`s, `pressBounce`, `shakeOnError`, `UiStepper`, `UiCountdown`, `UiRollingCounter`, `UiButton`, `UiCelebrationOverlay`) MUST honor `ThemeTokens.motion.reducedMotion`.
 3. **Stateless & Composable (SRP/KISS)**: Keep atoms stateless (hoist values/overrides via parameters) and keep each atom in its own focused file.
-4. **Tests, Lint & ABI**: Cover semantic behavior in `UiAtomsComposeTest` (`compose.uiTest`), pass Spotless, Detekt, and BCV `apiCheck` (`kmp/ui-atoms/api/ui-atoms.api`).
+4. **Tests, Lint & ABI**: Cover semantic behavior in `UiAtomsComposeTest` and `ExtendedAtomsComposeTest` (`compose.uiTest`), pass Spotless, Detekt, and BCV `apiCheck` (`kmp/ui-atoms/api/ui-atoms.api`).

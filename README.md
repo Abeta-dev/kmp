@@ -20,7 +20,7 @@ Designed around **Clean Architecture**, the **Uncle Bob Dependency Rule**, **SOL
 
 ## Visual Showcase (Live Compose Multiplatform Renders)
 
-Pixel-accurate Retina captures rendered directly from `kmp/sample-app` and `kmp/storybook` (full 19-screen gallery including all **6-in-1 Super-App Showcase verticals** & regeneration commands in [docs/demo-screenshots.md](docs/demo-screenshots.md)):
+Pixel-accurate Retina captures rendered directly from `kmp/sample-app` and `kmp/storybook` (full 19-screen gallery across the **7-in-1 Super-App Showcase** & core screens, with regeneration commands in [docs/demo-screenshots.md](docs/demo-screenshots.md)):
 
 | Abeta Fresh Express — Desktop Split-Pane (`store-home`) | Interactive Storybook — All 21 Snippets (Dark Mode) |
 | :---: | :---: |
@@ -46,8 +46,8 @@ flowchart TB
         BFF_H["internal/handler (Gin + Compression/ETag + OpenAPI/Scalar + /orders/express + go-libs ginmw)"]
         BFF_U["internal/usecase (ScreenService, ActionService, CatalogService)"]
         BFF_D["internal/domain (Ports & Entities)"]
-        BFF_I["internal/infra (Core + 6-in-1 Super-App Showcase Screens, DefaultActionExecutor, StaticTokenCatalogProvider, Golden Fixtures)"]
-        BFF_P["pkg/sdui/{actions,atoms,snippets,theming} (18 Action Types, 16 Atoms, 21 Snippets incl. composed_block, 7 Motion Loops, AdaptivePageSpec)"]
+        BFF_I["internal/infra (Core + 7-in-1 Super-App Showcase Screens, DefaultActionExecutor, StaticTokenCatalogProvider, 8 Golden Fixtures)"]
+        BFF_P["pkg/sdui/{actions,atoms,snippets,theming} (18 Action Types, 28 Wire Atoms, 21 Snippets incl. composed_block w/ 29 ComposedNodeKinds, 7 Motion Loops, AdaptivePageSpec)"]
         BFF_H --> BFF_U --> BFF_D
         BFF_I -. "implements" .-> BFF_D
         BFF_U --> BFF_P
@@ -55,9 +55,9 @@ flowchart TB
     end
 
     subgraph KMP["Kotlin Multiplatform Kit (kmp/)"]
-        L3["Layer 3: sdui-layout (21 Snippets incl. Atomic Snippet Molding Engine, LayoutController, PlatformBridgeBundle, AdaptiveScreenContainers, Koin, AbetaSduiKit, macOS Cocoa) | watch-companion (Headless WatchKit/Wear OS + AbetaWatchKit) | storybook (17 Stories incl. Live 6-in-1 Super-App Demos, Nudges Lab, Snippet Crafter & E2E Journeys) | sample-app (6-in-1 Super-App Showcase)"]
+        L3["Layer 3: sdui-layout (21 Snippets incl. Atomic Snippet Molding Engine, LayoutController, PlatformBridgeBundle, AdaptiveScreenContainers, Koin, AbetaSduiKit, macOS Cocoa) | watch-companion (Headless WatchKit/Wear OS + AbetaWatchKit) | storybook (20 Stories incl. 8 UI Atom Stories, Live 7-in-1 Super-App Demos, Nudges Lab, Snippet Crafter & E2E Journeys) | sample-app (7-in-1 Super-App Showcase)"]
         L2["Layer 2: action-engine (18 ActionTypes, ActionDecoderRegistry, ActionRegistry, DefaultActionDispatcher) | network (Ktor HTTP/2 ALPN, Brotli, Bearer Refresh, CertificatePinMatcher JVM + Apple)"]
-        L1["Layer 1: ui-atoms (18 Stateless Compose Atoms incl. UiCountdown & UiRollingCounter + 7 MotionLoopEffects + pressBounce + shakeOnError + UiHapticFeedback + UiCelebrationOverlay) -> design-tokens (incl. ResponsiveTokens) & sdui-contracts (16 Wire Atoms, 21 Snippets, MotionSpec, AdaptiveContracts)"]
+        L1["Layer 1: ui-atoms (30 Stateless Compose Atoms incl. 12 Extended Atoms, UiCountdown & UiRollingCounter + 7 MotionLoopEffects + pressBounce + shakeOnError + UiHapticFeedback + UiCelebrationOverlay) -> design-tokens (incl. ResponsiveTokens) & sdui-contracts (28 Wire Atoms, 21 Snippets, MotionSpec, AdaptiveContracts)"]
         L0["Layer 0: core (Primitives + OS Bridges/Ports, Keychain/AES-GCM, Biometrics, DeepLinkParser, LocaleFormatter) | state (SessionStore, PreferenceStore, SecurePersistentKeyValueStore, FeatureFlagProvider, OfflineMutationQueue) | analytics | database (Room 3.0.3 KMP SQLite, Bundled & Web OPFS)"]
 
         L3 --> L2
@@ -239,7 +239,7 @@ cd kmp
 - **Agent Skills (`skills/` — 10 Skills)**:
   - [abeta-kmp-kit](skills/abeta-kmp-kit/SKILL.md) — Umbrella workflow router
   - [abeta-kmp-usage](skills/abeta-kmp-usage/SKILL.md) — Repo onboarding, Gradle BOM & OCP extensions
-  - [abeta-kmp-demo](skills/abeta-kmp-demo/SKILL.md) — 6-in-1 Super-App Showcase Demo & 17-story End-to-End Storybook reference guide
+  - [abeta-kmp-demo](skills/abeta-kmp-demo/SKILL.md) — 7-in-1 Super-App Showcase Demo & 20-story End-to-End Storybook reference guide
   - [abeta-kmp-platforms](skills/abeta-kmp-platforms/SKILL.md) — Android, Wear OS, iOS/iPadOS, watchOS, macOS, Desktop & WasmJS hosts & OS bridges
   - [abeta-kmp-atomic](skills/abeta-kmp-atomic/SKILL.md) — Tokens, responsive/wire DTOs & stateless Compose atoms
   - [abeta-kmp-actions](skills/abeta-kmp-actions/SKILL.md) — OCP action decoders, handlers, OS bridge outcomes & registry

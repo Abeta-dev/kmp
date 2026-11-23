@@ -1,6 +1,6 @@
 # Gradle BOM & Version Catalog Guide
 
-`abeta-dev/kmp` publishes both a **Java Platform Bill of Materials (`dev.abeta.kmp:bom`)** and a **Gradle Version Catalog (`dev.abeta.kmp:dependencies`)** to ensure every consumer and subproject resolves aligned, conflict-free versions.
+`abeta-dev/kmp` publishes both a **Java Platform Bill of Materials (`io.github.abeta-dev:bom`)** and a **Gradle Version Catalog (`io.github.abeta-dev:dependencies`)** to Maven Central (Kotlin package namespace remains `dev.abeta.kmp.*`) to ensure every consumer and subproject resolves aligned, conflict-free versions.
 
 ---
 
@@ -8,17 +8,17 @@
 
 | Artifact | Coordinate | Source Module | Purpose |
 | :--- | :--- | :--- | :--- |
-| **BOM** | `dev.abeta.kmp:bom:0.1.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `dev.abeta.kmp:*` library modules** + `dependencies` |
-| **Version Catalog** | `dev.abeta.kmp:dependencies:0.1.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
+| **BOM** | `io.github.abeta-dev:bom:0.3.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `io.github.abeta-dev:*` library modules** + `dependencies` (13 Maven artifacts total) |
+| **Version Catalog** | `io.github.abeta-dev:dependencies:0.3.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
 
-### Modules Included in `dev.abeta.kmp:bom`
+### Modules Included in `io.github.abeta-dev:bom`
 
 From `kmp/kmp-bom/build.gradle.kts`:
 
-- **Layer 0**: `dev.abeta.kmp:core`, `dev.abeta.kmp:state`, `dev.abeta.kmp:analytics`, `dev.abeta.kmp:database` (Room 3 KMP SQLite — see [Local Database Guide](local-database-room3.md)), `dev.abeta.kmp:dependencies`
-- **Layer 1**: `dev.abeta.kmp:design-tokens`, `dev.abeta.kmp:sdui-contracts`, `dev.abeta.kmp:ui-atoms`
-- **Layer 2**: `dev.abeta.kmp:action-engine`, `dev.abeta.kmp:network`
-- **Layer 3**: `dev.abeta.kmp:sdui-layout`, `dev.abeta.kmp:watch-companion`
+- **Layer 0**: `io.github.abeta-dev:core`, `io.github.abeta-dev:state`, `io.github.abeta-dev:analytics`, `io.github.abeta-dev:database` (Room 3 KMP SQLite — see [Local Database Guide](local-database-room3.md)), `io.github.abeta-dev:dependencies`
+- **Layer 1**: `io.github.abeta-dev:design-tokens`, `io.github.abeta-dev:sdui-contracts`, `io.github.abeta-dev:ui-atoms`
+- **Layer 2**: `io.github.abeta-dev:action-engine`, `io.github.abeta-dev:network`
+- **Layer 3**: `io.github.abeta-dev:sdui-layout`, `io.github.abeta-dev:watch-companion`
 
 > Note: `:sample-app` and `:storybook` are explorer/demo applications and are intentionally **not** part of `publishableModules` or the BOM.
 
@@ -59,7 +59,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("abetaLibs") {
-            from("dev.abeta.kmp:dependencies:0.1.0")
+            from("io.github.abeta-dev:dependencies:0.3.0")
         }
     }
 }
@@ -71,18 +71,18 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0"))
 
             // Pick your required layers—no version numbers needed
-            implementation("dev.abeta.kmp:database") // Optional Room 3 KMP SQLite local DB
-            implementation("dev.abeta.kmp:design-tokens")
-            implementation("dev.abeta.kmp:sdui-contracts")
-            implementation("dev.abeta.kmp:ui-atoms")
-            implementation("dev.abeta.kmp:action-engine")
-            implementation("dev.abeta.kmp:network")
-            implementation("dev.abeta.kmp:sdui-layout")
+            implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
+            implementation("io.github.abeta-dev:design-tokens")
+            implementation("io.github.abeta-dev:sdui-contracts")
+            implementation("io.github.abeta-dev:ui-atoms")
+            implementation("io.github.abeta-dev:action-engine")
+            implementation("io.github.abeta-dev:network")
+            implementation("io.github.abeta-dev:sdui-layout")
             // Or for watchOS / Wear OS headless companions:
-            // implementation("dev.abeta.kmp:watch-companion")
+            // implementation("io.github.abeta-dev:watch-companion")
         }
     }
 }
@@ -94,13 +94,13 @@ kotlin {
 
 Inside `kmp/dependencyManagement/gradle/`:
 
-1. **`libs.versions.toml`** (published as `dev.abeta.kmp:dependencies`):
+1. **`libs.versions.toml`** (published as `io.github.abeta-dev:dependencies`):
    - Core Toolchain: Kotlin `2.4.21`, Compose Multiplatform `1.12.2`, Compose Material3 `1.12.0-alpha03`, Compose Lifecycle `2.11.0`, Compose Navigation `2.10.0`
    - KotlinX: Coroutines `1.11.0`, Serialization `1.13.0`, DateTime `0.8.0`, Collections Immutable `0.5.2`
    - Networking, DI, Compression & Persistence: Ktor `3.6.1` (`ktor-bom`, `ktor-common` bundle, `ktor-client-auth`, `ktor-client-encoding`, `ktor-client-okhttp`, `ktor-client-darwin`, `ktor-client-js`, `ktor-client-mock`), Brotli `0.1.2` (`org.brotli:dec`), Koin `4.2.2` (`koin-core`), Kermit `2.2.0`, Multiplatform Settings `1.3.0`, Turbine `1.2.1`, `compose.ui.test`, Room 3 `3.0.3` (`androidx.room3:room3-runtime`, `room3-compiler`), SQLite `2.7.1` (`androidx.sqlite:sqlite-bundled`, `sqlite-web`), KSP `2.3.14`
    - Quality, Docs & Publishing Plugins: Spotless `8.11.0`, Detekt `2.0.0-alpha.6`, Dokka `2.3.0`, Vanniktech Maven Publish `0.37.0`, Binary Compatibility Validator `0.18.2`, `androidx.room3` `3.0.3`, `com.google.devtools.ksp` `2.3.14`
 2. **`internal.versions.toml`** (used internally by `:kmp-bom` and inter-module references):
-   - Defines `kmpBom`, `kmpDependencies`, and per-module version refs (`0.1.0`) across all **11 publishable library modules** (`core`, `state`, `analytics`, `database`, `designTokens`, `sduiContracts`, `uiAtoms`, `actionEngine`, `network`, `sduiLayout`, `watchCompanion`) under the `internal` catalog alias.
+   - Defines `kmpBom`, `kmpDependencies`, and per-module version refs (`0.3.0`) across all **11 publishable library modules** (`core`, `state`, `analytics`, `database`, `designTokens`, `sduiContracts`, `uiAtoms`, `actionEngine`, `network`, `sduiLayout`, `watchCompanion`) under the `internal` catalog alias.
 
 ---
 
@@ -138,7 +138,7 @@ cd kmp
 
 `kmp/gradle.properties` sets `abeta.kmpLocalBuild=true` by default. In `kmp/settings.gradle.kts`:
 
-- When `abeta.kmpLocalBuild=true`, Gradle intercepts every `dev.abeta.kmp:<module>` coordinate across all subprojects and substitutes it with the local `project(":<module>")`.
+- When `abeta.kmpLocalBuild=true`, Gradle intercepts every `io.github.abeta-dev:<module>` coordinate across all subprojects and substitutes it with the local `project(":<module>")`.
 - This means `:sample-app`, `:storybook`, `:watch-companion`, or `:sdui-layout` can declare `implementation(internal.kmp.uiAtoms)` or Maven coordinates while always compiling against local workspace edits.
 - To verify resolution against published Maven artifacts instead of local projects:
 

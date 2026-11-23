@@ -15,24 +15,24 @@
 - [Architecture & Uncle Bob Dependency Rule](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/architecture.md): Layer 0–3 dependency graph, import isolation rules, Go Clean Architecture boundaries, and OCP extension points.
 - [SDUI Wire Protocol (v1)](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/sdui-wire-protocol.md): HTTP `ginmw.Envelope` / `BffEnvelope<T>`, `PageResponse`, `AdaptivePageSpec`, `FloatingCartSpec`, `MotionSpec`, wire atoms, snippet payloads, actions, and golden JSON fixtures.
 - [Atomic & Action Separation](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/atomic-and-action-separation.md): Strict decoupling between stateless Layer 1 Compose atoms (`ui-atoms`) and Layer 2 OCP action execution (`action-engine`).
-- [Gradle BOM & Version Catalog Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/gradle-bom-guide.md): Using `dev.abeta.kmp:bom`, `dev.abeta.kmp:dependencies`, `libs.versions.toml`, `internal.versions.toml`, and `abeta.kmpLocalBuild` substitution.
+- [Gradle BOM & Version Catalog Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/gradle-bom-guide.md): Using `io.github.abeta-dev:bom:0.3.0`, `io.github.abeta-dev:dependencies:0.3.0`, `libs.versions.toml`, `internal.versions.toml`, and `abeta.kmpLocalBuild` substitution.
 - [Multiplatform Local Database Guide (Room 3 + SQLite)](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/local-database-room3.md): Layer 0 Room 3 (`3.0.3`) KMP persistence (`cached_screens`, `offline_mutations`, `key_value_records`), `sqlite-bundled:2.7.1`, `sqlite-web:2.7.1` OPFS Web Worker, and KSP (`2.3.14`) `@ConstructedBy` codegen.
 - [Open Package Hosting & Release Publishing Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/publishing-and-hosting.md): Zero-credential consumption and automated publishing across Maven Central, Cloudsmith Open Source, Apple SwiftPM (`Abeta-dev/kmp-spm`), and Go `proxy.golang.org`.
 - [Go BFF Integration Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/bff-integration.md): Go 1.26.0 SDUI BFF (`github.com/abeta-dev/kmp/bff`), Gin `v1.12.0`, `go-libs@v0.4.0`, Brotli/Gzip, ETag `304`, HTTP/2 `h2c`, OpenAPI 3.1, and Scalar UI.
-- [Visual Showcase — Demo App & Storybook Screenshots](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/demo-screenshots.md): Pixel-accurate Compose Multiplatform Retina PNG captures for the 6-in-1 Super-App Showcase, core reference screens, and 17-story Storybook.
+- [Visual Showcase — Demo App & Storybook Screenshots](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/demo-screenshots.md): Pixel-accurate Compose Multiplatform Retina PNG captures for the 7-in-1 Super-App Showcase, core reference screens, and 20-story Storybook.
 - [Per-Module Code Owners & Automated CI/CD Governance](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/module-owners-and-cicd.md): Mapping of all 17 Code Owner agents, `.github/CODEOWNERS`, architecture checks, ABI gates, and release pipelines.
 - [IDE & Multi-Model AI Setup Guide](https://raw.githubusercontent.com/Abeta-dev/kmp/main/docs/ide-and-ai-setup.md): Configuration for Claude Code, Gemini/Antigravity, Cursor, Android Studio/Junie, and GitHub Copilot/Codex.
 
 ## Ecosystem Sibling Repositories
 
 - [Abeta Layout Engine (llms.txt)](https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt): Companion SDUI layout & composition engine in the 3-repo Abeta SDUI Platform.
-- [Abeta SDUI BFF (llms.txt)](https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt): Multi-tenant production Go SDUI BFF serving the 6-in-1 Super-App Showcase over `github.com/abeta-dev/kmp/bff` Wire Protocol v1.
+- [Abeta SDUI BFF (llms.txt)](https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt): Multi-tenant production Go SDUI BFF serving the 7-in-1 Super-App Showcase over `github.com/abeta-dev/kmp/bff@v0.5.0` Wire Protocol v1.
 
 ## AI Agent Skills
 
 - [abeta-kmp-kit](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-kit/SKILL.md): Umbrella monorepo router, cross-stack workflows, Gradle BOM configuration, and verification gates.
-- [abeta-kmp-usage](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-usage/SKILL.md): Consumer onboarding for `dev.abeta.kmp:bom`, BFF wiring, and custom OCP atom/snippet/action extensions.
-- [abeta-kmp-demo](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-demo/SKILL.md): Reference guide for `sample-app` (7-in-1 Super-App Showcase Launcher), 17-story End-to-End `storybook` (incl. Live 7-in-1 Browser Demos), and BFF-to-KMP parity.
+- [abeta-kmp-usage](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-usage/SKILL.md): Consumer onboarding for `io.github.abeta-dev:bom`, BFF wiring, and custom OCP atom/snippet/action extensions.
+- [abeta-kmp-demo](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-demo/SKILL.md): Reference guide for `sample-app` (7-in-1 Super-App Showcase Launcher), 20-story End-to-End `storybook` (incl. Live 7-in-1 Browser Demos & 8 UI Atom stories covering all 30 atoms), and BFF-to-KMP parity.
 - [abeta-kmp-platforms](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-platforms/SKILL.md): Android, Wear OS, iOS/iPadOS, watchOS, macOS, Desktop JVM, and WasmJS host wiring, Core OS bridges, Room 3 drivers, and Apple HMPP split.
 - [abeta-kmp-atomic](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-atomic/SKILL.md): Authoring `design-tokens`, responsive metrics, pure `sdui-contracts` DTOs, and stateless `ui-atoms` without outer-layer leaks.
 - [abeta-kmp-actions](https://raw.githubusercontent.com/Abeta-dev/kmp/main/skills/abeta-kmp-actions/SKILL.md): Implementing OCP action decoders, handlers, OS bridge outcomes, and `DefaultActionDispatcher` in `action-engine`.

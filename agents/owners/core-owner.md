@@ -20,7 +20,7 @@ verification_command: "(cd kmp && ./gradlew :core:spotlessCheck :core:detekt :co
 
 ## Ownership Scope
 - **Paths**: `kmp/core/**`
-- **Maven Coordinate**: `dev.abeta.kmp:core`
+- **Maven Coordinate**: `io.github.abeta-dev:core` (Kotlin package `dev.abeta.kmp.core`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
 - **Core Responsibilities**: `AppResult`, `AppError`, `DispatcherProvider`, `Clock`, `AppLogger`, `KeyValueStore`, `UuidGenerator`, resilience guards (`BackoffPolicy`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`), `SensitiveDataRedactor`, `FieldValidators`, OS Bridges & Ports (`PlatformInfo`, `PlatformCapabilities`, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore`, `BiometricAuthenticator`).
 

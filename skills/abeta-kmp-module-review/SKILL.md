@@ -7,13 +7,14 @@ description: Per-module Code Owner review skill for abeta-dev/kmp. Maps any chan
 
 Use this skill whenever reviewing a pull request, diff, or refactor across one or more modules in `abeta-dev/kmp` (in Claude Code, Gemini, Antigravity, Cursor, Android Studio, Copilot, or CI).
 
-## 1. Per-Module Code Owner Routing Table (16 Owners)
+## 1. Per-Module Code Owner Routing Table (17 Owners)
 
 | Module / Path | Layer | Code Owner Agent Persona |
 | :--- | :--- | :--- |
 | `kmp/core/**` | Layer 0 | [agents/owners/core-owner.md](../../agents/owners/core-owner.md) |
 | `kmp/state/**` | Layer 0 | [agents/owners/state-owner.md](../../agents/owners/state-owner.md) |
 | `kmp/analytics/**` | Layer 0 | [agents/owners/analytics-owner.md](../../agents/owners/analytics-owner.md) |
+| `kmp/database/**` | Layer 0 | [agents/owners/database-owner.md](../../agents/owners/database-owner.md) |
 | `kmp/design-tokens/**` | Layer 1 | [agents/owners/design-tokens-owner.md](../../agents/owners/design-tokens-owner.md) |
 | `kmp/sdui-contracts/**` | Layer 1 | [agents/owners/sdui-contracts-owner.md](../../agents/owners/sdui-contracts-owner.md) |
 | `kmp/ui-atoms/**` | Layer 1 | [agents/owners/ui-atoms-owner.md](../../agents/owners/ui-atoms-owner.md) |

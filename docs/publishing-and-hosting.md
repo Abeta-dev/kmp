@@ -127,12 +127,12 @@ Follow these 6 exact steps once per repository:
 1. Open [https://central.sonatype.com](https://central.sonatype.com).
 2. Click **Sign In** and authenticate with **GitHub OAuth** (recommended so your GitHub org/account is linked automatically).
 
-#### Step 2: Verify Your Maven Namespace (Choose Option 1 or Option 2)
+#### Step 2: Verify Your Maven Namespace (Verified Default: `io.github.abeta-dev`)
 
 | Option | Namespace | Verification Method | Coordinate Impact |
 | :--- | :--- | :--- | :--- |
-| **Option 1 (Default in this repo)** | `dev.abeta` | Add the **DNS TXT record** shown by Central Portal to your domain `abeta.dev` (e.g., `@ TXT <verification-key>`), wait for DNS propagation, and click **Verify Namespace**. | **Zero code changes** — matches `dev.abeta.kmp:*` already configured across `kmp/`! |
-| **Option 2 (Instant, No Custom Domain)** | `io.github.abeta-dev` | In Central Portal -> **Namespaces -> Add Namespace**, enter `io.github.abeta-dev`. Central Portal gives you a verification key string. Create a **temporary empty public GitHub repo** under `Abeta-dev` named exactly after that verification key, click **Verify**, then delete the temporary repo once verified. | You must update `group` from `dev.abeta.kmp` to `io.github.abeta-dev.kmp` in `kmp/build.gradle.kts`, `kmp/kmp-bom/build.gradle.kts`, `kmp/settings.gradle.kts`, `kmp/dependencyManagement/gradle/internal.versions.toml`, and `kmp/database/build.gradle.kts`. |
+| **Option 1 (Active Default in this repo)** | `io.github.abeta-dev` | In Central Portal -> **Namespaces -> Add Namespace**, enter `io.github.abeta-dev`. Central Portal gives you a verification key string. Create a **temporary empty public GitHub repo** under `Abeta-dev` named exactly after that verification key, click **Verify**, then delete the temporary repo once verified. | **Zero code changes** — matches `io.github.abeta-dev:*` already configured across `kmp/` (`GROUP=io.github.abeta-dev`, Kotlin packages remain `dev.abeta.kmp.*`). |
+| **Option 2 (Optional Custom Domain)** | `dev.abeta` | Add the **DNS TXT record** shown by Central Portal to your domain `abeta.dev` (e.g., `@ TXT <verification-key>`), wait for DNS propagation, and click **Verify Namespace**. | Requires updating `GROUP` / `group` in `kmp/gradle.properties`, `kmp/build.gradle.kts`, `kmp/kmp-bom/build.gradle.kts`, `kmp/settings.gradle.kts`, and `kmp/dependencyManagement/gradle/internal.versions.toml` if migrating coordinates. |
 
 #### Step 3: Generate a Central Portal User Token
 1. In Central Portal, click your profile avatar in the top-right corner -> **View Account**.
@@ -171,10 +171,10 @@ Open your GitHub repository -> **Settings -> Secrets and variables -> Actions ->
 | `GPG_SIGNING_KEY_ID` | Recommended | Last 8 characters of your GPG key ID (e.g., `1A2B3C4D`) |
 | `GPG_SIGNING_PASSWORD` | If set | Passphrase used in Step 4 (leave empty / omit if unprotected) |
 
-#### Step 6: Push Tag `v0.1.0` to Auto-Build, Sign & Release
+#### Step 6: Push Tag `v0.3.0` to Auto-Build, Sign & Release
 ```bash
-git tag -a v0.1.0 -m "Release v0.1.0"
-git push origin v0.1.0
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin v0.3.0
 ```
 [release.yml](../.github/workflows/release.yml) automatically runs on **`macos-latest`**, signs all **13 Gradle modules** (**11 KMP libraries** including `:database` + `:kmp-bom` + `:dependencyManagement`), uploads the deployment bundle to Central Portal via `publishAndReleaseToMavenCentral`, and automatically releases it to `mavenCentral()`!
 
@@ -228,17 +228,17 @@ Why a separate mirror repo? SwiftPM clones the Git repository whose URL you past
 | **Secret** | `SPM_REPO_TOKEN` | **Yes** | Fine-grained PAT scoped strictly to `Abeta-dev/kmp-spm` (`Contents: Read & Write`) |
 | **Variable** | `SPM_REPO` | Optional | Defaults to `Abeta-dev/kmp-spm` |
 
-4. **Push a release tag (`v0.1.0`) on `Abeta-dev/kmp`**:
-   When you push `v0.1.0`, [release.yml](../.github/workflows/release.yml) automatically:
+4. **Push a release tag (`v0.3.0`) on `Abeta-dev/kmp`**:
+   When you push `v0.3.0`, [release.yml](../.github/workflows/release.yml) automatically:
    1. Builds Release **`AbetaSduiKit.xcframework`** (`iosArm64` + `iosSimulatorArm64`) and **`AbetaWatchKit.xcframework`** (`watchosArm64` + `watchosSimulatorArm64` + `watchosDeviceArm64`) on **`macos-latest`**.
    2. Zips both XCFrameworks, computes SwiftPM SHA-256 checksums (`SHA256SUMS.txt`), and renders `Package.swift` from [`kmp/platforms/apple/Package.template.swift`](../kmp/platforms/apple/Package.template.swift) via [`scripts/package_xcframeworks.sh`](../scripts/package_xcframeworks.sh).
    3. Verifies `Package.swift` syntax, checksums, and manifest integrity using [`scripts/verify_spm_package.sh`](../scripts/verify_spm_package.sh).
    4. Uploads both `.xcframework.zip` archives, `SHA256SUMS.txt`, and `Package.swift` to the **`Abeta-dev/kmp`** GitHub Release.
-   5. Commits the verified `Package.swift` and pushes SemVer tag **`0.1.0`** (without leading `v`, matching SwiftPM conventions) to **`Abeta-dev/kmp-spm`**!
+   5. Commits the verified `Package.swift` and pushes SemVer tag **`0.3.0`** (without leading `v`, matching SwiftPM conventions) to **`Abeta-dev/kmp-spm`**!
 5. **Consume in Xcode**:
    - Open **File -> Add Package Dependencies...**
    - Paste **`https://github.com/Abeta-dev/kmp-spm`**
-   - Choose **`0.1.0`**
+   - Choose **`0.3.0`**
    - Add **`AbetaSduiKit`** (iOS) or **`AbetaWatchKit`** (watchOS) to your app target
    - Use `import AbetaSduiKit` or `import AbetaWatchKit`!
 
@@ -288,13 +288,13 @@ If your organization hosts a public GitLab Package Registry or Reposilite mirror
 Verify all **13 Maven artifacts** (POMs, `.module` Gradle Module Metadata, `.jar`, `.klib`, sources & javadoc jars) and Apple SwiftPM packaging locally before tagging:
 
 ```bash
-# 1. Verify all 13 stable artifacts (dev.abeta.kmp:*:0.1.0, incl. :database) in ~/.m2/repository
+# 1. Verify all 13 stable artifacts (io.github.abeta-dev:*:0.3.0, incl. :database) in ~/.m2/repository
 (cd kmp && ./gradlew publishToMavenLocal -Pabeta.kmpLocalBuild=false --no-daemon)
 
-# 2. Verify snapshot version override (0.1.0-SNAPSHOT, including BOM constraints)
+# 2. Verify snapshot version override (0.3.0-SNAPSHOT, including BOM constraints)
 (cd kmp && ./gradlew publishToMavenLocal \
   -Pabeta.kmpLocalBuild=false \
-  -Pabeta.publishVersion=0.1.0-SNAPSHOT \
+  -Pabeta.publishVersion=0.3.0-SNAPSHOT \
   --no-daemon)
 
 # 3. Assemble & package Apple Release XCFrameworks + verify SwiftPM Package.swift (macOS)
@@ -304,8 +304,8 @@ Verify all **13 Maven artifacts** (POMs, `.module` Gradle Module Metadata, `.jar
   --max-workers=1 --no-daemon \
   -Dorg.gradle.jvmargs="-Xmx6g -Dfile.encoding=UTF-8" \
   -Dkotlin.daemon.jvm.options="-Xmx6g")
-./scripts/package_xcframeworks.sh --tag v0.1.0 --out-dir dist/xcframeworks
-./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.1.0
+./scripts/package_xcframeworks.sh --tag v0.3.0 --out-dir dist/xcframeworks
+./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.3.0
 ```
 
 ---
@@ -314,12 +314,12 @@ Verify all **13 Maven artifacts** (POMs, `.module` Gradle Module Metadata, `.jar
 
 ```bash
 # 1. Cut a full KMP (13 Gradle modules) + Apple XCFramework + SwiftPM mirror release
-git tag -a v0.1.0 -m "Release v0.1.0"
-git push origin v0.1.0
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin v0.3.0
 
 # 2. Cut a Go BFF module release (GitHub Release + automatic proxy.golang.org indexing)
-git tag -a bff/v0.1.0 -m "Release Go SDUI BFF v0.1.0"
-git push origin bff/v0.1.0
+git tag -a bff/v0.5.0 -m "Release Go SDUI BFF v0.5.0"
+git push origin bff/v0.5.0
 ```
 
 You can also trigger `Release` or `Snapshot Publish (Cloudsmith Open Source)` manually via **GitHub Actions -> Run workflow** (`workflow_dispatch`) to target a specific registry (`maven-central`, `cloudsmith`, `github-packages`, `xcframeworks-only`) or override the version.

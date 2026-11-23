@@ -22,7 +22,7 @@ verification_command: "(cd kmp && ./gradlew :state:spotlessCheck :state:detekt :
 
 ## Ownership Scope
 - **Paths**: `kmp/state/**`
-- **Maven Coordinate**: `dev.abeta.kmp:state`
+- **Maven Coordinate**: `io.github.abeta-dev:state` (Kotlin package `dev.abeta.kmp.state`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
 - **Core Responsibilities**: `SessionStore` / `PersistentSessionStore` / `SessionLifecycleManager`, reactive schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, and `OfflineMutationQueue`.
 

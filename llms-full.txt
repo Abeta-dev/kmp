@@ -44,23 +44,23 @@ Dependencies strictly point **inward** (`Layer 3 -> Layer 2 -> Layer 1 -> Layer 
   - `apple/AbetaAppleHosts.swift` & `apple/Package.template.swift` (iOS/iPadOS `AbetaSduiKit`, macOS Cocoa `launchMacOsSduiWindow`, watchOS `AbetaWatchKit`).
   - `web/README.md` (COOP/COEP headers for Room 3 `wasmJs` OPFS Web Worker SQLite persistence).
 
-### All 11 Publishable KMP Modules + BOM + Catalog (`dev.abeta.kmp`)
+### All 11 Publishable KMP Modules + BOM + Catalog (`io.github.abeta-dev`; Kotlin package `dev.abeta.kmp.*`)
 
-| Layer | Module | Coordinate (`0.1.0`) | Allowed Internal Deps | Key Responsibilities |
+| Layer | Module | Coordinate (`0.3.0`) | Allowed Internal Deps | Key Responsibilities |
 | :--- | :--- | :--- | :--- | :--- |
-| **Catalog** | `dependencyManagement` | `dev.abeta.kmp:dependencies` | *(catalog)* | External (`libs.versions.toml`) & internal (`internal.versions.toml`) Gradle Version Catalogs |
-| **BOM** | `kmp-bom` | `dev.abeta.kmp:bom` | *(platform)* | Java Platform BOM aligning all 11 publishable `dev.abeta.kmp:*` modules + `dependencies` |
-| **Layer 0** | `core` | `dev.abeta.kmp:core` | None | `AppResult`, `AppError` (`ErrorCategory`, `isRetryable`), `DispatcherProvider`, `Clock`, `AppLogger`/`RedactingAppLogger`, `KeyValueStore`/`ObservableKeyValueStore`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`, `BackoffPolicy`, `FieldValidators`, `PlatformInfo`/`PlatformCapabilities`, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore` (Apple Keychain `SecItem*`, JVM AES-256-GCM, WasmJS `sessionStorage`), `BiometricAuthenticator` (`LAContext`) |
-| **Layer 0** | `state` | `dev.abeta.kmp:state` | `:core` | `SessionStore`/`PersistentSessionStore`/`SessionLifecycleManager`, schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, `OfflineMutationQueue` |
-| **Layer 0** | `analytics` | `dev.abeta.kmp:analytics` | `:core` | `AnalyticsEvent`, `AnalyticsTracker`, `Composite`, `Logger`, `Recording`, `Sanitizing`, `Deduplicating`, `Enriching`, and `Buffered` trackers |
-| **Layer 0** | `database` | `dev.abeta.kmp:database` | `:core` | **Room 3 (`3.0.3`)** KMP SQLite DB (`AbetaDatabase` with `@ConstructedBy(AbetaDatabaseConstructor::class)`, `AbetaLocalDatabase`): tables `cached_screens` (PK `screenId`, `payloadJson`, `etag`, TTL), `offline_mutations` (PK `id`, FIFO retry queue), `key_value_records` (PK `namespace`+`recordKey`, TTL). Uses `sqlite-bundled:2.7.1` on JVM/Android/Apple and `sqlite-web:2.7.1` OPFS Web Worker on `wasmJs`; KSP `2.3.14` schema export under `kmp/database/schemas/` |
-| **Layer 1** | `design-tokens` | `dev.abeta.kmp:design-tokens` | None | `ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens` (17 type roles), `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset` (`INDIGO`, `EMERALD`, `AMBER`), `ColorAccessibility`, `DesignTheme`, `ThemeTokens`, and `ResponsiveTokens.kt` (`WindowWidthClass`, `WindowHeightClass`, `DeviceFormFactor`, `AdaptiveLayoutMetrics`, `ThemeTokens.adaptiveMetrics`) |
-| **Layer 1** | `sdui-contracts` | `dev.abeta.kmp:sdui-contracts` | None | Pure `@Serializable` `v1` wire DTOs (`SduiJson` with `ignoreUnknownKeys = true`): `PageResponse`, `SnippetEnvelope`, **16 Wire Atoms** (incl. `CountdownAtom`), **21 `SnippetTypes`** (incl. `nudge_bar`, `marquee_strip`, `order_tracker`, and **`composed_block`** Atomic Snippet Molding Engine), `MotionSpec` (7 Ambient `MotionLoopEffect`s), `FloatingCartSpec` (free-delivery threshold nudge fields), `AdaptiveContracts`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`. Zero Compose or Ktor imports |
-| **Layer 1** | `ui-atoms` | `dev.abeta.kmp:ui-atoms` | `:design-tokens`, `:sdui-contracts` | **18 stateless Compose atoms** (incl. `UiStepper`, `UiCountdown`, `UiRollingCounter`) + `UiCelebrationOverlay`, `UiHapticFeedback`, `MotionModifier` + `MotionLoopModifiers` (`applyMotionSpec`, 7 Ambient `MotionLoopEffect`s, `Modifier.pressBounce`, `Modifier.shakeOnError` honoring `reducedMotion`), `LocalImageRenderer`, `TokenResolvers`. Emits `onAction: (ActionRef) -> Unit` only; NEVER imports `:core`, `:action-engine`, `:network`, or `:sdui-layout` |
-| **Layer 2** | `action-engine` | `dev.abeta.kmp:action-engine` | `:core`, `:sdui-contracts` | OCP action system: **18 `ActionTypes`**, `ActionPayloadDecoder`, `ActionDecoderRegistry`, `ActionHandler`, `ActionRegistry`, `DefaultActionDispatcher`, `ActionValidator`, `ApiCallExecutor`, `ActionOutcome` |
-| **Layer 2** | `network` | `dev.abeta.kmp:network` | `:core` | Ktor `3.6.1` `HttpTransport`/`KtorHttpTransport`/`HttpClientFactory`: HTTP/2 ALPN, Brotli (`br`), bearer refresh (`AuthTokenProvider`), shared SPKI/cert pinning (`CertificatePinMatcher` for JVM/OkHttp `CertificatePinner` and Apple Darwin `NSURLSession` across iOS/macOS/watchOS) |
-| **Layer 3** | `sdui-layout` | `dev.abeta.kmp:sdui-layout` | Layers 0–2 | `LayoutController` (`observeConnectivity`, `handleDeepLink`, `isOffline`, `loadMore`, `errorShakeSequence`, `dismissFeedback`), `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers` (`AdaptiveReadyViewport`, `SplitPaneBody`, `OfflineStatusBanner`), **21 snippet renderers** (`BuiltInSnippetModule`, incl. `NudgeBarSnippetRenderer`, `MarqueeStripSnippetRenderer`, `OrderTrackerSnippetRenderer`, and **`ComposedBlockSnippetRenderer`** Atomic Snippet Molding Engine), `FloatingCartDockHost` (free-delivery threshold nudge progress & unlock bounce) + `PageCartCalculator`, `ModalBottomSheet`/`AlertDialog`, `PullToRefreshBox`, `CachedScreenRepository`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, `SduiHostedRoot`, iOS `createSduiViewController` (`AbetaSduiKit.xcframework`), macOS `launchMacOsSduiWindow` |
-| **Layer 3** | `watch-companion` | `dev.abeta.kmp:watch-companion` | `:core`, `:state`, `:analytics`, `:database`, `:sdui-contracts`, `:action-engine`, `:network` | Headless wearable orchestrator (zero Compose UI imports): `WatchGlanceModels`, `WatchScreenMapper`, `RemoteWatchPageSource`, `WatchRemoteApiCallExecutor`, `WatchCompanionController`, `createWatchCompanionModule`, `createAppleWatchCompanionHost`, `AbetaWatchKit.xcframework` |
+| **Catalog** | `dependencyManagement` | `io.github.abeta-dev:dependencies` | *(catalog)* | External (`libs.versions.toml`) & internal (`internal.versions.toml`) Gradle Version Catalogs |
+| **BOM** | `kmp-bom` | `io.github.abeta-dev:bom` | *(platform)* | Java Platform BOM aligning all 11 publishable `io.github.abeta-dev:*` modules + `dependencies` (13 Maven artifacts total) |
+| **Layer 0** | `core` | `io.github.abeta-dev:core` | None | `AppResult`, `AppError` (`ErrorCategory`, `isRetryable`), `DispatcherProvider`, `Clock`, `AppLogger`/`RedactingAppLogger`, `KeyValueStore`/`ObservableKeyValueStore`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`, `BackoffPolicy`, `FieldValidators`, `PlatformInfo`/`PlatformCapabilities`, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore` (Apple Keychain `SecItem*`, JVM AES-256-GCM, WasmJS `sessionStorage`), `BiometricAuthenticator` (`LAContext`) |
+| **Layer 0** | `state` | `io.github.abeta-dev:state` | `:core` | `SessionStore`/`PersistentSessionStore`/`SessionLifecycleManager`, schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, `OfflineMutationQueue` |
+| **Layer 0** | `analytics` | `io.github.abeta-dev:analytics` | `:core` | `AnalyticsEvent`, `AnalyticsTracker`, `Composite`, `Logger`, `Recording`, `Sanitizing`, `Deduplicating`, `Enriching`, and `Buffered` trackers |
+| **Layer 0** | `database` | `io.github.abeta-dev:database` | `:core` | **Room 3 (`3.0.3`)** KMP SQLite DB (`AbetaDatabase` with `@ConstructedBy(AbetaDatabaseConstructor::class)`, `AbetaLocalDatabase`): tables `cached_screens` (PK `screenId`, `payloadJson`, `etag`, TTL), `offline_mutations` (PK `id`, FIFO retry queue), `key_value_records` (PK `namespace`+`recordKey`, TTL). Uses `sqlite-bundled:2.7.1` on JVM/Android/Apple and `sqlite-web:2.7.1` OPFS Web Worker on `wasmJs`; KSP `2.3.14` schema export under `kmp/database/schemas/` |
+| **Layer 1** | `design-tokens` | `io.github.abeta-dev:design-tokens` | None | `ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens` (17 type roles), `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset` (`INDIGO`, `EMERALD`, `AMBER`), `ColorAccessibility`, `DesignTheme`, `ThemeTokens`, and `ResponsiveTokens.kt` (`WindowWidthClass`, `WindowHeightClass`, `DeviceFormFactor`, `AdaptiveLayoutMetrics`, `ThemeTokens.adaptiveMetrics`) |
+| **Layer 1** | `sdui-contracts` | `io.github.abeta-dev:sdui-contracts` | None | Pure `@Serializable` `v1` wire DTOs (`SduiJson` with `ignoreUnknownKeys = true`): `PageResponse`, `SnippetEnvelope`, **28 Wire Atoms** (incl. `CountdownAtom` & 12 `ExtendedAtoms.kt` primitives), **21 `SnippetTypes`** (incl. `nudge_bar`, `marquee_strip`, `order_tracker`, and **`composed_block`** Atomic Snippet Molding Engine with **29 `ComposedNodeKind`s**), `MotionSpec` (7 Ambient `MotionLoopEffect`s), `FloatingCartSpec` (free-delivery threshold nudge fields), `AdaptiveContracts`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`. Zero Compose or Ktor imports |
+| **Layer 1** | `ui-atoms` | `io.github.abeta-dev:ui-atoms` | `:design-tokens`, `:sdui-contracts` | **30 stateless Compose atoms** (incl. `UiStepper`, `UiCountdown`, `UiRollingCounter`, plus 12 extended atoms `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`, `UiRating`, `UiPrice`, `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiKeyValueRow`, `UiQrCode`) + `UiCelebrationOverlay`, `UiHapticFeedback`, `MotionModifier` + `MotionLoopModifiers` (`applyMotionSpec`, 7 Ambient `MotionLoopEffect`s, `Modifier.pressBounce`, `Modifier.shakeOnError` honoring `reducedMotion`), `LocalImageRenderer`, `TokenResolvers`. Emits `onAction: (ActionRef) -> Unit` only; NEVER imports `:core`, `:action-engine`, `:network`, or `:sdui-layout` |
+| **Layer 2** | `action-engine` | `io.github.abeta-dev:action-engine` | `:core`, `:sdui-contracts` | OCP action system: **18 `ActionTypes`**, `ActionPayloadDecoder`, `ActionDecoderRegistry`, `ActionHandler`, `ActionRegistry`, `DefaultActionDispatcher`, `ActionValidator`, `ApiCallExecutor`, `ActionOutcome` |
+| **Layer 2** | `network` | `io.github.abeta-dev:network` | `:core` | Ktor `3.6.1` `HttpTransport`/`KtorHttpTransport`/`HttpClientFactory`: HTTP/2 ALPN, Brotli (`br`), bearer refresh (`AuthTokenProvider`), shared SPKI/cert pinning (`CertificatePinMatcher` for JVM/OkHttp `CertificatePinner` and Apple Darwin `NSURLSession` across iOS/macOS/watchOS) |
+| **Layer 3** | `sdui-layout` | `io.github.abeta-dev:sdui-layout` | Layers 0–2 | `LayoutController` (`observeConnectivity`, `handleDeepLink`, `isOffline`, `loadMore`, `errorShakeSequence`, `dismissFeedback`), `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers` (`AdaptiveReadyViewport`, `SplitPaneBody`, `OfflineStatusBanner`), **21 snippet renderers** (`BuiltInSnippetModule`, incl. `NudgeBarSnippetRenderer`, `MarqueeStripSnippetRenderer`, `OrderTrackerSnippetRenderer`, and **`ComposedBlockSnippetRenderer`** Atomic Snippet Molding Engine with **29 `ComposedNodeKind`s**), `FloatingCartDockHost` (free-delivery threshold nudge progress & unlock bounce) + `PageCartCalculator`, `ModalBottomSheet`/`AlertDialog`, `PullToRefreshBox`, `CachedScreenRepository`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, `SduiHostedRoot`, iOS `createSduiViewController` (`AbetaSduiKit.xcframework`), macOS `launchMacOsSduiWindow` |
+| **Layer 3** | `watch-companion` | `io.github.abeta-dev:watch-companion` | `:core`, `:state`, `:analytics`, `:database`, `:sdui-contracts`, `:action-engine`, `:network` | Headless wearable orchestrator (zero Compose UI imports): `WatchGlanceModels`, `WatchScreenMapper`, `RemoteWatchPageSource`, `WatchRemoteApiCallExecutor`, `WatchCompanionController`, `createWatchCompanionModule`, `createAppleWatchCompanionHost`, `AbetaWatchKit.xcframework` |
 
 **Key Architectural Invariants**:
 - **Atomic / Action Decoupling**: `ui-atoms` only accepts wire contracts and invokes `onAction: (ActionRef) -> Unit`; zero monolithic `when (actionType)` in UI or core.
@@ -109,7 +109,7 @@ On error: `{ "success": false, "data": null, "error": { "code": "...", "message"
    - `MotionSpec`: `enter`/`exit` (`none`|`fade_in`|`slide_up`|`slide_down`|`scale_in`|`spring_bounce`), `duration_token` (`instant`|`fast`|`normal`|`slow`), `duration_ms`, `stagger_ms`, `delay_ms`, `loop_effect` (`none` + **7 ambient loops**: `pulse`|`shimmer`|`wiggle`|`float`|`heartbeat`|`glow_ring`|`marquee`)
    - `ResponsiveColumnsSpec` / `ResponsiveIntSpec`: `compact`, `medium`, `expanded`
 
-### 3.3 All 16 Wire Atoms (`sdui-contracts` & `pkg/sdui/atoms`)
+### 3.3 All 28 Wire Atoms (`sdui-contracts` & `pkg/sdui/atoms`)
 1. `TextAtom`: `id`, `text`, `color`, `typography`, `max_lines`, `alignment` (`start`|`center`|`end`), `markdown`, `strike_through`, `underline`, `prefix_icon`, `suffix_icon`, `on_click`, `layout`
 2. `IconAtom`: `id`, `name`, `size_dp`, `color`, `content_description`, `on_click`, `layout`
 3. `TagAtom`: `id`, `label`, `variant` (`neutral`|`brand`|`success`|`warning`|`error`|`info`), `bg_color`, `text_color`, `border`, `icon`, `on_click`, `layout`, `motion`
@@ -125,11 +125,23 @@ On error: `{ "success": false, "data": null, "error": { "code": "...", "message"
 13. `AvatarAtom`: `id`, `url`, `initials`, `size_dp`, `bg_color`, `text_color`, `content_description`, `on_click`, `layout`
 14. `SkeletonAtom`: `id`, `kind` (`text`|`rectangle`|`circle`), `width_dp`, `height_dp`, `layout`
 15. `StepperAtom`: `field_id`, `label`, `quantity`, `min_quantity` (`0`), `max_quantity` (`20`), `enabled`, `on_increment`, `on_decrement`, `layout`
-16. `CountdownAtom` *(v0.3.0)*: `countdown_id`, `remaining_seconds`, `label`, `urgent_threshold_seconds` (`60`), `show_hours`, `expired_text` (`"00:00"`), `on_expire`, `motion`
+16. `CountdownAtom` *(added in bff/v0.3.0)*: `countdown_id`, `remaining_seconds`, `label`, `urgent_threshold_seconds` (`60`), `show_hours`, `expired_text` (`"00:00"`), `on_expire`, `motion`
+17. `RadioGroupAtom` *(ExtendedAtoms.kt / extended_atoms.go)*: `field_id`, `label`, `options` (`OptionItem[]`: `id`, `label`, `subtitle`, `enabled`, `badge`), `selected_id`, `enabled`, `on_change`, `layout`
+18. `SelectAtom`: `field_id`, `label`, `placeholder` (`"Select an option"`), `options` (`OptionItem[]`), `selected_id`, `helper_text`, `error_text`, `enabled`, `on_change`, `layout`
+19. `OtpInputAtom`: `field_id`, `label`, `length` (`6`), `initial_value`, `masked`, `helper_text`, `error_text`, `enabled`, `on_complete`, `layout`
+20. `ChipAtom`: `id`, `label`, `selected`, `enabled`, `removable`, `leading_icon`, `on_click`, `on_remove`, `layout`
+21. `SegmentedControlAtom`: `field_id`, `options` (`OptionItem[]`), `selected_id`, `enabled`, `on_change`, `layout`
+22. `RatingAtom`: `id`, `field_id`, `value`, `max_stars` (`5`), `interactive`, `review_count`, `label`, `star_size_dp` (`20`), `on_rate`, `layout`
+23. `PriceAtom`: `id`, `amount_text`, `original_amount_text`, `discount_label`, `unit_suffix`, `emphasized`, `layout`
+24. `BadgeAtom`: `id`, `count`, `max_count` (`99`), `label`, `dot_only`, `variant` (`neutral`|`brand`|`success`|`warning`|`error`|`info`), `layout`, `motion`
+25. `AlertBannerAtom`: `id`, `title`, `message`, `variant` (`neutral`|`brand`|`success`|`warning`|`error`|`info`), `icon`, `action_label`, `on_action`, `dismissible`, `on_dismiss`, `layout`
+26. `StatTileAtom`: `id`, `label`, `value`, `delta_label`, `delta_positive`, `caption`, `icon`, `on_click`, `layout`
+27. `KeyValueRowAtom`: `id`, `label`, `value`, `sublabel`, `value_color`, `emphasized`, `show_divider`, `on_click`, `layout`
+28. `QrCodeAtom`: `id`, `payload`, `label`, `caption`, `size_dp` (`160`), `on_click`, `layout`
 
-### 3.4 All 18 Stateless Compose UI Atoms (`kmp/ui-atoms`)
-Renders all 16 wire atoms plus `UiSurfaceCard` and `UiRollingCounter`:
-`UiText`, `UiIcon`, `UiTag`, `UiButton`, `UiImage`, `UiTextField`, `UiDivider`, `UiSpacer`, `UiProgress`, `UiSurfaceCard`, `UiSwitch`, `UiCheckbox`, `UiSlider`, `UiAvatar`, `UiSkeleton`, `UiStepper` (animated `ADD` <-> `- qty +` morph with `UiHapticFeedback` hooks), `UiCountdown` (live ticking urgency timer with expiration callback), `UiRollingCounter` (smooth odometer-style digit roll).
+### 3.4 All 30 Stateless Compose UI Atoms (`kmp/ui-atoms`)
+Renders all 28 wire atoms plus `UiSurfaceCard` and `UiRollingCounter`:
+`UiText`, `UiIcon`, `UiTag`, `UiButton`, `UiImage`, `UiTextField`, `UiDivider`, `UiSpacer`, `UiProgress`, `UiSurfaceCard`, `UiSwitch`, `UiCheckbox`, `UiSlider`, `UiAvatar`, `UiSkeleton`, `UiStepper` (animated `ADD` <-> `- qty +` morph with `UiHapticFeedback` hooks), `UiCountdown` (live ticking urgency timer with expiration callback), `UiRollingCounter` (smooth odometer-style digit roll), plus 12 extended atoms (`UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`, `UiRating`, `UiPrice`, `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiKeyValueRow`, `UiQrCode`).
 Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`UiHapticKind`, `LocalUiHapticFeedback`, `rememberComposeHapticFallback`), `MotionModifier` + `MotionLoopModifiers` (`applyMotionSpec`, 7 ambient `MotionLoopEffect`s, `Modifier.pressBounce`, `Modifier.shakeOnError`, reduced-motion collapse).
 
 ### 3.5 All 21 Canonical `SnippetTypes` (`SnippetTypes` & `pkg/sdui/snippets`)
@@ -156,14 +168,14 @@ Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`
 | `nudge_bar` *(v0.3.0)* | `NudgeBarSnippetData` | `nudge_id`, `title`, `subtitle`, `icon`, `badge`, `countdown`, `progress`, `cta`, `dismissible`, `pointer_edge` (`top`|`bottom`), `on_dismiss`, `on_click`, `layout` |
 | `marquee_strip` *(v0.3.0)* | `MarqueeStripSnippetData` | `strip_id`, `items` (`MarqueeItem[]`), `velocity_dp_per_sec` (`48`), `separator` (`"•"`), `layout` |
 | `order_tracker` *(v0.3.0)* | `OrderTrackerSnippetData` | `tracker_id`, `order_code`, `headline`, `eta_countdown`, `eta_badge`, `rider_name`, `rider_caption`, `steps` (`OrderTrackerStep[]`), `primary_action`, `secondary_action`, `layout` |
-| `composed_block` *(v0.3.0)* | `ComposedBlockSnippetData` | `block_id`, `recipe_name`, `root` (`ComposedNode` tree up to depth 6 across 17 `ComposedNodeKind`s: `column`, `row`, `box`, `card`, `flow_row`, `text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `rolling_counter`), `layout` |
+| `composed_block` *(added in bff/v0.3.0; expanded to 29 node kinds in bff/v0.5.0)* | `ComposedBlockSnippetData` | `block_id`, `recipe_name`, `root` (`ComposedNode` tree up to depth 6 across **29 `ComposedNodeKind`s**: `column`, `row`, `box`, `card`, `flow_row`, `text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `rolling_counter`, `radio_group`, `select`, `otp_input`, `chip`, `segmented_control`, `rating`, `price`, `badge`, `alert_banner`, `stat_tile`, `key_value_row`, `qr_code`), `layout` |
 
-**Exact Sub-Item Schemas Added in `bff/v0.2.0` & `bff/v0.3.0` (`InteractiveSnippetContracts.kt`, `NudgeAndComposedContracts.kt`)**:
+**Exact Sub-Item Schemas (`InteractiveSnippetContracts.kt`, `NudgeAndComposedContracts.kt`, `ExtendedAtoms.kt`)**:
 - `SwipeCardItem` (inside `swipe_deck.cards`): `card_id`, `title` (`TextAtom`), `subtitle` (`TextAtom?`), `bio` (`TextAtom?`), `badge` (`TagAtom?`), `distance_text` (`TextAtom?`), `image` (`ImageAtom?`), `tags` (`TagAtom[]`), `on_like` (`ActionRef?`), `on_nope` (`ActionRef?`), `on_super_like` (`ActionRef?`), `on_click` (`ActionRef?`).
 - `FilterChipItem` (inside `chip_group.chips`): `id`, `label`, `selected` (`bool`), `icon` (`IconAtom?`), `badge` (`string?`), `on_click` (`ActionRef?`).
 - `MarqueeItem` (inside `marquee_strip.items`): `id`, `text`, `icon` (`IconAtom?`), `badge` (`TagAtom?`), `on_click` (`ActionRef?`).
 - `OrderTrackerStep` (inside `order_tracker.steps`): `id`, `label`, `caption`, `icon` (`IconAtom?`), `completed` (`bool`), `active` (`bool`).
-- `ComposedNode` (recursive inside `composed_block.root`, max depth 6): `node_id` (alias `id`), `kind`, `spacing_dp`, `alignment`, `horizontal_alignment`, `vertical_alignment`, `main_axis_arrangement`, `weight`, `children` (`ComposedNode[]`), typed leaf slots (`text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `counter_value`/`counter_typography`/`counter_color`), `on_click`, `layout`, `motion`. Go BFF recipe helpers: `MoldFlashDealRecipe`, `MoldLoyaltyStampRecipe`, `MoldLiveEtaPromoRecipe`.
+- `ComposedNode` (recursive inside `composed_block.root`, max depth 6): `node_id` (alias `id`), `kind`, `spacing_dp`, `alignment`, `horizontal_alignment`, `vertical_alignment`, `main_axis_arrangement`, `weight`, `children` (`ComposedNode[]`), typed leaf slots (`text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `counter_value`/`counter_typography`/`counter_color`, `radio_group`, `select`, `otp_input`, `chip`, `segmented_control`, `rating`, `price`, `badge`, `alert_banner`, `stat_tile`, `key_value_row`, `qr_code`), `on_click`, `layout`, `motion`. Go BFF recipe helpers: `MoldFlashDealRecipe`, `MoldLoyaltyStampRecipe`, `MoldLiveEtaPromoRecipe`.
 
 ```json
 [
@@ -246,7 +258,7 @@ Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`
 | `request_permission` | `permission` (`location`|`notifications`|`camera`|`storage`), `rationale`, `on_granted`, `on_denied` |
 | `biometric_auth` | `reason`, `title`, `allow_device_credential` (`true`), `on_authenticated`, `on_failed` |
 
-**Golden Wire Parity Fixtures** (`bff/testdata/golden/`): `home_screen.json`, `form_screen.json`, `action_batch.json`, `containers_screen.json`, `store_home.json`, `interactive_screen.json`, `nudges_and_composed_screen.json` — validated by both `bff/internal/infra/golden_test.go` / `golden_nudges_test.go` and `kmp/sdui-contracts/.../GoldenFixturesParityTest.kt`.
+**8 Golden Wire Parity Fixtures** (`bff/testdata/golden/`): `home_screen.json`, `form_screen.json`, `action_batch.json`, `containers_screen.json`, `store_home.json`, `interactive_screen.json`, `nudges_and_composed_screen.json`, `extended_atoms_screen.json` — validated by both `bff/internal/infra/golden_test.go` / `golden_nudges_test.go` / `golden_extended_atoms_test.go` and `kmp/sdui-contracts/.../GoldenFixturesParityTest.kt`.
 
 ---
 
@@ -314,11 +326,17 @@ import (
 )
 ```
 
+### Docker Images (GHCR)
+```bash
+docker pull ghcr.io/abeta-dev/layout-engine:0.3.0
+docker pull ghcr.io/abeta-dev/sdui-bff:0.3.0
+```
+
 ---
 
-## 5. 6-in-1 Super-App Showcase Launcher & 16-Story End-to-End Storybook
+## 5. 7-in-1 Super-App Showcase Launcher & 20-Story End-to-End Storybook
 
-### 6-in-1 Super-App Showcase (`kmp/sample-app` + `Abeta-dev/sdui-bff`)
+### 7-in-1 Super-App Showcase (`kmp/sample-app` + `Abeta-dev/sdui-bff`)
 
 | Showcase App | Vertical Category | Tenant ID | Entry & Sub-Screens | Theme Preset | Highlighted SDUI Patterns |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -332,13 +350,13 @@ import (
 
 Core reference screens in `sample-app` & `bff/`: `home`, `store-home` (with `marquee_strip`, Flash Drop `nudge_bar`, `composed_block` loyalty stamp card, and `$15` free-delivery `FloatingCartSpec`), `catalog`, `profile`, `form-demo`, `containers`, `watch-status`.
 
-### Interactive 17-Story End-to-End Storybook (`kmp/storybook`)
+### Interactive 20-Story End-to-End Storybook (`kmp/storybook`)
 5 categories across Desktop JVM, WasmJS Browser (`?story=<id>&app=<screenId>` deep linking), macOS Cocoa, and iOS (`AbetaStorybookKit.xcframework`):
-- **Live Super-App Demos**: `super-app-demos` — all 6 multi-screen Super-App verticals (**Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**) + **Abeta Watch** running interactively in browser with zero backend required, live `?q=` search & `?filter=` chip filtering, Phone/Tablet/Full viewport switcher, and celebration overlays
+- **Live Super-App Demos**: `super-app-demos` — all 7 multi-screen Super-App verticals (**Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**, **Abeta Pay**) + **Abeta Watch** running interactively in browser with zero backend required, live `?q=` search & `?filter=` chip filtering, Phone/Tablet/Full viewport switcher, and celebration overlays
 - **Foundations**: `introduction`, `design-tokens` (WCAG contrast, 17 type roles, 3 theme presets)
-- **UI Atoms**: `atom-button`, `atom-text-tag`, `atom-text-field`, `atom-media-feedback`, `atom-controls-data`
+- **UI Atoms (8 stories covering all 30 atoms)**: `atom-button`, `atom-text-tag`, `atom-text-field`, `atom-media-feedback`, `atom-controls-data`, `atom-selection-otp` (`UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`), `atom-commerce-fintech` (`UiPrice`, `UiRating`, `UiKeyValueRow`, `UiQrCode`, `UiStepper`), `atom-feedback-telemetry` (`UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiCountdown`, `UiRollingCounter`)
 - **SDUI Snippets**: `sdui-snippets` ("All 21 Snippets" via `BuiltInSnippetModule`)
-- **Playground**: `sdui-playground`, `motion-store`, `live-bff-explorer` (Built-in Demo Backend + Remote Go BFF across all 6 Super-App slugs + `watch-status`), `responsive-bridges`, `discovery-search` (`SwipeDeck`, `SearchBar`, `ChipGroup`), `animation-nudges` (**Animation & Nudges Lab** — 7 motion loops, `UiRollingCounter`, `UiCountdown`, cart threshold nudge, `order_tracker`), `snippet-crafter` (**Atomic Snippet Crafter** — live `ComposedBlock` visual builder & wire JSON inspector), `e2e-journeys` (**End-to-End App Journeys** — multi-step Abeta Fresh, Spark & Trade walkthroughs)
+- **Playground**: `sdui-playground`, `motion-store`, `live-bff-explorer` (Built-in Demo Backend + Remote Go BFF across all 7 Super-App slugs + `watch-status`), `responsive-bridges`, `discovery-search` (`SwipeDeck`, `SearchBar`, `ChipGroup`), `animation-nudges` (**Animation & Nudges Lab** — 7 motion loops, `UiRollingCounter`, `UiCountdown`, cart threshold nudge, `order_tracker`), `snippet-crafter` (**Atomic Snippet Crafter** — live `ComposedBlock` visual builder & wire JSON inspector), `e2e-journeys` (**End-to-End App Journeys** — multi-step Abeta Fresh, Spark & Trade walkthroughs)
 
 ---
 
@@ -352,7 +370,7 @@ Core reference screens in `sample-app` & `bff/`: `home`, `store-home` (with `mar
 # 2. KMP format, Detekt, ABI apiCheck, compile & unit/golden/compose.uiTest suites (JDK 21)
 (cd kmp && ./gradlew check)
 
-# 3. Sample App headless smoke checks (core kit + all 6 Super-App verticals)
+# 3. Sample App headless smoke checks (core kit + all 7 Super-App verticals)
 (cd kmp && ./gradlew :sample-app:run --args="--headless")
 (cd kmp && ./gradlew :sample-app:run --args="--headless --verticals")
 
@@ -361,7 +379,7 @@ Core reference screens in `sample-app` & `bff/`: `home`, `store-home` (with `mar
 (cd kmp && ./gradlew :storybook:run)
 (cd kmp && ./gradlew :storybook:wasmJsBrowserDevelopmentRun)
 
-# 5. Export Retina Compose screenshots (Demo, 6 Verticals, Storybook)
+# 5. Export Retina Compose screenshots (Demo, Super-App Verticals, Storybook)
 (cd kmp && ./gradlew :sample-app:run --args="--capture-screenshots=../docs/assets/screenshots")
 (cd kmp && ./gradlew :sample-app:run --args="--capture-verticals=../docs/assets/screenshots")
 (cd kmp && ./gradlew :storybook:run --args="--capture-screenshots=../docs/assets/screenshots")

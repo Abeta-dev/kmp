@@ -38,6 +38,6 @@ Follow the established pattern in `kmp/core` and `kmp/network`:
 
 ## 4. Local Database (Room 3.0.3) & SwiftPM References
 
-- **Room 3 Multiplatform SQLite (`dev.abeta.kmp:database`)**: Uses `androidx.room3:room3-runtime:3.0.3`, `androidx.sqlite:sqlite-bundled:2.7.1` (JVM/Android/Apple), `androidx.sqlite:sqlite-web:2.7.1` (WasmJS OPFS Web Worker), and KSP (`2.3.14`) with committed schema exports in `kmp/database/schemas/`. Always follow [`docs/local-database-room3.md`](../../docs/local-database-room3.md) and [`agents/owners/database-owner.md`](../../agents/owners/database-owner.md).
+- **Room 3 Multiplatform SQLite (`io.github.abeta-dev:database:0.3.0`)**: Uses `androidx.room3:room3-runtime:3.0.3`, `androidx.sqlite:sqlite-bundled:2.7.1` (JVM/Android/Apple), `androidx.sqlite:sqlite-web:2.7.1` (WasmJS OPFS Web Worker), and KSP (`2.3.14`) with committed schema exports in `kmp/database/schemas/`. Always follow [`docs/local-database-room3.md`](../../docs/local-database-room3.md) and [`agents/owners/database-owner.md`](../../agents/owners/database-owner.md).
 - **WasmJS Browser Headers**: Web deployments using `WebWorkerSQLiteDriver` MUST serve `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` (see `kmp/platforms/web/README.md`).
 - **SwiftPM & Multi-Registry Distribution**: See [`docs/publishing-and-hosting.md`](../../docs/publishing-and-hosting.md) for Maven Central, Cloudsmith Open Source, and `Abeta-dev/kmp-spm` Xcode integration.

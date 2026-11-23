@@ -9,7 +9,7 @@ Use this skill when adding new SDUI action types, payload decoders, handlers, va
 
 ## Core Architecture (Open/Closed Principle)
 
-- **Layer 1 (`sdui-contracts` / `ui-atoms`)**: Emits pure `ActionRef(id, type, payload, validations, secondaryActions)` via `on_click`, `on_change`, `on_value_change`, `on_submit`, `on_increment`, and `on_decrement`. Never imports `core` or `action-engine`.
+- **Layer 1 (`sdui-contracts` / `ui-atoms`)**: Emits pure `ActionRef(id, type, payload, validations, secondaryActions)` via `on_click`, `on_change`, `on_value_change`, `on_submit`, `on_increment`, `on_decrement`, `on_complete`, `on_remove`, `on_rate`, `on_action`, `on_dismiss`, and `on_expire`. Never imports `core` or `action-engine`.
 - **Layer 2 (`kmp/action-engine`)**: Depends only on `core` and `sdui-contracts`. Key abstractions:
   1. `ActionPayload` (open marker interface) & `BuiltInActionPayload` (sealed hierarchy for all **18 `ActionTypes`**: `navigate`, `back_press`, `open_dialog` with `OverlayPresentation` `"dialog"` \| `"bottom_sheet"`, `dismiss_overlay`, `show_toast`, `call_api`, `save_state`, `delete_state`, `track_event`, `refresh_page`, `copy_to_clipboard`, `update_snippets`, `batch`, `trigger_feedback` (`TriggerFeedbackPayload` / `FeedbackEffect`), `open_url` (`OpenUrlPayload`), `share` (`SharePayload`), `request_permission` (`RequestPermissionPayload` / `OsPermissionKind`), `biometric_auth` (`BiometricAuthPayload`)).
   2. `ActionPayloadDecoder<out P : ActionPayload>` + `ActionDecoderRegistry` (`BuiltInActionDecoders`).

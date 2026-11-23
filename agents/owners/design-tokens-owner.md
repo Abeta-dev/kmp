@@ -18,7 +18,7 @@ verification_command: "(cd kmp && ./gradlew :design-tokens:spotlessCheck :design
 
 ## Ownership Scope
 - **Paths**: `kmp/design-tokens/**`
-- **Maven Coordinate**: `dev.abeta.kmp:design-tokens`
+- **Maven Coordinate**: `io.github.abeta-dev:design-tokens` (Kotlin package `dev.abeta.kmp.tokens`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`
 - **Core Responsibilities**: Single source of truth for all design tokens (`ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens`, `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset`, `ColorAccessibility`, `ResponsiveTokens.kt` / `AdaptiveLayoutMetrics`, `DesignTheme`, `ThemeTokens`).
 

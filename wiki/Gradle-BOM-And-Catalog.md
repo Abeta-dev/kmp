@@ -1,9 +1,9 @@
 # Gradle BOM & Catalog
 
-`abeta-dev/kmp` uses two Gradle artifacts to standardize versions across internal modules and external consumers:
+`abeta-dev/kmp` uses two Gradle artifacts on Maven Central (Kotlin package namespace remains `dev.abeta.kmp.*`) to standardize versions across internal modules and external consumers:
 
-1. **`dev.abeta.kmp:bom:0.1.0`** (`kmp/kmp-bom/build.gradle.kts`) — Java Platform BOM (`allowDependencies()` enabled) constraining all **11 publishable `dev.abeta.kmp:*` library modules** (including Room 3 `database`) + `dependencies`.
-2. **`dev.abeta.kmp:dependencies:0.1.0`** (`kmp/dependencyManagement/build.gradle.kts`) — Gradle Version Catalog generated from `kmp/dependencyManagement/gradle/libs.versions.toml`.
+1. **`io.github.abeta-dev:bom:0.3.0`** (`kmp/kmp-bom/build.gradle.kts`) — Java Platform BOM (`allowDependencies()` enabled) constraining all **11 publishable `io.github.abeta-dev:*` library modules** (including Room 3 `database`) + `dependencies` (13 Maven artifacts total).
+2. **`io.github.abeta-dev:dependencies:0.3.0`** (`kmp/dependencyManagement/build.gradle.kts`) — Gradle Version Catalog generated from `kmp/dependencyManagement/gradle/libs.versions.toml`.
 
 ---
 
@@ -29,7 +29,7 @@ cd kmp
 
 ## Consumer Setup (Zero Auth Required)
 
-Stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`dl.cloudsmith.io`) — completely free and open to download without consumer tokens. Apple XCFrameworks (`AbetaSduiKit`, `AbetaWatchKit`) and verified SwiftPM `Package.swift` manifests attach to GitHub Releases and mirror to `Abeta-dev/kmp-spm`; the Go BFF (`github.com/abeta-dev/kmp/bff`) publishes automatically to `proxy.golang.org` on `bff/v*` tags. See `docs/publishing-and-hosting.md` and `docs/local-database-room3.md` in the repository for complete setup playbooks.
+Stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`dl.cloudsmith.io`) — completely free and open to download without consumer tokens. Apple XCFrameworks (`AbetaSduiKit`, `AbetaWatchKit`) and verified SwiftPM `Package.swift` manifests attach to GitHub Releases and mirror to `Abeta-dev/kmp-spm` (`from: "0.3.0"`); the Go BFF (`github.com/abeta-dev/kmp/bff@v0.5.0`) publishes automatically to `proxy.golang.org` on `bff/v*` tags. See `docs/publishing-and-hosting.md` and `docs/local-database-room3.md` in the repository for complete setup playbooks.
 
 ### `settings.gradle.kts`
 
@@ -43,7 +43,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaLibs") {
-            from("dev.abeta.kmp:dependencies:0.1.0")
+            from("io.github.abeta-dev:dependencies:0.3.0")
         }
     }
 }
@@ -53,16 +53,16 @@ dependencyResolutionManagement {
 
 ```kotlin
 commonMain.dependencies {
-    implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0"))
-    implementation("dev.abeta.kmp:database") // Optional Room 3 KMP SQLite local DB
-    implementation("dev.abeta.kmp:design-tokens")
-    implementation("dev.abeta.kmp:sdui-contracts")
-    implementation("dev.abeta.kmp:ui-atoms")
-    implementation("dev.abeta.kmp:action-engine")
-    implementation("dev.abeta.kmp:network")
-    implementation("dev.abeta.kmp:sdui-layout")
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0"))
+    implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
+    implementation("io.github.abeta-dev:design-tokens")
+    implementation("io.github.abeta-dev:sdui-contracts")
+    implementation("io.github.abeta-dev:ui-atoms")
+    implementation("io.github.abeta-dev:action-engine")
+    implementation("io.github.abeta-dev:network")
+    implementation("io.github.abeta-dev:sdui-layout")
     // Optional headless wearable companion:
-    // implementation("dev.abeta.kmp:watch-companion")
+    // implementation("io.github.abeta-dev:watch-companion")
 }
 ```
 
@@ -76,7 +76,7 @@ In `kmp/gradle.properties`:
 abeta.kmpLocalBuild=true
 ```
 
-When `true` (default), `kmp/settings.gradle.kts` substitutes all `dev.abeta.kmp:*` coordinates (including `database` and `watch-companion`) with their corresponding local Gradle projects (`:core`, `:database`, `:design-tokens`, `:watch-companion`, `:kmp-bom`, etc.).
+When `true` (default), `kmp/settings.gradle.kts` substitutes all `io.github.abeta-dev:*` coordinates (including `database` and `watch-companion`) with their corresponding local Gradle projects (`:core`, `:database`, `:design-tokens`, `:watch-companion`, `:kmp-bom`, etc.).
 
 To test resolution against published Maven artifacts:
 

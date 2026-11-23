@@ -25,7 +25,7 @@ verification_command: "(cd kmp && ./gradlew :action-engine:spotlessCheck :action
 
 ## Ownership Scope
 - **Paths**: `kmp/action-engine/**`
-- **Maven Coordinate**: `dev.abeta.kmp:action-engine`
+- **Maven Coordinate**: `io.github.abeta-dev:action-engine` (Kotlin package `dev.abeta.kmp.actions`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
 - **Core Responsibilities**: **18 built-in `ActionTypes`**, `ActionPayloadDecoder` / `ActionDecoderRegistry`, `ActionHandler` / `ActionRegistry`, `DefaultActionDispatcher`, `ActionValidator`, `ActionOutcome`, `ApiCallExecutor` port.
 

@@ -14,14 +14,14 @@ flowchart LR
     Page --> Toolbar["ToolbarSpec"]
     Page --> Snippets["snippets: List of SnippetEnvelope"]
     Page --> BottomBar["BottomBarSpec"]
-    Page --> FloatingCart["FloatingCartSpec (label, eta_badge, cta, motion)"]
+    Page --> FloatingCart["FloatingCartSpec (label, eta_badge, cta, motion, free_delivery_threshold_cents, nudge_prefix, unlocked_label)"]
     Page --> Pagination["PaginationSpec (next_cursor, has_more, load_more_action)"]
     Page --> Adaptive["AdaptivePageSpec (layout_mode, max_width_dp, split_pane_enabled, secondary_snippet_ids)"]
     Page --> PullRefresh["pull_to_refresh: ActionRef"]
     Page --> PageActions["page_actions: List of ActionRef"]
     Page --> Tracking["TrackingContract"]
-    Snippets --> SnippetData["14 Standard SnippetTypes (10 Core + 4 Containers)"]
-    SnippetData --> Atoms["15 Wire Atoms + LayoutConfig + MotionSpec"]
+    Snippets --> SnippetData["21 Canonical SnippetTypes (incl. composed_block w/ 29 ComposedNodeKinds)"]
+    SnippetData --> Atoms["28 Wire Atoms + LayoutConfig + MotionSpec (7 MotionLoopEffects)"]
     Atoms --> Tokens["ColorTokenRef / TypographyTokenRef"]
     Atoms --> ActionRef["ActionRef / ActionTrigger (18 Built-in ActionTypes)"]
     ActionRef --> Validations["validations: List of ValidationRuleContract"]
@@ -52,12 +52,12 @@ Returned inside `data` by `GET /api/v1/screens/:screenId`:
 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `page_id` | `string` | Yes | Stable screen identifier (`"home"`, `"store-home"`, `"catalog"`, `"profile"`, `"form-demo"`, `"containers"`, `"watch-status"`) |
+| `page_id` | `string` | Yes | Stable screen identifier (core screens `"home"`, `"store-home"`, `"catalog"`, `"profile"`, `"form-demo"`, `"containers"`, `"watch-status"`, plus 7-in-1 Super-App Showcase screens `"fresh-home"`, `"bites-home"`, `"pulse-home"`, `"mart-home"`, `"spark-deck"`, `"trade-home"`, `"pay-home"` & sub-screens) |
 | `title` | `string?` | No | Screen title |
 | `toolbar` | `ToolbarSpec?` | No | Top app bar (`title`, `subtitle`, `navigation_icon`, `trailing_actions`, `bg_color`, `layout`) |
 | `snippets` | `SnippetEnvelope[]` | No | Ordered list of screen snippets (defaults to `[]`) |
 | `bottom_bar` | `BottomBarSpec?` | No | Persistent bottom action bar (`primary_button`, `secondary_button`, `helper_text`, `layout`, `motion`) |
-| `floating_cart` | `FloatingCartSpec?` | No | Persistent floating cart summary bar (`label`, `eta_badge`, `cta`, `motion`) rendered by `FloatingCartDockHost` |
+| `floating_cart` | `FloatingCartSpec?` | No | Persistent floating cart summary bar (`label`, `eta_badge`, `cta`, `motion`, `free_delivery_threshold_cents`, `nudge_prefix`, `unlocked_label`) rendered by `FloatingCartDockHost` |
 | `page_actions` | `ActionRef[]` | No | Lifecycle actions dispatched when the page loads (defaults to `[]`) |
 | `tracking` | `TrackingContract?` | No | Page-level analytics event (`event_name`, `properties`) |
 | `pagination` | `PaginationSpec?` | No | Cursor pagination metadata (`next_cursor`, `has_more`, `load_more_action`) |
@@ -81,6 +81,9 @@ Returned inside `data` by `GET /api/v1/screens/:screenId`:
 | `eta_badge` | `TagAtom?` | No | Optional express delivery ETA badge (e.g., `"8 MINS"`) |
 | `cta` | `ButtonAtom` | Yes | Checkout call-to-action button |
 | `motion` | `MotionSpec?` | No | Declarative enter/exit/loop motion applied to `FloatingCartDockHost` |
+| `free_delivery_threshold_cents` | `int?` | No | Optional cart subtotal threshold in cents for live free-delivery progress bar & unlock bounce |
+| `nudge_prefix` | `string?` | No | Prefix text shown while below threshold (e.g., `"Add"`) |
+| `unlocked_label` | `string?` | No | Celebration text shown once subtotal meets/exceeds `free_delivery_threshold_cents` |
 
 ### `PaginationSpec`
 
@@ -92,7 +95,7 @@ Returned inside `data` by `GET /api/v1/screens/:screenId`:
 
 ---
 
-## 3. `SnippetEnvelope` & All 14 Standard `SnippetTypes`
+## 3. `SnippetEnvelope` & All 21 Canonical `SnippetTypes`
 
 Every section in `PageResponse.snippets` is wrapped in `SnippetEnvelope`:
 
@@ -102,10 +105,10 @@ Every section in `PageResponse.snippets` is wrapped in `SnippetEnvelope`:
 | `snippet_parent_id` | `string?` | No | Optional parent container ID (e.g., inside `carousel`, `grid`, `tabs`, or `accordion`) |
 | `snippet_type` | `string` | Yes | Discriminator matching `SnippetTypes` |
 | `data` | `JsonObject` | No | Typed snippet payload decoded by `SnippetRegistry` |
-| `tracking` | `TrackingContract?` | No | Impression analytics (`event_name`, `properties`) |
+| `tracking` | `TrackingContract?` | No | Impression analytics (`event_name`, `properties` — **string values only**) |
 | `motion` | `MotionSpec?` | No | Optional declarative enter/stagger/loop animation spec applied by `SnippetEntry` |
 
-### All 14 Standard Snippet Types (`SnippetTypes`)
+### All 21 Canonical Snippet Types (`SnippetTypes`)
 
 | `snippet_type` | Kotlin Contract (`sdui-contracts`) | Purpose |
 | :--- | :--- | :--- |
@@ -123,6 +126,13 @@ Every section in `PageResponse.snippets` is wrapped in `SnippetEnvelope`:
 | `grid` | `GridSnippetData` | Multi-column container with `title`, `columns` (default `2`), `columns_by_width` (`ResponsiveColumnsSpec?`), `spacing_dp`, `items` (`SnippetEnvelope[]`), `layout` |
 | `tabs` | `TabsSnippetData` | Tabbed container with `tabs` (`TabItemSpec[]`) and `selected_index`, `layout`. Each `TabItemSpec` holds `id` (`string`), `title` (`string`, matching Go BFF `TabItemSpec.Title`), `badge` (`TagAtom?`), and `snippets` (`SnippetEnvelope[]`) |
 | `accordion` | `AccordionSnippetData` | Collapsible container with `title`, `subtitle`, `initially_expanded` (default `false`), `snippets` (`SnippetEnvelope[]`), `layout` |
+| `swipe_deck` | `SwipeDeckSnippetData` | Stacked swipe card deck with `deck_id`, `cards` (`SwipeCardItem[]`), `like_label`, `nope_label`, `super_like_label`, `empty_title`, `empty_message`, `on_like`, `on_nope`, `on_super_like`, `on_undo`, `layout` |
+| `search_bar` | `SearchBarSnippetData` | Query-bound search input with `search_id`, `query`, `placeholder`, `leading_icon`, `trailing_icon`, `submit_label`, `clearable`, `on_submit`, `on_clear`, `on_trailing_click`, `layout` |
+| `chip_group` | `ChipGroupSnippetData` | Single- or multi-select filter strip with `group_id`, `title`, `multi_select`, `chips` (`FilterChipItem[]`), `layout` |
+| `nudge_bar` | `NudgeBarSnippetData` | Urgency/contextual nudge bar with `nudge_id`, `title`, `subtitle`, `icon`, `badge`, `countdown`, `progress`, `cta`, `dismissible`, `pointer_edge` (`top`\|`bottom`), `on_dismiss`, `on_click`, `layout` |
+| `marquee_strip` | `MarqueeStripSnippetData` | Continuous horizontal ticker with `strip_id`, `items` (`MarqueeItem[]`), `velocity_dp_per_sec` (default `48`), `separator` (default `"•"`), `layout` |
+| `order_tracker` | `OrderTrackerSnippetData` | Animated multi-stage tracker with `tracker_id`, `order_code`, `headline`, `eta_countdown`, `eta_badge`, `rider_name`, `rider_caption`, `steps` (`OrderTrackerStep[]`), `primary_action`, `secondary_action`, `layout` |
+| `composed_block` | `ComposedBlockSnippetData` | **Atomic Snippet Molding Engine**: recursive server-molded `root` (`ComposedNode`, max depth 6) supporting **29 `ComposedNodeKind`s** (`column`, `row`, `box`, `card`, `flow_row`, `text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `rolling_counter`, `radio_group`, `select`, `otp_input`, `chip`, `segmented_control`, `rating`, `price`, `badge`, `alert_banner`, `stat_tile`, `key_value_row`, `qr_code`), `block_id`, `recipe_name`, `layout` |
 
 Unknown `snippet_type` entries are safely handled with an unknown-snippet fallback in `SnippetRegistry` without crashing the screen (`SduiJson` sets `ignoreUnknownKeys = true`).
 
@@ -165,19 +175,19 @@ Shared box layout configuration on atoms, snippets, `ToolbarSpec`, and `BottomBa
 
 ## 5. Motion & Feedback Wire Contracts (`MotionContracts.kt`, `AtomEnums.kt`, `pkg/sdui/atoms`)
 
-`MotionSpec` attaches optional declarative entrance/exit transitions, stagger delays, and continuous loop effects to **`ButtonAtom`**, **`TagAtom`**, **`SnippetEnvelope`**, **`BottomBarSpec`**, and **`FloatingCartSpec`**. In `kmp/ui-atoms`, `MotionModifier.kt` (`applyMotionSpec`, `Modifier.shakeOnError`, `resolveMotionDurationMs`, `resolveMotionDelayMs`, `resolveEnterTransition`, `resolveExitTransition`) collapses all animations when `ThemeTokens.motion.reducedMotion` is `true`.
+`MotionSpec` attaches optional declarative entrance/exit transitions, stagger delays, and **7 ambient loop effects** to **`ButtonAtom`**, **`TagAtom`**, **`BadgeAtom`**, **`CountdownAtom`**, **`ComposedNode`**, **`SnippetEnvelope`**, **`BottomBarSpec`**, and **`FloatingCartSpec`**. In `kmp/ui-atoms`, `MotionModifier.kt` + `MotionLoopModifiers.kt` (`applyMotionSpec`, `Modifier.pressBounce`, `Modifier.shakeOnError`, `resolveMotionDurationMs`, `resolveMotionDelayMs`, `resolveEnterTransition`, `resolveExitTransition`) collapse all animations when `ThemeTokens.motion.reducedMotion` is `true`.
 
 | Type | Wire Values / Fields (`snake_case`) |
 | :--- | :--- |
 | **`MotionSpec`** | `enter` (`MotionTransition`), `exit` (`MotionTransition`), `duration_token` (`MotionDurationToken?`), `duration_ms` (`int?`), `stagger_ms` (`int`, default `0`), `delay_ms` (`int`, default `0`), `loop_effect` (`MotionLoopEffect`) |
 | **`MotionTransition`** | `"none"` \| `"fade_in"` \| `"slide_up"` \| `"slide_down"` \| `"scale_in"` \| `"spring_bounce"` |
 | **`MotionDurationToken`** | `"instant"` \| `"fast"` \| `"normal"` \| `"slow"` |
-| **`MotionLoopEffect`** | `"none"` \| `"pulse"` \| `"shimmer"` |
+| **`MotionLoopEffect`** | `"none"` + **7 ambient loops**: `"pulse"` \| `"shimmer"` \| `"wiggle"` \| `"float"` \| `"heartbeat"` \| `"glow_ring"` \| `"marquee"` |
 | **`FeedbackEffect`** | `"celebration"` \| `"cart_bounce"` \| `"shake_error"` \| `"haptic_tick"` |
 
 ---
 
-## 6. All 15 Wire Atoms (`Atoms.kt` & `pkg/sdui/atoms`)
+## 6. All 28 Wire Atoms (`Atoms.kt`, `ExtendedAtoms.kt` & `pkg/sdui/atoms`)
 
 | Atom | Key Fields | Action Triggers |
 | :--- | :--- | :--- |
@@ -196,8 +206,21 @@ Shared box layout configuration on atoms, snippets, `ToolbarSpec`, and `BottomBa
 | **`AvatarAtom`** | `id`, `url`, `initials`, `size_dp`, `bg_color`, `text_color`, `content_description`, `layout` | `on_click` (`ActionRef`) |
 | **`SkeletonAtom`** | `id`, `kind` (`SkeletonKind`: `text`\|`rectangle`\|`circle`), `width_dp`, `height_dp`, `layout` | None |
 | **`StepperAtom`** | `field_id`, `label`, `quantity`, `min_quantity` (default `0`), `max_quantity` (default `20`), `enabled`, `layout` | `on_increment`, `on_decrement` (`ActionRef`) |
+| **`CountdownAtom`** | `countdown_id`, `remaining_seconds`, `label`, `urgent_threshold_seconds` (default `60`), `show_hours`, `expired_text` (default `"00:00"`), `motion` (`MotionSpec?`) | `on_expire` (`ActionRef`) |
+| **`RadioGroupAtom`** | `field_id`, `label`, `options` (`OptionItem[]`), `selected_id`, `enabled`, `layout` | `on_change` (`ActionRef`) |
+| **`SelectAtom`** | `field_id`, `label`, `placeholder`, `options` (`OptionItem[]`), `selected_id`, `helper_text`, `error_text`, `enabled`, `layout` | `on_change` (`ActionRef`) |
+| **`OtpInputAtom`** | `field_id`, `label`, `length` (default `6`), `initial_value`, `masked`, `helper_text`, `error_text`, `enabled`, `layout` | `on_complete` (`ActionRef`) |
+| **`ChipAtom`** | `id`, `label`, `selected`, `enabled`, `removable`, `leading_icon`, `layout` | `on_click`, `on_remove` (`ActionRef`) |
+| **`SegmentedControlAtom`** | `field_id`, `options` (`OptionItem[]`), `selected_id`, `enabled`, `layout` | `on_change` (`ActionRef`) |
+| **`RatingAtom`** | `id`, `field_id`, `value`, `max_stars` (default `5`), `interactive`, `review_count`, `label`, `star_size_dp` (default `20`), `layout` | `on_rate` (`ActionRef`) |
+| **`PriceAtom`** | `id`, `amount_text`, `original_amount_text`, `discount_label`, `unit_suffix`, `emphasized`, `layout` | None |
+| **`BadgeAtom`** | `id`, `count`, `max_count` (default `99`), `label`, `dot_only`, `variant` (`TagVariant`), `layout`, `motion` (`MotionSpec?`) | None |
+| **`AlertBannerAtom`** | `id`, `title`, `message`, `variant` (`TagVariant`), `icon`, `action_label`, `dismissible`, `layout` | `on_action`, `on_dismiss` (`ActionRef`) |
+| **`StatTileAtom`** | `id`, `label`, `value`, `delta_label`, `delta_positive`, `caption`, `icon`, `layout` | `on_click` (`ActionRef`) |
+| **`KeyValueRowAtom`** | `id`, `label`, `value`, `sublabel`, `value_color`, `emphasized`, `show_divider`, `layout` | `on_click` (`ActionRef`) |
+| **`QrCodeAtom`** | `id`, `payload`, `label`, `caption`, `size_dp` (default `160`), `layout` | `on_click` (`ActionRef`) |
 
-> Note: `kmp/ui-atoms` renders all **15 wire atoms** plus `UiSurfaceCard` (a container surface atom), giving **16 stateless Compose atoms** in total (plus `UiCelebrationOverlay`, `UiHapticFeedback.kt`, and `MotionModifier.kt`).
+> Note: `kmp/ui-atoms` renders all **28 wire atoms** plus `UiSurfaceCard` and `UiRollingCounter`, giving **30 stateless Compose UI atoms** in total (plus `UiCelebrationOverlay`, `UiHapticFeedback.kt`, `MotionModifier.kt`, and `MotionLoopModifiers.kt`).
 
 ---
 
@@ -266,12 +289,15 @@ In KMP (`sdui-contracts`) this contract is `ActionRef`; in Go (`pkg/sdui/actions
 
 ## Golden Schema Parity Fixtures
 
-Canonical `v1` wire fixtures (**5 fixtures**) live in `bff/testdata/golden/`:
+Canonical `v1` wire fixtures (**8 fixtures**) live in `bff/testdata/golden/`:
 
 - `bff/testdata/golden/home_screen.json`
 - `bff/testdata/golden/form_screen.json`
 - `bff/testdata/golden/action_batch.json`
 - `bff/testdata/golden/containers_screen.json`
 - `bff/testdata/golden/store_home.json`
+- `bff/testdata/golden/interactive_screen.json`
+- `bff/testdata/golden/nudges_and_composed_screen.json`
+- `bff/testdata/golden/extended_atoms_screen.json`
 
-Both `bff/internal/infra/golden_test.go` and `kmp/sdui-contracts/src/jvmTest/kotlin/dev/abeta/kmp/contracts/GoldenFixturesParityTest.kt` (plus `SduiScreenComposeTest`) validate against these exact files to guarantee zero drift between Go and Kotlin.
+Both `bff/internal/infra/golden_test.go` (plus `golden_nudges_test.go` and `golden_extended_atoms_test.go`) and `kmp/sdui-contracts/src/jvmTest/kotlin/dev/abeta/kmp/contracts/GoldenFixturesParityTest.kt` (plus `SduiScreenComposeTest`) validate against these exact files to guarantee zero drift between Go and Kotlin.

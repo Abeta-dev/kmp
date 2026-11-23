@@ -1,6 +1,6 @@
 # Multiplatform Local Database Guide (Room 3 + SQLite)
 
-`dev.abeta.kmp:database` (`kmp/database/`) is a **Layer 0** Kotlin Multiplatform local persistence module backed by **AndroidX Room 3 (`androidx.room3:room3-runtime:3.0.3`)**, **SQLite Bundled (`androidx.sqlite:sqlite-bundled:2.7.1`)**, **SQLite Web (`androidx.sqlite:sqlite-web:2.7.1`)**, and **KSP (`2.3.14`)**.
+`io.github.abeta-dev:database` (`kmp/database/`, Kotlin package `dev.abeta.kmp.database`) is a **Layer 0** Kotlin Multiplatform local persistence module backed by **AndroidX Room 3 (`androidx.room3:room3-runtime:3.0.3`)**, **SQLite Bundled (`androidx.sqlite:sqlite-bundled:2.7.1`)**, **SQLite Web (`androidx.sqlite:sqlite-web:2.7.1`)**, and **KSP (`2.3.14`)**.
 
 It provides offline-first structured storage across **Android, Wear OS, JVM Desktop (macOS / Windows / Linux), iOS / iPadOS, macOS Native, watchOS, and Web (`wasmJs` OPFS Web Worker)** while preserving strict **Uncle Bob Layer 0 purity** (depends only on `:core` — zero Compose UI, Ktor, or Layer 1–3 dependencies).
 
@@ -8,11 +8,11 @@ It provides offline-first structured storage across **Android, Wear OS, JVM Desk
 
 ## 1. Toolchain & Artifact Coordinates
 
-All versions are centralized in [`kmp/dependencyManagement/gradle/libs.versions.toml`](../kmp/dependencyManagement/gradle/libs.versions.toml) and aligned via `dev.abeta.kmp:bom`:
+All versions are centralized in [`kmp/dependencyManagement/gradle/libs.versions.toml`](../kmp/dependencyManagement/gradle/libs.versions.toml) and aligned via `io.github.abeta-dev:bom:0.3.0`:
 
 | Component | Maven Coordinate / Plugin | Version |
 | :--- | :--- | :--- |
-| **Abeta Database Module** | `dev.abeta.kmp:database` | `0.1.0` (aligned by `dev.abeta.kmp:bom`) |
+| **Abeta Database Module** | `io.github.abeta-dev:database` | `0.3.0` (aligned by `io.github.abeta-dev:bom:0.3.0`) |
 | **Room 3 Runtime** | `androidx.room3:room3-runtime` | `3.0.3` |
 | **Room 3 KSP Compiler** | `androidx.room3:room3-compiler` | `3.0.3` |
 | **Room 3 Gradle Plugin** | `androidx.room3` | `3.0.3` |
@@ -39,7 +39,7 @@ Every KMP target uses an explicit `SQLiteDriver` compiled or bundled for that OS
 
 ## 3. Built-In Database Architecture & Tables
 
-`dev.abeta.kmp:database` exposes **`AbetaDatabase`** (the `@Database` Room 3 class using `@ConstructedBy(AbetaDatabaseConstructor::class)`) and **`AbetaLocalDatabase`** (the high-level facade wrapping DAOs, coroutine dispatchers, and lifecycle management).
+`io.github.abeta-dev:database` exposes **`AbetaDatabase`** (the `@Database` Room 3 class using `@ConstructedBy(AbetaDatabaseConstructor::class)`) and **`AbetaLocalDatabase`** (the high-level facade wrapping DAOs, coroutine dispatchers, and lifecycle management).
 
 ### Built-In Schema (`version = 1`)
 
@@ -99,9 +99,9 @@ room3 {
 
 ---
 
-## 5. Consuming `dev.abeta.kmp:database` with the Gradle BOM
+## 5. Consuming `io.github.abeta-dev:database` with the Gradle BOM
 
-Because `dev.abeta.kmp:database` is part of `dev.abeta.kmp:bom`, consumers do not specify individual module versions.
+Because `io.github.abeta-dev:database` is part of `io.github.abeta-dev:bom`, consumers do not specify individual module versions.
 
 ### Step 1: Configure Repositories (`settings.gradle.kts`)
 
@@ -115,29 +115,29 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaLibs") {
-            from("dev.abeta.kmp:dependencies:0.1.0")
+            from("io.github.abeta-dev:dependencies:0.3.0")
         }
     }
 }
 ```
 
-### Step 2: Add `dev.abeta.kmp:database` (`build.gradle.kts`)
+### Step 2: Add `io.github.abeta-dev:database` (`build.gradle.kts`)
 
 ```kotlin
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0"))
-            implementation("dev.abeta.kmp:core")
-            implementation("dev.abeta.kmp:database")
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0"))
+            implementation("io.github.abeta-dev:core")
+            implementation("io.github.abeta-dev:database")
             // Optional SDUI & networking modules aligned by the same BOM:
-            // implementation("dev.abeta.kmp:sdui-layout")
+            // implementation("io.github.abeta-dev:sdui-layout")
         }
     }
 }
 ```
 
-> **Transitive Drivers**: `dev.abeta.kmp:database` declares `androidx.room3:room3-runtime` in `commonMain`, `androidx.sqlite:sqlite-bundled` in `jvmMain` & `appleMain`, and `androidx.sqlite:sqlite-web` in `wasmJsMain` as `api` dependencies, so consumers automatically receive the matching SQLite driver for every target.
+> **Transitive Drivers**: `io.github.abeta-dev:database` declares `androidx.room3:room3-runtime` in `commonMain`, `androidx.sqlite:sqlite-bundled` in `jvmMain` & `appleMain`, and `androidx.sqlite:sqlite-web` in `wasmJsMain` as `api` dependencies, so consumers automatically receive the matching SQLite driver for every target.
 
 ---
 

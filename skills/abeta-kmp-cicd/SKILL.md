@@ -34,7 +34,7 @@ Every module in `abeta-dev/kmp` has a dedicated Code Owner persona in `agents/ow
 What `check_architecture_and_owners.sh` enforces automatically:
 1. **Uncle Bob Dependency Rule**: validates `projects.*` dependencies in every `kmp/*/build.gradle.kts`, Layer 0 `database` isolation (depends only on `core`, zero Compose/Ktor), Layer 1 import isolation (`design-tokens`, `sdui-contracts`, `ui-atoms`), headless `watch-companion` (zero Compose UI), and pure Go `bff/internal/domain`.
 2. **Gradle BOM, Catalog & ABI**: zero hardcoded dependency versions in module `build.gradle.kts`, all **11 publishable modules** (including `database`) registered in `internal.versions.toml`, `kmp-bom`, `build.gradle.kts`, `settings.gradle.kts`, and `kmp/<mod>/api/<mod>.api`.
-3. **1:1 KMP <-> Go BFF Wire Parity**: asserts exact set equality across all **18 `ActionTypes`** and **14 `SnippetTypes`**.
+3. **1:1 KMP <-> Go BFF Wire Parity**: asserts exact set equality across all **18 `ActionTypes`** and **21 `SnippetTypes`**.
 4. **Module Owner Coverage**: confirms all **17 owner agents** (including `database-owner.md`) exist in `agents/owners/` with valid metadata and matching `.github/CODEOWNERS` paths.
 5. **SOLID / KISS File-Size Guardrail**: flags production `.kt`/`.go` files exceeding `750 LOC`.
 
@@ -67,18 +67,18 @@ What `check_architecture_and_owners.sh` enforces automatically:
   -Dkotlin.daemon.jvm.options="-Xmx6g")
 
 # 5. Package Apple XCFrameworks + verify SwiftPM Package.swift locally
-./scripts/package_xcframeworks.sh --tag v0.1.0 --out-dir dist/xcframeworks
-./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.1.0
+./scripts/package_xcframeworks.sh --tag v0.3.0 --out-dir dist/xcframeworks
+./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.3.0
 
 # 6. Verify all 13 Maven artifacts locally (zero credentials required)
 (cd kmp && ./gradlew publishToMavenLocal -Pabeta.kmpLocalBuild=false --no-daemon)
 
 # 7. Cut SemVer releases (triggers .github/workflows/release.yml — see docs/publishing-and-hosting.md)
-git tag -a v0.1.0 -m "Release v0.1.0"
-git push origin v0.1.0
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin v0.3.0
 # For Go BFF module proxy (proxy.golang.org):
-git tag -a bff/v0.1.0 -m "Release Go BFF v0.1.0"
-git push origin bff/v0.1.0
+git tag -a bff/v0.5.0 -m "Release Go BFF v0.5.0"
+git push origin bff/v0.5.0
 ```
 
 ## 5. CI Troubleshooting Notes

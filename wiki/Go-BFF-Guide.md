@@ -1,6 +1,6 @@
 # Go BFF Guide
 
-The `bff/` service is a **Go 1.26.0** Server-Driven UI Backend-for-Frontend (`./cmd/bff`) built with **Clean Architecture**, **Gin `v1.12.0`**, and **`github.com/abeta-dev/go-libs@v0.4.0`**.
+The `bff/` service is a **Go 1.26.0** Server-Driven UI Backend-for-Frontend (`github.com/abeta-dev/kmp/bff@v0.5.0`, `./cmd/bff`) built with **Clean Architecture**, **Gin `v1.12.0`**, and **`github.com/abeta-dev/go-libs@v0.4.0`**.
 
 ---
 
@@ -12,9 +12,9 @@ bff/
 ├── internal/domain/     # Pure ports (ScreenRepository, ActionExecutor, TokenCatalogProvider) + arch_test.go
 ├── internal/usecase/    # ScreenService, ActionService, CatalogService
 ├── internal/handler/    # Gin router (router.go), CompressionMiddleware (compression.go), ETagMiddleware (caching.go), OpenAPI 3.1/Scalar (openapi.go)
-├── internal/infra/      # InMemoryScreenRepository (7 screens), DefaultActionExecutor (18 actions), StaticTokenCatalogProvider, golden_test.go
-├── pkg/sdui/            # actions (18 types incl. open_url, share, request_permission, biometric_auth, trigger_feedback), atoms (15 wire atoms incl. StepperAtom + MotionSpec), snippets (14 types incl. product_card + ResponsiveColumnsSpec/ResponsiveIntSpec/AdaptivePageSpec/ScreenLayoutMode + FloatingCartSpec + PaginationSpec), theming
-└── testdata/golden/     # home_screen.json, form_screen.json, action_batch.json, containers_screen.json, store_home.json
+├── internal/infra/      # InMemoryScreenRepository (core + Abeta Pay screens), DefaultActionExecutor (18 actions), StaticTokenCatalogProvider, 8 golden tests
+├── pkg/sdui/            # actions (18 types), atoms (28 wire atoms incl. CountdownAtom & 12 extended_atoms.go primitives + MotionSpec w/ 7 loops), snippets (21 types incl. swipe_deck, search_bar, chip_group, nudge_bar, marquee_strip, order_tracker, composed_block w/ 29 ComposedNodeKinds + FloatingCartSpec threshold nudges + AdaptivePageSpec), theming
+└── testdata/golden/     # 8 fixtures: home_screen.json, form_screen.json, action_batch.json, containers_screen.json, store_home.json, interactive_screen.json, nudges_and_composed_screen.json, extended_atoms_screen.json
 ```
 
 ---
@@ -28,7 +28,7 @@ bff/
 | `GET` | `/metrics` | RED metrics endpoint (`ginmw.MetricsEndpoint`, Prometheus text or `?format=json`) |
 | `GET` | `/openapi.json` | OpenAPI `3.1.0` JSON specification (`openapi.go`) |
 | `GET` | `/docs` | Interactive Scalar API Reference UI (`@scalar/api-reference`) |
-| `GET` | `/api/v1/screens` | Lists available screen IDs (`catalog`, `containers`, `form-demo`, `home`, `profile`, `store-home`, `watch-status`) with ETag/304 |
+| `GET` | `/api/v1/screens` | Lists available screen IDs (`catalog`, `containers`, `form-demo`, `home`, `pay-cards`, `pay-home`, `pay-receipt`, `pay-transfer`, `profile`, `store-home`, `watch-status`) with ETag/304 |
 | `GET` | `/api/v1/screens/:screenId` | Returns `snippets.PageResponse` (including `adaptive_layout`, responsive `columns_by_width` on `store-home`, and `watch-status`) wrapped in `ginmw.Envelope` with ETag/304 |
 | `POST` | `/api/v1/actions/execute` | Validates & executes an `actions.ActionTrigger` across all **18 Action Types** |
 | `POST` | `/api/v1/orders/express` | Places an **Abeta Fresh** 8-Min Express order returning `trigger_feedback` (`celebration`) + `show_toast` follow-ups (`action_executor.go`) |

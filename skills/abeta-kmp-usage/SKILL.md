@@ -1,11 +1,11 @@
 ---
 name: abeta-kmp-usage
-description: End-to-end onboarding and consumption guide for abeta-dev/kmp. Use when integrating dev.abeta.kmp:bom and dev.abeta.kmp:dependencies into a consumer app, wiring SDUI screens, connecting to the Go 1.26.0 BFF, registering custom atoms/snippets/actions, or configuring local vs published builds.
+description: End-to-end onboarding and consumption guide for abeta-dev/kmp. Use when integrating io.github.abeta-dev:bom and io.github.abeta-dev:dependencies into a consumer app, wiring SDUI screens, connecting to the Go 1.26.0 BFF, registering custom atoms/snippets/actions, or configuring local vs published builds.
 ---
 
 # Abeta KMP Kit — How To Use This Repo Skill (`abeta-kmp-usage`)
 
-Use this skill when onboarding to `abeta-dev/kmp`, consuming `dev.abeta.kmp:*` modules in a new or existing KMP/Android/iOS/Desktop/Web/Watch app, or running the full KMP + Go BFF stack locally.
+Use this skill when onboarding to `abeta-dev/kmp`, consuming `io.github.abeta-dev:*` Maven Central modules (Kotlin package namespace `dev.abeta.kmp.*`) in a new or existing KMP/Android/iOS/Desktop/Web/Watch app, or running the full KMP + Go BFF stack locally.
 
 ## 1. Prerequisites & First 5 Minutes
 
@@ -25,14 +25,14 @@ Use this skill when onboarding to `abeta-dev/kmp`, consuming `dev.abeta.kmp:*` m
 # Terminal 2: Launch the Compose Desktop Sample App connected to the live Go BFF
 (cd kmp && ./gradlew :sample-app:run --args="--bff-url=http://localhost:8080")
 
-# Or launch the 12-story interactive Storybook (Desktop or WasmJS Browser)
+# Or launch the 20-story interactive Storybook (Desktop or WasmJS Browser)
 (cd kmp && ./gradlew :storybook:run)
 (cd kmp && ./gradlew :storybook:wasmJsBrowserDevelopmentRun)
 ```
 
 ## 2. Consuming via Gradle BOM & Version Catalog (Zero Auth Required)
 
-Stable releases across all **11 publishable KMP library modules** (plus `bom` and `dependencies`) publish to **Maven Central** (`mavenCentral()`), and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for Maven Central, Cloudsmith, Apple SwiftPM (`https://github.com/Abeta-dev/kmp-spm`), and Go `proxy.golang.org` setup, and `docs/local-database-room3.md` for Room 3 local SQLite persistence.
+Stable releases across all **11 publishable KMP library modules** (plus `bom` and `dependencies` = 13 Maven artifacts) publish to **Maven Central** (`mavenCentral()`), and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for Maven Central, Cloudsmith, Apple SwiftPM (`https://github.com/Abeta-dev/kmp-spm`, `from: "0.3.0"`), and Go `proxy.golang.org` (`github.com/abeta-dev/kmp/bff@v0.5.0`) setup, and `docs/local-database-room3.md` for Room 3 local SQLite persistence.
 
 In your consumer project's `settings.gradle.kts`:
 ```kotlin
@@ -45,7 +45,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abeta") {
-            from("dev.abeta.kmp:dependencies:0.1.0")
+            from("io.github.abeta-dev:dependencies:0.3.0")
         }
     }
 }
@@ -54,22 +54,22 @@ dependencyResolutionManagement {
 In your module's `build.gradle.kts`:
 ```kotlin
 dependencies {
-    implementation(platform("dev.abeta.kmp:bom:0.1.0"))
-    // Pick only the layers you need (versions aligned by the BOM):
-    implementation("dev.abeta.kmp:core")
-    implementation("dev.abeta.kmp:database") // Optional Room 3 KMP SQLite local DB
-    implementation("dev.abeta.kmp:design-tokens")
-    implementation("dev.abeta.kmp:sdui-contracts")
-    implementation("dev.abeta.kmp:ui-atoms")
-    implementation("dev.abeta.kmp:action-engine")
-    implementation("dev.abeta.kmp:network")
-    implementation("dev.abeta.kmp:sdui-layout")
+    implementation(platform("io.github.abeta-dev:bom:0.3.0"))
+    // Pick only the layers you need (versions aligned by the BOM; Kotlin imports remain dev.abeta.kmp.*):
+    implementation("io.github.abeta-dev:core")
+    implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
+    implementation("io.github.abeta-dev:design-tokens")
+    implementation("io.github.abeta-dev:sdui-contracts")
+    implementation("io.github.abeta-dev:ui-atoms")
+    implementation("io.github.abeta-dev:action-engine")
+    implementation("io.github.abeta-dev:network")
+    implementation("io.github.abeta-dev:sdui-layout")
     // For Apple Watch / Wear OS companion apps (headless, zero Compose UI):
-    // implementation("dev.abeta.kmp:watch-companion")
+    // implementation("io.github.abeta-dev:watch-companion")
 }
 ```
 
-> **Local Monorepo Toggle**: Inside this repository, `abeta.kmpLocalBuild=true` in `kmp/gradle.properties` transparently substitutes `dev.abeta.kmp:*` Maven coordinates with local Gradle `:module` projects. Pass `-Pabeta.kmpLocalBuild=false` to verify published coordinates.
+> **Local Monorepo Toggle**: Inside this repository, `abeta.kmpLocalBuild=true` in `kmp/gradle.properties` transparently substitutes `io.github.abeta-dev:*` Maven coordinates with local Gradle `:module` projects. Pass `-Pabeta.kmpLocalBuild=false` to verify published coordinates.
 
 ## 3. Minimal Wiring in Your App (Koin + `SduiHostedRoot` / `SduiScreen`)
 

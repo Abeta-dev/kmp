@@ -5,7 +5,7 @@ layer: "Layer 3 (Explorer)"
 owned_paths:
   - "kmp/storybook/**"
 allowed_dependencies:
-  - "Layer 0–3 library modules (core, state, analytics, design-tokens, sdui-contracts, ui-atoms, action-engine, network, sdui-layout)"
+  - "Layer 0–3 library modules (core, state, analytics, database, design-tokens, sdui-contracts, ui-atoms, action-engine, network, sdui-layout)"
 forbidden_dependencies:
   - "projects.sampleApp"
 required_skills:
@@ -25,5 +25,5 @@ verification_command: "(cd kmp && ./gradlew :storybook:spotlessCheck :storybook:
 ## Non-Negotiable Architecture & Review Gates
 1. **Complete Visual Coverage**: Every new atom in `ui-atoms` (30 atoms), snippet in `sdui-layout` (21 types), or BFF screen in `bff/` MUST have a corresponding interactive story or entry in `LiveBffStory` (`BFF_SCREENS`).
 2. **Adaptive & Accessible Exploration (`/impeccable`)**: Verify stories at Phone, Tablet/iPad, Desktop, and Watch widths, both Light and Dark appearances, `reducedMotion = true/false`, and `fontScale = 1.3f` without clipping.
-3. **KISS & Separation**: Keep each story category in its own file (`FoundationsStories`, `AtomStories`, `ControlsAndDataAtomsStory`, `SnippetsStory`, `MotionAndStoreStory`, `ResponsiveAndBridgesStory`, `DiscoveryAndSearchStory`, `AnimationNudgesStory`, `SnippetCrafterStory`, `EndToEndJourneysStory`, `LiveBffStory`).
+3. **KISS & Separation**: Keep each story category in its own file (`IntroductionStory`, `FoundationsStories`, `AtomStories`, `ControlsAndDataAtomsStory`, `ExtendedAtomSelectionStory`, `ExtendedAtomCommerceStory`, `ExtendedAtomTelemetryStory`, `SnippetsStory`, `MotionAndStoreStory`, `ResponsiveAndBridgesStory`, `DiscoveryAndSearchStory`, `AnimationNudgesStory`, `SnippetCrafterStory`, `EndToEndJourneysStory`, `LiveBffStory`, `SuperAppDemosStory`).
 4. **Tests & Builds**: Keep `StorybookCatalogTest` and `StorybookComposeTest` green, plus Desktop JVM, WasmJS webpack (`wasmJsBrowserProductionWebpack`), and `AbetaStorybookKit.xcframework`.

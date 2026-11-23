@@ -5,7 +5,7 @@ layer: "Layer 3"
 owned_paths:
   - "kmp/watch-companion/**"
 allowed_dependencies:
-  - "projects.core, projects.state, projects.analytics"
+  - "projects.core, projects.state, projects.analytics, projects.database"
   - "projects.sduiContracts, projects.actionEngine, projects.network"
 forbidden_dependencies:
   - "projects.designTokens, projects.uiAtoms, projects.sduiLayout, projects.storybook, projects.sampleApp"
@@ -21,7 +21,7 @@ verification_command: "(cd kmp && ./gradlew :watch-companion:spotlessCheck :watc
 
 ## Ownership Scope
 - **Paths**: `kmp/watch-companion/**`
-- **Maven Coordinate**: `dev.abeta.kmp:watch-companion`
+- **Maven Coordinate**: `io.github.abeta-dev:watch-companion` (Kotlin package `dev.abeta.kmp.watch`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64` (`AbetaWatchKit.xcframework`), `wasmJs`
 - **Core Responsibilities**: Headless wearable SDUI orchestration (`WatchGlanceModels.kt`, `WatchScreenMapper`, `RemoteWatchPageSource`, `WatchRemoteApiCallExecutor`, `WatchCompanionController`, `createWatchCompanionModule`, `createAppleWatchCompanionHost`).
 

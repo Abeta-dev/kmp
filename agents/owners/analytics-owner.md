@@ -20,7 +20,7 @@ verification_command: "(cd kmp && ./gradlew :analytics:spotlessCheck :analytics:
 
 ## Ownership Scope
 - **Paths**: `kmp/analytics/**`
-- **Maven Coordinate**: `dev.abeta.kmp:analytics`
+- **Maven Coordinate**: `io.github.abeta-dev:analytics` (Kotlin package `dev.abeta.kmp.analytics`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
 - **Core Responsibilities**: `AnalyticsEvent`, `AnalyticsTracker`, `CompositeAnalyticsTracker`, `LoggerAnalyticsTracker`, `RecordingAnalyticsTracker`, `SanitizingAnalyticsTracker`, `DeduplicatingAnalyticsTracker`, `EnrichingAnalyticsTracker`, `BufferedAnalyticsTracker`.
 

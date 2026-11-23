@@ -24,11 +24,11 @@
 2. **Open `kmp/`** (or the repository root when working across both `kmp/` and `bff/`).
 3. In **Settings -> Build, Execution, Deployment -> Build Tools -> Gradle**, set **Gradle JVM** to **JDK 21**.
 4. **Local vs Published Dependency Mode**:
-   - Default (`kmp/gradle.properties`): `abeta.kmpLocalBuild=true` substitutes `dev.abeta.kmp:*` with local `:module` projects for instant refactoring and navigation.
+   - Default (`kmp/gradle.properties`): `abeta.kmpLocalBuild=true` substitutes `io.github.abeta-dev:*` with local `:module` projects for instant refactoring and navigation.
    - External BOM verification: run Gradle with `-Pabeta.kmpLocalBuild=false`.
 5. **Android & Wear OS App Integration**:
    - The core KMP modules build cleanly without `ANDROID_HOME` installed.
-   - To integrate into an Android Phone/Tablet/Foldable or Wear OS app module (`compileSdk >= 35`), copy the drop-in host templates from [`kmp/platforms/android/`](../kmp/platforms/android/) (`AndroidPlatformBridgeFactory.kt`, `AbetaAndroidHostActivity.kt`) or [`kmp/platforms/wearos/`](../kmp/platforms/wearos/) (`WearCompanionHostActivity.kt`) and align versions with `dev.abeta.kmp:bom:0.1.0`.
+   - To integrate into an Android Phone/Tablet/Foldable or Wear OS app module (`compileSdk >= 35`), copy the drop-in host templates from [`kmp/platforms/android/`](../kmp/platforms/android/) (`AndroidPlatformBridgeFactory.kt`, `AbetaAndroidHostActivity.kt`) or [`kmp/platforms/wearos/`](../kmp/platforms/wearos/) (`WearCompanionHostActivity.kt`) and align versions with `io.github.abeta-dev:bom:0.3.0`.
 6. **Xcode / Apple Targets (macOS)**:
    - Assemble Apple frameworks sequentially to prevent Kotlin/Native LTO heap exhaustion:
      ```bash
@@ -42,13 +42,13 @@
 
 | Skill | Purpose |
 | :--- | :--- |
-| [abeta-kmp-kit](../skills/abeta-kmp-kit/SKILL.md) | Monorepo umbrella router across all 10 publishable KMP modules & Go BFF |
-| [abeta-kmp-usage](../skills/abeta-kmp-usage/SKILL.md) | Consuming via `dev.abeta.kmp:bom` + catalog, wiring Koin/`SduiHostedRoot`, OCP extensions |
-| [abeta-kmp-demo](../skills/abeta-kmp-demo/SKILL.md) | Complete 7-screen demo & Storybook 12-story reference guide (`sample-app`, `storybook`, `bff`) |
+| [abeta-kmp-kit](../skills/abeta-kmp-kit/SKILL.md) | Monorepo umbrella router across all 11 publishable KMP modules & Go BFF |
+| [abeta-kmp-usage](../skills/abeta-kmp-usage/SKILL.md) | Consuming via `io.github.abeta-dev:bom:0.3.0` + catalog, wiring Koin/`SduiHostedRoot`, OCP extensions |
+| [abeta-kmp-demo](../skills/abeta-kmp-demo/SKILL.md) | Complete 7-in-1 Super-App Showcase & 20-story End-to-End Storybook reference guide (`sample-app`, `storybook`, `bff`) |
 | [abeta-kmp-platforms](../skills/abeta-kmp-platforms/SKILL.md) | Android, Wear OS, iOS/iPadOS, watchOS (`apple64Main`/`watchosArm64Main`), macOS, Desktop & WasmJS |
-| [abeta-kmp-atomic](../skills/abeta-kmp-atomic/SKILL.md) | Design tokens, 15 wire atoms, 14 snippets, 16 stateless Compose atoms & `/impeccable` craft |
+| [abeta-kmp-atomic](../skills/abeta-kmp-atomic/SKILL.md) | Design tokens, 28 wire atoms, 21 snippets (incl. `composed_block` w/ 29 `ComposedNodeKind`s), 30 stateless Compose atoms & `/impeccable` craft |
 | [abeta-kmp-actions](../skills/abeta-kmp-actions/SKILL.md) | 18 built-in OCP `ActionTypes`, decoders, handlers, `ActionRegistry`, `DefaultActionDispatcher` |
-| [abeta-kmp-bff](../skills/abeta-kmp-bff/SKILL.md) | Go 1.26.0 Clean Architecture SDUI BFF, `pkg/sdui/*`, compression/ETag/HTTP2/OpenAPI, golden tests |
+| [abeta-kmp-bff](../skills/abeta-kmp-bff/SKILL.md) | Go 1.26.0 Clean Architecture SDUI BFF (`bff@v0.5.0`), `pkg/sdui/*`, compression/ETag/HTTP2/OpenAPI, 8 golden tests |
 | [abeta-kmp-architecture](../skills/abeta-kmp-architecture/SKILL.md) | Uncle Bob Dependency Rule, SOLID/KISS, BOM/Catalog & Binary Compatibility Validator (`apiCheck`) |
-| [abeta-kmp-module-review](../skills/abeta-kmp-module-review/SKILL.md) | Per-module Code Owner PR review workflow across all 16 `agents/owners/*` personas |
+| [abeta-kmp-module-review](../skills/abeta-kmp-module-review/SKILL.md) | Per-module Code Owner PR review workflow across all 17 `agents/owners/*` personas |
 | [abeta-kmp-cicd](../skills/abeta-kmp-cicd/SKILL.md) | GitHub Actions workflows, automated architecture/owner gates, optional AI PR review & releases |
