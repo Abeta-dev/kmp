@@ -44,13 +44,26 @@ fun UiSurfaceCard(
     val interactionSource = if (onClick != null) remember { MutableInteractionSource() } else null
     val scaledModifier = applyCardPressScale(modifier = modifier, interactionSource = interactionSource)
     val defaultShape = RoundedCornerShape(cornerRadius.md)
-    val baseModifier =
+    val indication = LocalIndication.current
+    val clickableIfNeeded: Modifier.() -> Modifier = {
+        if (onClick != null && interactionSource != null) {
+            clickable(
+                interactionSource = interactionSource,
+                indication = indication,
+                onClick = onClick,
+            )
+        } else {
+            this
+        }
+    }
+    val interactiveModifier =
         when {
             layout == null -> {
                 scaledModifier
                     .clip(defaultShape)
                     .background(colors.surface.elevated, defaultShape)
                     .border(strokeWidth.thin, colors.border.subtle, defaultShape)
+                    .clickableIfNeeded()
                     .padding(spacing.space16)
             }
 
@@ -58,22 +71,15 @@ fun UiSurfaceCard(
                 scaledModifier
                     .clip(defaultShape)
                     .background(colors.surface.elevated, defaultShape)
+                    .clickableIfNeeded()
                     .applyLayoutConfig(layout)
             }
 
             else -> {
-                scaledModifier.applyLayoutConfig(layout)
+                scaledModifier
+                    .applyLayoutConfig(layout)
+                    .clickableIfNeeded()
             }
-        }
-    val interactiveModifier =
-        if (onClick != null && interactionSource != null) {
-            baseModifier.clickable(
-                interactionSource = interactionSource,
-                indication = LocalIndication.current,
-                onClick = onClick,
-            )
-        } else {
-            baseModifier
         }
 
     Column(modifier = interactiveModifier, content = content)

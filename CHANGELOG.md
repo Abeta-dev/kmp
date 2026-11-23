@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.3.0] / [bff/v0.5.0] - 2026-11-23
+
+### Added
+
+- **12 New Production UI Atoms (30 Stateless Compose UI Atoms / 28 Wire Atoms / 29 `ComposedNodeKind`s)**:
+  - **Selection & Form Input Atoms (`sdui-contracts`, `ui-atoms`, `bff/pkg/sdui/atoms`)**: `RadioGroupAtom`/`UiRadioGroup`, `SelectAtom`/`UiSelect`, `OtpInputAtom`/`UiOtpInput` (masked PIN + `onComplete`), `ChipAtom`/`UiChip`, `SegmentedControlAtom`/`UiSegmentedControl` (draw-phase sliding pill).
+  - **Commerce, Fintech & Telemetry Atoms**: `RatingAtom`/`UiRating` (vector half-stars + interactive tap-to-rate), `PriceAtom`/`UiPrice` (tabular sale price, strikethrough MRP, discount pill), `BadgeAtom`/`UiBadge` (`99+` overflow + live pulsing dot), `AlertBannerAtom`/`UiAlertBanner` (4 semantic variants with CTA & dismiss), `StatTileAtom`/`UiStatTile` (`▲`/`▼` KPI delta), `KeyValueRowAtom`/`UiKeyValueRow` (checkout bill / receipt row), and `QrCodeAtom`/`UiQrCode` (deterministic pure-Compose 21x21 Canvas QR matrix).
+  - **Atomic Snippet Molding Engine (`sdui-layout` + `bff/pkg/sdui/snippets`)**: Extended `composed_block` to **29 `ComposedNodeKind`s** (`ComposedBlockExtendedLeafs.kt` + Go `recipes_composed.go`) with automatic `LayoutFormSeeder` binding and 8th golden parity fixture (`bff/testdata/golden/extended_atoms_screen.json`).
+- **20-Story Interactive Storybook (`kmp/storybook`)**:
+  - Expanded `UI ATOMS` to **8 dedicated stories** (`atom-selection-otp`, `atom-commerce-fintech`, `atom-feedback-telemetry`) covering all 30 stateless atoms with live wire JSON inspection.
+  - Upgraded all **7 live Super-App demos** (`Abeta Fresh`, `Abeta Bites`, `Abeta Pulse`, `Abeta Mart`, `Abeta Spark`, `Abeta Trade`, `Abeta Pay`) to render real molded QR passes, 4-digit PIN entry, delivery/speed selectors, ratings, prices, KPI stat tiles, alert banners, and receipt breakdowns.
+
+### Fixed
+
+- **`UiSurfaceCard` Clickable Hit-Area & Ripple Clipping**: Applied `.clickable(...)` inside the rounded clip and before inner card padding so hover/press ripples on clickable `UiSurfaceCard` and `UiStatTile` components span the full rounded surface cleanly.
+
+---
+
+## [0.2.0] / [bff/v0.4.0] - 2026-11-23
+
+### Added
+
+- **Maven Central Publication (`io.github.abeta-dev`)**: Verified `io.github.abeta-dev` namespace on Sonatype Central Portal and published all 13 Gradle modules (`io.github.abeta-dev:bom:0.2.0`, `dependencies`, and 11 KMP libraries incl. Room 3 `database` and `watch-companion`) while preserving `dev.abeta.kmp.*` Kotlin source packages.
+- **7th Super-App Vertical (`Abeta Pay`) & Deep Multi-Step Workflows**: Added `Abeta Pay` (`pay-home`, `pay-transfer`, `pay-cards`, `pay-receipt`) across KMP Storybook, `sample-app`, and Go BFF (`bff/v0.4.0`), plus 30 interactive multi-step demo pages across all 7 apps live in browser WasmJS Storybook.
+- **Zero-Jitter Compose WasmJS Smoothness**: Replaced infinite transition resets with monotonic `withInfiniteAnimationFrameNanos` marquee scrolling, pure `graphicsLayer` dual-layer `UiRollingCounter`, cached `extractProductCards(page)`, isolated `formValues` recomposition scopes, per-page `LazyListState` keying, and zero-network `StorybookDemoImageRenderer`.
+
+---
+
 ## [0.1.0] - 2026-11-20
 
 ### Added
