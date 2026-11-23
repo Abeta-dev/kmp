@@ -41,6 +41,7 @@ import dev.abeta.kmp.contracts.TextAtom
 import dev.abeta.kmp.contracts.ToolbarSpec
 import dev.abeta.kmp.contracts.TypographyTokenRef
 import dev.abeta.kmp.contracts.ValidationRuleContract
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -69,7 +70,7 @@ internal data class DemoSkuSpec(
 )
 
 /**
- * Pure Kotlin Multiplatform SDUI builder helpers powering the live 6-in-1 Super-App Demos
+ * Pure Kotlin Multiplatform SDUI builder helpers powering the live 7-in-1 Super-App Demos
  * across WasmJS Browser, Desktop JVM, macOS, and iOS.
  */
 @Suppress("MagicNumber", "TooManyFunctions", "LongParameterList")
@@ -188,6 +189,78 @@ internal object SuperAppDemoBuilder {
                 },
         )
 
+    fun celebrationAction(
+        id: String,
+        title: String,
+        subtitle: String,
+    ): ActionRef =
+        ActionRef(
+            id = id,
+            type = ActionTypes.TRIGGER_FEEDBACK,
+            payload =
+                buildJsonObject {
+                    put("effect", "celebration")
+                    put("title", title)
+                    put("subtitle", subtitle)
+                    put("duration_ms", 2200L)
+                },
+        )
+
+    fun saveStateAction(
+        id: String,
+        key: String,
+        value: String,
+    ): ActionRef =
+        ActionRef(
+            id = id,
+            type = ActionTypes.SAVE_STATE,
+            payload =
+                buildJsonObject {
+                    put("key", key)
+                    put("value", value)
+                    put("scope", "session")
+                },
+        )
+
+    fun biometricAuthAction(
+        id: String,
+        title: String,
+        reason: String,
+        onAuthenticated: ActionRef,
+        onFailed: ActionRef,
+    ): ActionRef =
+        ActionRef(
+            id = id,
+            type = ActionTypes.BIOMETRIC_AUTH,
+            payload =
+                buildJsonObject {
+                    put("title", title)
+                    put("reason", reason)
+                    put("allow_device_credential", true)
+                    put("on_authenticated", SduiJson.encodeToJsonElement(ActionRef.serializer(), onAuthenticated))
+                    put("on_failed", SduiJson.encodeToJsonElement(ActionRef.serializer(), onFailed))
+                },
+        )
+
+    fun batchAction(
+        id: String,
+        actions: List<ActionRef>,
+    ): ActionRef =
+        ActionRef(
+            id = id,
+            type = ActionTypes.BATCH,
+            payload =
+                buildJsonObject {
+                    put(
+                        "actions",
+                        SduiJson.encodeToJsonElement(
+                            ListSerializer(ActionRef.serializer()),
+                            actions,
+                        ),
+                    )
+                },
+        )
+
     fun button(
         id: String,
         label: String,
@@ -258,6 +331,7 @@ internal object SuperAppDemoBuilder {
         routeBase: String,
         chips: List<Pair<String, String>>,
         selectedId: String = chips.firstOrNull()?.first.orEmpty(),
+        paramName: String = "filter",
     ): SnippetEnvelope =
         SnippetEnvelope(
             snippetId = snippetId,
@@ -272,7 +346,34 @@ internal object SuperAppDemoBuilder {
                                     id = id,
                                     label = label,
                                     selected = id == selectedId,
-                                    onClick = navAction("chip_${groupId}_$id", "$routeBase?filter=$id"),
+                                    onClick = navAction("chip_${groupId}_$id", "$routeBase?$paramName=$id"),
+                                )
+                            },
+                        layout = chipRowLayout,
+                    ),
+                ),
+        )
+
+    fun actionChipGroup(
+        snippetId: String,
+        groupId: String,
+        chips: List<Triple<String, String, ActionRef>>,
+        selectedId: String = "",
+    ): SnippetEnvelope =
+        SnippetEnvelope(
+            snippetId = snippetId,
+            snippetType = SnippetTypes.CHIP_GROUP,
+            data =
+                encode(
+                    ChipGroupSnippetData(
+                        groupId = groupId,
+                        chips =
+                            chips.map { (id, label, action) ->
+                                FilterChipItem(
+                                    id = id,
+                                    label = label,
+                                    selected = id == selectedId,
+                                    onClick = action,
                                 )
                             },
                         layout = chipRowLayout,

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Abeta KMP Kit — Open-Source Server-Driven UI Platform</title>
-  <meta name="description" content="Explore Abeta KMP Kit live in the browser: Compose Multiplatform WasmJS Storybook, Dokka v2 KMP API Reference, 6-in-1 Super-App Showcase, zero-auth install snippets, and llms.txt.">
+  <meta name="description" content="Explore Abeta KMP Kit live in the browser: Compose Multiplatform WasmJS Storybook, Dokka v2 KMP API Reference, 7-in-1 Super-App Showcase, zero-auth install snippets, and llms.txt.">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8fafc">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#080c14">
   <meta property="og:title" content="Abeta KMP Kit — Open-Source SDUI Platform">
@@ -777,6 +777,137 @@
       box-shadow: 0 18px 34px -16px rgba(15, 23, 42, 0.55);
     }
 
+    .phone-frame-static {
+      cursor: default;
+    }
+
+    .pay-phone-preview {
+      width: min(230px, 100%);
+      aspect-ratio: 412 / 915;
+      border-radius: 18px;
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 18px 34px -16px rgba(15, 23, 42, 0.55);
+      background: linear-gradient(165deg, #0b1224 0%, #161f3d 48%, #0f172a 100%);
+      color: #f8fafc;
+      padding: 0.95rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .pay-preview-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .pay-preview-pill {
+      padding: 0.14rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+    }
+
+    .pay-preview-balance {
+      margin-top: 0.45rem;
+    }
+
+    .pay-preview-balance small {
+      display: block;
+      font-size: 0.64rem;
+      color: #94a3b8;
+    }
+
+    .pay-preview-balance strong {
+      font-size: 1.48rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .pay-metal-card {
+      border-radius: 13px;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #312e81 0%, #4f46e5 55%, #059669 100%);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 10px 24px -10px rgba(79, 70, 229, 0.75);
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+    }
+
+    .pay-metal-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      opacity: 0.92;
+    }
+
+    .pay-metal-num {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .pay-nudge-strip {
+      border-radius: 10px;
+      padding: 0.52rem 0.6rem;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.34);
+      font-size: 0.66rem;
+      color: #fde68a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+    }
+
+    .pay-preview-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.42rem;
+    }
+
+    .pay-preview-chip {
+      border-radius: 9px;
+      padding: 0.42rem 0.48rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 0.65rem;
+      font-weight: 650;
+      text-align: center;
+      color: #e2e8f0;
+    }
+
+    .pay-preview-tracker {
+      border-radius: 10px;
+      padding: 0.55rem 0.62rem;
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      font-size: 0.64rem;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.24rem;
+    }
+
+    .pay-preview-tracker strong {
+      color: #6ee7b7;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+    }
+
     .vertical-body {
       padding: 1.1rem 1.2rem 1.25rem;
       display: flex;
@@ -1025,12 +1156,12 @@
       <a class="brand" href="#top" aria-label="Abeta KMP Kit Home">
         <span class="brand-mark" aria-hidden="true">A</span>
         <span>Abeta KMP Kit</span>
-        <span class="version-pill">v0.1.0</span>
+        <span class="version-pill">v0.2.0</span>
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#install">Install</a>
-        <a href="#showcase">6-App Showcase</a>
+        <a href="#showcase">7-App Showcase</a>
         <a href="#api-docs">API Docs</a>
         <a href="#ai-llms">AI &amp; LLMs</a>
       </nav>
@@ -1067,7 +1198,7 @@
           </p>
 
           <div class="hero-cta-group">
-            <a class="btn btn-primary" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Play All 6 Live Super-App Demos in Browser &rarr;</a>
+            <a class="btn btn-primary" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Play All 7 Live Super-App Demos in Browser &rarr;</a>
             <a class="btn btn-secondary" href="./storybook/?story=introduction">17-Story Storybook</a>
             <a class="btn btn-secondary" href="./api/core/">API Reference</a>
             <a class="btn btn-secondary" href="./llms.txt">llms.txt</a>
@@ -1085,7 +1216,7 @@
             </a>
             <a class="repo-chip" href="https://github.com/Abeta-dev/sdui-bff" target="_blank" rel="noopener noreferrer">
               <code>Abeta-dev/sdui-bff</code>
-              <span>Multi-Tenant 6-App Go BFF</span>
+              <span>Multi-Tenant 7-App Go BFF</span>
             </a>
             <a class="repo-chip" href="https://github.com/Abeta-dev/kmp-spm" target="_blank" rel="noopener noreferrer">
               <code>Abeta-dev/kmp-spm</code>
@@ -1108,7 +1239,7 @@
             </div>
             <div class="metric-card">
               <div class="metric-value">17 Stories</div>
-              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>6-in-1 Live Super-App Demos</strong>, <strong>Animation &amp; Nudges Lab</strong>, <strong>Atomic Snippet Crafter</strong> &amp; <strong>End-to-End App Journeys</strong></div>
+              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>7-in-1 Live Super-App Demos</strong>, <strong>Animation &amp; Nudges Lab</strong>, <strong>Atomic Snippet Crafter</strong> &amp; <strong>End-to-End App Journeys</strong></div>
             </div>
           </div>
         </div>
@@ -1123,7 +1254,7 @@
             <div class="section-kicker">Zero-Auth 1-Line Adoption</div>
             <h2 class="section-title">Install Anywhere — Zero Credentials Required</h2>
             <p class="section-desc">
-              Consume anonymously via Maven Central, Apple SwiftPM, Go Proxy, and GHCR—or launch the Layout Studio and 6-App SDUI BFF in one click.
+              Consume anonymously via Maven Central, Apple SwiftPM, Go Proxy, and GHCR—or launch the Layout Studio and 7-App SDUI BFF in one click.
             </p>
           </div>
         </div>
@@ -1141,7 +1272,7 @@
             <div class="tab-panel active" id="panel-kmp" role="tabpanel" aria-labelledby="tab-kmp">
               <div class="tab-meta">
                 <span>Gradle BOM &amp; multiplatform artifacts via <strong>Maven Central</strong></span>
-                <span class="badge badge-emerald">dev.abeta.kmp:bom:0.1.0</span>
+                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.2.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
@@ -1154,14 +1285,14 @@
 }
 
 dependencies {
-    implementation(platform("dev.abeta.kmp:bom:0.1.0"))
-    implementation("dev.abeta.kmp:sdui-layout")
-    implementation("dev.abeta.kmp:database")        // Optional Room 3 SQLite DB
-    implementation("dev.abeta.kmp:watch-companion") // Optional Wear OS / watchOS
+    implementation(platform("io.github.abeta-dev:bom:0.2.0"))
+    implementation("io.github.abeta-dev:sdui-layout")
+    implementation("io.github.abeta-dev:database")        // Optional Room 3 SQLite DB
+    implementation("io.github.abeta-dev:watch-companion") // Optional Wear OS / watchOS
 }</code></pre>
               </div>
               <p class="code-note">
-                Need nightly snapshots? Add anonymous Cloudsmith Open Source: <code>maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")</code>.
+                Published to Maven Central under verified <code>io.github.abeta-dev</code> coordinates while Kotlin source imports remain <code>dev.abeta.kmp.*</code>. Need nightly snapshots? Add anonymous Cloudsmith Open Source: <code>maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")</code>.
               </p>
             </div>
 
@@ -1228,7 +1359,7 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
                 <pre id="code-docker"><code># Pull Visual Layout Studio &amp; Composition Engine
 docker pull ghcr.io/abeta-dev/layout-engine:0.2.0
 
-# Pull Multi-Tenant 6-App SDUI BFF
+# Pull Multi-Tenant 7-App SDUI BFF
 docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
               </div>
               <p class="code-note">
@@ -1265,15 +1396,15 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
               <div class="cloud-card">
                 <div>
                   <h3>
-                    <span>6-App SDUI BFF</span>
+                    <span>7-App SDUI BFF</span>
                     <span class="badge badge-emerald">sdui-bff</span>
                   </h3>
                   <p>
-                    Multi-tenant Go 1.26.0 SDUI backend serving all 6 Super-App Showcase verticals, OpenAPI 3.1, and Scalar docs.
+                    Multi-tenant Go 1.26.0 SDUI backend serving all 7 Super-App Showcase verticals, OpenAPI 3.1, and Scalar docs.
                   </p>
                 </div>
                 <a class="btn btn-primary" href="https://render.com/deploy?repo=https://github.com/Abeta-dev/sdui-bff" target="_blank" rel="noopener noreferrer">
-                  Deploy 6-App BFF on Render &rarr;
+                  Deploy 7-App BFF on Render &rarr;
                 </a>
               </div>
             </div>
@@ -1282,18 +1413,18 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
       </div>
     </section>
 
-    <!-- 6-in-1 Super-App Showcase Visual Gallery -->
+    <!-- 7-in-1 Super-App Showcase Visual Gallery -->
     <section id="showcase">
       <div class="container">
         <div class="section-head">
           <div>
-            <div class="section-kicker">6-in-1 Super-App Showcase</div>
-            <h2 class="section-title">Six Distinct Verticals. One Shared SDUI Engine.</h2>
+            <div class="section-kicker">7-in-1 Super-App Showcase</div>
+            <h2 class="section-title">Seven Distinct Verticals. One Shared SDUI Engine.</h2>
             <p class="section-desc">
               Pixel-accurate Retina (2&times;) PNG captures rendered directly by Compose Multiplatform from <code>kmp/sample-app</code>—zero hand-edited mockups. Click any capture to inspect full-size.
             </p>
           </div>
-          <a class="btn btn-primary btn-sm" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Launch Live 6-App Showcase in Browser &rarr;</a>
+          <a class="btn btn-primary btn-sm" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Launch Live 7-App Showcase in Browser &rarr;</a>
         </div>
 
         <!-- Desktop Feature Capture -->
@@ -1313,7 +1444,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
           </div>
         </article>
 
-        <!-- 6 Phone Verticals Grid -->
+        <!-- 7 Phone Verticals Grid -->
         <div class="verticals-grid">
           <article class="vertical-card">
             <div class="phone-frame" data-zoom-src="./assets/screenshots/vertical-fresh-phone.png" data-zoom-title="Abeta Fresh — 8-Min Quick-Commerce Grocery (412×915)">
@@ -1414,6 +1545,55 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.2.0</code></pre>
                 Combines supplier search, verification <code>chip_group</code>, MOQ <code>metric_card</code> KPIs, verified directory listings, and declarative validated <code>form_v1</code> RFQ workflows.
               </p>
               <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=trade-home">Play Abeta Trade Live &rarr;</a>
+            </div>
+          </article>
+
+          <article class="vertical-card">
+            <div class="phone-frame phone-frame-static" aria-label="Abeta Pay wallet and virtual card live preview">
+              <div class="pay-phone-preview">
+                <div class="pay-preview-top">
+                  <span>Abeta Pay</span>
+                  <span class="pay-preview-pill">ZERO FEE</span>
+                </div>
+                <div class="pay-preview-balance">
+                  <small>Available Wallet Balance</small>
+                  <strong>$2,480.50</strong>
+                </div>
+                <div class="pay-metal-card">
+                  <div class="pay-metal-row">
+                    <span>ABETA METAL</span>
+                    <span>VIRTUAL</span>
+                  </div>
+                  <div class="pay-metal-num">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4092</div>
+                  <div class="pay-metal-row">
+                    <span>ALEX RIVERA</span>
+                    <span>EXP 09/29</span>
+                  </div>
+                </div>
+                <div class="pay-nudge-strip">
+                  <span>5% Cashback Window</span>
+                  <strong>08:00</strong>
+                </div>
+                <div class="pay-preview-actions">
+                  <div class="pay-preview-chip">Quick Send P2P</div>
+                  <div class="pay-preview-chip">Card Controls</div>
+                </div>
+                <div class="pay-preview-tracker">
+                  <strong>#PAY-3081 &middot; SETTLED</strong>
+                  <span>$125.00 &rarr; @maya.chen &middot; Biometric Verified</span>
+                </div>
+              </div>
+            </div>
+            <div class="vertical-body">
+              <div class="vertical-head">
+                <h3>Abeta Pay</h3>
+                <span class="badge badge-indigo">INDIGO</span>
+              </div>
+              <div class="vertical-subtitle">Fintech, Instant P2P Wallet &amp; Smart Cards &middot; <code>pay-home</code></div>
+              <p class="vertical-desc">
+                Combines live perks <code>marquee_strip</code>, 5% cashback <code>nudge_bar</code> + <code>CountdownAtom</code>, molded <code>composed_block</code> Metal Card, <code>biometric_auth</code> P2P transfers, <code>SwitchAtom</code>/<code>SliderAtom</code> card controls, and <code>#PAY-3081</code> <code>order_tracker</code>.
+              </p>
+              <a class="api-card-link" href="./storybook/?story=super-app-demos&amp;app=pay-home">Play Abeta Pay Live &rarr;</a>
             </div>
           </article>
         </div>

@@ -18,6 +18,10 @@ var builtInScreenIDs = []string{
 	"form-demo",
 	"containers",
 	"watch-status",
+	"pay-home",
+	"pay-transfer",
+	"pay-cards",
+	"pay-receipt",
 }
 
 func registerOpenAPIRoutes(engine *gin.Engine, serviceName string, requireAuth bool) {
@@ -211,7 +215,7 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 							"name":        "screenId",
 							"in":          "path",
 							"required":    true,
-							"description": "Screen identifier (built-in: home, store-home, catalog, profile, form-demo, containers, watch-status)",
+							"description": "Screen identifier (built-in: home, store-home, catalog, profile, form-demo, containers, watch-status, pay-home, pay-transfer, pay-cards, pay-receipt)",
 							"schema":      map[string]any{"type": "string", "enum": builtInScreenIDs},
 						},
 						ifNoneMatchParam,
@@ -278,6 +282,35 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 							"content":     jsonContent(envelopeSchema(refSchema("ActionExecutionResult"))),
 						},
 						"400": map[string]any{"description": "Malformed express order payload"},
+						"401": map[string]any{"description": "Unauthorized"},
+					},
+				},
+			},
+			"/api/v1/pay/transfer": map[string]any{
+				"post": map[string]any{
+					"summary":     "Execute an Abeta Pay instant P2P transfer",
+					"operationId": "executePayTransfer",
+					"tags":        []string{"Abeta Pay"},
+					"security":    apiSecurity,
+					"requestBody": map[string]any{
+						"required": false,
+						"content": jsonContent(map[string]any{
+							"type":                 "object",
+							"additionalProperties": true,
+							"properties": map[string]any{
+								"vertical":     map[string]any{"type": "string", "example": "abeta-pay"},
+								"recipient":    map[string]any{"type": "string", "example": "@maya.chen"},
+								"amount_cents": map[string]any{"type": "integer", "example": 12500},
+								"currency":     map[string]any{"type": "string", "example": "USD"},
+							},
+						}),
+					},
+					"responses": map[string]any{
+						"200": map[string]any{
+							"description": "Transfer settlement confirmation with follow-up celebration, toast, and navigation to pay-receipt",
+							"content":     jsonContent(envelopeSchema(refSchema("ActionExecutionResult"))),
+						},
+						"400": map[string]any{"description": "Malformed pay transfer payload"},
 						"401": map[string]any{"description": "Unauthorized"},
 					},
 				},

@@ -49,6 +49,7 @@ private val VERTICAL_CAPTURE_SPECS: List<DemoCaptureSpec> =
         "mart" to "mart-home",
         "spark" to "spark-deck",
         "trade" to "trade-home",
+        "pay" to "pay-home",
     ).flatMap { (slug, screenId) ->
         listOf(
             DemoCaptureSpec("vertical-$slug-phone.png", screenId, PHONE_WIDTH_DP, PHONE_HEIGHT_DP, false, false),
@@ -73,8 +74,9 @@ internal fun exportDemoScreenshots(
 }
 
 /**
- * Renders off-screen Phone (412x915) and Desktop (1280x860) PNG screenshots of all six vertical
- * showcase apps (`fresh-home`, `bites-home`, `pulse-home`, `mart-home`, `spark-deck`, `trade-home`).
+ * Renders off-screen Phone (412x915) and Desktop (1280x860) PNG screenshots of all seven vertical
+ * showcase apps (`fresh-home`, `bites-home`, `pulse-home`, `mart-home`, `spark-deck`, `trade-home`,
+ * `pay-home`).
  */
 internal fun exportVerticalScreenshots(
     outputDirPath: String,

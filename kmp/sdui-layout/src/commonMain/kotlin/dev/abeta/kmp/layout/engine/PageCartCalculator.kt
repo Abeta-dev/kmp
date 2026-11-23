@@ -44,17 +44,26 @@ internal fun collectAllEnvelopes(
     return collected
 }
 
+internal fun extractProductCards(
+    page: PageResponse,
+    json: Json = SduiJson,
+): List<ProductCardSnippetData> =
+    collectAllEnvelopes(page.snippets, json)
+        .asSequence()
+        .filter { it.snippetType == SnippetTypes.PRODUCT_CARD }
+        .mapNotNull { decodeOrNull(json, ProductCardSnippetData.serializer(), it) }
+        .toList()
+
 internal fun computeFloatingCartSummary(
     page: PageResponse,
     formValues: Map<String, String>,
     json: Json = SduiJson,
+): FloatingCartSummary = computeFloatingCartSummary(extractProductCards(page, json), formValues)
+
+internal fun computeFloatingCartSummary(
+    productCards: List<ProductCardSnippetData>,
+    formValues: Map<String, String>,
 ): FloatingCartSummary {
-    val productCards =
-        collectAllEnvelopes(page.snippets, json)
-            .asSequence()
-            .filter { it.snippetType == SnippetTypes.PRODUCT_CARD }
-            .mapNotNull { decodeOrNull(json, ProductCardSnippetData.serializer(), it) }
-            .toList()
     val seenProducts = hashSetOf<String>()
     var totalItems = 0
     var totalCents = 0

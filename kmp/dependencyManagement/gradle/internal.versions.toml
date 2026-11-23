@@ -1,31 +1,31 @@
 [versions]
-kmpBom = "0.1.0"
-kmpDependencies = "0.1.0"
+kmpBom = "0.2.0"
+kmpDependencies = "0.2.0"
 
-core = "0.1.0"
-state = "0.1.0"
-analytics = "0.1.0"
-database = "0.1.0"
-designTokens = "0.1.0"
-sduiContracts = "0.1.0"
-uiAtoms = "0.1.0"
-actionEngine = "0.1.0"
-network = "0.1.0"
-sduiLayout = "0.1.0"
-watchCompanion = "0.1.0"
+core = "0.2.0"
+state = "0.2.0"
+analytics = "0.2.0"
+database = "0.2.0"
+designTokens = "0.2.0"
+sduiContracts = "0.2.0"
+uiAtoms = "0.2.0"
+actionEngine = "0.2.0"
+network = "0.2.0"
+sduiLayout = "0.2.0"
+watchCompanion = "0.2.0"
 
 [libraries]
-kmp-bom = { group = "dev.abeta.kmp", name = "bom", version.ref = "kmpBom" }
-kmp-dependencies = { group = "dev.abeta.kmp", name = "dependencies", version.ref = "kmpDependencies" }
+kmp-bom = { group = "io.github.abeta-dev", name = "bom", version.ref = "kmpBom" }
+kmp-dependencies = { group = "io.github.abeta-dev", name = "dependencies", version.ref = "kmpDependencies" }
 
-kmp-core = { group = "dev.abeta.kmp", name = "core", version.ref = "core" }
-kmp-state = { group = "dev.abeta.kmp", name = "state", version.ref = "state" }
-kmp-analytics = { group = "dev.abeta.kmp", name = "analytics", version.ref = "analytics" }
-kmp-database = { group = "dev.abeta.kmp", name = "database", version.ref = "database" }
-kmp-designTokens = { group = "dev.abeta.kmp", name = "design-tokens", version.ref = "designTokens" }
-kmp-sduiContracts = { group = "dev.abeta.kmp", name = "sdui-contracts", version.ref = "sduiContracts" }
-kmp-uiAtoms = { group = "dev.abeta.kmp", name = "ui-atoms", version.ref = "uiAtoms" }
-kmp-actionEngine = { group = "dev.abeta.kmp", name = "action-engine", version.ref = "actionEngine" }
-kmp-network = { group = "dev.abeta.kmp", name = "network", version.ref = "network" }
-kmp-sduiLayout = { group = "dev.abeta.kmp", name = "sdui-layout", version.ref = "sduiLayout" }
-kmp-watchCompanion = { group = "dev.abeta.kmp", name = "watch-companion", version.ref = "watchCompanion" }
+kmp-core = { group = "io.github.abeta-dev", name = "core", version.ref = "core" }
+kmp-state = { group = "io.github.abeta-dev", name = "state", version.ref = "state" }
+kmp-analytics = { group = "io.github.abeta-dev", name = "analytics", version.ref = "analytics" }
+kmp-database = { group = "io.github.abeta-dev", name = "database", version.ref = "database" }
+kmp-designTokens = { group = "io.github.abeta-dev", name = "design-tokens", version.ref = "designTokens" }
+kmp-sduiContracts = { group = "io.github.abeta-dev", name = "sdui-contracts", version.ref = "sduiContracts" }
+kmp-uiAtoms = { group = "io.github.abeta-dev", name = "ui-atoms", version.ref = "uiAtoms" }
+kmp-actionEngine = { group = "io.github.abeta-dev", name = "action-engine", version.ref = "actionEngine" }
+kmp-network = { group = "io.github.abeta-dev", name = "network", version.ref = "network" }
+kmp-sduiLayout = { group = "io.github.abeta-dev", name = "sdui-layout", version.ref = "sduiLayout" }
+kmp-watchCompanion = { group = "io.github.abeta-dev", name = "watch-companion", version.ref = "watchCompanion" }

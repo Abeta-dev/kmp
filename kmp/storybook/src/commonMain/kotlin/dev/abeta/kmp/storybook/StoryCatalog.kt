@@ -50,11 +50,11 @@ object StoryCatalog {
         listOf(
             StoryEntry(
                 id = STORY_SUPER_APP_DEMOS,
-                title = "6-in-1 Super-App Demos",
+                title = "7-in-1 Super-App Demos",
                 category = StoryCategory.LIVE_DEMOS,
-                subtitle = "Live Interactive Demos · Fresh, Bites, Pulse, Mart, Spark, Trade & Watch",
+                subtitle = "Live Interactive Demos · Fresh, Bites, Pulse, Mart, Spark, Trade, Pay & Watch",
                 description =
-                    "Play all 6 full multi-screen SDUI vertical apps live in the browser with " +
+                    "Play all 7 full multi-screen SDUI vertical apps live in the browser with " +
                         "Phone, Tablet & Full viewports.",
             ),
             StoryEntry(

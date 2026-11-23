@@ -106,11 +106,12 @@ fun StorybookApp(
     initialPreset: ThemePreset = ThemePreset.EMERALD,
     initialDarkTheme: Boolean = false,
     initialAppScreenId: String = SuperAppDemoCatalog.DEFAULT_SCREEN_ID,
+    initialReducedMotion: Boolean = false,
 ) {
     var selectedStoryId by remember { mutableStateOf(StoryCatalog.findById(initialStoryId).id) }
     var preset by remember { mutableStateOf(initialPreset) }
     var darkTheme by remember { mutableStateOf(initialDarkTheme) }
-    var reducedMotion by remember { mutableStateOf(false) }
+    var reducedMotion by remember { mutableStateOf(initialReducedMotion) }
     var fontScale by remember { mutableFloatStateOf(DEFAULT_FONT_SCALE) }
     val actionLogState = remember { ActionLogState() }
 

@@ -38,47 +38,48 @@ import dev.abeta.kmp.tokens.ThemeTokens
 private const val ONE = 1f
 private const val ZERO = 0f
 
-private const val PULSE_MIN_ALPHA = 0.84f
-private const val PULSE_MAX_SCALE = 1.045f
-private const val PULSE_PERIOD_MS = 900
+private const val PULSE_MIN_ALPHA = 0.88f
+private const val PULSE_MAX_SCALE = 1.032f
+private const val PULSE_PERIOD_MS = 1500
 
-private const val SHIMMER_PERIOD_MS = 1200
+private const val SHIMMER_PERIOD_MS = 1600
 private const val SHIMMER_START_FRACTION = -0.4f
 private const val SHIMMER_END_FRACTION = 1.4f
 private const val SHIMMER_BAND_WIDTH = 0.35f
-private const val SHIMMER_ALPHA = 0.18f
+private const val SHIMMER_ALPHA = 0.16f
+private val SHIMMER_COLORS = listOf(Color.Transparent, Color.White.copy(alpha = SHIMMER_ALPHA), Color.Transparent)
 
-private const val WIGGLE_PERIOD_MS = 1600
-private const val WIGGLE_PEAK_DEGREES = 6f
-private const val WIGGLE_SECONDARY_DEGREES = 4f
-private const val WIGGLE_KEYFRAME_1_MS = 100
-private const val WIGGLE_KEYFRAME_2_MS = 220
-private const val WIGGLE_KEYFRAME_3_MS = 340
-private const val WIGGLE_KEYFRAME_4_MS = 460
-private const val WIGGLE_KEYFRAME_5_MS = 580
+private const val WIGGLE_PERIOD_MS = 2600
+private const val WIGGLE_PEAK_DEGREES = 3.5f
+private const val WIGGLE_SECONDARY_DEGREES = 2.0f
+private const val WIGGLE_KEYFRAME_1_MS = 160
+private const val WIGGLE_KEYFRAME_2_MS = 340
+private const val WIGGLE_KEYFRAME_3_MS = 520
+private const val WIGGLE_KEYFRAME_4_MS = 700
+private const val WIGGLE_KEYFRAME_5_MS = 880
 
-private const val FLOAT_PERIOD_MS = 1400
-private const val FLOAT_AMPLITUDE_PX = 6f
+private const val FLOAT_PERIOD_MS = 1800
+private const val FLOAT_AMPLITUDE_PX = 4f
 
-private const val HEARTBEAT_PERIOD_MS = 1200
-private const val HEARTBEAT_PEAK_PRIMARY = 1.10f
-private const val HEARTBEAT_PEAK_SECONDARY = 1.06f
-private const val HEARTBEAT_BEAT_1_MS = 140
-private const val HEARTBEAT_REST_1_MS = 280
-private const val HEARTBEAT_BEAT_2_MS = 420
-private const val HEARTBEAT_REST_2_MS = 580
+private const val HEARTBEAT_PERIOD_MS = 1600
+private const val HEARTBEAT_PEAK_PRIMARY = 1.07f
+private const val HEARTBEAT_PEAK_SECONDARY = 1.04f
+private const val HEARTBEAT_BEAT_1_MS = 180
+private const val HEARTBEAT_REST_1_MS = 360
+private const val HEARTBEAT_BEAT_2_MS = 540
+private const val HEARTBEAT_REST_2_MS = 760
 
-private const val GLOW_RING_PERIOD_MS = 1100
+private const val GLOW_RING_PERIOD_MS = 1500
 private const val GLOW_MIN_STROKE_PX = 2f
-private const val GLOW_MAX_STROKE_PX = 6f
-private const val GLOW_OUTER_STROKE_MULTIPLIER = 1.9f
-private const val GLOW_MIN_ALPHA = 0.25f
-private const val GLOW_MAX_ALPHA = 0.72f
-private const val GLOW_OUTER_ALPHA_FACTOR = 0.32f
+private const val GLOW_MAX_STROKE_PX = 5f
+private const val GLOW_OUTER_STROKE_MULTIPLIER = 1.8f
+private const val GLOW_MIN_ALPHA = 0.22f
+private const val GLOW_MAX_ALPHA = 0.65f
+private const val GLOW_OUTER_ALPHA_FACTOR = 0.30f
 private const val GLOW_MAX_CORNER_RADIUS_PX = 28f
 
-private const val MARQUEE_SWAY_PERIOD_MS = 1500
-private const val MARQUEE_SWAY_PX = 8f
+private const val MARQUEE_SWAY_PERIOD_MS = 1800
+private const val MARQUEE_SWAY_PX = 6f
 
 private const val PRESS_BOUNCE_SCALE = 0.96f
 
@@ -252,7 +253,7 @@ private fun rememberPulseLoop(): LoopTransformState {
             targetValue = PULSE_MAX_SCALE,
             animationSpec =
                 infiniteRepeatable(
-                    animation = tween(durationMillis = PULSE_PERIOD_MS, easing = LinearEasing),
+                    animation = tween(durationMillis = PULSE_PERIOD_MS, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse,
                 ),
             label = "pulse_scale",
@@ -263,7 +264,7 @@ private fun rememberPulseLoop(): LoopTransformState {
             targetValue = ONE,
             animationSpec =
                 infiniteRepeatable(
-                    animation = tween(durationMillis = PULSE_PERIOD_MS, easing = LinearEasing),
+                    animation = tween(durationMillis = PULSE_PERIOD_MS, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse,
                 ),
             label = "pulse_alpha",
@@ -282,12 +283,12 @@ private fun rememberWiggleDegrees(): State<Float> {
                 animation =
                     keyframes {
                         durationMillis = WIGGLE_PERIOD_MS
-                        ZERO at 0
-                        WIGGLE_PEAK_DEGREES at WIGGLE_KEYFRAME_1_MS
-                        -WIGGLE_PEAK_DEGREES at WIGGLE_KEYFRAME_2_MS
-                        WIGGLE_SECONDARY_DEGREES at WIGGLE_KEYFRAME_3_MS
-                        -WIGGLE_SECONDARY_DEGREES at WIGGLE_KEYFRAME_4_MS
-                        ZERO at WIGGLE_KEYFRAME_5_MS
+                        ZERO at 0 using FastOutSlowInEasing
+                        WIGGLE_PEAK_DEGREES at WIGGLE_KEYFRAME_1_MS using FastOutSlowInEasing
+                        -WIGGLE_PEAK_DEGREES at WIGGLE_KEYFRAME_2_MS using FastOutSlowInEasing
+                        WIGGLE_SECONDARY_DEGREES at WIGGLE_KEYFRAME_3_MS using FastOutSlowInEasing
+                        -WIGGLE_SECONDARY_DEGREES at WIGGLE_KEYFRAME_4_MS using FastOutSlowInEasing
+                        ZERO at WIGGLE_KEYFRAME_5_MS using FastOutSlowInEasing
                         ZERO at WIGGLE_PERIOD_MS
                     },
                 repeatMode = RepeatMode.Restart,
@@ -307,11 +308,11 @@ private fun rememberHeartbeatScale(): State<Float> {
                 animation =
                     keyframes {
                         durationMillis = HEARTBEAT_PERIOD_MS
-                        ONE at 0
-                        HEARTBEAT_PEAK_PRIMARY at HEARTBEAT_BEAT_1_MS
-                        ONE at HEARTBEAT_REST_1_MS
-                        HEARTBEAT_PEAK_SECONDARY at HEARTBEAT_BEAT_2_MS
-                        ONE at HEARTBEAT_REST_2_MS
+                        ONE at 0 using FastOutSlowInEasing
+                        HEARTBEAT_PEAK_PRIMARY at HEARTBEAT_BEAT_1_MS using FastOutSlowInEasing
+                        ONE at HEARTBEAT_REST_1_MS using FastOutSlowInEasing
+                        HEARTBEAT_PEAK_SECONDARY at HEARTBEAT_BEAT_2_MS using FastOutSlowInEasing
+                        ONE at HEARTBEAT_REST_2_MS using FastOutSlowInEasing
                         ONE at HEARTBEAT_PERIOD_MS
                     },
                 repeatMode = RepeatMode.Restart,
@@ -327,13 +328,12 @@ private fun Modifier.applyShimmerSweep(phaseState: State<Float>): Modifier =
         val height = size.height
         if (width > ZERO && height > ZERO) {
             val phase = phaseState.value
-            val highlight = Color.White.copy(alpha = SHIMMER_ALPHA)
             val startX = width * (phase - SHIMMER_BAND_WIDTH)
             val endX = width * phase
             drawRect(
                 brush =
                     Brush.linearGradient(
-                        colors = listOf(Color.Transparent, highlight, Color.Transparent),
+                        colors = SHIMMER_COLORS,
                         start = Offset(startX, ZERO),
                         end = Offset(endX, height),
                     ),

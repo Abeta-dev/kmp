@@ -2,9 +2,12 @@ package dev.abeta.kmp.sample
 
 import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.ActionRowSnippetData
 import dev.abeta.kmp.contracts.ComposedBlockSnippetData
 import dev.abeta.kmp.contracts.FeedbackEffect
+import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.MarqueeStripSnippetData
+import dev.abeta.kmp.contracts.MetricCardSnippetData
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.NudgeBarSnippetData
 import dev.abeta.kmp.contracts.OrderTrackerSnippetData
@@ -12,7 +15,9 @@ import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.core.result.AppResult
+import dev.abeta.kmp.core.security.BiometricResult
 import dev.abeta.kmp.layout.engine.LayoutUiState
+import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.repository.CachedScreenRepository
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -249,11 +254,11 @@ class SampleWiringTest {
         }
 
     @Test
-    fun allSixVerticalShowcaseAppsAndDetailScreensLoadOffline() =
+    fun allSevenVerticalShowcaseAppsAndDetailScreensLoadOffline() =
         runTest {
-            assertEquals(6, SampleContainer.VERTICAL_APPS.size)
+            assertEquals(7, SampleContainer.VERTICAL_APPS.size)
             assertEquals(
-                listOf("fresh-home", "bites-home", "pulse-home", "mart-home", "spark-deck", "trade-home"),
+                listOf("fresh-home", "bites-home", "pulse-home", "mart-home", "spark-deck", "trade-home", "pay-home"),
                 SampleContainer.VERTICAL_SCREENS,
             )
             val allVerticalScreens =
@@ -270,6 +275,10 @@ class SampleWiringTest {
                     "spark-matches",
                     "trade-home",
                     "trade-supplier",
+                    "pay-home",
+                    "pay-transfer",
+                    "pay-cards",
+                    "pay-receipt",
                 )
             val container = SampleFactory.create(scope = this, bffBaseUrl = null)
             try {
@@ -305,12 +314,13 @@ class SampleWiringTest {
             val container = SampleFactory.create(scope = this, bffBaseUrl = null)
             try {
                 val summary = container.runVerticalsHeadlessVerification()
-                assertEquals(6, summary.loadedVerticals.size)
+                assertEquals(7, summary.loadedVerticals.size)
                 assertTrue(summary.loadedVerticals.values.all { it > 0 })
                 assertTrue(summary.expressOrderCelebrationTriggered)
                 assertTrue(summary.swipeCelebrationTriggered)
                 assertTrue(summary.bookingCelebrationTriggered)
                 assertTrue(summary.rfqSubmitted)
+                assertTrue(summary.payTransferCelebrationTriggered)
 
                 container.navigateTo("bites-restaurant").join()
                 val bitesOrder =
@@ -351,6 +361,9 @@ class SampleWiringTest {
 
             val tradeResult = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("trade-home?q=cartons"))
             assertEquals("trade-home", tradeResult.value.pageId)
+
+            val payResult = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("pay-home?filter=bills"))
+            assertEquals("pay-home", payResult.value.pageId)
         }
 
     @Test
@@ -434,5 +447,85 @@ class SampleWiringTest {
                     tradePage.snippets.first { it.snippetType == SnippetTypes.COMPOSED_BLOCK }.data,
                 )
             assertEquals("moq_bulk_savings_card", tradeBlock.recipeName)
+        }
+
+    @Test
+    fun abetaPayHomeAndCardsScreensVerifyContracts() =
+        runTest {
+            val pages = SampleScreens.allPages()
+            val payHome = assertNotNull(pages["pay-home"])
+            val payHomeTypes = payHome.snippets.map { it.snippetType }.toSet()
+            assertTrue(SnippetTypes.MARQUEE_STRIP in payHomeTypes)
+            assertTrue(SnippetTypes.NUDGE_BAR in payHomeTypes)
+            assertTrue(SnippetTypes.COMPOSED_BLOCK in payHomeTypes)
+            assertTrue(SnippetTypes.CAROUSEL in payHomeTypes)
+
+            val balance =
+                SduiJson.decodeFromJsonElement(
+                    MetricCardSnippetData.serializer(),
+                    payHome.snippets.first { it.snippetType == SnippetTypes.METRIC_CARD }.data,
+                )
+            assertEquals("\$2,480.50", balance.value.text)
+
+            val cashbackNudge =
+                SduiJson.decodeFromJsonElement(
+                    NudgeBarSnippetData.serializer(),
+                    payHome.snippets.first { it.snippetType == SnippetTypes.NUDGE_BAR }.data,
+                )
+            assertEquals(480, cashbackNudge.countdown?.remainingSeconds)
+
+            val metalCard =
+                SduiJson.decodeFromJsonElement(
+                    ComposedBlockSnippetData.serializer(),
+                    payHome.snippets.first { it.snippetType == SnippetTypes.COMPOSED_BLOCK }.data,
+                )
+            assertEquals("metal_virtual_card", metalCard.recipeName)
+
+            val payCards = assertNotNull(pages["pay-cards"])
+            val cardControls =
+                SduiJson.decodeFromJsonElement(
+                    FormSnippetData.serializer(),
+                    payCards.snippets.first { it.snippetType == SnippetTypes.FORM }.data,
+                )
+            assertEquals(
+                listOf("card_freeze", "card_international", "card_contactless"),
+                cardControls.switches.map { it.fieldId },
+            )
+            assertEquals(1, cardControls.sliders.size)
+            assertEquals("card_spend_limit", cardControls.sliders.first().fieldId)
+        }
+
+    @Test
+    fun abetaPayTransferBiometricAndReceiptFlowWorkEndToEnd() =
+        runTest {
+            val pages = SampleScreens.allPages()
+            val payReceipt = assertNotNull(pages["pay-receipt"])
+            val settlement =
+                SduiJson.decodeFromJsonElement(
+                    OrderTrackerSnippetData.serializer(),
+                    payReceipt.snippets.first { it.snippetType == SnippetTypes.ORDER_TRACKER }.data,
+                )
+            assertEquals("#PAY-3081", settlement.orderCode)
+            assertEquals(4, settlement.steps.size)
+            assertEquals(ActionTypes.SHARE, settlement.primaryAction?.onClick?.type)
+
+            val payTransfer = assertNotNull(pages["pay-transfer"])
+            val bioRow =
+                SduiJson.decodeFromJsonElement(
+                    ActionRowSnippetData.serializer(),
+                    payTransfer.snippets.first { it.snippetId == "pay_biometric_auth_row" }.data,
+                )
+            val bioAction = assertNotNull(bioRow.onClick)
+            assertEquals(ActionTypes.BIOMETRIC_AUTH, bioAction.type)
+
+            val bridges = PlatformBridgeBundle.createTestDefault(biometricResult = BiometricResult.Authenticated)
+            val container = SampleFactory.create(scope = this, bffBaseUrl = null, platformBridges = bridges)
+            try {
+                container.navigateTo("pay-transfer").join()
+                container.controller.onAction(bioAction).join()
+                assertEquals("pay-receipt", container.currentScreenId.value)
+            } finally {
+                container.close()
+            }
         }
 }

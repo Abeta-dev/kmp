@@ -99,6 +99,29 @@ internal object SuperAppDemoNudgeBuilders {
                 ),
         )
 
+    fun nextStage(stage: Int): Int {
+        val current = stage.coerceIn(1, 4)
+        return if (current >= 4) 1 else current + 1
+    }
+
+    fun stageSteps(
+        stage: Int,
+        specs: List<Triple<String, String, String>>,
+    ): List<OrderTrackerStep> {
+        val clamped = stage.coerceIn(1, specs.size.coerceAtLeast(1))
+        val activeIdx = clamped - 1
+        val allDone = clamped >= specs.size
+        return specs.mapIndexed { idx, (id, label, caption) ->
+            OrderTrackerStep(
+                id = id,
+                label = label,
+                caption = caption,
+                completed = idx < activeIdx || (allDone && idx == activeIdx),
+                active = !allDone && idx == activeIdx,
+            )
+        }
+    }
+
     fun orderTracker(
         snippetId: String,
         trackerId: String,

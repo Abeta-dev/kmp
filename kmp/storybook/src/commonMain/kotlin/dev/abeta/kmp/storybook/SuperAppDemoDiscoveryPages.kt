@@ -11,6 +11,7 @@ import dev.abeta.kmp.contracts.ComposedNode
 import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.CornerRadiusSpec
 import dev.abeta.kmp.contracts.FormSnippetData
+import dev.abeta.kmp.contracts.IconAtom
 import dev.abeta.kmp.contracts.ImageAtom
 import dev.abeta.kmp.contracts.ImageScaleMode
 import dev.abeta.kmp.contracts.KeyboardKind
@@ -124,6 +125,14 @@ internal object SuperAppDemoDiscoveryPages {
         val cats = listOf("all" to "All", "concerts" to "Concerts", "movies" to "Movies", "comedy" to "Comedy")
         val spotNav = ui.navAction("nav_spot", PULSE_DETAIL)
         val spotBtn = ui.button("btn_spot", "Book Seats", spotNav, size = ButtonSize.SMALL)
+        val passIcon =
+            IconAtom(
+                name = "star",
+                sizeDp = 22,
+                color = ColorTokenRef("brand.primary"),
+                contentDescription = "Open QR pass",
+                onClick = ui.navAction("nav_pulse_pass", "pulse-ticket-pass"),
+            )
         val urgencyNudge =
             nudges.nudgeBar(
                 snippetId = "pulse_early_bird_nudge",
@@ -149,7 +158,7 @@ internal object SuperAppDemoDiscoveryPages {
         return PageResponse(
             pageId = "pulse-home",
             title = "Abeta Pulse",
-            toolbar = ui.toolbar("Abeta Pulse", "Metro City · Events, Movies & Dining", "back_pulse"),
+            toolbar = ui.toolbar("Abeta Pulse", "Metro City · Events, Movies & Dining", "back_pulse", listOf(passIcon)),
             snippets =
                 listOf(
                     search,
@@ -166,11 +175,12 @@ internal object SuperAppDemoDiscoveryPages {
         val tiers =
             listOf(
                 Triple("tier_vip", "Front Row VIP · \$95", "Lounge access, signed poster & soundcheck"),
-                Triple("tier_gold", "Arena Gold · \$55", "Center acoustic sweet spot + fast-track"),
+                Triple("arena_gold", "Arena Gold · \$55", "Center acoustic sweet spot + fast-track"),
                 Triple("tier_balcony", "Balcony Acoustic · \$30", "Panoramic stage view & instant QR pass"),
             ).map { (tierId, title, desc) -> buildSeatTierCard(tierId, title, desc) }
         val shareBtn = ui.button("btn_pulse_share", "Share", share, ButtonVariant.OUTLINE, ButtonSize.SMALL)
-        val bookBtn = ui.button("btn_book_gold", "Book 2 Gold · \$110", pulseBookAction("arena_gold"), fullWidth = true)
+        val selectGold = ui.navAction("nav_pulse_gold", "pulse-checkout?tier=arena_gold")
+        val bookBtn = ui.button("btn_select_gold", "Select Arena Gold · \$110", selectGold, fullWidth = true)
         return PageResponse(
             pageId = PULSE_DETAIL,
             title = "Neon Horizon Live Symphony",
@@ -205,7 +215,7 @@ internal object SuperAppDemoDiscoveryPages {
                             ui.button(
                                 id = "btn_book_$tierId",
                                 label = "Book Tickets",
-                                onClick = pulseBookAction(tierId),
+                                onClick = ui.navAction("checkout_$tierId", "pulse-checkout?tier=$tierId"),
                                 size = ButtonSize.SMALL,
                             ),
                         layout = ui.cardLayout,
@@ -215,7 +225,25 @@ internal object SuperAppDemoDiscoveryPages {
 
     fun sparkDeck(filter: String = "nearby"): PageResponse {
         val navMatches = ui.navAction("nav_matches", "spark-matches")
+        val navPrefs = ui.navAction("nav_spark_prefs", "spark-preferences")
         val matchesBtn = ui.button("btn_matches", "Matches (3)", navMatches, ButtonVariant.OUTLINE, ButtonSize.SMALL)
+        val prefsIcon =
+            IconAtom(
+                name = "settings",
+                sizeDp = 22,
+                color = ColorTokenRef("brand.primary"),
+                contentDescription = "Preferences",
+                onClick = navPrefs,
+            )
+        val prefsRow =
+            ui.actionRow(
+                snippetId = "spark_prefs_quick_row",
+                title = "Preferences",
+                subtitle = "Max distance 25 km · Verified profiles only",
+                icon = "settings" to "brand.primary",
+                tag = "FILTERS" to DISC_BRAND,
+                onClick = navPrefs,
+            )
         val filters = listOf("nearby" to "Nearby", "new" to "New", "verified" to "Verified")
         val boostNudge =
             nudges.nudgeBar(
@@ -231,10 +259,11 @@ internal object SuperAppDemoDiscoveryPages {
         return PageResponse(
             pageId = "spark-deck",
             title = "Abeta Spark",
-            toolbar = ui.toolbar("Abeta Spark", "Curated Discovery · 12 nearby", "back_spark"),
+            toolbar = ui.toolbar("Abeta Spark", "Curated Discovery · 12 nearby", "back_spark", listOf(prefsIcon)),
             snippets =
                 listOf(
                     ui.header("spark_hdr", "Discover Nearby", "Swipe right or up to match", "4 NEW", matchesBtn),
+                    prefsRow,
                     boostNudge,
                     ui.chipGroup("spark_filter_chips", "spark_filters", "spark-deck", filters, filter),
                     buildSparkDeckEnvelope(),
@@ -250,8 +279,8 @@ internal object SuperAppDemoDiscoveryPages {
                 Triple("match_arjun", "Arjun Rao · Super-Liked You", "Shared a curated synth & vinyl playlist"),
                 Triple("match_elena", "Elena Morales · Matched yesterday", "Recommended a rooftop jazz night"),
             ).map { (id, title, subtitle) ->
-                val toast = ui.toastAction("msg_$id", "Opened chat with ${title.substringBefore(" ·")}", "success")
-                ui.actionRow(id, title, subtitle, "person" to "brand.primary", "SPARK" to DISC_OK, toast)
+                val openChat = ui.navAction("chat_$id", "spark-chat")
+                ui.actionRow(id, title, subtitle, "person" to "brand.primary", "CHAT" to DISC_OK, openChat)
             }
         val backBtn = ui.button("btn_return_deck", "Back to Deck", ui.navAction("back_to_spark", "spark-deck"))
         val backCard =
@@ -262,13 +291,18 @@ internal object SuperAppDemoDiscoveryPages {
                     ui.encode(
                         CardSnippetData(
                             title = ui.text("Keep Discovering", "title.medium"),
-                            description = ui.text("Return to your Spark card stack.", "body.small", "text.secondary"),
+                            description =
+                                ui.text(
+                                    "Tap any match to open live chat or return to deck.",
+                                    "body.small",
+                                    "text.secondary",
+                                ),
                             primaryButton = backBtn,
                             layout = ui.cardLayout,
                         ),
                     ),
             )
-        val header = ui.header("spark_matches_header", "Mutual Sparks", "Reply within 24h", "3 ACTIVE")
+        val header = ui.header("spark_matches_header", "Mutual Sparks", "Tap a match to chat live", "3 ACTIVE")
         return PageResponse(
             pageId = "spark-matches",
             title = "Your Matches",
@@ -290,28 +324,13 @@ internal object SuperAppDemoDiscoveryPages {
                 "electronics" to "Electronics",
                 "textiles" to "Textiles",
             )
-        val moqBlock =
-            nudges.moldedCardBlock(
-                snippetId = "trade_moq_savings_block",
-                blockId = "trade_moq_savings",
-                recipeName = "moq_bulk_savings_card",
-                badgeLabel = "BULK TIER · -18%",
-                badgeVariant = TagVariant.SUCCESS,
-                trailingNode =
-                    ComposedNode(
-                        nodeId = "trade_moq_price",
-                        kind = ComposedNodeKind.ROLLING_COUNTER,
-                        counterValue = "\$0.68 / unit",
-                        counterTypography = TypographyTokenRef("title.small"),
-                        counterColor = ColorTokenRef("brand.primary"),
-                    ),
-                title = "Wholesale MOQ Bulk Savings · 500+ Units",
-                subtitle = "Molded via composed_block — direct factory pricing & GST credit.",
-                progress = 0.75f,
-                progressLabel = "375 / 500 MOQ committed",
-                footerCounter = "GST VERIFIED",
-                ctaLabel = "Lock Bulk Rate",
-                ctaAction = ui.navAction("nav_trade_bulk", "trade-supplier"),
+        val poIcon =
+            IconAtom(
+                name = "notifications",
+                sizeDp = 22,
+                color = ColorTokenRef("brand.primary"),
+                contentDescription = "Track Trade PO",
+                onClick = ui.navAction("nav_trade_po", "trade-po-track?stage=2"),
             )
         val search =
             ui.searchBar(
@@ -324,16 +343,40 @@ internal object SuperAppDemoDiscoveryPages {
         return PageResponse(
             pageId = "trade-home",
             title = "Abeta Trade",
-            toolbar = ui.toolbar("Abeta Trade", "Verified B2B Wholesale & Direct RFQ", "back_trade"),
+            toolbar = ui.toolbar("Abeta Trade", "Verified B2B Wholesale & Direct RFQ", "back_trade", listOf(poIcon)),
             snippets =
                 listOf(
                     search,
                     ui.chipGroup("trade_filter_chips", "trade_filters", "trade-home", filters, filter),
-                    moqBlock,
+                    buildTradeMoqBlock(),
                 ) + visible.map(ui::listingCard),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
+
+    private fun buildTradeMoqBlock(): SnippetEnvelope =
+        nudges.moldedCardBlock(
+            snippetId = "trade_moq_savings_block",
+            blockId = "trade_moq_savings",
+            recipeName = "moq_bulk_savings_card",
+            badgeLabel = "BULK TIER · -18%",
+            badgeVariant = TagVariant.SUCCESS,
+            trailingNode =
+                ComposedNode(
+                    nodeId = "trade_moq_price",
+                    kind = ComposedNodeKind.ROLLING_COUNTER,
+                    counterValue = "\$0.68 / unit",
+                    counterTypography = TypographyTokenRef("title.small"),
+                    counterColor = ColorTokenRef("brand.primary"),
+                ),
+            title = "Wholesale MOQ Bulk Savings · 500+ Units",
+            subtitle = "Molded via composed_block — direct factory pricing & GST credit.",
+            progress = 0.75f,
+            progressLabel = "375 / 500 MOQ committed",
+            footerCounter = "GST VERIFIED",
+            ctaLabel = "Compare Quotes",
+            ctaAction = ui.navAction("nav_trade_quotes", "trade-quotes"),
+        )
 
     fun tradeSupplier(): PageResponse =
         PageResponse(
@@ -371,7 +414,7 @@ internal object SuperAppDemoDiscoveryPages {
                 buildJsonObject { put("supplier_id", "apex_corrugated") },
                 validations,
             )
-        val desc = ui.text("Receive tiered bulk pricing & GST invoice within 2h.", "body.small", "text.secondary")
+        val desc = ui.text("Submit RFQ to compare 3 live factory quotes instantly.", "body.small", "text.secondary")
         return SnippetEnvelope(
             snippetId = "trade_rfq_form_snippet",
             snippetType = SnippetTypes.FORM,
@@ -382,7 +425,7 @@ internal object SuperAppDemoDiscoveryPages {
                         title = ui.text("Request Direct Wholesale Quote (RFQ)", "title.medium"),
                         description = desc,
                         fields = buildTradeRfqFields(),
-                        submitButton = ui.button("btn_submit_rfq", "Submit RFQ Quote", submit),
+                        submitButton = ui.button("btn_submit_rfq", "Submit RFQ & View Quotes", submit),
                         layout = ui.cardLayout,
                     ),
                 ),
@@ -583,17 +626,6 @@ internal object SuperAppDemoDiscoveryPages {
             buildJsonObject {
                 put("profile_id", profileId)
                 put("action", action)
-            },
-        )
-
-    private fun pulseBookAction(tier: String): ActionRef =
-        ui.apiCallAction(
-            "book_$tier",
-            "/api/v1/pulse/bookings",
-            buildJsonObject {
-                put("event_id", "neon_horizon_symphony")
-                put("tier", tier)
-                put("quantity", 2)
             },
         )
 

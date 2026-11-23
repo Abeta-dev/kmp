@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.mavenPublish)
 }
 
-group = "dev.abeta.kmp"
+group = "io.github.abeta-dev"
 version = internal.versions.database.get()
 
 kotlin {

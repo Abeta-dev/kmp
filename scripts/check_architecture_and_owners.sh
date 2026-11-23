@@ -206,8 +206,8 @@ for mod in PUBLISHABLE_LIBS:
         violations.append(f"[BOM/Publish] Module `{mod}` missing from kmp/build.gradle.kts publishableModules")
     if f'":{mod}"' not in settings_gradle:
         violations.append(f"[BOM/Settings] Module `:{mod}` missing from kmp/settings.gradle.kts")
-    if f'group = "dev.abeta.kmp", name = "{mod}"' not in internal_toml:
-        violations.append(f"[Catalog] Coordinate `dev.abeta.kmp:{mod}` missing from internal.versions.toml")
+    if f'group = "io.github.abeta-dev", name = "{mod}"' not in internal_toml:
+        violations.append(f"[Catalog] Coordinate `io.github.abeta-dev:{mod}` missing from internal.versions.toml")
     api_file = os.path.join(root, f"kmp/{mod}/api/{mod}.api")
     if not os.path.isfile(api_file):
         violations.append(f"[ABI] Missing Binary Compatibility Validator descriptor: kmp/{mod}/api/{mod}.api")
@@ -323,7 +323,7 @@ for pat in ("kmp/**/src/**/*.kt", "bff/**/*.go"):
 report_lines = [
     "## Abeta KMP Kit — Module Code Owner & Architecture Gate Report",
     "",
-    f"- **Publishable KMP Modules Verified**: {len(PUBLISHABLE_LIBS)} (`dev.abeta.kmp:*`)",
+    f"- **Publishable KMP Modules Verified**: {len(PUBLISHABLE_LIBS)} (`io.github.abeta-dev:*`)",
     f"- **Wire Parity (`ActionTypes`)**: {len(kmp_actions)} KMP / {len(go_actions)} Go BFF",
     f"- **Wire Parity (`SnippetTypes`)**: {len(kmp_snippets)} KMP / {len(go_snippets)} Go BFF",
     f"- **Module Code Owner Agents Verified**: {len(seen_owners)} (`agents/owners/*` + `.github/CODEOWNERS`)",

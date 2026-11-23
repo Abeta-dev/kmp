@@ -124,6 +124,7 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 		v1.GET("/screens/:screenId", withETag(h.getScreen)...)
 		v1.POST("/actions/execute", h.executeAction)
 		v1.POST("/orders/express", h.placeExpressOrder)
+		v1.POST("/pay/transfer", h.executePayTransfer)
 		v1.GET("/catalog/tokens", withETag(h.getTokenCatalog)...)
 	}
 
@@ -238,6 +239,39 @@ func (h *bffHandler) placeExpressOrder(c *gin.Context) {
 			Body:     body,
 		}),
 		ScreenID: "store-home",
+	})
+	if err != nil {
+		respondDomainError(c, err)
+		return
+	}
+	ginmw.RespondSuccess(c, result)
+}
+
+func (h *bffHandler) executePayTransfer(c *gin.Context) {
+	if h.actions == nil {
+		respondDomainError(c, apperror.Internal("action service unavailable"))
+		return
+	}
+	var body map[string]any
+	if c.Request.Body != nil && c.Request.ContentLength != 0 {
+		if err := c.ShouldBindJSON(&body); err != nil && !errors.Is(err, io.EOF) {
+			ginmw.RespondErrorWithDetail(
+				c,
+				http.StatusBadRequest,
+				string(apperror.CodeBadRequest),
+				"invalid pay transfer payload",
+				err.Error(),
+			)
+			return
+		}
+	}
+	result, err := h.actions.Execute(c.Request.Context(), domain.ActionExecutionInput{
+		Trigger: actions.NewCallAPIAction("pay_execute_transfer", actions.CallAPIPayload{
+			Endpoint: "/api/v1/pay/transfer",
+			Method:   http.MethodPost,
+			Body:     body,
+		}),
+		ScreenID: "pay-transfer",
 	})
 	if err != nil {
 		respondDomainError(c, err)

@@ -115,6 +115,24 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 				}),
 			)
 		}
+		if p.Endpoint == "/api/v1/pay/transfer" {
+			res.FollowUpActions = append(res.FollowUpActions,
+				actions.NewTriggerFeedbackAction("pay_transfer_celebration", actions.TriggerFeedbackPayload{
+					Effect:     actions.FeedbackCelebration,
+					Title:      "Transfer Sent!",
+					Subtitle:   "Instant settlement #PAY-3081 confirmed via Abeta Pay",
+					DurationMs: 2400,
+				}),
+				actions.NewShowToastAction("pay_transfer_toast", actions.ShowToastPayload{
+					Message:    "Transfer #PAY-3081 settled instantly!",
+					DurationMs: 2500,
+					Variant:    "success",
+				}),
+				actions.NewNavigateAction("pay_transfer_nav_receipt", actions.NavigatePayload{
+					Route: "pay-receipt",
+				}),
+			)
+		}
 		if p.OnSuccess != nil {
 			res.FollowUpActions = append(res.FollowUpActions, *p.OnSuccess)
 		}

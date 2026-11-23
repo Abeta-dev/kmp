@@ -9,19 +9,18 @@ import dev.abeta.kmp.contracts.ComposedNode
 import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.CornerRadiusSpec
 import dev.abeta.kmp.contracts.CountdownAtom
+import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.IconAtom
 import dev.abeta.kmp.contracts.ImageAtom
 import dev.abeta.kmp.contracts.ImageScaleMode
 import dev.abeta.kmp.contracts.MarqueeItem
 import dev.abeta.kmp.contracts.MotionLoopEffect
-import dev.abeta.kmp.contracts.OrderTrackerStep
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.contracts.SwitchAtom
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 private const val OK_BG = "status.success_container"
 private const val INFO_BG = "status.info_container"
@@ -47,6 +46,7 @@ internal object SuperAppDemoCommercePages {
                 cents = 349,
                 badge = "8 MINS" to OK_BG,
                 qty = 1,
+                route = "fresh-item-detail",
                 category = "produce",
             ),
             DemoSkuSpec(
@@ -180,19 +180,13 @@ internal object SuperAppDemoCommercePages {
         filter: String = "all",
     ): PageResponse {
         val visibleSkus = filterSkus(freshSkus, query, filter)
-        val checkout =
-            ui.apiCallAction(
-                "fresh_express_checkout",
-                "/api/v1/fresh/orders/express",
-                buildJsonObject { put("vertical", "abeta-fresh") },
-            )
         val trackIcon =
             IconAtom(
                 name = "notifications",
                 sizeDp = 22,
                 color = ColorTokenRef("brand.primary"),
                 contentDescription = "Track Fresh order",
-                onClick = ui.navAction("nav_fresh_track", "fresh-order-track"),
+                onClick = ui.navAction("nav_fresh_track", "fresh-order-track?stage=3"),
             )
         val chips =
             listOf(
@@ -201,6 +195,15 @@ internal object SuperAppDemoCommercePages {
                 "dairy" to "Dairy",
                 "snacks" to "Snacks",
                 "drinks" to "Drinks",
+            )
+        val detailRow =
+            ui.actionRow(
+                snippetId = "fresh_item_detail_row",
+                title = "View Item Details · Hass Avocados",
+                subtitle = "Origin lot, nutrition facts & 8-min freshness guarantee",
+                icon = "star" to "status.success",
+                tag = "DETAILS" to OK_BG,
+                onClick = ui.navAction("nav_fresh_item_detail", "fresh-item-detail"),
             )
         val search = ui.searchBar("fresh_search_bar", "fresh_search", "Search avocados, milk...", "fresh-home", query)
         return PageResponse(
@@ -213,6 +216,7 @@ internal object SuperAppDemoCommercePages {
                     buildFreshPerksMarquee(),
                     ui.chipGroup("fresh_category_chips", "fresh_categories", "fresh-home", chips, filter),
                     buildFreshFlashNudge(),
+                    detailRow,
                     buildFreshLoyaltyCard(),
                     ui.productGrid("fresh_grid", "Express Essentials (${visibleSkus.size})", visibleSkus),
                 ),
@@ -220,8 +224,8 @@ internal object SuperAppDemoCommercePages {
                 nudges.floatingCart(
                     label = "2 items · \$6.78",
                     eta = "8 MINS",
-                    ctaLabel = "Express Checkout",
-                    action = checkout,
+                    ctaLabel = "Review Cart",
+                    action = ui.navAction("nav_fresh_cart", "fresh-cart"),
                     freeDeliveryThresholdCents = 1500,
                     unlockedLabel = "FREE 8-min delivery unlocked!",
                 ),
@@ -263,11 +267,11 @@ internal object SuperAppDemoCommercePages {
             snippetId = "fresh_flash_nudge",
             nudgeId = "fresh_flash_drop",
             title = "Flash Drop · Extra 20% off fresh produce",
-            subtitle = "Chilled express slot reserved — add items to unlock FREE delivery",
+            subtitle = "Chilled express slot reserved — apply FRESH20 in cart",
             badgeLabel = "FLASH DROP",
             badgeEffect = MotionLoopEffect.WIGGLE,
-            ctaLabel = "Claim Drop",
-            ctaAction = ui.toastAction("fresh_claim", "Flash Drop 20% applied to basket!", "success"),
+            ctaLabel = "Open Cart",
+            ctaAction = ui.navAction("fresh_nudge_cart", "fresh-cart?promo=FRESH20"),
             countdownSeconds = 420,
             countdownLabel = "Ends in",
             progress = 0.68f,
@@ -295,47 +299,6 @@ internal object SuperAppDemoCommercePages {
             ctaAction = ui.toastAction("fresh_redeem", "2 more orders unlock your free basket!", "success"),
         )
 
-    fun freshOrderTrack(): PageResponse {
-        val tracker =
-            nudges.orderTracker(
-                snippetId = "fresh_live_tracker",
-                trackerId = "fresh_order_8042",
-                orderCode = "#FRH-8042",
-                headline = "Aarav K. is 300m away with your chilled basket",
-                etaBadge = "6 MINS",
-                etaSeconds = 360,
-                riderName = "Aarav K.",
-                riderCaption = "4.95 ★ · Cold-chain EV scooter · 6 items",
-                steps =
-                    listOf(
-                        OrderTrackerStep("f_confirmed", "Confirmed", "Now", completed = true),
-                        OrderTrackerStep("f_packed", "Chilled Pack", "2m", completed = true),
-                        OrderTrackerStep("f_route", "On the way", "300m", active = true),
-                        OrderTrackerStep("f_done", "Doorstep", "6m"),
-                    ),
-                primaryLabel = "Call Rider",
-                primaryAction = ui.toastAction("fresh_call", "Connecting masked call to Aarav K."),
-                secondaryLabel = "Shop Again",
-                secondaryAction = ui.navAction("fresh_shop_again", "fresh-home"),
-            )
-        val dropRow =
-            ui.actionRow(
-                snippetId = "fresh_drop_row",
-                title = "Chilled Doorstep Drop Enabled",
-                subtitle = "No-bell drop with photo confirmation on delivery",
-                icon = "check" to "status.success",
-                tag = "ACTIVE" to OK_BG,
-                onClick = ui.toastAction("fresh_drop_ok", "Doorstep drop preferences saved", "success"),
-            )
-        return PageResponse(
-            pageId = "fresh-order-track",
-            title = "Track Order #FRH-8042",
-            toolbar = ui.toolbar("Order #FRH-8042", "Abeta Fresh · Arriving in 6 mins", "back_fresh_track"),
-            snippets = listOf(tracker, dropRow),
-            adaptiveLayout = ui.centeredAdaptive,
-        )
-    }
-
     fun bitesHome(
         query: String = "",
         filter: String = "all",
@@ -354,7 +317,7 @@ internal object SuperAppDemoCommercePages {
                 sizeDp = 22,
                 color = ColorTokenRef("brand.primary"),
                 contentDescription = "Track Bites order",
-                onClick = ui.navAction("nav_bites_track", "bites-order-track"),
+                onClick = ui.navAction("nav_bites_track", "bites-order-track?stage=3"),
             )
         val search = ui.searchBar("bites_search_bar", "bites_search", "Search biryani, pizza...", "bites-home", query)
         return PageResponse(
@@ -371,14 +334,8 @@ internal object SuperAppDemoCommercePages {
         )
     }
 
-    fun bitesRestaurant(): PageResponse {
-        val orderAction =
-            ui.apiCallAction(
-                "bites_place_order",
-                "/api/v1/bites/orders",
-                buildJsonObject { put("restaurant_id", "saffron_hearth") },
-            )
-        return PageResponse(
+    fun bitesRestaurant(): PageResponse =
+        PageResponse(
             pageId = "bites-restaurant",
             title = "Saffron Hearth Kitchen",
             toolbar = ui.toolbar("Saffron Hearth Kitchen", "4.8 ★ · 24 mins · North Indian", "back_bites_rest"),
@@ -391,55 +348,13 @@ internal object SuperAppDemoCommercePages {
                 nudges.floatingCart(
                     label = "2 items · \$17.75",
                     eta = "24 MINS",
-                    ctaLabel = "Place Meal Order",
-                    action = orderAction,
+                    ctaLabel = "Review Order",
+                    action = ui.navAction("nav_bites_cart", "bites-cart"),
                     freeDeliveryThresholdCents = 2000,
                     unlockedLabel = "FREE priority kitchen delivery!",
                 ),
             adaptiveLayout = ui.centeredAdaptive,
         )
-    }
-
-    fun bitesOrderTrack(): PageResponse {
-        val tracker =
-            nudges.orderTracker(
-                snippetId = "bites_live_order_tracker",
-                trackerId = "bites_order_4091",
-                orderCode = "#BTS-4091",
-                headline = "Karan M. is on the way from Saffron Hearth",
-                etaBadge = "11 MINS",
-                etaSeconds = 660,
-                riderName = "Karan M.",
-                riderCaption = "4.9 ★ · 1.2 km away on e-bike · Thermal bag",
-                steps =
-                    listOf(
-                        OrderTrackerStep("b_conf", "Confirmed", "19:14", completed = true),
-                        OrderTrackerStep("b_prep", "Preparing", "19:21", completed = true),
-                        OrderTrackerStep("b_route", "En Route", "1.2 km", active = true),
-                        OrderTrackerStep("b_done", "Delivered", "11m"),
-                    ),
-                primaryLabel = "Call Rider",
-                primaryAction = ui.toastAction("bites_call", "Connecting masked call to Karan M."),
-                secondaryLabel = "Back to Bites",
-                secondaryAction = ui.navAction("bites_home_nav", "bites-home"),
-            )
-        val dropInfo =
-            ui.actionRow(
-                snippetId = "bites_contactless_row",
-                title = "Contactless Doorstep Drop",
-                subtitle = "Photo proof uploaded automatically when Karan M. arrives",
-                icon = "check" to "status.success",
-                tag = "ACTIVE" to OK_BG,
-                onClick = ui.toastAction("bites_drop_pref", "Contactless drop instructions confirmed", "success"),
-            )
-        return PageResponse(
-            pageId = "bites-order-track",
-            title = "Track Order #BTS-4091",
-            toolbar = ui.toolbar("Order #BTS-4091", "Arriving in 11 mins · Abeta Bites", "back_bites_track"),
-            snippets = listOf(tracker, dropInfo),
-            adaptiveLayout = ui.centeredAdaptive,
-        )
-    }
 
     fun martHome(
         query: String = "",
@@ -460,16 +375,19 @@ internal object SuperAppDemoCommercePages {
                 "home" to "Home",
                 "fashion" to "Fashion",
             )
-        val checkout =
-            ui.apiCallAction(
-                "mart_cart_order",
-                "/api/v1/mart/orders",
-                buildJsonObject { put("vertical", "abeta-mart") },
+        val trackIcon =
+            IconAtom(
+                name = "notifications",
+                sizeDp = 22,
+                color = ColorTokenRef("brand.primary"),
+                contentDescription = "Track Mart shipment",
+                onClick = ui.navAction("nav_mart_track", "mart-order-track?stage=2"),
             )
+        val checkoutNav = ui.navAction("mart_cart_checkout", "mart-checkout")
         return PageResponse(
             pageId = "mart-home",
             title = "Abeta Mart",
-            toolbar = ui.toolbar("Abeta Mart", "Multi-category · Same-day dispatch", "back_mart"),
+            toolbar = ui.toolbar("Abeta Mart", "Multi-category · Same-day dispatch", "back_mart", listOf(trackIcon)),
             snippets =
                 listOf(
                     ui.searchBar("mart_search_bar", "mart_search", "Search tech, audio & home...", "mart-home", query),
@@ -478,7 +396,7 @@ internal object SuperAppDemoCommercePages {
                     ui.carousel("mart_lightning_carousel", "Lightning Deals", deals, MART_DETAIL, "DEAL"),
                     ui.productGrid("mart_products_grid", "Trending on Abeta Mart (${visibleSkus.size})", visibleSkus),
                 ),
-            floatingCart = nudges.floatingCart("1 item · \$149.00", "SAME DAY", "Checkout Now", checkout),
+            floatingCart = nudges.floatingCart("1 item · \$149.00", "SAME DAY", "Checkout Now", checkoutNav),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
@@ -512,8 +430,7 @@ internal object SuperAppDemoCommercePages {
         )
 
     fun martProductDetail(): PageResponse {
-        val buyNow =
-            ui.apiCallAction("mart_buy_now", "/api/v1/mart/orders", buildJsonObject { put("product_id", "mart_anc") })
+        val checkoutNav = ui.navAction("mart_proceed_checkout", "mart-checkout")
         val share =
             ui.shareAction(
                 "share_mart",
@@ -540,21 +457,51 @@ internal object SuperAppDemoCommercePages {
             toolbar = ui.toolbar("Product Detail", "Abeta Mart · In Stock", "back_mart_detail"),
             snippets =
                 listOf(
-                    buildMartHeroCard(buyNow, share),
+                    buildMartHeroCard(checkoutNav, share),
+                    buildMartProtectionForm(),
                     ui.accordion("mart_specs_accordion", "Specifications", "Drivers & battery", specs),
                     ui.accordion("mart_reviews_acc", "Customer Reviews", "4.9 ★ (1,284 reviews)", reviews),
                 ),
             bottomBar =
                 BottomBarSpec(
-                    primaryButton = ui.button("btn_mart_bottom_buy", "Buy Now · \$149.00", buyNow, fullWidth = true),
-                    helperText = ui.text("Free same-day delivery · 30-day returns", "label.small", "text.secondary"),
+                    primaryButton =
+                        ui.button(
+                            "btn_mart_bottom_buy",
+                            "Proceed to Checkout · \$149.00",
+                            checkoutNav,
+                            fullWidth = true,
+                        ),
+                    helperText = ui.text("Free same-day delivery · 10% bank cashback", "label.small", "text.secondary"),
                 ),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
 
+    private fun buildMartProtectionForm(): SnippetEnvelope =
+        SnippetEnvelope(
+            snippetId = "mart_care_plus_form",
+            snippetType = SnippetTypes.FORM,
+            data =
+                ui.encode(
+                    FormSnippetData(
+                        formId = "mart_protection_options",
+                        title = ui.text("Protection & Warranty", "title.medium"),
+                        switches =
+                            listOf(
+                                SwitchAtom(
+                                    fieldId = "mart_care_plus",
+                                    label = "Add Care+ 2-Year Warranty (+\$19)",
+                                    subtitle = "Covers accidental drops & instant battery replacement",
+                                    checked = false,
+                                ),
+                            ),
+                        layout = ui.cardLayout,
+                    ),
+                ),
+        )
+
     private fun buildMartHeroCard(
-        buyNow: ActionRef,
+        checkoutNav: ActionRef,
         share: ActionRef,
     ): SnippetEnvelope =
         SnippetEnvelope(
@@ -581,7 +528,7 @@ internal object SuperAppDemoCommercePages {
                                 placeholderColor = ColorTokenRef(BRAND_BG),
                             ),
                         badge = TagAtom(label = "LIGHTNING DEAL", bgColor = ColorTokenRef(WARN_BG)),
-                        primaryButton = ui.button("btn_mart_hero_buy", "Buy Now · \$149", buyNow),
+                        primaryButton = ui.button("btn_mart_hero_buy", "Proceed to Checkout", checkoutNav),
                         secondaryButton = ui.button("btn_mart_hero_share", "Share", share, ButtonVariant.OUTLINE),
                         layout = ui.cardLayout,
                     ),

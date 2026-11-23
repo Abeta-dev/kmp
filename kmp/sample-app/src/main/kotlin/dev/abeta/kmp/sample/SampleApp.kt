@@ -119,7 +119,7 @@ class SampleContainer(
     /** Ordered list of sample screen IDs available in the UI switcher. */
     val availableScreens: List<String> = DEFAULT_SCREENS
 
-    /** Ordered list of six vertical showcase apps available in the Super-App launcher. */
+    /** Ordered list of seven vertical showcase apps available in the Super-App launcher. */
     val verticalApps: List<ShowcaseAppSpec> = VERTICAL_APPS
 
     /** Loads the initial `"home"` screen. */
@@ -258,9 +258,9 @@ class SampleContainer(
     }
 
     /**
-     * Executes an end-to-end headless verification sequence across all six vertical showcase entry
-     * screens (`fresh-home`, `bites-home`, `pulse-home`, `mart-home`, `spark-deck`, `trade-home`)
-     * and live vertical `CALL_API` endpoints.
+     * Executes an end-to-end headless verification sequence across all seven vertical showcase entry
+     * screens (`fresh-home`, `bites-home`, `pulse-home`, `mart-home`, `spark-deck`, `trade-home`,
+     * `pay-home`) and live vertical `CALL_API` endpoints.
      */
     suspend fun runVerticalsHeadlessVerification(): VerticalsVerificationSummary = verifyVerticalsHeadless(this)
 
@@ -270,7 +270,7 @@ class SampleContainer(
             listOf("home", "store-home", "catalog", "profile", "form-demo", "containers", "watch-status")
         val VERTICAL_APPS: List<ShowcaseAppSpec> = SampleShowcaseApps.allApps
         val VERTICAL_SCREENS: List<String> =
-            listOf("fresh-home", "bites-home", "pulse-home", "mart-home", "spark-deck", "trade-home")
+            listOf("fresh-home", "bites-home", "pulse-home", "mart-home", "spark-deck", "trade-home", "pay-home")
     }
 }
 

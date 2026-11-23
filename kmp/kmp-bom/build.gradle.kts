@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.mavenPublish)
 }
 
-group = "dev.abeta.kmp"
+group = "io.github.abeta-dev"
 version = internal.versions.kmpBom.get()
 
 javaPlatform {
@@ -45,7 +45,7 @@ val publishVersionOverride =
 if (publishVersionOverride != null) {
     configurations.named("api").configure {
         dependencyConstraints.configureEach {
-            if (group == "dev.abeta.kmp") {
+            if (group == "io.github.abeta-dev") {
                 version {
                     require(publishVersionOverride)
                 }

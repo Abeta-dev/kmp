@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.mavenPublish)
 }
 
-group = "dev.abeta.kmp"
+group = "io.github.abeta-dev"
 version = internal.versions.analytics.get()
 
 kotlin {

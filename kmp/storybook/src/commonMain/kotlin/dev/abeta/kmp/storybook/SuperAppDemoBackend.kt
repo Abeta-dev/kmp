@@ -17,7 +17,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 /**
- * Descriptor for each vertical app playable live inside Storybook's 6-in-1 Super-App Demos.
+ * Descriptor for each vertical app playable live inside Storybook's 7-in-1 Super-App Demos.
  */
 internal data class DemoVerticalApp(
     val id: String,
@@ -29,7 +29,7 @@ internal data class DemoVerticalApp(
 )
 
 /**
- * Canonical catalog of all 6 live Super-App showcase verticals plus the wearable watch glance.
+ * Canonical catalog of all 7 live Super-App showcase verticals plus the wearable watch glance.
  */
 internal object SuperAppDemoCatalog {
     const val DEFAULT_SCREEN_ID = "fresh-home"
@@ -42,6 +42,7 @@ internal object SuperAppDemoCatalog {
             DemoVerticalApp("abeta-mart", "Abeta Mart", "Marketplace", "mart-home", ThemePreset.AMBER),
             DemoVerticalApp("abeta-spark", "Abeta Spark", "Swipe Discovery", "spark-deck", ThemePreset.INDIGO),
             DemoVerticalApp("abeta-trade", "Abeta Trade", "B2B Wholesale", "trade-home", ThemePreset.EMERALD),
+            DemoVerticalApp("abeta-pay", "Abeta Pay", "Fintech & Wallet", "pay-home", ThemePreset.INDIGO),
             DemoVerticalApp(
                 id = "abeta-watch",
                 name = "Abeta Watch",
@@ -55,19 +56,34 @@ internal object SuperAppDemoCatalog {
     private val screenToAppId: Map<String, String> =
         mapOf(
             "fresh-home" to "abeta-fresh",
+            "fresh-item-detail" to "abeta-fresh",
+            "fresh-cart" to "abeta-fresh",
             "fresh-order-track" to "abeta-fresh",
             "store-home" to "abeta-fresh",
             "bites-home" to "abeta-bites",
             "bites-restaurant" to "abeta-bites",
+            "bites-cart" to "abeta-bites",
             "bites-order-track" to "abeta-bites",
             "pulse-home" to "abeta-pulse",
             "pulse-event-detail" to "abeta-pulse",
+            "pulse-checkout" to "abeta-pulse",
+            "pulse-ticket-pass" to "abeta-pulse",
             "mart-home" to "abeta-mart",
             "mart-product-detail" to "abeta-mart",
+            "mart-checkout" to "abeta-mart",
+            "mart-order-track" to "abeta-mart",
             "spark-deck" to "abeta-spark",
             "spark-matches" to "abeta-spark",
+            "spark-chat" to "abeta-spark",
+            "spark-preferences" to "abeta-spark",
             "trade-home" to "abeta-trade",
             "trade-supplier" to "abeta-trade",
+            "trade-quotes" to "abeta-trade",
+            "trade-po-track" to "abeta-trade",
+            "pay-home" to "abeta-pay",
+            "pay-transfer" to "abeta-pay",
+            "pay-cards" to "abeta-pay",
+            "pay-receipt" to "abeta-pay",
             "watch-status" to "abeta-watch",
         )
 
@@ -87,53 +103,76 @@ internal object SuperAppDemoCatalog {
     fun resolveInitialScreen(rawAppOrScreen: String?): String {
         val clean = rawAppOrScreen?.trim()?.lowercase().orEmpty()
         if (clean.isEmpty()) return DEFAULT_SCREEN_ID
-        val byApp = apps.firstOrNull { it.id == clean || it.entryScreen == clean }
+        val byApp =
+            apps.firstOrNull { app ->
+                app.id == clean || app.id.removePrefix("abeta-") == clean || app.entryScreen == clean
+            }
         return byApp?.entryScreen ?: if (clean in screenToAppId) clean else DEFAULT_SCREEN_ID
     }
 }
 
 /**
- * Pure Kotlin Multiplatform in-memory [ScreenRepository] serving all 6 live Super-App verticals,
- * multi-screen subroutes, live `?q=` search filtering, and `?filter=` chip filtering with zero server required.
+ * Pure Kotlin Multiplatform in-memory [ScreenRepository] serving all 7 live Super-App verticals,
+ * multi-step subroutes, live `?q=` search, `?filter=` chips, `?stage=` trackers, and `?amount=`
+ * quick selectors with zero server required.
  */
 internal class StorybookDemoScreenRepository : ScreenRepository {
-    private val routeFactories: Map<String, (String, String) -> PageResponse> =
+    private val routeFactories: Map<String, (Map<String, String>) -> PageResponse> =
         mapOf(
-            "fresh-home" to { q, f -> SuperAppDemoCommercePages.freshHome(q, f) },
-            "store-home" to { q, f -> SuperAppDemoCommercePages.freshHome(q, f) },
-            "home" to { q, f -> SuperAppDemoCommercePages.freshHome(q, f) },
-            "fresh-order-track" to { _, _ -> SuperAppDemoCommercePages.freshOrderTrack() },
-            "bites-home" to { q, f -> SuperAppDemoCommercePages.bitesHome(q, f) },
-            "bites-restaurant" to { _, _ -> SuperAppDemoCommercePages.bitesRestaurant() },
-            "bites-order-track" to { _, _ -> SuperAppDemoCommercePages.bitesOrderTrack() },
-            "mart-home" to { q, f -> SuperAppDemoCommercePages.martHome(q, f) },
-            "catalog" to { q, f -> SuperAppDemoCommercePages.martHome(q, f) },
-            "mart-product-detail" to { _, _ -> SuperAppDemoCommercePages.martProductDetail() },
-            "pulse-home" to { q, f -> SuperAppDemoDiscoveryPages.pulseHome(q, f) },
-            "pulse-event-detail" to { _, _ -> SuperAppDemoDiscoveryPages.pulseEventDetail() },
-            "spark-deck" to { _, f -> SuperAppDemoDiscoveryPages.sparkDeck(f.ifEmpty { "nearby" }) },
-            "spark-matches" to { _, _ -> SuperAppDemoDiscoveryPages.sparkMatches() },
-            "trade-home" to { q, f -> SuperAppDemoDiscoveryPages.tradeHome(q, f) },
-            "form-demo" to { q, f -> SuperAppDemoDiscoveryPages.tradeHome(q, f) },
-            "trade-supplier" to { _, _ -> SuperAppDemoDiscoveryPages.tradeSupplier() },
-            "profile" to { _, _ -> SuperAppDemoDiscoveryPages.tradeSupplier() },
-            "containers" to { _, _ -> SuperAppDemoDiscoveryPages.tradeSupplier() },
-            "watch-status" to { _, _ -> SuperAppDemoDiscoveryPages.watchStatus() },
+            "fresh-home" to { p -> SuperAppDemoCommercePages.freshHome(p.q(), p.filter()) },
+            "store-home" to { p -> SuperAppDemoCommercePages.freshHome(p.q(), p.filter()) },
+            "home" to { p -> SuperAppDemoCommercePages.freshHome(p.q(), p.filter()) },
+            "fresh-item-detail" to { _ -> SuperAppDemoFreshWorkflows.freshItemDetail() },
+            "fresh-cart" to { p -> SuperAppDemoFreshWorkflows.freshCart(p["slot"].orEmpty(), p["promo"].orEmpty()) },
+            "fresh-order-track" to { p -> SuperAppDemoFreshWorkflows.freshOrderTrack(p.stage(DEFAULT_TRACK_STAGE)) },
+            "bites-home" to { p -> SuperAppDemoCommercePages.bitesHome(p.q(), p.filter()) },
+            "bites-restaurant" to { _ -> SuperAppDemoCommercePages.bitesRestaurant() },
+            "bites-cart" to { p -> SuperAppDemoCommerceWorkflows.bitesCart(p["promo"].orEmpty()) },
+            "bites-order-track" to { p -> SuperAppDemoCommerceWorkflows.bitesOrderTrack(p.stage(DEFAULT_TRACK_STAGE)) },
+            "mart-home" to { p -> SuperAppDemoCommercePages.martHome(p.q(), p.filter()) },
+            "catalog" to { p -> SuperAppDemoCommercePages.martHome(p.q(), p.filter()) },
+            "mart-product-detail" to { _ -> SuperAppDemoCommercePages.martProductDetail() },
+            "mart-checkout" to { p -> SuperAppDemoCommerceWorkflows.martCheckout(p["shipping"].orEmpty()) },
+            "mart-order-track" to { p -> SuperAppDemoCommerceWorkflows.martOrderTrack(p.stage(DEFAULT_SECOND_STAGE)) },
+            "pulse-home" to { p -> SuperAppDemoDiscoveryPages.pulseHome(p.q(), p.filter()) },
+            "pulse-event-detail" to { _ -> SuperAppDemoDiscoveryPages.pulseEventDetail() },
+            "pulse-checkout" to { p -> SuperAppDemoDiscoveryWorkflows.pulseCheckout(p["tier"].orEmpty()) },
+            "pulse-ticket-pass" to { _ -> SuperAppDemoDiscoveryWorkflows.pulseTicketPass() },
+            "spark-deck" to { p -> SuperAppDemoDiscoveryPages.sparkDeck(p["filter"].orEmpty().ifEmpty { "nearby" }) },
+            "spark-matches" to { _ -> SuperAppDemoDiscoveryPages.sparkMatches() },
+            "spark-chat" to { _ -> SuperAppDemoDiscoveryWorkflows.sparkChat() },
+            "spark-preferences" to { _ -> SuperAppDemoDiscoveryWorkflows.sparkPreferences() },
+            "trade-home" to { p -> SuperAppDemoDiscoveryPages.tradeHome(p.q(), p.filter()) },
+            "form-demo" to { p -> SuperAppDemoDiscoveryPages.tradeHome(p.q(), p.filter()) },
+            "trade-supplier" to { _ -> SuperAppDemoDiscoveryPages.tradeSupplier() },
+            "trade-quotes" to { _ -> SuperAppDemoDiscoveryWorkflows.tradeQuotes() },
+            "trade-po-track" to { p -> SuperAppDemoDiscoveryWorkflows.tradePoTrack(p.stage(DEFAULT_SECOND_STAGE)) },
+            "pay-home" to { _ -> SuperAppDemoPayPages.payHome() },
+            "pay-transfer" to { p -> SuperAppDemoPayPages.payTransfer(p["amount"].orEmpty()) },
+            "pay-cards" to { _ -> SuperAppDemoPayPages.payCards() },
+            "pay-receipt" to { p -> SuperAppDemoPayPages.payReceipt(p.stage(DEFAULT_SECOND_STAGE)) },
+            "profile" to { _ -> SuperAppDemoDiscoveryPages.tradeSupplier() },
+            "containers" to { _ -> SuperAppDemoDiscoveryPages.tradeSupplier() },
+            "watch-status" to { _ -> SuperAppDemoDiscoveryPages.watchStatus() },
         )
 
     override suspend fun fetchScreen(screenId: String): AppResult<PageResponse> {
         val trimmed = screenId.trim().removePrefix("/screens/").removePrefix("/")
         val base = trimmed.substringBefore("?")
         val params = parseQueryParams(trimmed.substringAfter("?", ""))
-        val query = params["q"].orEmpty()
-        val filter = params["filter"].orEmpty().ifEmpty { "all" }
-        val page = routeFactories[base]?.invoke(query, filter)
+        val page = routeFactories[base]?.invoke(params)
         return if (page != null) {
             AppResult.Success(page)
         } else {
             AppResult.Failure(NotFoundError(resource = base, message = "Demo screen '$base' not found."))
         }
     }
+
+    private fun Map<String, String>.q(): String = this["q"].orEmpty()
+
+    private fun Map<String, String>.filter(): String = this["filter"].orEmpty().ifEmpty { "all" }
+
+    private fun Map<String, String>.stage(defaultStage: Int): Int = this["stage"]?.toIntOrNull() ?: defaultStage
 
     private fun parseQueryParams(queryString: String): Map<String, String> {
         if (queryString.isBlank()) return emptyMap()
@@ -168,12 +207,14 @@ internal class StorybookDemoScreenRepository : ScreenRepository {
     private companion object {
         const val HEX_RADIX = 16
         const val PERCENT_TOKEN_LEN = 3
+        const val DEFAULT_SECOND_STAGE = 2
+        const val DEFAULT_TRACK_STAGE = 3
     }
 }
 
 /**
- * Pure Kotlin Multiplatform [ApiCallExecutor] simulating all 6 live vertical checkout, booking,
- * swipe, and RFQ BFF endpoints with confetti celebration overlays and follow-up navigation.
+ * Pure Kotlin Multiplatform [ApiCallExecutor] simulating all 7 live vertical checkout, booking,
+ * swipe, chat, RFQ, PO, and instant P2P transfer endpoints with celebration overlays and routing.
  */
 internal class StorybookDemoApiExecutor : ApiCallExecutor {
     override suspend fun execute(
@@ -198,63 +239,112 @@ internal class StorybookDemoApiExecutor : ApiCallExecutor {
         )
     }
 
-    private fun resolveFollowUps(payload: CallApiPayload): List<ActionRef> =
-        when (payload.endpoint.substringBefore("?")) {
-            "/api/v1/orders/express",
-            "/api/v1/fresh/orders/express",
-            -> {
-                celebrationWithToast(
-                    idPrefix = "fresh_order",
-                    title = "Express Order Confirmed!",
-                    subtitle = "Abeta Fresh rider Aarav K. arriving in 6 minutes",
-                    toastMessage = "Order #FRH-8042 placed! Live rider tracker opened.",
-                ) + navFollowUp("fresh_nav_track", "fresh-order-track")
+    private val endpointCelebrations: Map<String, EndpointOutcomeSpec> =
+        mapOf(
+            "/api/v1/orders/express" to
+                EndpointOutcomeSpec(
+                    "fresh_order",
+                    "Express Order Confirmed!",
+                    "Abeta Fresh rider Aarav K. arriving in 6 minutes",
+                    "Order #FRH-8042 placed! Live rider tracker opened.",
+                    "fresh-order-track?stage=2",
+                ),
+            "/api/v1/fresh/orders/express" to
+                EndpointOutcomeSpec(
+                    "fresh_order",
+                    "Express Order Confirmed!",
+                    "Abeta Fresh rider Aarav K. arriving in 6 minutes",
+                    "Order #FRH-8042 placed! Live rider tracker opened.",
+                    "fresh-order-track?stage=2",
+                ),
+            "/api/v1/bites/orders" to
+                EndpointOutcomeSpec(
+                    "bites_order",
+                    "Meal Order Placed!",
+                    "Saffron Hearth Kitchen is preparing your order",
+                    "Order #BTS-4091 placed! Live tracking ready.",
+                    "bites-order-track?stage=2",
+                ),
+            "/api/v1/mart/orders" to
+                EndpointOutcomeSpec(
+                    "mart_order",
+                    "Mart Order Placed!",
+                    "Same-day dispatch scheduled · 10% cashback applied",
+                    "Shipment #MRT-5518 confirmed! Tracking opened.",
+                    "mart-order-track?stage=2",
+                ),
+            "/api/v1/pulse/bookings" to
+                EndpointOutcomeSpec(
+                    "pulse_booking",
+                    "QR Pass Issued!",
+                    "Pass #PLS-7712 · Gate 4B · Row C Seat 12–13 ready",
+                    "Tickets Booked! Digital QR pass opened.",
+                    "pulse-ticket-pass",
+                ),
+            "/api/v1/pulse/checkout" to
+                EndpointOutcomeSpec(
+                    "pulse_booking",
+                    "QR Pass Issued!",
+                    "Pass #PLS-7712 · Gate 4B · Row C Seat 12–13 ready",
+                    "Tickets Booked! Digital QR pass opened.",
+                    "pulse-ticket-pass",
+                ),
+            "/api/v1/trade/rfq" to
+                EndpointOutcomeSpec(
+                    "trade_rfq",
+                    "RFQ Submitted!",
+                    "3 live factory quotes received for RFQ #RFQ-9042",
+                    "RFQ #RFQ-9042 submitted — comparing 3 factory bids!",
+                    "trade-quotes",
+                ),
+            "/api/v1/trade/po" to
+                EndpointOutcomeSpec(
+                    "trade_po",
+                    "Purchase Order Issued!",
+                    "PO #TRD-9024 confirmed · Live freight tracker active",
+                    "PO #TRD-9024 issued! Tracking freight milestones.",
+                    "trade-po-track?stage=2",
+                ),
+            "/api/v1/pay/transfer" to
+                EndpointOutcomeSpec(
+                    "pay_transfer",
+                    "Money Sent Instantly!",
+                    "Receipt #PAY-3081 · Zero fee · 5% reward queued",
+                    "Instant transfer #PAY-3081 dispatched to @maya.chen!",
+                    "pay-receipt?stage=2",
+                ),
+        )
+
+    private fun resolveFollowUps(payload: CallApiPayload): List<ActionRef> {
+        val path = payload.endpoint.substringBefore("?")
+        val spec = endpointCelebrations[path]
+        return when {
+            spec != null -> {
+                celebrationWithToast(spec.idPrefix, spec.title, spec.subtitle, spec.toastMessage) +
+                    navFollowUp("${spec.idPrefix}_nav", spec.route)
             }
 
-            "/api/v1/bites/orders" -> {
-                celebrationWithToast(
-                    idPrefix = "bites_order",
-                    title = "Meal Order Placed!",
-                    subtitle = "Saffron Hearth Kitchen is preparing your order",
-                    toastMessage = "Order #BTS-4091 placed! Live tracking ready.",
-                ) + navFollowUp("bites_nav_track", "bites-order-track")
-            }
-
-            "/api/v1/pulse/bookings" -> {
-                celebrationWithToast(
-                    idPrefix = "pulse_booking",
-                    title = "Tickets Booked!",
-                    subtitle = "Instant QR passes saved to your Abeta Pulse wallet",
-                    toastMessage = "Tickets Booked! QR passes ready.",
-                )
-            }
-
-            "/api/v1/mart/orders" -> {
-                celebrationWithToast(
-                    idPrefix = "mart_order",
-                    title = "Order Placed!",
-                    subtitle = "Same-day dispatch scheduled from Abeta Mart Hub",
-                    toastMessage = "Order Placed! Same-day dispatch confirmed.",
-                )
-            }
-
-            "/api/v1/spark/swipe" -> {
+            path == "/api/v1/spark/swipe" -> {
                 sparkFollowUps(payload)
             }
 
-            "/api/v1/trade/rfq" -> {
-                celebrationWithToast(
-                    idPrefix = "trade_rfq",
-                    title = "RFQ Submitted!",
-                    subtitle = "Quote request #RFQ-9042 dispatched to GST supplier",
-                    toastMessage = "RFQ #RFQ-9042 submitted to supplier!",
-                )
+            path == "/api/v1/spark/chat" -> {
+                listOf(toastFollowUp("spark_chat_sent", "Message sent to Maya Chen!", "success", TOAST_MS))
             }
 
             else -> {
                 emptyList()
             }
         }
+    }
+
+    private data class EndpointOutcomeSpec(
+        val idPrefix: String,
+        val title: String,
+        val subtitle: String,
+        val toastMessage: String,
+        val route: String,
+    )
 
     private fun sparkFollowUps(payload: CallApiPayload): List<ActionRef> {
         val action =
@@ -271,18 +361,7 @@ internal class StorybookDemoApiExecutor : ApiCallExecutor {
                 toastMessage = "It's a Match!",
             )
         } else {
-            listOf(
-                ActionRef(
-                    id = "spark_pass_toast",
-                    type = ActionTypes.SHOW_TOAST,
-                    payload =
-                        buildJsonObject {
-                            put("message", "Passed — showing next profile")
-                            put("duration_ms", PASS_TOAST_MS)
-                            put("variant", "info")
-                        },
-                ),
-            )
+            listOf(toastFollowUp("spark_pass_toast", "Passed — showing next profile", "info", PASS_TOAST_MS))
         }
     }
 
@@ -304,16 +383,24 @@ internal class StorybookDemoApiExecutor : ApiCallExecutor {
                         put("duration_ms", CELEBRATION_MS)
                     },
             ),
-            ActionRef(
-                id = "${idPrefix}_toast",
-                type = ActionTypes.SHOW_TOAST,
-                payload =
-                    buildJsonObject {
-                        put("message", toastMessage)
-                        put("duration_ms", TOAST_MS)
-                        put("variant", "success")
-                    },
-            ),
+            toastFollowUp("${idPrefix}_toast", toastMessage, "success", TOAST_MS),
+        )
+
+    private fun toastFollowUp(
+        id: String,
+        message: String,
+        variant: String,
+        durationMs: Long,
+    ): ActionRef =
+        ActionRef(
+            id = id,
+            type = ActionTypes.SHOW_TOAST,
+            payload =
+                buildJsonObject {
+                    put("message", message)
+                    put("duration_ms", durationMs)
+                    put("variant", variant)
+                },
         )
 
     private fun navFollowUp(

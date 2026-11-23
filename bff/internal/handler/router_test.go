@@ -124,7 +124,7 @@ func TestScreenEndpoints(t *testing.T) {
 		t.Fatalf("invalid list envelope: %s, err=%v", w.Body.String(), err)
 	}
 
-	for _, id := range []string{"home", "catalog", "containers", "profile", "form-demo", "store-home", "watch-status"} {
+	for _, id := range []string{"home", "catalog", "containers", "profile", "form-demo", "store-home", "watch-status", "pay-home", "pay-transfer", "pay-cards", "pay-receipt"} {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/v1/screens/"+id, nil))
 		if w.Code != http.StatusOK {
@@ -296,6 +296,30 @@ func TestActionExecuteEndpoint(t *testing.T) {
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400 for malformed POST /api/v1/orders/express, got %d", w.Code)
 	}
+
+	// Direct POST /api/v1/pay/transfer endpoint (valid body, empty body, and malformed body)
+	w = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPost, "/api/v1/pay/transfer", strings.NewReader(`{"recipient":"@maya.chen","amount_cents":12500}`))
+	req.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "Transfer Sent!") || !strings.Contains(w.Body.String(), "pay-receipt") {
+		t.Fatalf("expected 200 with celebration & pay-receipt nav on POST /api/v1/pay/transfer, got %d: %s", w.Code, w.Body.String())
+	}
+
+	w = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPost, "/api/v1/pay/transfer", nil)
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 on empty POST /api/v1/pay/transfer, got %d: %s", w.Code, w.Body.String())
+	}
+
+	w = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPost, "/api/v1/pay/transfer", strings.NewReader("{bad"))
+	req.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for malformed POST /api/v1/pay/transfer, got %d", w.Code)
+	}
 }
 
 func TestCatalogTokensAndCORSAndPanicRecovery(t *testing.T) {
@@ -343,6 +367,7 @@ func TestRouter_NilServicesAndFallbackErrors(t *testing.T) {
 		{http.MethodGet, "/api/v1/screens/home", ""},
 		{http.MethodPost, "/api/v1/actions/execute", `{"trigger":{"id":"a","type":"back_press"}}`},
 		{http.MethodPost, "/api/v1/orders/express", `{}`},
+		{http.MethodPost, "/api/v1/pay/transfer", `{}`},
 		{http.MethodGet, "/api/v1/catalog/tokens", ""},
 	}
 

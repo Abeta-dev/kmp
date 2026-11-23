@@ -125,6 +125,10 @@ private fun resolveArtworkPalette(url: String): DemoArtworkPalette {
     val colors = ThemeTokens.colors
     val slug = url.lowercase()
     return when {
+        slug.contains("pay") -> {
+            DemoArtworkPalette(colors.brand.primary, colors.status.warning, "star")
+        }
+
         slug.contains("spark") -> {
             DemoArtworkPalette(colors.brand.primary, colors.status.warning, "person")
         }

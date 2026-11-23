@@ -9,8 +9,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runComposeUiTest
+import dev.abeta.kmp.actions.model.ActionContext
+import dev.abeta.kmp.actions.model.CallApiPayload
+import dev.abeta.kmp.core.result.AppResult
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class StorybookComposeTest {
@@ -18,7 +23,7 @@ class StorybookComposeTest {
     fun switchingToControlsSnippetsAndLiveBffStoriesRendersWithoutCrash() =
         runComposeUiTest {
             setContent {
-                StorybookApp()
+                StorybookApp(initialReducedMotion = true)
             }
 
             onNodeWithText("Welcome to Abeta KMP Storybook").assertIsDisplayed()
@@ -60,13 +65,13 @@ class StorybookComposeTest {
             onNodeWithText("Responsive & OS Bridges").performScrollTo().performClick()
             onNodeWithText("Adaptive Form-Factor Breakpoints").assertIsDisplayed()
             onNodeWithText("Watch (260dp)").performClick()
-            onNodeWithText("Core OS Bridges & Capabilities").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Core OS Bridges & Capabilities").assertIsDisplayed()
             onNodeWithText("Shake Error Test").performScrollTo().performClick()
 
             onNodeWithText("Discovery, Search & Swipe").performScrollTo().performClick()
-            onNodeWithText("Search Bar & Live Query Binding").performScrollTo().assertIsDisplayed()
-            onNodeWithText("Category & Filter Chip Groups").performScrollTo().assertIsDisplayed()
-            onNodeWithText("Abeta Spark · Swipe Discovery Deck").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Search Bar & Live Query Binding").assertIsDisplayed()
+            onNodeWithText("Category & Filter Chip Groups").assertIsDisplayed()
+            onNodeWithText("Abeta Spark · Swipe Discovery Deck").assertIsDisplayed()
             onNodeWithContentDescription("Like").performScrollTo().performClick()
             onNodeWithText("It's a Match!").assertIsDisplayed()
             onNodeWithContentDescription("Dismiss celebration").performClick()
@@ -79,7 +84,7 @@ class StorybookComposeTest {
         StoryCatalog.entries.forEach { entry ->
             runComposeUiTest {
                 setContent {
-                    StorybookApp(initialStoryId = entry.id)
+                    StorybookApp(initialStoryId = entry.id, initialReducedMotion = true)
                 }
                 onNodeWithText(entry.subtitle).assertIsDisplayed()
             }
@@ -87,30 +92,119 @@ class StorybookComposeTest {
     }
 
     @Test
-    fun superAppDemosStorySwitchesAcrossAllSixVerticalsInteractively() =
+    fun superAppDemosStorySwitchesAcrossAllSevenVerticalsAndWatchInteractively() =
         runComposeUiTest {
             setContent {
-                StorybookApp(initialStoryId = StoryCatalog.STORY_SUPER_APP_DEMOS)
+                StorybookApp(initialStoryId = StoryCatalog.STORY_SUPER_APP_DEMOS, initialReducedMotion = true)
             }
 
             onNodeWithText("/screens/fresh-home").assertIsDisplayed()
-            onNode(hasText("Abeta Bites") and hasClickAction()).performClick()
+            onNode(hasText("Abeta Bites") and hasClickAction()).performScrollTo().performClick()
             onNodeWithText("/screens/bites-home").assertIsDisplayed()
-            onNode(hasText("Abeta Pulse") and hasClickAction()).performClick()
+            onNode(hasText("Abeta Pulse") and hasClickAction()).performScrollTo().performClick()
             onNodeWithText("/screens/pulse-home").assertIsDisplayed()
-            onNode(hasText("Abeta Mart") and hasClickAction()).performClick()
+            onNode(hasText("Abeta Mart") and hasClickAction()).performScrollTo().performClick()
             onNodeWithText("/screens/mart-home").assertIsDisplayed()
-            onNode(hasText("Abeta Spark") and hasClickAction()).performClick()
+            onNode(hasText("Abeta Spark") and hasClickAction()).performScrollTo().performClick()
             onNodeWithText("/screens/spark-deck").assertIsDisplayed()
-            onNode(hasText("Abeta Trade") and hasClickAction()).performClick()
+            onNode(hasText("Abeta Trade") and hasClickAction()).performScrollTo().performClick()
             onNodeWithText("/screens/trade-home").assertIsDisplayed()
+            onNode(hasText("Abeta Pay") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("/screens/pay-home").assertIsDisplayed()
+            onNode(hasText("Abeta Watch") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("/screens/watch-status").assertIsDisplayed()
+        }
+
+    @Test
+    fun superAppDemoRepositoryAndApiExecutorServeAllMultiStepWorkflowRoutes() =
+        runBlocking {
+            val repo = StorybookDemoScreenRepository()
+            val routes =
+                listOf(
+                    "fresh-item-detail",
+                    "fresh-cart?slot=scheduled&promo=FRESH20",
+                    "fresh-order-track?stage=2",
+                    "bites-cart?promo=BITES50",
+                    "bites-order-track?stage=3",
+                    "mart-checkout?shipping=standard",
+                    "mart-order-track?stage=2",
+                    "pulse-checkout?tier=arena_gold",
+                    "pulse-ticket-pass",
+                    "spark-chat",
+                    "spark-preferences",
+                    "trade-quotes",
+                    "trade-po-track?stage=2",
+                    "pay-home",
+                    "pay-transfer?amount=100",
+                    "pay-cards",
+                    "pay-receipt?stage=2",
+                )
+            for (route in routes) {
+                val res = repo.fetchScreen(route)
+                assertTrue(res is AppResult.Success, "Failed to fetch $route")
+            }
+
+            val executor = StorybookDemoApiExecutor()
+            val endpoints =
+                listOf(
+                    "/api/v1/fresh/orders/express" to "fresh-order-track?stage=2",
+                    "/api/v1/bites/orders" to "bites-order-track?stage=2",
+                    "/api/v1/mart/orders" to "mart-order-track?stage=2",
+                    "/api/v1/pulse/checkout" to "pulse-ticket-pass",
+                    "/api/v1/trade/rfq" to "trade-quotes",
+                    "/api/v1/trade/po" to "trade-po-track?stage=2",
+                    "/api/v1/pay/transfer" to "pay-receipt?stage=2",
+                )
+            for ((endpoint, expectedRoute) in endpoints) {
+                val out = executor.execute(CallApiPayload(endpoint = endpoint), ActionContext())
+                assertTrue(out is AppResult.Success, "Failed endpoint $endpoint")
+                val followUpRoutes = out.value.followUpActions.map { it.payload.toString() }
+                assertTrue(followUpRoutes.any { expectedRoute in it }, "Missing $expectedRoute for $endpoint")
+            }
+            val chatOut = executor.execute(CallApiPayload(endpoint = "/api/v1/spark/chat"), ActionContext())
+            assertTrue(chatOut is AppResult.Success && chatOut.value.followUpActions.isNotEmpty())
+        }
+
+    @Test
+    fun superAppPayAndFreshMultiStepFlowsNavigateInteractively() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(
+                    initialStoryId = StoryCatalog.STORY_SUPER_APP_DEMOS,
+                    initialAppScreenId = "pay-home",
+                    initialReducedMotion = true,
+                )
+            }
+
+            onNodeWithText("Hide").performClick()
+            onNodeWithText("/screens/pay-home").assertIsDisplayed()
+            onNodeWithText("•••• 4829 · ACTIVE").assertIsDisplayed()
+            onNodeWithText("Manage Card").assertIsDisplayed().performClick()
+            onNodeWithText("/screens/pay-cards").assertIsDisplayed()
+            onNodeWithText("Back").performScrollTo().performClick()
+            onNodeWithText("/screens/pay-home").assertIsDisplayed()
+            onNodeWithContentDescription("Last Receipt").performClick()
+            onNodeWithText("/screens/pay-receipt?stage=2").assertIsDisplayed()
+            onNodeWithText("Advance Settlement").assertIsDisplayed().performClick()
+            onNodeWithText("/screens/pay-receipt?stage=3").assertIsDisplayed()
+
+            onNode(hasText("Abeta Fresh") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("/screens/fresh-home").assertIsDisplayed()
+            onNodeWithText("Review Cart").assertIsDisplayed().performClick()
+            onNodeWithText("/screens/fresh-cart").assertIsDisplayed()
+            onNodeWithContentDescription("Navigate back").performClick()
+            onNodeWithText("/screens/fresh-home").assertIsDisplayed()
+            onNodeWithContentDescription("Track Fresh order").performClick()
+            onNodeWithText("/screens/fresh-order-track?stage=3").assertIsDisplayed()
+            onNodeWithText("Advance Delivery Stage").assertIsDisplayed().performClick()
+            onNodeWithText("/screens/fresh-order-track?stage=4").assertIsDisplayed()
         }
 
     @Test
     fun animationNudgesStoryAdvancesTrackerUpdatesCounterAndTogglesUrgency() =
         runComposeUiTest {
             setContent {
-                StorybookApp(initialStoryId = StoryCatalog.STORY_ANIMATION_NUDGES)
+                StorybookApp(initialStoryId = StoryCatalog.STORY_ANIMATION_NUDGES, initialReducedMotion = true)
             }
 
             onNodeWithText("Animation & Nudges Test Bench").assertIsDisplayed()
@@ -131,7 +225,7 @@ class StorybookComposeTest {
     fun snippetCrafterStoryTogglesAtomsAndUpdatesLivePreview() =
         runComposeUiTest {
             setContent {
-                StorybookApp(initialStoryId = StoryCatalog.STORY_SNIPPET_CRAFTER)
+                StorybookApp(initialStoryId = StoryCatalog.STORY_SNIPPET_CRAFTER, initialReducedMotion = true)
             }
 
             onNodeWithText("Preset Snippet Molds").assertIsDisplayed()
@@ -152,7 +246,7 @@ class StorybookComposeTest {
     fun endToEndJourneysStoryWalksFreshSparkAndTradeFlows() =
         runComposeUiTest {
             setContent {
-                StorybookApp(initialStoryId = StoryCatalog.STORY_E2E_JOURNEYS)
+                StorybookApp(initialStoryId = StoryCatalog.STORY_E2E_JOURNEYS, initialReducedMotion = true)
             }
 
             onNodeWithText("Super-App End-to-End Journeys").assertIsDisplayed()

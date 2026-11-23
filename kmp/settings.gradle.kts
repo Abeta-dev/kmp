@@ -50,7 +50,7 @@ val useLocalBom = providers.gradleProperty("abeta.kmpLocalBuild")
     .getOrElse(true)
 
 if (useLocalBom) {
-    val group = "dev.abeta.kmp"
+    val group = "io.github.abeta-dev"
     val moduleMappings = mapOf(
         "$group:core" to ":core",
         "$group:state" to ":state",

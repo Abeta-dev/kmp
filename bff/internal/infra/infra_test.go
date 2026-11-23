@@ -3,12 +3,14 @@ package infra_test
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/abeta-dev/go-libs/apperror"
 	"github.com/abeta-dev/kmp/bff/internal/domain"
 	"github.com/abeta-dev/kmp/bff/internal/infra"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 )
 
 func TestInMemoryScreenRepository(t *testing.T) {
@@ -19,7 +21,19 @@ func TestInMemoryScreenRepository(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListScreenIDs error: %v", err)
 	}
-	wantIDs := []string{"catalog", "containers", "form-demo", "home", "profile", "store-home", "watch-status"}
+	wantIDs := []string{
+		"catalog",
+		"containers",
+		"form-demo",
+		"home",
+		"pay-cards",
+		"pay-home",
+		"pay-receipt",
+		"pay-transfer",
+		"profile",
+		"store-home",
+		"watch-status",
+	}
 	if len(ids) != len(wantIDs) {
 		t.Fatalf("got %v, want %v", ids, wantIDs)
 	}
@@ -246,5 +260,132 @@ func TestDefaultActionExecutor_ExpressOrderFollowUps(t *testing.T) {
 	toast, err := actions.DecodePayload[actions.ShowToastPayload](res.FollowUpActions[1])
 	if err != nil || toast.Message != "Express order confirmed!" || toast.Variant != "success" {
 		t.Fatalf("unexpected toast payload: %+v, err=%v", toast, err)
+	}
+}
+
+func TestPayVerticalScreens_WireParity(t *testing.T) {
+	ctx := context.Background()
+	repo := infra.NewInMemoryScreenRepository()
+
+	payScreens := []struct {
+		id              string
+		requiredTypes   []string
+		requiredStrings []string
+	}{
+		{
+			id: "pay-home",
+			requiredTypes: []string{
+				snippets.SnippetTypeSearchBar,
+				snippets.SnippetTypeMarqueeStrip,
+				snippets.SnippetTypeChipGroup,
+				snippets.SnippetTypeMetricCard,
+				snippets.SnippetTypeNudgeBar,
+				snippets.SnippetTypeComposedBlock,
+				snippets.SnippetTypeActionRow,
+				snippets.SnippetTypeCarousel,
+			},
+			requiredStrings: []string{"$2,480.50", "metal_virtual_card", "pay_cashback_cd", "Bill Pay"},
+		},
+		{
+			id: "pay-transfer",
+			requiredTypes: []string{
+				snippets.SnippetTypeHeader,
+				snippets.SnippetTypeChipGroup,
+				snippets.SnippetTypeForm,
+				snippets.SnippetTypeActionRow,
+			},
+			requiredStrings: []string{"pay_recipient", "pay_amount", "biometric_auth", "/api/v1/pay/transfer"},
+		},
+		{
+			id: "pay-cards",
+			requiredTypes: []string{
+				snippets.SnippetTypeHeader,
+				snippets.SnippetTypeMetricCard,
+				snippets.SnippetTypeForm,
+			},
+			requiredStrings: []string{"card_freeze", "card_international", "card_contactless", "card_spend_limit"},
+		},
+		{
+			id: "pay-receipt",
+			requiredTypes: []string{
+				snippets.SnippetTypeOrderTracker,
+				snippets.SnippetTypeActionRow,
+			},
+			requiredStrings: []string{"#PAY-3081", "step_initiated", "step_verified", "step_clearing", "step_settled", `"type":"share"`},
+		},
+	}
+
+	for _, tc := range payScreens {
+		page, err := repo.GetScreen(ctx, tc.id)
+		if err != nil {
+			t.Fatalf("GetScreen(%q) error: %v", tc.id, err)
+		}
+		if page.PageID != tc.id || len(page.Snippets) == 0 {
+			t.Fatalf("expected non-empty PageResponse for %q, got %+v", tc.id, page)
+		}
+		seenTypes := make(map[string]bool, len(page.Snippets))
+		for _, sn := range page.Snippets {
+			seenTypes[sn.SnippetType] = true
+		}
+		for _, wantType := range tc.requiredTypes {
+			if !seenTypes[wantType] {
+				t.Errorf("%q missing expected snippet type %q (got %v)", tc.id, wantType, seenTypes)
+			}
+		}
+		raw, err := json.Marshal(page)
+		if err != nil {
+			t.Fatalf("json.Marshal(%q) error: %v", tc.id, err)
+		}
+		rawStr := string(raw)
+		for _, wantSub := range tc.requiredStrings {
+			if !strings.Contains(rawStr, wantSub) {
+				t.Errorf("%q JSON missing expected token %q", tc.id, wantSub)
+			}
+		}
+	}
+}
+
+func TestDefaultActionExecutor_PayTransferFollowUps(t *testing.T) {
+	ctx := context.Background()
+	exec := infra.NewDefaultActionExecutor()
+
+	res, err := exec.Execute(ctx, domain.ActionExecutionInput{
+		Trigger: actions.NewCallAPIAction("pay_execute_transfer", actions.CallAPIPayload{
+			Endpoint: "/api/v1/pay/transfer",
+			Method:   "POST",
+			Body: map[string]any{
+				"vertical":     "abeta-pay",
+				"recipient":    "@maya.chen",
+				"amount_cents": 12500,
+			},
+		}),
+		ScreenID: "pay-transfer",
+	})
+	if err != nil {
+		t.Fatalf("Execute pay transfer failed: %v", err)
+	}
+	if len(res.FollowUpActions) != 3 {
+		t.Fatalf("expected 3 follow-up actions, got %d (%+v)", len(res.FollowUpActions), res.FollowUpActions)
+	}
+	if res.FollowUpActions[0].Type != actions.ActionTriggerFeedback {
+		t.Fatalf("expected first follow-up trigger_feedback, got %s", res.FollowUpActions[0].Type)
+	}
+	fb, err := actions.DecodePayload[actions.TriggerFeedbackPayload](res.FollowUpActions[0])
+	if err != nil || fb.Effect != actions.FeedbackCelebration || fb.Title != "Transfer Sent!" {
+		t.Fatalf("unexpected celebration payload: %+v, err=%v", fb, err)
+	}
+	if res.FollowUpActions[1].Type != actions.ActionShowToast {
+		t.Fatalf("expected second follow-up show_toast, got %s", res.FollowUpActions[1].Type)
+	}
+	toast, err := actions.DecodePayload[actions.ShowToastPayload](res.FollowUpActions[1])
+	if err != nil || !strings.Contains(toast.Message, "#PAY-3081") || toast.Variant != "success" {
+		t.Fatalf("unexpected toast payload: %+v, err=%v", toast, err)
+	}
+	if res.FollowUpActions[2].Type != actions.ActionNavigate {
+		t.Fatalf("expected third follow-up navigate, got %s", res.FollowUpActions[2].Type)
+	}
+	nav, err := actions.DecodePayload[actions.NavigatePayload](res.FollowUpActions[2])
+	if err != nil || nav.Route != "pay-receipt" {
+		t.Fatalf("unexpected navigate payload: %+v, err=%v", nav, err)
 	}
 }

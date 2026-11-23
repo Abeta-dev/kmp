@@ -168,12 +168,14 @@ private fun runVerticalsHeadless(bffUrl: String?) {
         check(summary.swipeCelebrationTriggered) { "Expected swipe celebration to trigger" }
         check(summary.bookingCelebrationTriggered) { "Expected booking celebration to trigger" }
         check(summary.rfqSubmitted) { "Expected B2B RFQ submission confirmation" }
+        check(summary.payTransferCelebrationTriggered) { "Expected Abeta Pay transfer celebration to trigger" }
         println("Abeta Sample Verticals Headless Verification: OK")
         println("  loadedVerticals=${summary.loadedVerticals}")
         println("  swipeCelebrationTriggered=${summary.swipeCelebrationTriggered}")
         println("  expressOrderCelebrationTriggered=${summary.expressOrderCelebrationTriggered}")
         println("  bookingCelebrationTriggered=${summary.bookingCelebrationTriggered}")
         println("  rfqSubmitted=${summary.rfqSubmitted}")
+        println("  payTransferCelebrationTriggered=${summary.payTransferCelebrationTriggered}")
     } finally {
         container?.close()
         scope.cancel()

@@ -310,9 +310,9 @@ public final class dev/abeta/kmp/layout/snippet/BuiltInSnippetModule {
 public final class dev/abeta/kmp/layout/snippet/ComposableSingletons$SnippetRegistryKt {
 	public static final field INSTANCE Ldev/abeta/kmp/layout/snippet/ComposableSingletons$SnippetRegistryKt;
 	public fun <init> ()V
-	public final fun getLambda$-1911765209$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function4;
-	public final fun getLambda$1726121478$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function4;
-	public final fun getLambda$396503417$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1911765209$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function4;
+	public final fun getLambda$1726121478$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function4;
+	public final fun getLambda$396503417$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class dev/abeta/kmp/layout/snippet/SnippetEntry {
@@ -359,15 +359,15 @@ public abstract interface class dev/abeta/kmp/layout/snippet/SnippetRenderer {
 public final class dev/abeta/kmp/layout/ui/ComposableSingletons$AdaptiveScreenContainersKt {
 	public static final field INSTANCE Ldev/abeta/kmp/layout/ui/ComposableSingletons$AdaptiveScreenContainersKt;
 	public fun <init> ()V
-	public final fun getLambda$-1112546055$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$2103797671$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function4;
+	public final fun getLambda$-1112546055$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$2103797671$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function4;
 }
 
 public final class dev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt {
 	public static final field INSTANCE Ldev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt;
 	public fun <init> ()V
-	public final fun getLambda$-2124544332$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function4;
-	public final fun getLambda$1796766854$dev_abeta_kmp_sdui_layout ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-2124544332$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function4;
+	public final fun getLambda$1796766854$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class dev/abeta/kmp/layout/ui/SduiHostRootKt {

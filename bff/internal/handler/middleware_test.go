@@ -324,6 +324,7 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"/api/v1/screens/{screenId}",
 		"/api/v1/actions/execute",
 		"/api/v1/orders/express",
+		"/api/v1/pay/transfer",
 		"/api/v1/catalog/tokens",
 	} {
 		if _, ok := spec.Paths[route]; !ok {
@@ -331,7 +332,7 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		}
 	}
 	rawSpec := w.Body.String()
-	for _, screenID := range []string{"home", "store-home", "catalog", "profile", "form-demo", "containers", "watch-status"} {
+	for _, screenID := range []string{"home", "store-home", "catalog", "profile", "form-demo", "containers", "watch-status", "pay-home", "pay-transfer", "pay-cards", "pay-receipt"} {
 		if !strings.Contains(rawSpec, `"`+screenID+`"`) {
 			t.Errorf("openapi.json missing screen documentation for %q", screenID)
 		}

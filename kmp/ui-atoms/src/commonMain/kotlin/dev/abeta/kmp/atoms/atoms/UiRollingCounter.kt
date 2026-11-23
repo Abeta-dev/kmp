@@ -1,24 +1,24 @@
 package dev.abeta.kmp.atoms.atoms
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.text
@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import dev.abeta.kmp.tokens.ThemeTokens
 
 private const val TABULAR_NUMBERS_FEATURE = "tnum"
+private const val MIN_ROLL_DURATION_MS = 200
 private val DIGIT_SAMPLES = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 
 /**
@@ -49,9 +50,10 @@ fun shouldRollDigitUp(
 /**
  * Stateless rolling odometer text counter UI atom.
  *
- * Animates changing numeric digits vertically with slide-and-fade transitions while keeping
- * non-digit glyphs stable, exposing a single merged accessibility text node, and collapsing
- * cleanly to static text when [dev.abeta.kmp.tokens.MotionTokens.reducedMotion] is enabled.
+ * Animates changing numeric digits vertically purely in [graphicsLayer] (zero `AnimatedContent`
+ * subtree churn, zero layout shifts across tabular digit slots) while keeping non-digit glyphs
+ * stable, exposing a single merged accessibility text node, and collapsing cleanly to static text
+ * when [dev.abeta.kmp.tokens.MotionTokens.reducedMotion] is enabled.
  */
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")
@@ -82,6 +84,7 @@ fun UiRollingCounter(
     }
 
     val digitSlotWidth = rememberTabularDigitWidth(tabularStyle)
+    val rollDurationMs = motion.fastMs.coerceAtLeast(MIN_ROLL_DURATION_MS)
 
     Row(
         modifier =
@@ -97,7 +100,7 @@ fun UiRollingCounter(
                 if (ch.isDigit()) {
                     RollingDigitSlot(
                         digit = ch,
-                        durationMs = motion.fastMs,
+                        durationMs = rollDurationMs,
                         slotWidth = digitSlotWidth,
                         style = tabularStyle,
                         color = color,
@@ -138,33 +141,53 @@ private fun RollingDigitSlot(
     style: TextStyle,
     color: Color,
 ) {
-    Box(
-        modifier = Modifier.width(slotWidth),
-        contentAlignment = Alignment.Center,
-    ) {
-        AnimatedContent(
-            targetState = digit,
-            transitionSpec = {
-                val rollUp = shouldRollDigitUp(previous = initialState, current = targetState)
-                val enter =
-                    slideInVertically(animationSpec = tween(durationMillis = durationMs)) { height ->
-                        if (rollUp) height else -height
-                    } + fadeIn(animationSpec = tween(durationMillis = durationMs))
-                val exit =
-                    slideOutVertically(animationSpec = tween(durationMillis = durationMs)) { height ->
-                        if (rollUp) -height else height
-                    } + fadeOut(animationSpec = tween(durationMillis = durationMs))
-                (enter togetherWith exit).using(SizeTransform(clip = true, sizeAnimationSpec = { _, _ -> snap() }))
-            },
-            label = "rolling_counter_digit",
-        ) { currentDigit ->
-            Text(
-                text = currentDigit.toString(),
-                style = style,
-                color = color,
-                maxLines = 1,
-                softWrap = false,
+    var previousDigit by remember { mutableStateOf(digit) }
+    var currentDigit by remember { mutableStateOf(digit) }
+    var rollUp by remember { mutableStateOf(true) }
+    val progress = remember { Animatable(1f) }
+
+    LaunchedEffect(digit) {
+        if (digit != currentDigit) {
+            previousDigit = currentDigit
+            rollUp = shouldRollDigitUp(previous = currentDigit, current = digit)
+            currentDigit = digit
+            progress.snapTo(0f)
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = durationMs, easing = FastOutSlowInEasing),
             )
         }
+    }
+
+    Box(
+        modifier = Modifier.width(slotWidth).clipToBounds(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = previousDigit.toString(),
+            style = style,
+            color = color,
+            maxLines = 1,
+            softWrap = false,
+            modifier =
+                Modifier.graphicsLayer {
+                    val p = progress.value
+                    alpha = if (p < 1f) 1f - p else 0f
+                    translationY = if (rollUp) -size.height * p else size.height * p
+                },
+        )
+        Text(
+            text = currentDigit.toString(),
+            style = style,
+            color = color,
+            maxLines = 1,
+            softWrap = false,
+            modifier =
+                Modifier.graphicsLayer {
+                    val p = progress.value
+                    alpha = p
+                    translationY = if (rollUp) size.height * (1f - p) else -size.height * (1f - p)
+                },
+        )
     }
 }

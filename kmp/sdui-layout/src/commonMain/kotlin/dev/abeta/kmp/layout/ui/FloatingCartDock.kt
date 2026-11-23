@@ -55,6 +55,7 @@ import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.layout.engine.LayoutUiState
 import dev.abeta.kmp.layout.engine.computeFloatingCartSummary
+import dev.abeta.kmp.layout.engine.extractProductCards
 import dev.abeta.kmp.layout.engine.formatUsdCents
 import dev.abeta.kmp.tokens.ThemeTokens
 
@@ -118,9 +119,10 @@ internal fun FloatingCartDockHost(
     modifier: Modifier = Modifier,
 ) {
     val motionTokens = ThemeTokens.motion
+    val productCards = remember(state.page) { extractProductCards(state.page) }
     val summary =
-        remember(state.page, state.formValues) {
-            computeFloatingCartSummary(state.page, state.formValues)
+        remember(productCards, state.formValues) {
+            computeFloatingCartSummary(productCards, state.formValues)
         }
     val visible = !summary.hasProductCards || summary.itemCount > 0
     val resolvedLabel =

@@ -33,7 +33,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaKmp") {
-            from("dev.abeta.kmp:dependencies:0.1.0")
+            from("io.github.abeta-dev:dependencies:0.2.0")
         }
     }
 }
@@ -41,20 +41,21 @@ dependencyResolutionManagement {
 
 ```kotlin
 // build.gradle.kts (commonMain)
+// Note: Maven Central coordinates use verified `io.github.abeta-dev:*`; Kotlin imports remain `dev.abeta.kmp.*`.
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0"))
-            implementation("dev.abeta.kmp:core")
-            implementation("dev.abeta.kmp:database") // Optional Room 3 KMP local SQLite DB
-            implementation("dev.abeta.kmp:design-tokens")
-            implementation("dev.abeta.kmp:sdui-contracts")
-            implementation("dev.abeta.kmp:ui-atoms")
-            implementation("dev.abeta.kmp:action-engine")
-            implementation("dev.abeta.kmp:network")
-            implementation("dev.abeta.kmp:sdui-layout")
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.2.0"))
+            implementation("io.github.abeta-dev:core")
+            implementation("io.github.abeta-dev:database") // Optional Room 3 KMP local SQLite DB
+            implementation("io.github.abeta-dev:design-tokens")
+            implementation("io.github.abeta-dev:sdui-contracts")
+            implementation("io.github.abeta-dev:ui-atoms")
+            implementation("io.github.abeta-dev:action-engine")
+            implementation("io.github.abeta-dev:network")
+            implementation("io.github.abeta-dev:sdui-layout")
             // Optional headless wearable companion:
-            // implementation("dev.abeta.kmp:watch-companion")
+            // implementation("io.github.abeta-dev:watch-companion")
         }
     }
 }
@@ -78,9 +79,9 @@ dependencyResolutionManagement {
 ```kotlin
 // build.gradle.kts (commonMain)
 commonMain.dependencies {
-    implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0-SNAPSHOT"))
-    implementation("dev.abeta.kmp:database")
-    implementation("dev.abeta.kmp:sdui-layout")
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.2.0-SNAPSHOT"))
+    implementation("io.github.abeta-dev:database")
+    implementation("io.github.abeta-dev:sdui-layout")
 }
 ```
 

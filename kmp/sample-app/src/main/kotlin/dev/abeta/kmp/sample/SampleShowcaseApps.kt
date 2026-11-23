@@ -6,9 +6,14 @@ import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.layout.engine.LayoutUiState
 import dev.abeta.kmp.tokens.ThemePreset
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+
+private const val PAY_TRANSFER_AMOUNT_CENTS = 12500
+private const val PAY_SETTLEMENT_TIMEOUT_MS = 3000L
 
 /**
  * Metadata describing a BFF-driven vertical showcase app in the Super-App launcher.
@@ -30,6 +35,7 @@ data class VerticalsVerificationSummary(
     val expressOrderCelebrationTriggered: Boolean,
     val bookingCelebrationTriggered: Boolean,
     val rfqSubmitted: Boolean,
+    val payTransferCelebrationTriggered: Boolean,
 )
 
 internal enum class SampleLauncherMode {
@@ -45,7 +51,7 @@ internal fun launcherModeForScreen(screenId: String): SampleLauncherMode =
     }
 
 /**
- * Registry of the six Abeta showcase vertical apps, their screen routes, and theme presets.
+ * Registry of the seven Abeta showcase vertical apps, their screen routes, and theme presets.
  */
 internal object SampleShowcaseApps {
     val allApps: List<ShowcaseAppSpec> =
@@ -56,6 +62,7 @@ internal object SampleShowcaseApps {
             ShowcaseAppSpec("abeta-mart", "Abeta Mart", "Marketplace", "abeta-mart", "mart-home"),
             ShowcaseAppSpec("abeta-spark", "Abeta Spark", "Swipe Discovery", "abeta-spark", "spark-deck"),
             ShowcaseAppSpec("abeta-trade", "Abeta Trade", "B2B Wholesale", "abeta-trade", "trade-home"),
+            ShowcaseAppSpec("abeta-pay", "Abeta Pay", "Fintech & Wallet", "abeta-pay", "pay-home"),
         )
 
     private val screenToAppId: Map<String, String> =
@@ -72,6 +79,10 @@ internal object SampleShowcaseApps {
             "spark-matches" to "abeta-spark",
             "trade-home" to "abeta-trade",
             "trade-supplier" to "abeta-trade",
+            "pay-home" to "abeta-pay",
+            "pay-transfer" to "abeta-pay",
+            "pay-cards" to "abeta-pay",
+            "pay-receipt" to "abeta-pay",
         )
 
     fun normalizeBaseScreenId(screenId: String): String =
@@ -129,12 +140,14 @@ internal suspend fun verifyVerticalsHeadless(container: SampleContainer): Vertic
                 },
         )
     val rfqSubmitted = container.executeTradeRfqCheck()
+    val payTransferCelebration = container.executePayTransferCheck()
     return VerticalsVerificationSummary(
         loadedVerticals = loadedVerticals,
         swipeCelebrationTriggered = swipeCelebration,
         expressOrderCelebrationTriggered = expressCelebration,
         bookingCelebrationTriggered = bookingCelebration,
         rfqSubmitted = rfqSubmitted,
+        payTransferCelebrationTriggered = payTransferCelebration,
     )
 }
 
@@ -215,4 +228,37 @@ private suspend fun SampleContainer.executeTradeRfqCheck(): Boolean {
         controller.uiState.value as? LayoutUiState.Ready
             ?: error("Expected Ready state after /api/v1/trade/rfq")
     return afterState.activeToast != null || afterState.activeFeedback?.effect == FeedbackEffect.CELEBRATION
+}
+
+private suspend fun SampleContainer.executePayTransferCheck(): Boolean {
+    loadReadyScreen("pay-transfer")
+    val transferAction =
+        ActionRef(
+            id = "headless_pay_transfer",
+            type = ActionTypes.CALL_API,
+            payload =
+                buildJsonObject {
+                    put("endpoint", "/api/v1/pay/transfer")
+                    put("method", "POST")
+                    put(
+                        "body",
+                        buildJsonObject {
+                            put("vertical", "abeta-pay")
+                            put("recipient", "@maya.chen")
+                            put("amount_cents", PAY_TRANSFER_AMOUNT_CENTS)
+                            put("currency", "USD")
+                        },
+                    )
+                },
+        )
+    controller.onAction(transferAction).join()
+    val settledState =
+        withTimeoutOrNull(PAY_SETTLEMENT_TIMEOUT_MS) {
+            controller.uiState.first { state ->
+                state is LayoutUiState.Ready &&
+                    state.page.pageId == "pay-receipt" &&
+                    state.activeFeedback?.effect == FeedbackEffect.CELEBRATION
+            }
+        }
+    return settledState != null
 }

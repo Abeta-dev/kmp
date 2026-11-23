@@ -59,7 +59,7 @@ val hasWatchOsSimulatorRuntime: Boolean by lazy {
 }
 
 subprojects {
-    group = "dev.abeta.kmp"
+    group = "io.github.abeta-dev"
     if (useNoSyncBuildDir) {
         layout.buildDirectory.set(rootDir.resolve(".build.nosync/${project.name}"))
     }

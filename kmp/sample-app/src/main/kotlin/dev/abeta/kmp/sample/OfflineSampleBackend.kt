@@ -82,17 +82,7 @@ class OfflineApiCallExecutor : ApiCallExecutor {
             }
 
             "/api/v1/bites/orders" -> {
-                celebrationWithToast(
-                    idPrefix = "bites_order",
-                    title = "Meal Order Placed!",
-                    subtitle = "Saffron Hearth Kitchen is preparing your order",
-                    toastMessage = "Order #BTS-4091 placed! Live tracking ready.",
-                ) +
-                    ActionRef(
-                        id = "bites_order_nav_track",
-                        type = ActionTypes.NAVIGATE,
-                        payload = buildJsonObject { put("route", "bites-order-track") },
-                    )
+                bitesOrderFollowUps()
             }
 
             "/api/v1/pulse/bookings" -> {
@@ -126,10 +116,40 @@ class OfflineApiCallExecutor : ApiCallExecutor {
                 )
             }
 
+            "/api/v1/pay/transfer" -> {
+                payTransferFollowUps()
+            }
+
             else -> {
                 emptyList()
             }
         }
+
+    private fun bitesOrderFollowUps(): List<ActionRef> =
+        celebrationWithToast(
+            idPrefix = "bites_order",
+            title = "Meal Order Placed!",
+            subtitle = "Saffron Hearth Kitchen is preparing your order",
+            toastMessage = "Order #BTS-4091 placed! Live tracking ready.",
+        ) +
+            ActionRef(
+                id = "bites_order_nav_track",
+                type = ActionTypes.NAVIGATE,
+                payload = buildJsonObject { put("route", "bites-order-track") },
+            )
+
+    private fun payTransferFollowUps(): List<ActionRef> =
+        celebrationWithToast(
+            idPrefix = "pay_transfer",
+            title = "Transfer Sent!",
+            subtitle = "Instant settlement #PAY-3081 confirmed via Abeta Pay",
+            toastMessage = "Transfer #PAY-3081 settled instantly!",
+        ) +
+            ActionRef(
+                id = "pay_transfer_nav_receipt",
+                type = ActionTypes.NAVIGATE,
+                payload = buildJsonObject { put("route", "pay-receipt") },
+            )
 
     private fun sparkSwipeFollowUps(payload: CallApiPayload): List<ActionRef> {
         val swipeAction =

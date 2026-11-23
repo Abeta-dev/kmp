@@ -57,8 +57,10 @@ import dev.abeta.kmp.contracts.TextAtom
 import dev.abeta.kmp.contracts.TypographyTokenRef
 import dev.abeta.kmp.core.logging.NoOpAppLogger
 import dev.abeta.kmp.core.result.AppResult
+import dev.abeta.kmp.core.security.BiometricResult
 import dev.abeta.kmp.layout.engine.LayoutController
 import dev.abeta.kmp.layout.engine.LayoutUiState
+import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.repository.RemoteApiCallExecutor
 import dev.abeta.kmp.layout.repository.RemoteScreenRepository
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
@@ -95,6 +97,7 @@ private val BFF_SCREENS =
         "mart-home",
         "spark-deck",
         "trade-home",
+        "pay-home",
     )
 
 private class LiveBffHolder(
@@ -419,6 +422,7 @@ private fun createLiveBffHolder(
                     controllerRef?.loadScreen(target)
                 }
             },
+            platformBridges = PlatformBridgeBundle.createTestDefault(biometricResult = BiometricResult.Authenticated),
         )
     controllerRef = controller
     return LiveBffHolder(

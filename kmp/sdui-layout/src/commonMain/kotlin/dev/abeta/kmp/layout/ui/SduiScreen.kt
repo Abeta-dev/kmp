@@ -1,5 +1,7 @@
 package dev.abeta.kmp.layout.ui
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +59,7 @@ import dev.abeta.kmp.contracts.IconAtom
 import dev.abeta.kmp.contracts.ProgressAtom
 import dev.abeta.kmp.contracts.ProgressKind
 import dev.abeta.kmp.contracts.SnippetEnvelope
+import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.TextAtom
 import dev.abeta.kmp.contracts.ToolbarSpec
 import dev.abeta.kmp.core.error.AppError
@@ -74,6 +77,17 @@ private const val CONTENT_BOTTOM_EXTRA_DP = 16
 private const val FLOATING_CART_BOTTOM_SPACER_DP = 96
 private const val FLOATING_CART_NUDGE_BOTTOM_SPACER_DP = 148
 private const val ERROR_ICON_SIZE_DP = 32
+private val FORM_AWARE_SNIPPET_TYPES =
+    setOf(
+        SnippetTypes.FORM,
+        SnippetTypes.PRODUCT_CARD,
+        SnippetTypes.GRID,
+        SnippetTypes.CAROUSEL,
+        SnippetTypes.TABS,
+        SnippetTypes.ACCORDION,
+        SnippetTypes.SEARCH_BAR,
+        SnippetTypes.COMPOSED_BLOCK,
+    )
 
 /**
  * Stateless Compose Multiplatform SDUI screen renderer consuming [LayoutUiState] and
@@ -318,13 +332,7 @@ internal fun SnippetLazyList(
     val reducedMotion = ThemeTokens.motion.reducedMotion
     val enteredMotionKeys = remember(state.page.pageId) { mutableSetOf<Any>() }
     val listState = remember(state.page.pageId) { LazyListState() }
-    val cart = state.page.floatingCart
-    val bottomExtraDp =
-        when {
-            cart == null -> CONTENT_BOTTOM_EXTRA_DP
-            cart.freeDeliveryThresholdCents != null -> FLOATING_CART_NUDGE_BOTTOM_SPACER_DP
-            else -> FLOATING_CART_BOTTOM_SPACER_DP
-        }
+    val bottomExtraDp = resolveBottomSpacerDp(state.page.floatingCart)
 
     CompositionLocalProvider(
         LocalFormValidationErrors provides state.validationErrors,
@@ -341,13 +349,24 @@ internal fun SnippetLazyList(
                 key = { _, item -> item.snippetId },
                 contentType = { _, item -> item.snippetType },
             ) { index, envelope ->
-                val baseModifier = if (reducedMotion) Modifier else Modifier.animateItem()
+                val baseModifier =
+                    if (reducedMotion) {
+                        Modifier
+                    } else {
+                        Modifier.animateItem(
+                            fadeInSpec = null,
+                            fadeOutSpec = null,
+                            placementSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                        )
+                    }
                 val shakeMatches =
                     state.errorShakeTargetId == null || state.errorShakeTargetId == envelope.snippetId
+                val itemFormValues =
+                    if (envelope.snippetType in FORM_AWARE_SNIPPET_TYPES) state.formValues else emptyMap()
                 SnippetListItemSlot(
                     index = index,
                     envelope = envelope,
-                    formValues = state.formValues,
+                    formValues = itemFormValues,
                     snippetRegistry = snippetRegistry,
                     onFormValueChange = onFormValueChange,
                     onAction = onAction,
@@ -366,6 +385,13 @@ internal fun SnippetLazyList(
         }
     }
 }
+
+private fun resolveBottomSpacerDp(cart: dev.abeta.kmp.contracts.FloatingCartSpec?): Int =
+    when {
+        cart == null -> CONTENT_BOTTOM_EXTRA_DP
+        cart.freeDeliveryThresholdCents != null -> FLOATING_CART_NUDGE_BOTTOM_SPACER_DP
+        else -> FLOATING_CART_BOTTOM_SPACER_DP
+    }
 
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")

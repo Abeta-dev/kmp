@@ -3,14 +3,11 @@
 package dev.abeta.kmp.layout.snippet
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
@@ -29,9 +26,12 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.UiButton
 import dev.abeta.kmp.atoms.atoms.UiCountdown
 import dev.abeta.kmp.atoms.atoms.UiIcon
-import dev.abeta.kmp.atoms.atoms.UiProgress
 import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiTag
 import dev.abeta.kmp.atoms.atoms.UiText
@@ -66,8 +65,6 @@ import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.MarqueeItem
 import dev.abeta.kmp.contracts.MarqueeStripSnippetData
 import dev.abeta.kmp.contracts.NudgeBarSnippetData
-import dev.abeta.kmp.contracts.ProgressAtom
-import dev.abeta.kmp.contracts.ProgressKind
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.core.result.AppResult
@@ -86,6 +83,9 @@ private const val CARET_HEIGHT_DP = 7
 private const val DISMISS_CIRCLE_SIZE_DP = 28
 private const val DISMISS_GLYPH = "×"
 private const val MARQUEE_ICON_SIZE_DP = 16
+private const val MARQUEE_COPY_COUNT = 3
+private const val MAX_FRAME_DELTA_SEC = 0.05f
+private const val NANOS_PER_SECOND = 1_000_000_000f
 
 internal fun resolveMarqueeVelocityDpPerSec(velocityDpPerSec: Int): Int =
     if (velocityDpPerSec <= 0) {
@@ -170,15 +170,22 @@ internal class NudgeBarSnippetRenderer(
                 ) {
                     NudgeHeaderRow(model = model, onDismiss = onDismiss, onAction = onAction)
                     model.progress?.let { rawProgress ->
-                        val animatedProgress by animateFloatAsState(
-                            targetValue = rawProgress.coerceIn(0f, 1f),
-                            animationSpec =
-                                if (motion.reducedMotion) snap() else tween(durationMillis = motion.normalMs),
-                            label = "nudge_progress_${model.nudgeId}",
-                        )
-                        UiProgress(
-                            atom = ProgressAtom(kind = ProgressKind.LINEAR, progress = animatedProgress),
+                        val animatedProgressState =
+                            animateFloatAsState(
+                                targetValue = rawProgress.coerceIn(0f, 1f),
+                                animationSpec =
+                                    if (motion.reducedMotion) {
+                                        snap()
+                                    } else {
+                                        tween(durationMillis = motion.normalMs, easing = FastOutSlowInEasing)
+                                    },
+                                label = "nudge_progress_${model.nudgeId}",
+                            )
+                        LinearProgressIndicator(
+                            progress = { animatedProgressState.value },
                             modifier = Modifier.fillMaxWidth(),
+                            color = colors.surface.brand,
+                            trackColor = colors.border.subtle,
                         )
                     }
                     model.cta?.let { cta ->
@@ -381,25 +388,26 @@ internal class MarqueeStripSnippetRenderer(
     ) {
         val spacing = ThemeTokens.spacing
         val density = LocalDensity.current.density
+        val velocityPxPerSec = resolveMarqueeVelocityDpPerSec(model.velocityDpPerSec) * density
         var cycleWidthPx by remember(model.stripId, model.items) { mutableIntStateOf(0) }
-        val durationMs =
-            resolveMarqueeCycleDurationMs(
-                contentWidthPx = cycleWidthPx,
-                density = density,
-                velocityDpPerSec = model.velocityDpPerSec,
-            )
-        val transition = rememberInfiniteTransition(label = "marquee_ticker_${model.stripId}")
-        val progressState =
-            transition.animateFloat(
-                initialValue = 0f,
-                targetValue = 1f,
-                animationSpec =
-                    infiniteRepeatable(
-                        animation = tween(durationMillis = durationMs, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart,
-                    ),
-                label = "marquee_progress_${model.stripId}",
-            )
+        val offsetPxState = remember(model.stripId) { mutableFloatStateOf(0f) }
+
+        LaunchedEffect(model.stripId, velocityPxPerSec) {
+            var lastFrameNanos = 0L
+            while (true) {
+                withInfiniteAnimationFrameNanos { frameNanos ->
+                    if (lastFrameNanos != 0L) {
+                        val dtSec = ((frameNanos - lastFrameNanos) / NANOS_PER_SECOND).coerceIn(0f, MAX_FRAME_DELTA_SEC)
+                        val width = cycleWidthPx
+                        if (width > 0) {
+                            val next = offsetPxState.floatValue + (velocityPxPerSec * dtSec)
+                            offsetPxState.floatValue = if (next >= width) next % width else next
+                        }
+                    }
+                    lastFrameNanos = frameNanos
+                }
+            }
+        }
 
         Row(
             modifier =
@@ -407,11 +415,12 @@ internal class MarqueeStripSnippetRenderer(
                     .wrapContentWidth(unbounded = true, align = Alignment.Start)
                     .graphicsLayer {
                         val widthPx = cycleWidthPx
-                        translationX = if (widthPx > 0) -(progressState.value * widthPx) else 0f
+                        translationX = if (widthPx > 0) -offsetPxState.floatValue else 0f
                     },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            listOf(true, false).forEach { primaryCopy ->
+            repeat(MARQUEE_COPY_COUNT) { copyIndex ->
+                val primaryCopy = copyIndex == 0
                 val copyModifier =
                     if (primaryCopy) {
                         Modifier.onSizeChanged { size -> cycleWidthPx = size.width }.padding(end = spacing.space16)

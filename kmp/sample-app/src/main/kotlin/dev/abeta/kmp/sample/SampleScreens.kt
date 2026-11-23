@@ -486,5 +486,9 @@ internal object SampleScreens {
             "spark-matches" to SampleVerticalsDiscovery.sparkMatches(),
             "trade-home" to SampleVerticalsDiscovery.tradeHome(),
             "trade-supplier" to SampleVerticalsDiscovery.tradeSupplier(),
+            "pay-home" to SamplePayVertical.payHome(),
+            "pay-transfer" to SamplePayVertical.payTransfer(),
+            "pay-cards" to SamplePayVertical.payCards(),
+            "pay-receipt" to SamplePayVertical.payReceipt(),
         )
 }

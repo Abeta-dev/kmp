@@ -12,7 +12,7 @@ The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source r
 1. **`Abeta-dev/kmp` (this repository — Client Kit & Canonical `v1` Wire Contracts)**:
    - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** + `bom` + `dependencies`).
    - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.3.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
-   - Runnable **6-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **17-story End-to-End Interactive Storybook** (`kmp/storybook`, with all 6 Super-App verticals playable live in WasmJS browser).
+   - Runnable **7-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **17-story End-to-End Interactive Storybook** (`kmp/storybook`, with all 7 Super-App verticals — Fresh, Bites, Pulse, Mart, Spark, Trade, Pay + Watch — playable live in WasmJS browser with multi-step workflows).
 2. **`Abeta-dev/layout-engine`** (`https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt`):
    - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics.
 3. **`Abeta-dev/sdui-bff`** (`https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt`):
@@ -252,7 +252,7 @@ Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`
 
 ## 4. Installation & Consumption Snippets (Zero Credentials Required)
 
-### Gradle KMP — Maven Central (Stable)
+### Gradle KMP — Maven Central (Stable, verified `io.github.abeta-dev` namespace; Kotlin package `dev.abeta.kmp.*`)
 ```kotlin
 // settings.gradle.kts
 dependencyResolutionManagement {
@@ -261,22 +261,22 @@ dependencyResolutionManagement {
         google()
     }
     versionCatalogs {
-        create("abetaKmp") { from("dev.abeta.kmp:dependencies:0.1.0") }
+        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.2.0") }
     }
 }
 
 // build.gradle.kts (commonMain)
 dependencies {
-    implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0"))
-    implementation("dev.abeta.kmp:core")
-    implementation("dev.abeta.kmp:database")        // Optional Room 3 KMP local SQLite DB
-    implementation("dev.abeta.kmp:design-tokens")
-    implementation("dev.abeta.kmp:sdui-contracts")
-    implementation("dev.abeta.kmp:ui-atoms")
-    implementation("dev.abeta.kmp:action-engine")
-    implementation("dev.abeta.kmp:network")
-    implementation("dev.abeta.kmp:sdui-layout")
-    // implementation("dev.abeta.kmp:watch-companion") // Optional headless wearable kit
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.2.0"))
+    implementation("io.github.abeta-dev:core")
+    implementation("io.github.abeta-dev:database")        // Optional Room 3 KMP local SQLite DB
+    implementation("io.github.abeta-dev:design-tokens")
+    implementation("io.github.abeta-dev:sdui-contracts")
+    implementation("io.github.abeta-dev:ui-atoms")
+    implementation("io.github.abeta-dev:action-engine")
+    implementation("io.github.abeta-dev:network")
+    implementation("io.github.abeta-dev:sdui-layout")
+    // implementation("io.github.abeta-dev:watch-companion") // Optional headless wearable kit
 }
 ```
 
@@ -286,11 +286,11 @@ repositories {
     maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
 }
 dependencies {
-    implementation(project.dependencies.platform("dev.abeta.kmp:bom:0.1.0-SNAPSHOT"))
-    implementation("dev.abeta.kmp:sdui-layout")
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.2.0-SNAPSHOT"))
+    implementation("io.github.abeta-dev:sdui-layout")
 }
 ```
-Inside this monorepo, `abeta.kmpLocalBuild=true` substitutes `dev.abeta.kmp:*` with local Gradle projects; pass `-Pabeta.kmpLocalBuild=false` to resolve published artifacts.
+Inside this monorepo, `abeta.kmpLocalBuild=true` substitutes `io.github.abeta-dev:*` with local Gradle projects; pass `-Pabeta.kmpLocalBuild=false` to resolve published artifacts.
 
 ### Apple SwiftPM (`Abeta-dev/kmp-spm`)
 ```swift
@@ -327,7 +327,8 @@ import (
 | **Abeta Pulse** | Live Events, Concerts & Cinema | `abeta-pulse` | `pulse-home`, `pulse-event-detail` | `INDIGO` | `search_bar`, category `chip_group`, urgency `nudge_bar` with `CountdownAtom`, event `card_v1` discovery, seat/tier booking flow with `celebration` overlay |
 | **Abeta Mart** | Multi-Category Retail Marketplace | `abeta-mart` | `mart-home`, `mart-product-detail` | `AMBER` | `search_bar`, perks `marquee_strip`, department `chip_group`, lightning-deals `carousel`, `product_card` grid, `accordion` specs & reviews, OS `share` action |
 | **Abeta Spark** | Swipe-Based Profile Discovery | `abeta-spark` | `spark-deck`, `spark-matches` | `INDIGO` | Prime Boost `nudge_bar` (`HEARTBEAT` badge), interest `chip_group`, stacked gesture `swipe_deck` (`on_like`/`on_nope`/`on_super_like`), mutual match `celebration` & matches inbox |
-| **Abeta Trade** | B2B Wholesale & Direct RFQ | `abeta-trade` | `trade-home`, `trade-supplier` | `EMERALD` | `search_bar`, verification `chip_group`, molded `composed_block` (`moq_bulk_savings_card`), MOQ `metric_card`, supplier directory, declarative validated `form_v1` RFQ submission |
+| **Abeta Trade** | B2B Wholesale & Direct RFQ | `abeta-trade` | `trade-home`, `trade-supplier`, `trade-quotes`, `trade-po-track` | `EMERALD` | `search_bar`, verification `chip_group`, molded `composed_block` (`moq_bulk_savings_card`), MOQ `metric_card`, supplier directory, validated `form_v1` RFQ, 3-factory quote comparison, 4-stage freight PO tracker |
+| **Abeta Pay** | Fintech, Wallet, Virtual Card & P2P | `abeta-pay` | `pay-home`, `pay-transfer`, `pay-cards`, `pay-receipt` | `INDIGO` | `UiRollingCounter` wallet balance, FX/cashback `marquee_strip`, Zero-Fee cashback `nudge_bar` + `CountdownAtom`, molded `composed_block` Metal Virtual Card, `biometric_auth` P2P transfer, smart card `UiSwitch`/`UiSlider` controls, 4-stage `#PAY-3081` settlement tracker |
 
 Core reference screens in `sample-app` & `bff/`: `home`, `store-home` (with `marquee_strip`, Flash Drop `nudge_bar`, `composed_block` loyalty stamp card, and `$15` free-delivery `FloatingCartSpec`), `catalog`, `profile`, `form-demo`, `containers`, `watch-status`.
 

@@ -31,8 +31,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.actions.codec.BuiltInActionDecoders
+import dev.abeta.kmp.actions.handler.ActionOutcome
 import dev.abeta.kmp.actions.handler.BuiltInActionHandlers
 import dev.abeta.kmp.actions.handler.DefaultActionDispatcher
+import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.analytics.LoggerAnalyticsTracker
 import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiTag
@@ -40,7 +42,10 @@ import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.core.logging.NoOpAppLogger
+import dev.abeta.kmp.core.security.BiometricResult
 import dev.abeta.kmp.layout.engine.LayoutController
+import dev.abeta.kmp.layout.engine.LayoutUiState
+import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.layout.ui.SduiScreen
@@ -48,6 +53,9 @@ import dev.abeta.kmp.state.session.InMemorySessionStore
 import dev.abeta.kmp.tokens.DesignTheme
 import dev.abeta.kmp.tokens.ThemeTokens
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 private const val PHONE_FRAME_WIDTH_DP = 412
 private const val TABLET_FRAME_WIDTH_DP = 768
@@ -65,6 +73,7 @@ private enum class DemoViewportMode(
 private class SuperAppDemoHolder(
     val snippetRegistry: SnippetRegistry,
     val controller: LayoutController,
+    private val scope: CoroutineScope,
     private val backStack: ArrayDeque<String>,
     private val onScreenChanged: (String) -> Unit,
 ) {
@@ -74,14 +83,27 @@ private class SuperAppDemoHolder(
     fun openScreen(
         route: String,
         clearStack: Boolean = false,
+        preserveFeedback: Boolean = false,
     ) {
         val clean = route.trim().removePrefix("/screens/").removePrefix("/")
+        val readyBefore = if (preserveFeedback) controller.uiState.value as? LayoutUiState.Ready else null
+        val pendingFeedback = readyBefore?.activeFeedback
+        val pendingToast = if (pendingFeedback != null) readyBefore.activeToast else null
         if (clearStack) backStack.clear()
-        if (backStack.lastOrNull() != clean) {
-            backStack.addLast(clean)
+        val lastBase = backStack.lastOrNull()?.substringBefore("?")
+        if (lastBase == clean.substringBefore("?") && backStack.isNotEmpty()) {
+            backStack.removeLast()
         }
+        backStack.addLast(clean)
         onScreenChanged(clean)
-        controller.loadScreen(clean)
+        val loadJob = controller.loadScreen(clean)
+        if (pendingFeedback != null) {
+            scope.launch {
+                loadJob.join()
+                controller.onAction(pendingFeedback.toFeedbackActionRef())
+                pendingToast?.let { controller.onAction(it.toToastActionRef()) }
+            }
+        }
     }
 
     fun goBack(steps: Int = 1) {
@@ -95,8 +117,33 @@ private class SuperAppDemoHolder(
     }
 }
 
+private fun ActionOutcome.FeedbackTriggered.toFeedbackActionRef(): ActionRef =
+    ActionRef(
+        id = "carry_feedback",
+        type = ActionTypes.TRIGGER_FEEDBACK,
+        payload =
+            buildJsonObject {
+                put("effect", effect.name.lowercase())
+                title?.let { put("title", it) }
+                subtitle?.let { put("subtitle", it) }
+                put("duration_ms", durationMs)
+            },
+    )
+
+private fun ActionOutcome.ToastRequested.toToastActionRef(): ActionRef =
+    ActionRef(
+        id = "carry_toast",
+        type = ActionTypes.SHOW_TOAST,
+        payload =
+            buildJsonObject {
+                put("message", message)
+                put("duration_ms", durationMs)
+                put("variant", variant)
+            },
+    )
+
 /**
- * Full-viewport live interactive 6-in-1 Super-App Showcase running natively in WasmJS Browser,
+ * Full-viewport live interactive 7-in-1 Super-App Showcase running natively in WasmJS Browser,
  * JVM Desktop, macOS, and iOS with zero nested scrolling and instant offline BFF parity.
  */
 @Composable
@@ -163,7 +210,7 @@ fun SuperAppDemosStory(
 private fun SuperAppDemoViewport(
     activeApp: DemoVerticalApp,
     effectiveMaxWidth: Dp?,
-    uiState: dev.abeta.kmp.layout.engine.LayoutUiState,
+    uiState: LayoutUiState,
     holder: SuperAppDemoHolder,
     darkTheme: Boolean,
     reducedMotion: Boolean,
@@ -292,15 +339,17 @@ private fun createSuperAppDemoHolder(
             analyticsTracker = LoggerAnalyticsTracker(NoOpAppLogger()),
             scope = scope,
             navigationListener = { nav ->
-                holderRef?.openScreen(nav.route, clearStack = nav.clearBackStack)
+                holderRef?.openScreen(nav.route, clearStack = nav.clearBackStack, preserveFeedback = true)
             },
             backListener = { back ->
                 holderRef?.goBack(back.steps)
             },
+            platformBridges = PlatformBridgeBundle.createTestDefault(biometricResult = BiometricResult.Authenticated),
         )
     return SuperAppDemoHolder(
         snippetRegistry = BuiltInSnippetModule.createDefaultRegistry(),
         controller = controller,
+        scope = scope,
         backStack = backStack,
         onScreenChanged = onScreenChanged,
     ).also { holderRef = it }
