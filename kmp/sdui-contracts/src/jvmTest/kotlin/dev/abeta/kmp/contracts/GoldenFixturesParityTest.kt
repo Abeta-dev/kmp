@@ -455,6 +455,27 @@ class GoldenFixturesParityTest {
         assertTrue(productNodes.any { it.clickTracking != null })
     }
 
+    @Test
+    fun decodesStreamingAndVersionedGoldenFixture() {
+        val rawJson = loadGoldenJson("streaming_and_versioned_screen.json")
+        val page = SduiJson.decodeFromString<PageResponse>(rawJson)
+        assertEquals("streaming-versioned-demo", page.pageId)
+        assertEquals("0.7.0", page.appVersion)
+        assertTrue(!page.pageVersion.isNullOrBlank())
+        val etag = assertNotNull(page.etag)
+        assertTrue(etag.startsWith("\"") && etag.endsWith("\""))
+
+        val streamSpec = assertNotNull(page.streamSpec)
+        assertEquals("/api/v1/streams/ai-assistant", streamSpec.path)
+        assertTrue(streamSpec.autoConnect)
+        assertEquals("delta", streamSpec.headers["X-Stream-Mode"])
+        assertEquals(3_000L, streamSpec.retryMs)
+        assertEquals(3, page.snippets.size)
+        assertEquals(SnippetTypes.HEADER, page.snippets[0].snippetType)
+        assertEquals(SnippetTypes.CARD, page.snippets[1].snippetType)
+        assertEquals(SnippetTypes.METRIC_CARD, page.snippets[2].snippetType)
+    }
+
     private fun collectComposedNodes(root: ComposedNode): List<ComposedNode> =
         listOf(root) + root.children.flatMap { collectComposedNodes(it) }
 }

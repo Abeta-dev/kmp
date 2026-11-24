@@ -7,6 +7,35 @@ public final class dev/abeta/kmp/network/client/BrotliContentEncoder : io/ktor/u
 	public fun predictCompressedLength (J)Ljava/lang/Long;
 }
 
+public abstract interface class dev/abeta/kmp/network/client/ConditionalHttpResult {
+}
+
+public final class dev/abeta/kmp/network/client/ConditionalHttpResult$Modified : dev/abeta/kmp/network/client/ConditionalHttpResult {
+	public fun <init> (Ldev/abeta/kmp/network/client/HttpResponseEnvelope;)V
+	public final fun component1 ()Ldev/abeta/kmp/network/client/HttpResponseEnvelope;
+	public final fun copy (Ldev/abeta/kmp/network/client/HttpResponseEnvelope;)Ldev/abeta/kmp/network/client/ConditionalHttpResult$Modified;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/client/ConditionalHttpResult$Modified;Ldev/abeta/kmp/network/client/HttpResponseEnvelope;ILjava/lang/Object;)Ldev/abeta/kmp/network/client/ConditionalHttpResult$Modified;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnvelope ()Ldev/abeta/kmp/network/client/HttpResponseEnvelope;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/client/ConditionalHttpResult$NotModified : dev/abeta/kmp/network/client/ConditionalHttpResult {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/network/client/ConditionalHttpResult$NotModified;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/client/ConditionalHttpResult$NotModified;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/network/client/ConditionalHttpResult$NotModified;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEtag ()Ljava/lang/String;
+	public final fun getHeaders ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/abeta/kmp/network/client/HttpClientFactory {
 	public static final field INSTANCE Ldev/abeta/kmp/network/client/HttpClientFactory;
 	public final fun create (Ldev/abeta/kmp/network/config/NetworkConfig;Ldev/abeta/kmp/network/ports/AuthTokenProvider;Ldev/abeta/kmp/network/ports/HeaderProvider;Lkotlinx/serialization/json/Json;Lio/ktor/client/engine/HttpClientEngine;)Lio/ktor/client/HttpClient;
@@ -52,19 +81,47 @@ public final class dev/abeta/kmp/network/client/HttpRequestBody$Serialized : dev
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/abeta/kmp/network/client/HttpResponseEnvelope {
+	public fun <init> (ILjava/util/Map;Ljava/lang/Object;)V
+	public synthetic fun <init> (ILjava/util/Map;Ljava/lang/Object;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/lang/Object;
+	public final fun copy (ILjava/util/Map;Ljava/lang/Object;)Ldev/abeta/kmp/network/client/HttpResponseEnvelope;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/client/HttpResponseEnvelope;ILjava/util/Map;Ljava/lang/Object;ILjava/lang/Object;)Ldev/abeta/kmp/network/client/HttpResponseEnvelope;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/lang/Object;
+	public final fun getEtag ()Ljava/lang/String;
+	public final fun getHeaders ()Ljava/util/Map;
+	public final fun getStatusCode ()I
+	public fun hashCode ()I
+	public final fun header (Ljava/lang/String;)Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class dev/abeta/kmp/network/client/HttpTransport {
 	public abstract fun request (Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun request$default (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun requestConditional (Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun requestConditional$default (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun requestWithResponse (Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun requestWithResponse$default (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class dev/abeta/kmp/network/client/HttpTransport$DefaultImpls {
 	public static synthetic fun request$default (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun requestConditional (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun requestConditional$default (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun requestWithResponse (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun requestWithResponse$default (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class dev/abeta/kmp/network/client/KtorHttpTransport : dev/abeta/kmp/network/client/HttpTransport {
-	public fun <init> (Lio/ktor/client/HttpClient;Lkotlinx/serialization/json/Json;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;Ldev/abeta/kmp/core/time/Clock;)V
-	public synthetic fun <init> (Lio/ktor/client/HttpClient;Lkotlinx/serialization/json/Json;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;Ldev/abeta/kmp/core/time/Clock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/client/HttpClient;Lkotlinx/serialization/json/Json;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/network/ports/CsrfTokenProvider;)V
+	public synthetic fun <init> (Lio/ktor/client/HttpClient;Lkotlinx/serialization/json/Json;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/network/ports/CsrfTokenProvider;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun request (Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun requestConditional (Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun requestWithResponse (Ldev/abeta/kmp/network/client/HttpMethodType;Ljava/lang/String;Lkotlinx/serialization/DeserializationStrategy;Ljava/util/Map;Ljava/util/Map;Ldev/abeta/kmp/network/client/HttpRequestBody;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/abeta/kmp/network/config/CompressionPolicy {
@@ -175,6 +232,26 @@ public abstract interface class dev/abeta/kmp/network/ports/AuthTokenProvider {
 	public abstract fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class dev/abeta/kmp/network/ports/CsrfTokenProvider {
+	public static final field Companion Ldev/abeta/kmp/network/ports/CsrfTokenProvider$Companion;
+	public static final field DEFAULT_CSRF_HEADER Ljava/lang/String;
+	public abstract fun currentToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getHeaderName ()Ljava/lang/String;
+	public fun getProtectedMethods ()Ljava/util/Set;
+	public fun refreshToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/network/ports/CsrfTokenProvider$Companion {
+	public static final field DEFAULT_CSRF_HEADER Ljava/lang/String;
+	public final fun getDEFAULT_PROTECTED_METHODS ()Ljava/util/Set;
+}
+
+public final class dev/abeta/kmp/network/ports/CsrfTokenProvider$DefaultImpls {
+	public static fun getHeaderName (Ldev/abeta/kmp/network/ports/CsrfTokenProvider;)Ljava/lang/String;
+	public static fun getProtectedMethods (Ldev/abeta/kmp/network/ports/CsrfTokenProvider;)Ljava/util/Set;
+	public static fun refreshToken (Ldev/abeta/kmp/network/ports/CsrfTokenProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface class dev/abeta/kmp/network/ports/HeaderProvider {
 	public abstract fun headers (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -203,5 +280,84 @@ public final class dev/abeta/kmp/network/ports/NetworkMetric {
 
 public abstract interface class dev/abeta/kmp/network/ports/NetworkTelemetrySink {
 	public abstract fun onRequestComplete (Ldev/abeta/kmp/network/ports/NetworkMetric;)V
+}
+
+public final class dev/abeta/kmp/network/sse/KtorSseTransport : dev/abeta/kmp/network/sse/SseTransport {
+	public fun <init> (Lio/ktor/client/HttpClient;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;)V
+	public synthetic fun <init> (Lio/ktor/client/HttpClient;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/network/ports/NetworkTelemetrySink;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun connect (Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ldev/abeta/kmp/network/sse/SseReconnectPolicy;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/abeta/kmp/network/sse/SseEvent {
+	public static final field Companion Ldev/abeta/kmp/network/sse/SseEvent$Companion;
+	public static final field DEFAULT_EVENT_NAME Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Long;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)Ldev/abeta/kmp/network/sse/SseEvent;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/sse/SseEvent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;ILjava/lang/Object;)Ldev/abeta/kmp/network/sse/SseEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/lang/String;
+	public final fun getEvent ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getRetryMillis ()Ljava/lang/Long;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/sse/SseEvent$Companion {
+}
+
+public final class dev/abeta/kmp/network/sse/SseLineParser {
+	public static final field Companion Ldev/abeta/kmp/network/sse/SseLineParser$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun flush ()Ldev/abeta/kmp/network/sse/SseEvent;
+	public final fun getLastEventId ()Ljava/lang/String;
+	public final fun getLastRetryMillis ()Ljava/lang/Long;
+	public final fun parseLine (Ljava/lang/String;)Ldev/abeta/kmp/network/sse/SseEvent;
+}
+
+public final class dev/abeta/kmp/network/sse/SseLineParser$Companion {
+}
+
+public final class dev/abeta/kmp/network/sse/SseReconnectPolicy {
+	public static final field Companion Ldev/abeta/kmp/network/sse/SseReconnectPolicy$Companion;
+	public static final field DEFAULT_INITIAL_DELAY_MILLIS J
+	public static final field DEFAULT_MAX_DELAY_MILLIS J
+	public static final field DEFAULT_MAX_RECONNECT_ATTEMPTS I
+	public fun <init> ()V
+	public fun <init> (ZIJJ)V
+	public synthetic fun <init> (ZIJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()I
+	public final fun component3 ()J
+	public final fun component4 ()J
+	public final fun copy (ZIJJ)Ldev/abeta/kmp/network/sse/SseReconnectPolicy;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/sse/SseReconnectPolicy;ZIJJILjava/lang/Object;)Ldev/abeta/kmp/network/sse/SseReconnectPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnabled ()Z
+	public final fun getInitialDelayMillis ()J
+	public final fun getMaxDelayMillis ()J
+	public final fun getMaxReconnectAttempts ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/network/sse/SseReconnectPolicy$Companion {
+}
+
+public abstract interface class dev/abeta/kmp/network/sse/SseTransport {
+	public abstract fun connect (Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ldev/abeta/kmp/network/sse/SseReconnectPolicy;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun connect$default (Ldev/abeta/kmp/network/sse/SseTransport;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ldev/abeta/kmp/network/sse/SseReconnectPolicy;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/abeta/kmp/network/sse/SseTransport$DefaultImpls {
+	public static synthetic fun connect$default (Ldev/abeta/kmp/network/sse/SseTransport;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;Ldev/abeta/kmp/network/sse/SseReconnectPolicy;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
 

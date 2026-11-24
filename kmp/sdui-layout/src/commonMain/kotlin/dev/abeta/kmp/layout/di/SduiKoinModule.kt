@@ -42,8 +42,10 @@ import dev.abeta.kmp.layout.media.KtorImageRenderer
 import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.repository.CachedScreenRepository
 import dev.abeta.kmp.layout.repository.RemoteApiCallExecutor
+import dev.abeta.kmp.layout.repository.RemoteScreenManifestRepository
 import dev.abeta.kmp.layout.repository.RemoteScreenRepository
 import dev.abeta.kmp.layout.repository.ScreenCachePolicy
+import dev.abeta.kmp.layout.repository.ScreenManifestRepository
 import dev.abeta.kmp.layout.repository.ScreenRepository
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
@@ -51,12 +53,16 @@ import dev.abeta.kmp.network.client.HttpClientFactory
 import dev.abeta.kmp.network.client.HttpTransport
 import dev.abeta.kmp.network.client.KtorHttpTransport
 import dev.abeta.kmp.network.config.NetworkConfig
+import dev.abeta.kmp.network.ports.CsrfTokenProvider
+import dev.abeta.kmp.network.sse.KtorSseTransport
+import dev.abeta.kmp.network.sse.SseTransport
 import dev.abeta.kmp.state.flags.FeatureFlagProvider
 import dev.abeta.kmp.state.flags.PersistentFeatureFlagStore
 import dev.abeta.kmp.state.preferences.DefaultPreferenceStore
 import dev.abeta.kmp.state.preferences.PreferenceStore
 import dev.abeta.kmp.state.session.PersistentSessionStore
 import dev.abeta.kmp.state.session.SessionStore
+import dev.abeta.kmp.state.storage.createDiskKeyValueStore
 import dev.abeta.kmp.state.storage.createPersistentKeyValueStore
 import dev.abeta.kmp.state.sync.OfflineMutationQueue
 import io.ktor.client.HttpClient
@@ -89,6 +95,10 @@ fun createSduiKoinModule(
     certificatePins: Map<String, List<String>> = emptyMap(),
     enableRemoteAnalytics: Boolean = false,
     analyticsEndpoint: String = RemoteBffAnalyticsTracker.DEFAULT_ANALYTICS_ENDPOINT,
+    csrfTokenProvider: CsrfTokenProvider? = null,
+    appVersion: String? = null,
+    manifestPath: String? = null,
+    useDiskCacheStore: Boolean = false,
 ): Module =
     module {
         registerFoundationBindings(
@@ -97,6 +107,7 @@ fun createSduiKoinModule(
             logger = logger,
             enableRemoteAnalytics = enableRemoteAnalytics,
             analyticsEndpoint = analyticsEndpoint,
+            useDiskCacheStore = useDiskCacheStore,
         )
         registerPlatformBridgeBindings(platformBridges = platformBridges)
         registerNetworkAndRepositoryBindings(
@@ -108,6 +119,9 @@ fun createSduiKoinModule(
             remoteScreenRepository = remoteScreenRepository,
             apiCallExecutor = apiCallExecutor,
             certificatePins = certificatePins,
+            csrfTokenProvider = csrfTokenProvider,
+            appVersion = appVersion,
+            manifestPath = manifestPath,
         )
         registerOrchestrationBindings(
             navigationListener = navigationListener,
@@ -132,18 +146,27 @@ private fun Module.registerPlatformBridgeBindings(platformBridges: PlatformBridg
     single<PushNotificationPort> { get<PlatformBridgeBundle>().pushNotificationPort }
 }
 
+@Suppress("LongParameterList")
 private fun Module.registerFoundationBindings(
     scope: CoroutineScope?,
     keyValueStore: KeyValueStore?,
     logger: AppLogger,
     enableRemoteAnalytics: Boolean,
     analyticsEndpoint: String,
+    useDiskCacheStore: Boolean,
 ) {
     single<Clock> { SystemClock() }
     single<UuidGenerator> { RandomUuidGenerator() }
     single<AppLogger> { logger }
     single<CoroutineScope> { scope ?: CoroutineScope(SupervisorJob() + DefaultDispatcherProvider().default) }
-    single<KeyValueStore> { keyValueStore ?: createPersistentKeyValueStore() }
+    single<KeyValueStore> {
+        keyValueStore
+            ?: if (useDiskCacheStore) {
+                createDiskKeyValueStore()
+            } else {
+                createPersistentKeyValueStore()
+            }
+    }
     single<SessionStore> { PersistentSessionStore(backingStore = get()) }
     single<PreferenceStore> { DefaultPreferenceStore(store = get()) }
     single<FeatureFlagProvider> { PersistentFeatureFlagStore(backingStore = get()) }
@@ -183,6 +206,9 @@ private fun Module.registerNetworkAndRepositoryBindings(
     remoteScreenRepository: ScreenRepository?,
     apiCallExecutor: ApiCallExecutor?,
     certificatePins: Map<String, List<String>>,
+    csrfTokenProvider: CsrfTokenProvider?,
+    appVersion: String?,
+    manifestPath: String?,
 ) {
     single<HttpClient> {
         HttpClientFactory.create(
@@ -196,7 +222,29 @@ private fun Module.registerNetworkAndRepositoryBindings(
             engine = httpEngine,
         )
     }
-    single<HttpTransport> { KtorHttpTransport(httpClient = get(), json = SduiJson, clock = get()) }
+    single<HttpTransport> {
+        KtorHttpTransport(
+            httpClient = get(),
+            json = SduiJson,
+            clock = get(),
+            csrfTokenProvider = csrfTokenProvider,
+        )
+    }
+    single<SseTransport> {
+        KtorSseTransport(
+            httpClient = get(),
+            clock = get(),
+        )
+    }
+    val cleanManifestPath = manifestPath?.trim()?.takeIf { it.isNotEmpty() }
+    if (cleanManifestPath != null) {
+        single<ScreenManifestRepository> {
+            RemoteScreenManifestRepository(
+                httpClient = get(),
+                manifestPath = cleanManifestPath,
+            )
+        }
+    }
     single { RemoteScreenRepository(httpClient = get()) }
     single {
         CachedScreenRepository(
@@ -205,6 +253,8 @@ private fun Module.registerNetworkAndRepositoryBindings(
             clock = get(),
             policy = cachePolicy,
             ttlMillis = cacheTtlMillis,
+            appVersion = appVersion,
+            manifestRepository = getOrNull<ScreenManifestRepository>(),
         )
     }
     single<ScreenRepository> { get<CachedScreenRepository>() }
@@ -244,6 +294,7 @@ private fun Module.registerOrchestrationBindings(
             logger = get(),
             offlineCoordinator = get(),
             platformBridges = get(),
+            sseTransport = get(),
         )
     }
 }

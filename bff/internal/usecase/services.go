@@ -5,6 +5,7 @@ package usecase
 import (
 	"context"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -15,18 +16,42 @@ import (
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 )
 
-// ScreenService orchestrates SDUI screen retrieval.
+// DefaultAppVersion is the fallback app_version stamped on screens and manifests.
+const DefaultAppVersion = "0.7.0"
+
+// ScreenService orchestrates SDUI screen retrieval and manifest generation.
 type ScreenService struct {
-	repo domain.ScreenRepository
+	repo       domain.ScreenRepository
+	appVersion string
 }
 
-// NewScreenService constructs a ScreenService backed by repo.
+// NewScreenService constructs a ScreenService backed by repo with DefaultAppVersion.
 func NewScreenService(repo domain.ScreenRepository) *ScreenService {
-	return &ScreenService{repo: repo}
+	return NewScreenServiceWithVersion(repo, DefaultAppVersion)
+}
+
+// NewScreenServiceWithVersion constructs a ScreenService backed by repo and appVersion.
+func NewScreenServiceWithVersion(repo domain.ScreenRepository, appVersion string) *ScreenService {
+	ver := strings.TrimSpace(appVersion)
+	if ver == "" {
+		ver = DefaultAppVersion
+	}
+	return &ScreenService{
+		repo:       repo,
+		appVersion: ver,
+	}
+}
+
+// AppVersion returns the configured app_version for this service.
+func (s *ScreenService) AppVersion() string {
+	if s == nil || strings.TrimSpace(s.appVersion) == "" {
+		return DefaultAppVersion
+	}
+	return s.appVersion
 }
 
 // GetScreen validates screenID, fetches the corresponding SDUI PageResponse,
-// and ensures deterministic component IDs across all snippets and composed nodes.
+// ensures deterministic component IDs, and stamps app_version, page_version, and etag if empty.
 func (s *ScreenService) GetScreen(ctx context.Context, screenID string) (snippets.PageResponse, error) {
 	id := strings.TrimSpace(screenID)
 	if id == "" {
@@ -40,6 +65,9 @@ func (s *ScreenService) GetScreen(ctx context.Context, screenID string) (snippet
 		return snippets.PageResponse{}, err
 	}
 	snippets.EnsureComponentIDs(&page)
+	if err := stampPageVersionMeta(&page, s.AppVersion()); err != nil {
+		return snippets.PageResponse{}, apperror.Internal("failed to compute page version metadata")
+	}
 	return page, nil
 }
 
@@ -49,6 +77,63 @@ func (s *ScreenService) ListScreens(ctx context.Context) ([]string, error) {
 		return nil, apperror.Internal("screen repository is not configured")
 	}
 	return s.repo.ListScreenIDs(ctx)
+}
+
+// BuildManifest computes deterministic version and quoted SHA-256 ETag metadata
+// for every registered screen sorted by screen ID.
+func (s *ScreenService) BuildManifest(ctx context.Context, appVersion string) (snippets.ScreenManifestResponse, error) {
+	if s.repo == nil {
+		return snippets.ScreenManifestResponse{}, apperror.Internal("screen repository is not configured")
+	}
+	ver := strings.TrimSpace(appVersion)
+	if ver == "" {
+		ver = s.AppVersion()
+	}
+
+	rawIDs, err := s.repo.ListScreenIDs(ctx)
+	if err != nil {
+		return snippets.ScreenManifestResponse{}, err
+	}
+	ids := append([]string(nil), rawIDs...)
+	sort.Strings(ids)
+
+	screens := make(map[string]snippets.ScreenVersionMeta, len(ids))
+	for _, id := range ids {
+		page, err := s.repo.GetScreen(ctx, id)
+		if err != nil {
+			return snippets.ScreenManifestResponse{}, err
+		}
+		snippets.EnsureComponentIDs(&page)
+		if err := stampPageVersionMeta(&page, ver); err != nil {
+			return snippets.ScreenManifestResponse{}, apperror.Internal("failed to compute screen manifest metadata")
+		}
+		screens[id] = snippets.ScreenVersionMeta{
+			Version: page.PageVersion,
+			ETag:    page.ETag,
+		}
+	}
+
+	return snippets.ScreenManifestResponse{
+		AppVersion: ver,
+		Screens:    screens,
+	}, nil
+}
+
+func stampPageVersionMeta(page *snippets.PageResponse, appVersion string) error {
+	if page.ETag == "" {
+		etag, err := snippets.ComputePageETag(*page)
+		if err != nil {
+			return err
+		}
+		page.ETag = etag
+	}
+	if page.PageVersion == "" {
+		page.PageVersion = snippets.DerivePageVersion(page.ETag)
+	}
+	if page.AppVersion == "" {
+		page.AppVersion = appVersion
+	}
+	return nil
 }
 
 // ActionService validates and delegates SDUI action execution.

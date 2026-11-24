@@ -1,5 +1,7 @@
 package dev.abeta.kmp.network.ports
 
+import dev.abeta.kmp.network.client.HttpMethodType
+
 /**
  * Port providing bearer authentication tokens without coupling the network module
  * to storage or auth-flow implementations.
@@ -10,6 +12,36 @@ interface AuthTokenProvider {
 
     /** Refreshes and returns a new access token after an HTTP 401, or `null` if refresh fails. */
     suspend fun refreshToken(): String?
+}
+
+/**
+ * Port providing CSRF protection tokens for state-changing HTTP requests.
+ */
+interface CsrfTokenProvider {
+    /** HTTP header name carrying the CSRF token (defaults to [DEFAULT_CSRF_HEADER]). */
+    val headerName: String
+        get() = DEFAULT_CSRF_HEADER
+
+    /** HTTP methods requiring CSRF protection (defaults to [DEFAULT_PROTECTED_METHODS]). */
+    val protectedMethods: Set<HttpMethodType>
+        get() = DEFAULT_PROTECTED_METHODS
+
+    /** Returns the current CSRF token, or `null` when unavailable. */
+    suspend fun currentToken(): String?
+
+    /** Refreshes and returns a new CSRF token after an HTTP 403 rejection, or `null` if refresh fails. */
+    suspend fun refreshToken(): String? = currentToken()
+
+    companion object {
+        const val DEFAULT_CSRF_HEADER: String = "X-CSRF-Token"
+        val DEFAULT_PROTECTED_METHODS: Set<HttpMethodType> =
+            setOf(
+                HttpMethodType.POST,
+                HttpMethodType.PUT,
+                HttpMethodType.PATCH,
+                HttpMethodType.DELETE,
+            )
+    }
 }
 
 /**

@@ -69,15 +69,79 @@ func TestScreenService(t *testing.T) {
 	if err != nil || page.PageID != "home" {
 		t.Fatalf("unexpected GetScreen result: %+v, err=%v", page, err)
 	}
+	if page.AppVersion != usecase.DefaultAppVersion || page.PageVersion == "" || page.ETag == "" {
+		t.Fatalf("expected stamped version/etag metadata on GetScreen, got %+v", page)
+	}
 
 	ids, err := svc.ListScreens(ctx)
 	if err != nil || len(ids) != 1 || ids[0] != "home" {
 		t.Fatalf("unexpected ListScreens result: %v, err=%v", ids, err)
 	}
 
+	manifest, err := svc.BuildManifest(ctx, "")
+	if err != nil || manifest.AppVersion != usecase.DefaultAppVersion || len(manifest.Screens) != 1 {
+		t.Fatalf("unexpected BuildManifest result: %+v, err=%v", manifest, err)
+	}
+	homeMeta, ok := manifest.Screens["home"]
+	if !ok || homeMeta.Version != page.PageVersion || homeMeta.ETag != page.ETag {
+		t.Fatalf("manifest metadata %+v does not match GetScreen page meta (%s, %s)", homeMeta, page.PageVersion, page.ETag)
+	}
+
+	customSvc := usecase.NewScreenServiceWithVersion(repo, "1.2.3")
+	if customSvc.AppVersion() != "1.2.3" {
+		t.Fatalf("expected custom AppVersion 1.2.3, got %q", customSvc.AppVersion())
+	}
+	if (*usecase.ScreenService)(nil).AppVersion() != usecase.DefaultAppVersion {
+		t.Fatal("expected nil ScreenService.AppVersion() to return DefaultAppVersion")
+	}
+	manifestCustom, err := customSvc.BuildManifest(ctx, "2.0.0")
+	if err != nil || manifestCustom.AppVersion != "2.0.0" {
+		t.Fatalf("unexpected custom manifest: %+v, err=%v", manifestCustom, err)
+	}
+	if _, err := svcNil.BuildManifest(ctx, ""); !apperror.Is(err, apperror.CodeInternal) {
+		t.Fatalf("expected internal error for nil repo manifest, got %v", err)
+	}
+
 	repo.err = errors.New("boom")
 	if _, err := svc.GetScreen(ctx, "home"); err == nil {
 		t.Fatal("expected propagated repo error")
+	}
+	if _, err := svc.BuildManifest(ctx, ""); err == nil {
+		t.Fatal("expected propagated repo error from BuildManifest")
+	}
+
+	// Unmarshalable snippet data triggers internal error on stampPageVersionMeta
+	badRepo := &stubScreenRepo{
+		screen: snippets.PageResponse{
+			PageID:   "bad",
+			Snippets: []snippets.SnippetEnvelope{{SnippetID: "s1", Data: make(chan int)}},
+		},
+		ids: []string{"bad"},
+	}
+	badSvc := usecase.NewScreenService(badRepo)
+	if _, err := badSvc.GetScreen(ctx, "bad"); !apperror.Is(err, apperror.CodeInternal) {
+		t.Fatalf("expected internal error for unmarshalable screen in GetScreen, got %v", err)
+	}
+	if _, err := badSvc.BuildManifest(ctx, ""); !apperror.Is(err, apperror.CodeInternal) {
+		t.Fatalf("expected internal error for unmarshalable screen in BuildManifest, got %v", err)
+	}
+}
+
+func TestBuildStreamPatches(t *testing.T) {
+	if _, err := usecase.BuildStreamPatches("   "); !apperror.Is(err, apperror.CodeBadRequest) {
+		t.Fatalf("expected bad request for blank streamID, got %v", err)
+	}
+	for _, streamID := range []string{"ai-assistant", "order-live", "custom-feed"} {
+		patches, err := usecase.BuildStreamPatches(streamID)
+		if err != nil {
+			t.Fatalf("BuildStreamPatches(%q) error: %v", streamID, err)
+		}
+		if len(patches) != 4 {
+			t.Fatalf("expected 4 patches for %q, got %d", streamID, len(patches))
+		}
+		if patches[0].Op != snippets.DeltaOpAppendText || patches[2].Op != snippets.DeltaOpPatchSnippetData || !patches[3].Done {
+			t.Fatalf("unexpected patch sequence for %q: %+v", streamID, patches)
+		}
 	}
 }
 

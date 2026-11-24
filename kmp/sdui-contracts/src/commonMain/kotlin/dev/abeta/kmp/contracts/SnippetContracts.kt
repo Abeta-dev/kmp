@@ -132,6 +132,13 @@ data class PageResponse(
     val floatingCart: FloatingCartSpec? = null,
     @SerialName("adaptive_layout")
     val adaptiveLayout: AdaptivePageSpec? = null,
+    @SerialName("page_version")
+    val pageVersion: String? = null,
+    @SerialName("app_version")
+    val appVersion: String? = null,
+    val etag: String? = null,
+    @SerialName("stream_spec")
+    val streamSpec: SseStreamSpec? = null,
 )
 
 /**

@@ -14,6 +14,7 @@ import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.error.UnauthorizedError
 import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.result.AppResult
+import dev.abeta.kmp.network.client.ConditionalHttpResult
 import dev.abeta.kmp.network.client.HttpMethodType
 import dev.abeta.kmp.network.client.HttpRequestBody
 import dev.abeta.kmp.network.client.HttpTransport
@@ -32,13 +33,69 @@ fun interface ScreenRepository {
 }
 
 /**
- * Remote [ScreenRepository] fetching `ginmw.Envelope<PageResponse>` payloads via [HttpTransport].
+ * Outcome of a conditional SDUI screen fetch validated via `If-None-Match` / `ETag`.
+ */
+sealed interface ConditionalScreenFetchResult {
+    /** Screen changed or no validator matched; [page] holds the updated payload. */
+    data class Modified(
+        val page: PageResponse,
+        val etag: String? = null,
+    ) : ConditionalScreenFetchResult
+
+    /** Screen matched the client validator (`HTTP 304 Not Modified`). */
+    data class NotModified(
+        val etag: String? = null,
+    ) : ConditionalScreenFetchResult
+}
+
+/**
+ * [ScreenRepository] extension supporting conditional `If-None-Match` / `304 Not Modified` fetches.
+ */
+interface ConditionalScreenRepository : ScreenRepository {
+    /**
+     * Fetches the SDUI screen for [screenId], passing [ifNoneMatch] as an `If-None-Match` validator
+     * when non-blank.
+     */
+    suspend fun fetchScreenConditional(
+        screenId: String,
+        ifNoneMatch: String? = null,
+    ): AppResult<ConditionalScreenFetchResult>
+}
+
+/**
+ * Remote [ConditionalScreenRepository] fetching `ginmw.Envelope<PageResponse>` payloads via [HttpTransport].
  */
 class RemoteScreenRepository(
     private val httpClient: HttpTransport,
     private val basePath: String = DEFAULT_BASE_PATH,
-) : ScreenRepository {
-    override suspend fun fetchScreen(screenId: String): AppResult<PageResponse> {
+) : ConditionalScreenRepository {
+    override suspend fun fetchScreen(screenId: String): AppResult<PageResponse> =
+        when (val result = fetchScreenConditional(screenId = screenId, ifNoneMatch = null)) {
+            is AppResult.Failure -> {
+                result
+            }
+
+            is AppResult.Success -> {
+                when (val conditional = result.value) {
+                    is ConditionalScreenFetchResult.Modified -> {
+                        AppResult.Success(conditional.page)
+                    }
+
+                    is ConditionalScreenFetchResult.NotModified -> {
+                        AppResult.Failure(
+                            SerializationError(
+                                message = "Unexpected 304 Not Modified without validator for '$screenId'.",
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+
+    override suspend fun fetchScreenConditional(
+        screenId: String,
+        ifNoneMatch: String?,
+    ): AppResult<ConditionalScreenFetchResult> {
         val cleanId = screenId.trim().removePrefix("/")
         if (cleanId.isEmpty()) {
             return AppResult.Failure(
@@ -51,16 +108,57 @@ class RemoteScreenRepository(
         val normalizedBase = basePath.trimEnd('/')
         val path = "$normalizedBase/$cleanId"
         val result =
-            httpClient.request(
-                method = HttpMethodType.GET,
+            httpClient.requestConditional(
                 path = path,
                 deserializer = BffEnvelope.serializer(PageResponse.serializer()),
+                ifNoneMatch = ifNoneMatch,
             )
         return when (result) {
             is AppResult.Failure -> result
-            is AppResult.Success -> unwrapPageEnvelope(result.value, cleanId)
+            is AppResult.Success -> unwrapConditionalResponse(result.value, cleanId, ifNoneMatch)
         }
     }
+
+    private fun unwrapConditionalResponse(
+        response: ConditionalHttpResult<BffEnvelope<PageResponse>>,
+        screenId: String,
+        ifNoneMatch: String?,
+    ): AppResult<ConditionalScreenFetchResult> =
+        when (response) {
+            is ConditionalHttpResult.NotModified -> {
+                AppResult.Success(
+                    ConditionalScreenFetchResult.NotModified(
+                        etag = response.etag ?: ifNoneMatch?.takeIf { it.isNotBlank() },
+                    ),
+                )
+            }
+
+            is ConditionalHttpResult.Modified -> {
+                val httpEtag = response.envelope.etag?.takeIf { it.isNotBlank() }
+                when (val unwrapped = unwrapPageEnvelope(response.envelope.body, screenId)) {
+                    is AppResult.Failure -> {
+                        unwrapped
+                    }
+
+                    is AppResult.Success -> {
+                        val page = unwrapped.value
+                        val resolvedPage =
+                            if (page.etag.isNullOrBlank() && httpEtag != null) {
+                                page.copy(etag = httpEtag)
+                            } else {
+                                page
+                            }
+                        val resolvedEtag = resolvedPage.etag?.takeIf { it.isNotBlank() } ?: httpEtag
+                        AppResult.Success(
+                            ConditionalScreenFetchResult.Modified(
+                                page = resolvedPage,
+                                etag = resolvedEtag,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
 
     private fun unwrapPageEnvelope(
         envelope: BffEnvelope<PageResponse>,

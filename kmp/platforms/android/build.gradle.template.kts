@@ -1,5 +1,5 @@
 // Reference Gradle build template demonstrating Google's official KMP Android Library plugin
-// (`com.android.kotlin.multiplatform.library`) alongside the Abeta KMP Kit BOM (`0.4.1`) and
+// (`com.android.kotlin.multiplatform.library`) alongside the Abeta KMP Kit BOM (`0.5.0`) and
 // official Google AndroidX KMP libraries (`androidx.lifecycle`, `androidx.savedstate`,
 // `androidx.datastore`, `androidx.sqlite`).
 //
@@ -36,7 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Abeta KMP Kit BOM aligns all `io.github.abeta-dev:*` library versions.
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.5.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:state")
             implementation("io.github.abeta-dev:database")

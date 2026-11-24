@@ -148,6 +148,10 @@ type PageResponse struct {
 	PullToRefresh  *actions.ActionTrigger  `json:"pull_to_refresh,omitempty"`
 	AdaptiveLayout *AdaptivePageSpec       `json:"adaptive_layout,omitempty"`
 	Tracking       *atoms.TrackingMeta     `json:"tracking,omitempty"`
+	PageVersion    string                  `json:"page_version,omitempty"`
+	AppVersion     string                  `json:"app_version,omitempty"`
+	ETag           string                  `json:"etag,omitempty"`
+	StreamSpec     *SseStreamSpec          `json:"stream_spec,omitempty"`
 }
 
 // ── Typed Snippet Data Contracts ───────────────────────────────────────────────

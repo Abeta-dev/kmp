@@ -1156,7 +1156,7 @@
       <a class="brand" href="#top" aria-label="Abeta KMP Kit Home">
         <span class="brand-mark" aria-hidden="true">A</span>
         <span>Abeta KMP Kit</span>
-        <span class="version-pill">v0.4.1</span>
+        <span class="version-pill">v0.5.0</span>
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
@@ -1272,7 +1272,7 @@
             <div class="tab-panel active" id="panel-kmp" role="tabpanel" aria-labelledby="tab-kmp">
               <div class="tab-meta">
                 <span>Gradle BOM &amp; multiplatform artifacts via <strong>Maven Central</strong></span>
-                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.4.1</span>
+                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.5.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
@@ -1285,7 +1285,7 @@
 }
 
 dependencies {
-    implementation(platform("io.github.abeta-dev:bom:0.4.1"))
+    implementation(platform("io.github.abeta-dev:bom:0.5.0"))
     implementation("io.github.abeta-dev:sdui-layout")
     implementation("io.github.abeta-dev:database")        // Optional Room 3 SQLite DB
     implementation("io.github.abeta-dev:watch-companion") // Optional Wear OS / watchOS
@@ -1309,7 +1309,7 @@ dependencies {
                 </div>
                 <pre id="code-swift"><code>// Direct Git URL: https://github.com/Abeta-dev/kmp-spm
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.1"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.5.0"),
 ]
 
 // Import prebuilt binary targets directly in Swift:
@@ -1325,14 +1325,14 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
             <div class="tab-panel" id="panel-go" role="tabpanel" aria-labelledby="tab-go">
               <div class="tab-meta">
                 <span>Canonical <code>v1</code> Go wire builders, molecules &amp; analytics via <strong>proxy.golang.org</strong></span>
-                <span class="badge badge-emerald">bff@v0.6.0</span>
+                <span class="badge badge-emerald">bff@v0.7.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
                   <span>Terminal + Go imports</span>
                   <button class="copy-btn" type="button" data-copy-target="code-go">Copy</button>
                 </div>
-                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.6.0
+                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.7.0
 
 // Import 1:1 v1 wire packages in your Go BFF:
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
