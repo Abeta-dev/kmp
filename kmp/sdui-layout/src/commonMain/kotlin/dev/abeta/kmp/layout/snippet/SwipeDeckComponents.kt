@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -44,6 +45,8 @@ import dev.abeta.kmp.tokens.ThemeTokens
 import kotlin.math.abs
 
 private const val CARD_IMAGE_HEIGHT_DP = 220
+private const val SWIPE_CARD_MIN_HEIGHT_DP = 388
+private const val PEEK_BIO_MAX_LINES = 2
 private const val STAMP_TILT_DEG = 12f
 private const val STAMP_BG_ALPHA = 0.88f
 private const val PRIMARY_ACTION_BUTTON_DP = 56
@@ -88,7 +91,11 @@ internal fun SwipeCardContent(
     val spacing = ThemeTokens.spacing
     val clickHandler = if (interactive) card.onClick?.let { action -> { onAction(action) } } else null
     UiSurfaceCard(
-        modifier = Modifier.fillMaxWidth().testTag("swipe_card_${card.cardId}"),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = SWIPE_CARD_MIN_HEIGHT_DP.dp)
+                .testTag("swipe_card_${card.cardId}"),
         onClick = clickHandler,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(spacing.space12)) {
@@ -119,10 +126,13 @@ internal fun SwipeCardContent(
                     card.distanceText?.let { distance -> UiText(atom = distance, onAction = onAction) }
                 }
                 card.subtitle?.let { subtitle -> UiText(atom = subtitle, onAction = onAction) }
-                card.bio?.let { bio -> UiText(atom = bio, onAction = onAction) }
+                card.bio?.let { bio ->
+                    val displayBio = if (interactive) bio else bio.copy(maxLines = PEEK_BIO_MAX_LINES)
+                    UiText(atom = displayBio, onAction = onAction)
+                }
             }
 
-            if (card.tags.isNotEmpty()) {
+            if (interactive && card.tags.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(spacing.space8),

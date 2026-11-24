@@ -14,7 +14,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
@@ -202,19 +201,19 @@ class StorybookComposeTest {
             }
 
             onNodeWithText("/screens/fresh-home").assertIsDisplayed()
-            onNode(hasText("Abeta Bites") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Bites") and hasClickAction()).performClick()
             onNodeWithText("/screens/bites-home").assertIsDisplayed()
-            onNode(hasText("Abeta Pulse") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Pulse") and hasClickAction()).performClick()
             onNodeWithText("/screens/pulse-home").assertIsDisplayed()
-            onNode(hasText("Abeta Mart") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Mart") and hasClickAction()).performClick()
             onNodeWithText("/screens/mart-home").assertIsDisplayed()
-            onNode(hasText("Abeta Spark") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Spark") and hasClickAction()).performClick()
             onNodeWithText("/screens/spark-deck").assertIsDisplayed()
-            onNode(hasText("Abeta Trade") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Trade") and hasClickAction()).performClick()
             onNodeWithText("/screens/trade-home").assertIsDisplayed()
-            onNode(hasText("Abeta Pay") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Pay") and hasClickAction()).performClick()
             onNodeWithText("/screens/pay-home").assertIsDisplayed()
-            onNode(hasText("Abeta Watch") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Watch") and hasClickAction()).performClick()
             onNodeWithText("/screens/watch-status").assertIsDisplayed()
         }
 
@@ -284,14 +283,17 @@ class StorybookComposeTest {
             onNodeWithText("•••• 4829 · ACTIVE").assertIsDisplayed()
             onNodeWithText("Manage Card").assertIsDisplayed().performClick()
             onNodeWithText("/screens/pay-cards").assertIsDisplayed()
-            onNodeWithText("Back").performScrollTo().performClick()
+            onNodeWithText("Back").performClick()
             onNodeWithText("/screens/pay-home").assertIsDisplayed()
+            val phoneList =
+                hasScrollToNodeAction() and SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange)
             onNodeWithContentDescription("Last Receipt").performClick()
             onNodeWithText("/screens/pay-receipt?stage=2").assertIsDisplayed()
+            onNode(phoneList).performScrollToNode(hasText("Advance Settlement"))
             onNodeWithText("Advance Settlement").assertIsDisplayed().performClick()
             onNodeWithText("/screens/pay-receipt?stage=3").assertIsDisplayed()
 
-            onNode(hasText("Abeta Fresh") and hasClickAction()).performScrollTo().performClick()
+            onNode(hasText("Abeta Fresh") and hasClickAction()).performClick()
             onNodeWithText("/screens/fresh-home").assertIsDisplayed()
             onNodeWithText("Review Cart").assertIsDisplayed().performClick()
             onNodeWithText("/screens/fresh-cart").assertIsDisplayed()
@@ -299,6 +301,7 @@ class StorybookComposeTest {
             onNodeWithText("/screens/fresh-home").assertIsDisplayed()
             onNodeWithContentDescription("Track Fresh order").performClick()
             onNodeWithText("/screens/fresh-order-track?stage=3").assertIsDisplayed()
+            onNode(phoneList).performScrollToNode(hasText("Advance Delivery Stage"))
             onNodeWithText("Advance Delivery Stage").assertIsDisplayed().performClick()
             onNodeWithText("/screens/fresh-order-track?stage=4").assertIsDisplayed()
         }
@@ -385,7 +388,7 @@ class StorybookComposeTest {
 
             val verticalList =
                 hasScrollToNodeAction() and SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange)
-            onNode(verticalList).performScrollToIndex(4)
+            onNode(verticalList).performScrollToNode(hasText("500g ▼"))
             onNode(verticalList).performTouchInput { swipeUp(startY = centerY, endY = centerY - 110f) }
             onNodeWithText("500g ▼").assertIsDisplayed().performClick()
 
@@ -395,8 +398,9 @@ class StorybookComposeTest {
             onNodeWithText("Apply Variant").performScrollTo().performClick()
             onNodeWithTag("overlay_snippets_fresh_variant_picker_sheet").assertDoesNotExist()
 
-            onNode(verticalList).performScrollToNode(hasTestTag("composed_node_fresh_upsell_scroll_row"))
+            onNode(verticalList).performScrollToNode(hasText("Before You Checkout"))
             onNodeWithText("Before You Checkout").assertIsDisplayed()
+            onNode(verticalList).performScrollToNode(hasTestTag("composed_node_fresh_upsell_scroll_row"))
 
             onNodeWithText("interaction_click:", substring = true).assertIsDisplayed()
             onNodeWithText("interaction_click: 0").assertDoesNotExist()

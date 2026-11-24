@@ -2,11 +2,12 @@ package dev.abeta.kmp.storybook
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
@@ -40,6 +40,11 @@ import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiTag
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.BorderSpec
+import dev.abeta.kmp.contracts.ColorTokenRef
+import dev.abeta.kmp.contracts.CornerRadiusSpec
+import dev.abeta.kmp.contracts.LayoutConfig
+import dev.abeta.kmp.contracts.SpacingValues
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.core.security.BiometricResult
@@ -62,6 +67,10 @@ private const val TABLET_FRAME_WIDTH_DP = 768
 private const val WATCH_FRAME_WIDTH_DP = 280
 private const val SIDE_TELEMETRY_MIN_WIDTH_DP = 680
 private const val SIDE_TELEMETRY_WIDTH_DP = 264
+private const val CONTROL_BAR_PAD_H_DP = 12
+private const val CONTROL_BAR_PAD_V_DP = 8
+private const val CONTROL_BAR_RADIUS_DP = 12
+private const val CONTROL_BAR_BORDER_DP = 1f
 
 private enum class DemoViewportMode(
     val label: String,
@@ -357,6 +366,7 @@ private fun SuperAppPhoneFrame(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
 private fun SuperAppDemoControlBar(
@@ -370,12 +380,21 @@ private fun SuperAppDemoControlBar(
     onReset: () -> Unit,
 ) {
     val spacing = ThemeTokens.spacing
-    UiSurfaceCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(spacing.space8)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+    val controlBarLayout =
+        LayoutConfig(
+            padding = SpacingValues(horizontal = CONTROL_BAR_PAD_H_DP, vertical = CONTROL_BAR_PAD_V_DP),
+            bgColor = ColorTokenRef("surface.elevated"),
+            cornerRadius = CornerRadiusSpec(all = CONTROL_BAR_RADIUS_DP),
+            border = BorderSpec(widthDp = CONTROL_BAR_BORDER_DP, color = ColorTokenRef("border.subtle")),
+            fillMaxWidth = true,
+        )
+    UiSurfaceCard(modifier = Modifier.fillMaxWidth(), layout = controlBarLayout) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.space2)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(spacing.space8),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(spacing.space0),
+                itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 SuperAppDemoCatalog.apps.forEach { app ->
                     FilterChip(
@@ -385,10 +404,11 @@ private fun SuperAppDemoControlBar(
                     )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(spacing.space8),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(spacing.space0),
+                itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 UiTag(TagAtom(label = activeApp.subtitle, variant = TagVariant.BRAND))
                 UiTag(TagAtom(label = "/screens/$activeScreen", variant = TagVariant.NEUTRAL))

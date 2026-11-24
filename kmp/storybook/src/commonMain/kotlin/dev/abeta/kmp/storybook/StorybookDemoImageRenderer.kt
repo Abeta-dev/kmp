@@ -24,8 +24,8 @@ import dev.abeta.kmp.contracts.ImageAtom
 import dev.abeta.kmp.tokens.ThemeTokens
 
 private const val DEMO_PLACEHOLDER_HOST = "cdn.abeta.dev"
-private const val ARTWORK_ICON_SIZE_DP = 24
-private const val ARTWORK_BADGE_SIZE_DP = 44
+private const val ARTWORK_ICON_SIZE_DP = 20
+private const val ARTWORK_BADGE_SIZE_DP = 36
 private const val ARTWORK_START_ALPHA = 0.22f
 private const val ARTWORK_END_ALPHA = 0.08f
 private const val ARTWORK_BADGE_ALPHA = 0.85f
@@ -64,15 +64,8 @@ private fun DemoArtworkPlaceholder(
 ) {
     val palette = resolveArtworkPalette(atom.url)
     val colors = ThemeTokens.colors
-    val typography = ThemeTokens.typography
     val spacing = ThemeTokens.spacing
-    val label =
-        atom.contentDescription
-            ?.takeIf { it.isNotBlank() }
-            ?: atom.url
-                .substringAfterLast('/')
-                .substringBefore('.')
-                .replace('_', ' ')
+    val label = resolveArtworkLabel(atom)
 
     Box(
         modifier =
@@ -88,7 +81,13 @@ private fun DemoArtworkPlaceholder(
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier = Modifier.padding(spacing.space8),
+            modifier =
+                Modifier.padding(
+                    start = spacing.space8,
+                    end = spacing.space8,
+                    top = spacing.space8,
+                    bottom = spacing.space20,
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {
@@ -111,7 +110,7 @@ private fun DemoArtworkPlaceholder(
             }
             Text(
                 text = label,
-                style = typography.labelSmall,
+                style = ThemeTokens.typography.labelSmall,
                 color = colors.text.secondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -119,6 +118,14 @@ private fun DemoArtworkPlaceholder(
         }
     }
 }
+
+private fun resolveArtworkLabel(atom: ImageAtom): String =
+    atom.contentDescription
+        ?.takeIf { it.isNotBlank() }
+        ?: atom.url
+            .substringAfterLast('/')
+            .substringBefore('.')
+            .replace('_', ' ')
 
 private val PRODUCE_KEYWORDS = listOf("avocado", "produce", "berr", "harvest")
 private val DRINK_KEYWORDS = listOf("milk", "dairy", "brew", "drink", "yuzu", "juice")

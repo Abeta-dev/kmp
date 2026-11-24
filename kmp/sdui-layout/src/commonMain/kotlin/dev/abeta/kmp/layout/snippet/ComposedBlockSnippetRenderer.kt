@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,6 +22,7 @@ import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.modifiers.applyLayoutConfig
 import dev.abeta.kmp.atoms.modifiers.applyMotionSpec
 import dev.abeta.kmp.atoms.modifiers.pressBounce
+import dev.abeta.kmp.atoms.modifiers.toPaddingValues
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.ComposedBlockSnippetData
 import dev.abeta.kmp.contracts.ComposedNode
@@ -125,17 +127,12 @@ private fun RenderComposedNode(
         return
     }
 
-    val clickAction = resolveComposedNodeClickAction(node)
     val styledModifier =
-        taggedModifier
-            .applyLayoutConfig(node.layout)
-            .let { base ->
-                if (clickAction != null) {
-                    base.pressBounce().clickable { context.onAction(clickAction) }
-                } else {
-                    base
-                }
-            }
+        applyComposedLayoutAndClick(
+            base = taggedModifier,
+            node = node,
+            onAction = context.onAction,
+        )
 
     when (node.kind) {
         ComposedNodeKind.COLUMN,
@@ -156,6 +153,36 @@ private fun RenderComposedNode(
                 onAction = context.onAction,
                 modifier = styledModifier,
             )
+        }
+    }
+}
+
+@Composable
+private fun applyComposedLayoutAndClick(
+    base: Modifier,
+    node: ComposedNode,
+    onAction: (ActionRef) -> Unit,
+): Modifier {
+    val clickAction = resolveComposedNodeClickAction(node)
+    val innerPadding = node.layout?.padding
+    return when {
+        clickAction != null && innerPadding != null -> {
+            base
+                .applyLayoutConfig(node.layout?.copy(padding = null))
+                .pressBounce()
+                .clickable { onAction(clickAction) }
+                .padding(innerPadding.toPaddingValues())
+        }
+
+        clickAction != null -> {
+            base
+                .applyLayoutConfig(node.layout)
+                .pressBounce()
+                .clickable { onAction(clickAction) }
+        }
+
+        else -> {
+            base.applyLayoutConfig(node.layout)
         }
     }
 }
