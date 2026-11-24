@@ -8,8 +8,8 @@
 
 | Artifact | Coordinate | Source Module | Purpose |
 | :--- | :--- | :--- | :--- |
-| **BOM** | `io.github.abeta-dev:bom:0.5.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `io.github.abeta-dev:*` library modules** + `dependencies` (13 Maven artifacts total) |
-| **Version Catalog** | `io.github.abeta-dev:dependencies:0.5.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
+| **BOM** | `io.github.abeta-dev:bom:0.6.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `io.github.abeta-dev:*` library modules** + `dependencies` (13 Maven artifacts total) |
+| **Version Catalog** | `io.github.abeta-dev:dependencies:0.6.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
 
 ### Modules Included in `io.github.abeta-dev:bom`
 
@@ -59,7 +59,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("abetaLibs") {
-            from("io.github.abeta-dev:dependencies:0.5.0")
+            from("io.github.abeta-dev:dependencies:0.6.0")
         }
     }
 }
@@ -71,7 +71,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.5.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0"))
 
             // Pick your required layers—no version numbers needed
             implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB

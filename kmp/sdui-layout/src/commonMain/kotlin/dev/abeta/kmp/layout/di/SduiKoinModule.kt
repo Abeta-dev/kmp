@@ -18,8 +18,10 @@ import dev.abeta.kmp.core.identity.RandomUuidGenerator
 import dev.abeta.kmp.core.identity.UuidGenerator
 import dev.abeta.kmp.core.logging.AppLogger
 import dev.abeta.kmp.core.logging.KermitAppLogger
+import dev.abeta.kmp.core.platform.AudioCapturePort
 import dev.abeta.kmp.core.platform.ClipboardPort
 import dev.abeta.kmp.core.platform.ConnectivityMonitor
+import dev.abeta.kmp.core.platform.DesktopSystemPort
 import dev.abeta.kmp.core.platform.ExternalLauncherPort
 import dev.abeta.kmp.core.platform.FilePickerPort
 import dev.abeta.kmp.core.platform.HapticEngine
@@ -28,6 +30,7 @@ import dev.abeta.kmp.core.platform.PermissionPort
 import dev.abeta.kmp.core.platform.PlatformCapabilities
 import dev.abeta.kmp.core.platform.PushNotificationPort
 import dev.abeta.kmp.core.platform.SharePort
+import dev.abeta.kmp.core.platform.SpeechToTextPort
 import dev.abeta.kmp.core.security.BiometricAuthenticator
 import dev.abeta.kmp.core.security.SecureKeyValueStore
 import dev.abeta.kmp.core.storage.KeyValueStore
@@ -144,6 +147,9 @@ private fun Module.registerPlatformBridgeBindings(platformBridges: PlatformBridg
     single<LocationPort> { get<PlatformBridgeBundle>().locationPort }
     single<FilePickerPort> { get<PlatformBridgeBundle>().filePickerPort }
     single<PushNotificationPort> { get<PlatformBridgeBundle>().pushNotificationPort }
+    single<AudioCapturePort> { get<PlatformBridgeBundle>().audioCapturePort }
+    single<SpeechToTextPort> { get<PlatformBridgeBundle>().speechToTextPort }
+    single<DesktopSystemPort> { get<PlatformBridgeBundle>().desktopSystemPort }
 }
 
 @Suppress("LongParameterList")

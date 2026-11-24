@@ -44,7 +44,7 @@ func TestLoadConfigAndBuildServer(t *testing.T) {
 	t.Cleanup(func() { _ = ginmw.SetJWTSecret("") })
 
 	cfg := loadConfig()
-	if cfg.ServiceName != "custom-bff" || cfg.Addr != ":9091" || cfg.CatalogVersion != "2.0.0" {
+	if cfg.ServiceName != "custom-bff" || cfg.AppVersion != "0.8.0" || cfg.Addr != ":9091" || cfg.CatalogVersion != "2.0.0" {
 		t.Fatalf("unexpected config: %+v", cfg)
 	}
 	if len(cfg.AllowedOrigins) != 2 || cfg.ReadTimeout != 5*time.Second || cfg.ShutdownTimeout != 3*time.Second {

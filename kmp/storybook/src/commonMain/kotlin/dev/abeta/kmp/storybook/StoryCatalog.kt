@@ -139,10 +139,10 @@ object StoryCatalog {
             ),
             StoryEntry(
                 id = STORY_SNIPPETS,
-                title = "All 21 Snippets",
+                title = "All 23 Snippets",
                 category = StoryCategory.SNIPPETS,
-                subtitle = "BuiltInSnippetModule · All 21 Canonical SDUI SnippetTypes",
-                description = "Interactive gallery rendering all 21 SDUI snippets via SnippetRegistry.",
+                subtitle = "BuiltInSnippetModule · All 23 Canonical SDUI SnippetTypes",
+                description = "Interactive gallery rendering all 23 SDUI snippets via SnippetRegistry.",
             ),
             StoryEntry(
                 id = STORY_PLAYGROUND,

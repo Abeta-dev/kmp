@@ -476,6 +476,60 @@ class GoldenFixturesParityTest {
         assertEquals(SnippetTypes.METRIC_CARD, page.snippets[2].snippetType)
     }
 
+    @Test
+    fun decodesSpatialCustomAndGraphGoldenFixture() {
+        val rawJson = loadGoldenJson("spatial_custom_and_graph_screen.json")
+        val page = SduiJson.decodeFromString<PageResponse>(rawJson)
+        assertEquals("spatial-custom-and-graph-demo", page.pageId)
+        assertEquals("Abeta Spatial Graph & Custom Slots", page.title)
+        assertEquals("0.8.0", page.appVersion)
+        assertTrue(!page.pageVersion.isNullOrBlank())
+        val etag = assertNotNull(page.etag)
+        assertTrue(etag.startsWith("\"") && etag.endsWith("\""))
+        assertEquals(3, page.snippets.size)
+
+        assertEquals(SnippetTypes.HEADER, page.snippets[0].snippetType)
+        assertEquals(SnippetTypes.GRAPH_CANVAS, page.snippets[1].snippetType)
+        assertEquals(SnippetTypes.CUSTOM_SLOT, page.snippets[2].snippetType)
+
+        val graph = SduiJson.decodeFromJsonElement<GraphCanvasSnippetData>(page.snippets[1].data)
+        assertEquals("service_topology_canvas", graph.canvasId)
+        assertEquals(380, graph.heightDp)
+        assertTrue(graph.allowPan)
+        assertTrue(graph.allowZoom)
+        assertTrue(graph.allowNodeDrag)
+        assertEquals(0.5f, graph.minZoom)
+        assertEquals(2.5f, graph.maxZoom)
+        assertEquals(3, graph.nodes.size)
+        assertEquals("node_bff", graph.nodes[0].nodeId)
+        assertEquals(false, graph.nodes[0].draggable)
+        assertTrue(graph.nodes[0].pinned)
+        assertEquals("graph_node_clicked", graph.nodes[0].tracking?.eventName)
+        assertEquals(3, graph.edges.size)
+        assertEquals(GraphEdgeStyle.BEZIER, graph.edges[0].style)
+        assertEquals(GraphEdgeStyle.STRAIGHT, graph.edges[1].style)
+        assertEquals(GraphEdgeStyle.DASHED, graph.edges[2].style)
+        assertNotNull(graph.onNodeMoved)
+        assertNotNull(graph.onCanvasTap)
+
+        val slot = SduiJson.decodeFromJsonElement<CustomSlotSnippetData>(page.snippets[2].data)
+        assertEquals("delivery_live_map", slot.slotId)
+        assertEquals("native_map_view", slot.slotType)
+        assertEquals(240, slot.minHeightDp)
+        assertEquals(1.75f, slot.aspectRatio)
+        assertTrue(slot.initialState.containsKey("order_id"))
+        assertEquals(2, slot.onEvent.size)
+        assertNotNull(slot.onEvent["marker_tap"])
+        assertNotNull(slot.onEvent["region_change"])
+
+        val fallback = assertNotNull(slot.fallback)
+        assertEquals(SnippetTypes.CARD, fallback.snippetType)
+        assertEquals("spatial_live_map_slot", fallback.snippetParentId)
+        val fallbackCard = SduiJson.decodeFromJsonElement<CardSnippetData>(fallback.data)
+        assertEquals("Interactive Map Unavailable", fallbackCard.title.text)
+        assertEquals("FALLBACK", fallbackCard.badge?.label)
+    }
+
     private fun collectComposedNodes(root: ComposedNode): List<ComposedNode> =
         listOf(root) + root.children.flatMap { collectComposedNodes(it) }
 }

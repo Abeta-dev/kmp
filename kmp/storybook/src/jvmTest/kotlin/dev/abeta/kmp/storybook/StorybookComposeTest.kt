@@ -47,9 +47,13 @@ class StorybookComposeTest {
             onNodeWithText("115%").performClick()
             onNodeWithText("1.0x").assertIsDisplayed()
 
-            onNodeWithText("All 21 Snippets").performScrollTo().performClick()
+            onNodeWithText("All 23 Snippets").performScrollTo().performClick()
             onNodeWithText("SDUI Snippet Registry Gallery").assertIsDisplayed()
-            onNodeWithText("21 / 21 Registered").assertIsDisplayed()
+            onNodeWithText("23 / 23 Registered").assertIsDisplayed()
+            onNode(hasText("Custom Slot") and hasClickAction()).performClick()
+            onNodeWithText("Native Host Canvas Bridge").performScrollTo().assertIsDisplayed()
+            onNode(hasText("Graph Canvas") and hasClickAction()).performClick()
+            onNodeWithText("People Relationship Map").performScrollTo().assertIsDisplayed()
             onNode(hasText("Accordion") and hasClickAction()).performClick()
             onNodeWithText("SnippetEnvelope Wire JSON (accordion)").performScrollTo().assertIsDisplayed()
 
@@ -76,6 +80,8 @@ class StorybookComposeTest {
             onNodeWithText("Watch (260dp)").performClick()
             onNodeWithText("Core OS Bridges & Capabilities").assertIsDisplayed()
             onNodeWithText("Shake Error Test").performScrollTo().performClick()
+            onNodeWithText("Voice & Desktop OS Bridges").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Simulate Voice Capture").performScrollTo().performClick()
 
             onNodeWithText("Discovery, Search & Swipe").performScrollTo().performClick()
             onNodeWithText("Search Bar & Live Query Binding").assertIsDisplayed()

@@ -33,6 +33,8 @@ const (
 	SnippetTypeMarqueeStrip  = "marquee_strip"
 	SnippetTypeOrderTracker  = "order_tracker"
 	SnippetTypeComposedBlock = "composed_block"
+	SnippetTypeCustomSlot    = "custom_slot"
+	SnippetTypeGraphCanvas   = "graph_canvas"
 )
 
 // SnippetEnvelope wraps any typed snippet payload with identity, hierarchy, and tracking metadata.

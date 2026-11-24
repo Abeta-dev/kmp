@@ -372,12 +372,14 @@ jobs:
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
             gh release upload "${RELEASE_TAG}" \
               dist/xcframeworks/*.xcframework.zip \
+              dist/xcframeworks/AbetaSwiftUI-Sources-*.zip \
               dist/xcframeworks/SHA256SUMS.txt \
               dist/xcframeworks/Package.swift \
               --clobber
           else
             gh release create "${RELEASE_TAG}" \
               dist/xcframeworks/*.xcframework.zip \
+              dist/xcframeworks/AbetaSwiftUI-Sources-*.zip \
               dist/xcframeworks/SHA256SUMS.txt \
               dist/xcframeworks/Package.swift \
               --title "Abeta KMP Kit ${RELEASE_TAG}" \
@@ -416,7 +418,7 @@ jobs:
           name: abeta-xcframeworks
           path: dist/xcframeworks
 
-      - name: Sync Package.swift, SHA256SUMS.txt & README.md to SwiftPM mirror
+      - name: Sync Package.swift, Sources/, SHA256SUMS.txt & README.md to SwiftPM mirror
         env:
           SPM_REPO: ${{ vars.SPM_REPO || 'Abeta-dev/kmp-spm' }}
           SPM_REPO_TOKEN: ${{ secrets.SPM_REPO_TOKEN }}
@@ -433,6 +435,8 @@ jobs:
 
           cp dist/xcframeworks/Package.swift "${MIRROR_DIR}/Package.swift"
           cp dist/xcframeworks/SHA256SUMS.txt "${MIRROR_DIR}/SHA256SUMS.txt"
+          rm -rf "${MIRROR_DIR}/Sources"
+          cp -R dist/xcframeworks/Sources "${MIRROR_DIR}/Sources"
 
           sed \
             -e "s|__GITHUB_REPOSITORY__|${GITHUB_REPOSITORY}|g" \
@@ -442,7 +446,7 @@ jobs:
             > "${MIRROR_DIR}/README.md" <<'EOF'
           # Abeta KMP Kit — Swift Package Manager Mirror
 
-          Direct-URL binary Swift Package Manager distribution for [`__GITHUB_REPOSITORY__`](https://github.com/__GITHUB_REPOSITORY__) Apple Release XCFrameworks (`AbetaSduiKit` for iOS/iPadOS 15+ and `AbetaWatchKit` for watchOS 9+).
+          Direct-URL binary Swift Package Manager distribution for [`__GITHUB_REPOSITORY__`](https://github.com/__GITHUB_REPOSITORY__) Apple Release XCFrameworks and ready-made SwiftUI renderers (`AbetaSduiSwiftUI` & `AbetaSduiKit` for iOS/iPadOS 15+, `AbetaWatchSwiftUI` & `AbetaWatchKit` for watchOS 9+).
 
           - **Latest Release**: `__SPM_VERSION__` (`__RELEASE_TAG__`)
           - **Upstream Release Assets**: https://github.com/__GITHUB_REPOSITORY__/releases/tag/__RELEASE_TAG__
@@ -455,7 +459,7 @@ jobs:
              https://github.com/__SPM_REPO__
              ```
           3. Select **Up to Next Major Version** starting from `__SPM_VERSION__` (note: SwiftPM prefers SemVer tags like `__SPM_VERSION__`, and both `__SPM_VERSION__` and `__RELEASE_TAG__` work in Xcode).
-          4. Link **`AbetaSduiKit`** to your iOS/iPadOS 15+ target and/or **`AbetaWatchKit`** to your watchOS 9+ target.
+          4. Link **`AbetaSduiSwiftUI`** (or low-level **`AbetaSduiKit`**) to your iOS/iPadOS 15+ target and/or **`AbetaWatchSwiftUI`** (or low-level **`AbetaWatchKit`**) to your watchOS 9+ target.
 
           ## `Package.swift` Dependency
 
@@ -466,11 +470,13 @@ jobs:
           ```
 
           ```swift
-          // iOS / iPadOS target
-          import AbetaSduiKit
+          // iOS / iPadOS SwiftUI target
+          import AbetaSduiSwiftUI
+          AbetaIosRootAppView(initialScreenId: "store-home", bffBaseUrl: nil)
 
-          // watchOS target
-          import AbetaWatchKit
+          // watchOS SwiftUI target
+          import AbetaWatchSwiftUI
+          AbetaWatchSduiView(bffBaseUrl: nil, initialScreenId: "watch-status")
           ```
           EOF
 
@@ -478,7 +484,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add Package.swift SHA256SUMS.txt README.md
+          git add -A Package.swift SHA256SUMS.txt README.md Sources
           if ! git diff --cached --quiet; then
             git commit -m "chore(spm): release ${SPM_VERSION} (${GITHUB_REF_NAME})"
             git push -u origin HEAD
@@ -497,5 +503,5 @@ jobs:
             echo "## SwiftPM Direct-URL Mirror Sync"
             echo "- **Mirror Repo**: \`https://github.com/${SPM_REPO}\`"
             echo "- **SemVer Tag**: \`${SPM_VERSION}\` (from \`${GITHUB_REF_NAME}\`)"
-            echo "- **Products**: \`AbetaSduiKit\` (iOS 15+), \`AbetaWatchKit\` (watchOS 9+)"
+            echo "- **Products**: \`AbetaSduiKit\` / \`AbetaSduiSwiftUI\` (iOS 15+), \`AbetaWatchKit\` / \`AbetaWatchSwiftUI\` (watchOS 9+)"
           } >> "$GITHUB_STEP_SUMMARY"

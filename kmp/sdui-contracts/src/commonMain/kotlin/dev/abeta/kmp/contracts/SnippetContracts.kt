@@ -29,6 +29,8 @@ object SnippetTypes {
     const val MARQUEE_STRIP = "marquee_strip"
     const val ORDER_TRACKER = "order_tracker"
     const val COMPOSED_BLOCK = "composed_block"
+    const val CUSTOM_SLOT = "custom_slot"
+    const val GRAPH_CANVAS = "graph_canvas"
 }
 
 /**

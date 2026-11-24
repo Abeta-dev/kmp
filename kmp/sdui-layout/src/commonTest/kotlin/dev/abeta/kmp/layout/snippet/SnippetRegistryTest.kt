@@ -11,9 +11,11 @@ import dev.abeta.kmp.contracts.CarouselSnippetData
 import dev.abeta.kmp.contracts.ChipGroupSnippetData
 import dev.abeta.kmp.contracts.ComposedBlockSnippetData
 import dev.abeta.kmp.contracts.ComposedNodeKind
+import dev.abeta.kmp.contracts.CustomSlotSnippetData
 import dev.abeta.kmp.contracts.DividerSnippetData
 import dev.abeta.kmp.contracts.EmptyStateSnippetData
 import dev.abeta.kmp.contracts.FormSnippetData
+import dev.abeta.kmp.contracts.GraphCanvasSnippetData
 import dev.abeta.kmp.contracts.GridSnippetData
 import dev.abeta.kmp.contracts.HeaderSnippetData
 import dev.abeta.kmp.contracts.MarqueeStripSnippetData
@@ -88,34 +90,9 @@ class SnippetRegistryTest {
     }
 
     @Test
-    fun allTwentyOneBuiltInSnippetRenderersRegisterAndDecodeCoreSnippets() {
+    fun allTwentyThreeBuiltInSnippetRenderersRegisterAndDecodeCoreSnippets() {
         val registry = BuiltInSnippetModule.createDefaultRegistry()
-
-        val expectedTypes =
-            setOf(
-                SnippetTypes.HEADER,
-                SnippetTypes.BANNER,
-                SnippetTypes.METRIC_CARD,
-                SnippetTypes.CARD,
-                SnippetTypes.ACTION_ROW,
-                SnippetTypes.FORM,
-                SnippetTypes.EMPTY_STATE,
-                SnippetTypes.DIVIDER,
-                SnippetTypes.SPACER,
-                SnippetTypes.CAROUSEL,
-                SnippetTypes.GRID,
-                SnippetTypes.TABS,
-                SnippetTypes.ACCORDION,
-                SnippetTypes.PRODUCT_CARD,
-                SnippetTypes.SWIPE_DECK,
-                SnippetTypes.SEARCH_BAR,
-                SnippetTypes.CHIP_GROUP,
-                SnippetTypes.NUDGE_BAR,
-                SnippetTypes.MARQUEE_STRIP,
-                SnippetTypes.ORDER_TRACKER,
-                SnippetTypes.COMPOSED_BLOCK,
-            )
-        assertEquals(expectedTypes, registry.registeredTypes())
+        assertEquals(canonicalTwentyThreeSnippetTypes(), registry.registeredTypes())
 
         val header =
             assertIs<AppResult.Success<HeaderSnippetData>>(
@@ -152,6 +129,33 @@ class SnippetRegistryTest {
             ).value
         assertEquals("Card", card.title.text)
     }
+
+    private fun canonicalTwentyThreeSnippetTypes(): Set<String> =
+        setOf(
+            SnippetTypes.HEADER,
+            SnippetTypes.BANNER,
+            SnippetTypes.METRIC_CARD,
+            SnippetTypes.CARD,
+            SnippetTypes.ACTION_ROW,
+            SnippetTypes.FORM,
+            SnippetTypes.EMPTY_STATE,
+            SnippetTypes.DIVIDER,
+            SnippetTypes.SPACER,
+            SnippetTypes.CAROUSEL,
+            SnippetTypes.GRID,
+            SnippetTypes.TABS,
+            SnippetTypes.ACCORDION,
+            SnippetTypes.PRODUCT_CARD,
+            SnippetTypes.SWIPE_DECK,
+            SnippetTypes.SEARCH_BAR,
+            SnippetTypes.CHIP_GROUP,
+            SnippetTypes.NUDGE_BAR,
+            SnippetTypes.MARQUEE_STRIP,
+            SnippetTypes.ORDER_TRACKER,
+            SnippetTypes.COMPOSED_BLOCK,
+            SnippetTypes.CUSTOM_SLOT,
+            SnippetTypes.GRAPH_CANVAS,
+        )
 
     @Test
     fun builtInSnippetDecodersDecodeActionFormEmptyDividerAndSpacer() {
@@ -320,6 +324,37 @@ class SnippetRegistryTest {
             ).value
         assertEquals("blk_1", composed.blockId)
         assertEquals(ComposedNodeKind.COLUMN, composed.root.kind)
+    }
+
+    @Test
+    fun builtInSpatialCustomSlotAndGraphCanvasDecodersSucceed() {
+        val registry = BuiltInSnippetModule.createDefaultRegistry()
+
+        val customSlot =
+            assertIs<AppResult.Success<CustomSlotSnippetData>>(
+                registry.resolve(SnippetTypes.CUSTOM_SLOT)!!.decode(
+                    buildJsonObject {
+                        put("slot_id", "live_map_1")
+                        put("slot_type", "native_map_view")
+                        put("min_height_dp", 220)
+                    },
+                ),
+            ).value
+        assertEquals("live_map_1", customSlot.slotId)
+        assertEquals("native_map_view", customSlot.slotType)
+        assertEquals(220, customSlot.minHeightDp)
+
+        val graphCanvas =
+            assertIs<AppResult.Success<GraphCanvasSnippetData>>(
+                registry.resolve(SnippetTypes.GRAPH_CANVAS)!!.decode(
+                    buildJsonObject {
+                        put("canvas_id", "people_graph")
+                        put("height_dp", 360)
+                    },
+                ),
+            ).value
+        assertEquals("people_graph", graphCanvas.canvasId)
+        assertEquals(360, graphCanvas.heightDp)
     }
 
     @Test

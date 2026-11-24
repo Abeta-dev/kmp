@@ -174,7 +174,7 @@ class StorybookCatalogTest {
     }
 
     @Test
-    fun `snippet gallery samples cover all 21 canonical snippet types`() {
+    fun `snippet gallery samples cover all 23 canonical snippet types`() {
         val registry = BuiltInSnippetModule.createDefaultRegistry()
         val samples = SnippetsSamples.allItems()
         val sampleTypes = samples.map { it.envelope.snippetType }.toSet()
@@ -201,6 +201,8 @@ class StorybookCatalogTest {
                 SnippetTypes.MARQUEE_STRIP,
                 SnippetTypes.ORDER_TRACKER,
                 SnippetTypes.COMPOSED_BLOCK,
+                SnippetTypes.CUSTOM_SLOT,
+                SnippetTypes.GRAPH_CANVAS,
             )
 
         assertEquals(expectedTypes.size, samples.size)

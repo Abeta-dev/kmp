@@ -11,12 +11,12 @@ The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source r
 
 1. **`Abeta-dev/kmp` (this repository — Client Kit & Canonical `v1` Wire Contracts)**:
    - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** + `bom` + `dependencies`).
-   - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.7.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
+   - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.8.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
    - Runnable **7-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **20-story End-to-End Interactive Storybook** (`kmp/storybook`, featuring all 31 stateless UI atoms across 8 dedicated UI Atom stories and all 7 Super-App verticals — Fresh, Bites, Pulse, Mart, Spark, Trade, Pay + Watch — playable live in WasmJS browser with multi-step workflows).
 2. **`Abeta-dev/layout-engine`** (`https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt`):
-   - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics (`bff@v0.7.0`).
+   - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics (`bff@v0.8.0`).
 3. **`Abeta-dev/sdui-bff`** (`https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt`):
-   - Multi-tenant production Go SDUI BFF importing `github.com/abeta-dev/kmp/bff@v0.7.0` to serve live vertical screens and interactive mutations for all 7 Super-App verticals (`abeta-fresh`, `abeta-bites`, `abeta-pulse`, `abeta-mart`, `abeta-spark`, `abeta-trade`, `abeta-pay`).
+   - Multi-tenant production Go SDUI BFF importing `github.com/abeta-dev/kmp/bff@v0.8.0` to serve live vertical screens and interactive mutations for all 7 Super-App verticals (`abeta-fresh`, `abeta-bites`, `abeta-pulse`, `abeta-mart`, `abeta-spark`, `abeta-trade`, `abeta-pay`).
 
 ### Core Toolchain Versions (`kmp/dependencyManagement/gradle/libs.versions.toml` & `bff/go.mod`)
 - **Kotlin**: `2.4.21` | **Compose Multiplatform**: `1.12.2` (Material 3 `1.12.0-alpha03`) | **Gradle**: `9.7.0` (JDK 21)
@@ -273,13 +273,13 @@ dependencyResolutionManagement {
         google()
     }
     versionCatalogs {
-        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.5.0") }
+        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.6.0") }
     }
 }
 
 // build.gradle.kts (commonMain)
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.5.0"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0"))
     implementation("io.github.abeta-dev:core")
     implementation("io.github.abeta-dev:database")        // Optional Room 3 KMP local SQLite DB
     implementation("io.github.abeta-dev:design-tokens")
@@ -298,7 +298,7 @@ repositories {
     maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
 }
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.5.0-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0-SNAPSHOT"))
     implementation("io.github.abeta-dev:sdui-layout")
 }
 ```
@@ -308,14 +308,14 @@ Inside this monorepo, `abeta.kmpLocalBuild=true` substitutes `io.github.abeta-de
 ```swift
 // Package.swift — or Xcode -> File -> Add Package Dependencies...
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.5.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.6.0"),
 ]
 // Targets: import AbetaSduiKit (iOS/iPadOS) | import AbetaWatchKit (watchOS)
 ```
 
 ### Go Module Proxy (`proxy.golang.org`)
 ```bash
-go get github.com/abeta-dev/kmp/bff@v0.7.0
+go get github.com/abeta-dev/kmp/bff@v0.8.0
 ```
 ```go
 import (

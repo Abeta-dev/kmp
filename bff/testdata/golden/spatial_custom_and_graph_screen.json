@@ -1,0 +1,534 @@
+{
+  "page_id": "spatial-custom-and-graph-demo",
+  "title": "Abeta Spatial Graph & Custom Slots",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Spatial Graph & Custom Slots",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "Interactive relationship map & host-bridged custom slot",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_spatial_demo",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "spatial_demo_header",
+      "snippet_type": "header_v1",
+      "data": {
+        "title": {
+          "text": "Service Topology & Live Map",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "headline.small"
+          }
+        },
+        "subtitle": {
+          "text": "Spatial pan/zoom graph canvas paired with a native host slot",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "leading_icon": {
+          "name": "sparkles",
+          "size_dp": 20,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "trailing_tag": {
+          "label": "SPATIAL",
+          "bg_color": {
+            "token": "status.info_container"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "spatial_demo_header",
+          "surface": "spatial-custom-and-graph-demo"
+        }
+      }
+    },
+    {
+      "snippet_id": "spatial_topology_graph",
+      "snippet_type": "graph_canvas",
+      "data": {
+        "canvas_id": "service_topology_canvas",
+        "title": {
+          "text": "KMP Clean Architecture Topology",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "subtitle": {
+          "text": "Drag nodes, pan, or zoom to inspect module dependencies",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "height_dp": 380,
+        "nodes": [
+          {
+            "node_id": "node_bff",
+            "label": "Go SDUI BFF",
+            "subtitle": "bff@v0.8.0",
+            "badge": "EDGE",
+            "x": 60,
+            "y": 40,
+            "bg_color": {
+              "token": "brand.container"
+            },
+            "border_color": {
+              "token": "brand.primary"
+            },
+            "icon_name": "cloud",
+            "draggable": false,
+            "pinned": true,
+            "on_click": {
+              "id": "click_node_bff",
+              "type": "show_toast",
+              "payload": {
+                "message": "Go SDUI BFF serves 23 snippet types",
+                "duration_ms": 2000,
+                "variant": "info"
+              }
+            },
+            "tracking": {
+              "event_name": "graph_node_clicked",
+              "properties": {
+                "layer": "bff",
+                "node_id": "node_bff"
+              }
+            }
+          },
+          {
+            "node_id": "node_contracts",
+            "label": "sdui-contracts",
+            "subtitle": "Layer 1 Wire DTOs",
+            "badge": "23 TYPES",
+            "x": 240,
+            "y": 150,
+            "bg_color": {
+              "token": "surface.primary"
+            },
+            "border_color": {
+              "token": "border.subtle"
+            },
+            "icon_name": "code",
+            "draggable": true,
+            "on_click": {
+              "id": "click_node_contracts",
+              "type": "navigate",
+              "payload": {
+                "route": "/screens/catalog"
+              }
+            },
+            "on_drag_end": {
+              "id": "drag_end_node_contracts",
+              "type": "save_state",
+              "payload": {
+                "key": "node_contracts_pos",
+                "value": "240,150",
+                "scope": "session"
+              }
+            },
+            "tracking": {
+              "event_name": "graph_node_moved",
+              "properties": {
+                "layer": "layer_1",
+                "node_id": "node_contracts"
+              }
+            }
+          },
+          {
+            "node_id": "node_layout",
+            "label": "sdui-layout",
+            "subtitle": "Layer 3 Orchestrator",
+            "badge": "COMPOSE",
+            "x": 420,
+            "y": 260,
+            "bg_color": {
+              "token": "status.success_container"
+            },
+            "border_color": {
+              "token": "status.success"
+            },
+            "icon_name": "layers",
+            "draggable": true,
+            "on_click": {
+              "id": "click_node_layout",
+              "type": "trigger_feedback",
+              "payload": {
+                "effect": "haptic_tick"
+              }
+            },
+            "on_drag_end": {
+              "id": "drag_end_node_layout",
+              "type": "call_api",
+              "payload": {
+                "endpoint": "/api/v1/actions/execute",
+                "method": "POST",
+                "body": {
+                  "node_id": "node_layout"
+                }
+              }
+            }
+          }
+        ],
+        "edges": [
+          {
+            "edge_id": "edge_bff_contracts",
+            "from_node_id": "node_bff",
+            "to_node_id": "node_contracts",
+            "label": "JSON v1",
+            "style": "bezier",
+            "color": {
+              "token": "brand.primary"
+            },
+            "highlighted": true,
+            "on_click": {
+              "id": "click_edge_bff_contracts",
+              "type": "show_toast",
+              "payload": {
+                "message": "1:1 KMP \u003c-\u003e Go wire parity",
+                "duration_ms": 1800,
+                "variant": "success"
+              }
+            }
+          },
+          {
+            "edge_id": "edge_contracts_layout",
+            "from_node_id": "node_contracts",
+            "to_node_id": "node_layout",
+            "label": "Wire DTOs",
+            "style": "straight",
+            "color": {
+              "token": "text.secondary"
+            }
+          },
+          {
+            "edge_id": "edge_bff_layout",
+            "from_node_id": "node_bff",
+            "to_node_id": "node_layout",
+            "label": "SSE Delta",
+            "style": "dashed",
+            "color": {
+              "token": "status.info"
+            },
+            "highlighted": true,
+            "on_click": {
+              "id": "click_edge_bff_layout",
+              "type": "track_event",
+              "payload": {
+                "event_name": "graph_edge_clicked",
+                "properties": {
+                  "edge_id": "edge_bff_layout"
+                }
+              }
+            }
+          }
+        ],
+        "allow_pan": true,
+        "allow_zoom": true,
+        "allow_node_drag": true,
+        "min_zoom": 0.5,
+        "max_zoom": 2.5,
+        "on_node_moved": {
+          "id": "spatial_graph_node_moved",
+          "type": "save_state",
+          "payload": {
+            "key": "graph_last_moved_node",
+            "value": "node_contracts",
+            "scope": "session"
+          }
+        },
+        "on_canvas_tap": {
+          "id": "spatial_graph_canvas_tap",
+          "type": "track_event",
+          "payload": {
+            "event_name": "graph_canvas_tapped",
+            "properties": {
+              "canvas_id": "service_topology_canvas"
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "spatial_topology_graph",
+          "surface": "spatial-custom-and-graph-demo"
+        }
+      }
+    },
+    {
+      "snippet_id": "spatial_live_map_slot",
+      "snippet_type": "custom_slot",
+      "data": {
+        "slot_id": "delivery_live_map",
+        "slot_type": "native_map_view",
+        "min_height_dp": 240,
+        "aspect_ratio": 1.75,
+        "initial_state": {
+          "center_lat": 37.7749,
+          "center_lng": -122.4194,
+          "order_id": "AF-4092",
+          "show_rider": true,
+          "zoom": 14
+        },
+        "on_event": {
+          "marker_tap": {
+            "id": "slot_map_marker_tap",
+            "type": "show_toast",
+            "payload": {
+              "message": "Rider is 4 mins away",
+              "duration_ms": 2000,
+              "variant": "info"
+            }
+          },
+          "region_change": {
+            "id": "slot_map_region_change",
+            "type": "track_event",
+            "payload": {
+              "event_name": "map_region_changed",
+              "properties": {
+                "slot_id": "delivery_live_map"
+              }
+            }
+          }
+        },
+        "fallback": {
+          "snippet_id": "spatial_live_map_fallback",
+          "snippet_parent_id": "spatial_live_map_slot",
+          "snippet_type": "card_v1",
+          "data": {
+            "title": {
+              "text": "Interactive Map Unavailable",
+              "color": {
+                "token": "text.primary"
+              },
+              "typography": {
+                "token": "title.medium"
+              }
+            },
+            "subtitle": {
+              "text": "Host did not register slot_type=native_map_view",
+              "color": {
+                "token": "text.secondary"
+              },
+              "typography": {
+                "token": "body.small"
+              }
+            },
+            "description": {
+              "text": "Using graceful SDUI fallback card for delivery #AF-4092.",
+              "color": {
+                "token": "text.primary"
+              },
+              "typography": {
+                "token": "body.medium"
+              }
+            },
+            "badge": {
+              "label": "FALLBACK",
+              "bg_color": {
+                "token": "status.warning_container"
+              }
+            },
+            "primary_button": {
+              "id": "btn_open_map_directions",
+              "label": "Open Directions",
+              "variant": "primary",
+              "enabled": true,
+              "on_click": {
+                "id": "open_map_directions",
+                "type": "open_url",
+                "payload": {
+                  "url": "https://maps.abeta.dev/orders/AF-4092",
+                  "external_browser": true
+                }
+              }
+            },
+            "layout": {
+              "padding": {
+                "start": 16,
+                "top": 16,
+                "end": 16,
+                "bottom": 16
+              },
+              "margin": {
+                "start": 16,
+                "top": 4,
+                "end": 16,
+                "bottom": 4
+              },
+              "bg_color": {
+                "token": "surface.primary"
+              },
+              "corner_radius": {
+                "all": 12
+              },
+              "border": {
+                "width_dp": 1,
+                "color": {
+                  "token": "border.subtle"
+                }
+              },
+              "fill_max_width": true
+            }
+          },
+          "tracking": {
+            "event_name": "snippet_impression",
+            "properties": {
+              "snippet_id": "spatial_live_map_fallback",
+              "surface": "spatial-custom-and-graph-demo"
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "spatial_live_map_slot",
+          "surface": "spatial-custom-and-graph-demo"
+        }
+      }
+    }
+  ],
+  "adaptive_layout": {
+    "layout_mode": "centered",
+    "max_width_dp": 1120
+  },
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "spatial-custom-and-graph-demo",
+      "version": "v1"
+    }
+  },
+  "page_version": "v1-8abbfa5a6cf7",
+  "app_version": "0.8.0",
+  "etag": "\"8abbfa5a6cf7ac96c44e286762a1d6d6523fe2e029404fe2fafe000139d6647f\""
+}

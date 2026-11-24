@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -36,16 +37,28 @@ import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.contracts.TextAtom
+import dev.abeta.kmp.core.platform.AudioCaptureConfig
+import dev.abeta.kmp.core.platform.AudioLevelSample
 import dev.abeta.kmp.core.platform.DeepLinkParser
+import dev.abeta.kmp.core.platform.DesktopTrayState
+import dev.abeta.kmp.core.platform.FakeAudioCapturePort
+import dev.abeta.kmp.core.platform.FakeSpeechToTextPort
 import dev.abeta.kmp.core.platform.HapticStyle
+import dev.abeta.kmp.core.platform.OsSettingsSection
+import dev.abeta.kmp.core.platform.RecordingDesktopSystemPort
+import dev.abeta.kmp.core.platform.SpeechTranscriptChunk
+import dev.abeta.kmp.core.platform.TrayStatusKind
 import dev.abeta.kmp.core.platform.createPlatformClipboardPort
+import dev.abeta.kmp.core.platform.createPlatformDesktopSystemPort
 import dev.abeta.kmp.core.platform.createPlatformHapticEngine
 import dev.abeta.kmp.core.platform.currentPlatformCapabilities
 import dev.abeta.kmp.core.platform.formatCurrencyCents
 import dev.abeta.kmp.core.result.getOrNull
+import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
 import dev.abeta.kmp.tokens.ProvideAdaptiveLayoutMetrics
 import dev.abeta.kmp.tokens.ThemeTokens
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -146,6 +159,161 @@ fun ResponsiveAndBridgesStory(onAction: (ActionRef) -> Unit) {
                 )
             },
         )
+
+        Text(
+            text = "Voice & Desktop OS Bridges",
+            style = typography.headlineSmall,
+            color = colors.text.primary,
+        )
+        VoiceAndDesktopBridgesCard(onAction = onAction)
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
+    val spacing = ThemeTokens.spacing
+    val typography = ThemeTokens.typography
+    val colors = ThemeTokens.colors
+    val scope = rememberCoroutineScope()
+    val desktopPort = remember { createPlatformDesktopSystemPort() }
+    val previewBundle =
+        remember {
+            PlatformBridgeBundle.createTestDefault(
+                audioCapturePort = FakeAudioCapturePort(recordedBytes = ByteArray(1024)),
+                speechToTextPort = FakeSpeechToTextPort(),
+                desktopSystemPort = RecordingDesktopSystemPort(),
+            )
+        }
+    val audioPreview = previewBundle.audioCapturePort as FakeAudioCapturePort
+    val speechPreview = previewBundle.speechToTextPort as FakeSpeechToTextPort
+    val desktopPreview = previewBundle.desktopSystemPort as RecordingDesktopSystemPort
+    var voiceDesktopLog by remember {
+        mutableStateOf(
+            "AudioCapturePort, SpeechToTextPort & DesktopSystemPort wired in PlatformBridgeBundle.",
+        )
+    }
+
+    UiSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(spacing.space4),
+            verticalArrangement = Arrangement.spacedBy(spacing.space12),
+        ) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+                verticalArrangement = Arrangement.spacedBy(spacing.space8),
+            ) {
+                UiTag(TagAtom(label = "AudioCapturePort: ${audioPreview.state.value}", variant = TagVariant.BRAND))
+                UiTag(TagAtom(label = "SpeechToTextPort: ${speechPreview.state.value}", variant = TagVariant.INFO))
+                UiTag(
+                    TagAtom(
+                        label =
+                            if (desktopPort.isSupported) {
+                                "DesktopSystemPort: Native Ready"
+                            } else {
+                                "DesktopSystemPort: Headless / Non-Desktop"
+                            },
+                        variant = if (desktopPort.isSupported) TagVariant.SUCCESS else TagVariant.NEUTRAL,
+                    ),
+                )
+            }
+            Text(text = voiceDesktopLog, style = typography.bodyMedium, color = colors.text.primary)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+                verticalArrangement = Arrangement.spacedBy(spacing.space8),
+            ) {
+                UiButton(
+                    atom =
+                        ButtonAtom(
+                            label = "Simulate Voice Capture",
+                            size = ButtonSize.SMALL,
+                            onClick = ActionRef(id = "story_voice_capture", type = "track_event"),
+                        ),
+                    onAction = {
+                        scope.launch {
+                            audioPreview.startCapture(AudioCaptureConfig())
+                            audioPreview.emitLevel(AudioLevelSample(normalizedAmplitude = 0.72f))
+                            val bytes = audioPreview.stopCapture().getOrNull()?.size ?: 0
+                            voiceDesktopLog =
+                                "AudioCapturePort captured $bytes PCM bytes (16kHz mono, peak 0.72)."
+                        }
+                        onAction(
+                            ActionRef(
+                                id = "story_voice_capture",
+                                type = "track_event",
+                                payload = buildJsonObject { put("port", "AudioCapturePort") },
+                            ),
+                        )
+                    },
+                )
+                UiButton(
+                    atom =
+                        ButtonAtom(
+                            label = "Simulate Speech Transcript",
+                            variant = ButtonVariant.SECONDARY,
+                            size = ButtonSize.SMALL,
+                            onClick = ActionRef(id = "story_speech_stt", type = "track_event"),
+                        ),
+                    onAction = {
+                        scope.launch {
+                            speechPreview.startListening(localeTag = "en-US", partialResults = true)
+                            speechPreview.emitTranscript(
+                                SpeechTranscriptChunk(
+                                    text = "Show fresh avocados under five dollars",
+                                    isFinal = true,
+                                    confidence = 0.96f,
+                                    localeTag = "en-US",
+                                ),
+                            )
+                            val chunk = speechPreview.stopListening().getOrNull()
+                            voiceDesktopLog =
+                                "SpeechToTextPort final transcript: \"${chunk?.text.orEmpty()}\" (96%)."
+                        }
+                        onAction(
+                            ActionRef(
+                                id = "story_speech_stt",
+                                type = "track_event",
+                                payload = buildJsonObject { put("port", "SpeechToTextPort") },
+                            ),
+                        )
+                    },
+                )
+                UiButton(
+                    atom =
+                        ButtonAtom(
+                            label = "Update Desktop Tray & Badge",
+                            variant = ButtonVariant.OUTLINE,
+                            size = ButtonSize.SMALL,
+                            onClick = ActionRef(id = "story_desktop_tray", type = "track_event"),
+                        ),
+                    onAction = {
+                        scope.launch {
+                            desktopPreview.updateTrayState(
+                                DesktopTrayState(
+                                    tooltip = "Abeta KMP · Synced",
+                                    status = TrayStatusKind.ACTIVE,
+                                    badgeCount = 3,
+                                ),
+                            )
+                            desktopPreview.setBadgeCount(3)
+                            desktopPreview.openOsSettings(OsSettingsSection.PRIVACY_MICROPHONE)
+                            voiceDesktopLog =
+                                "DesktopSystemPort recorded tray=${desktopPreview.trayStates.last().status}, " +
+                                "badge=${desktopPreview.badgeCounts.last()}, " +
+                                "settings=${desktopPreview.openedSettings.last()}."
+                        }
+                        onAction(
+                            ActionRef(
+                                id = "story_desktop_tray",
+                                type = "track_event",
+                                payload = buildJsonObject { put("port", "DesktopSystemPort") },
+                            ),
+                        )
+                    },
+                )
+            }
+        }
     }
 }
 

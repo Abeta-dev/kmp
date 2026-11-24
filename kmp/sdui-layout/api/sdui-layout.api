@@ -233,12 +233,15 @@ public final class dev/abeta/kmp/layout/media/KtorImageRenderer$Companion {
 public final class dev/abeta/kmp/layout/platform/PlatformBridgeBundle {
 	public static final field $stable I
 	public static final field Companion Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle$Companion;
-	public fun <init> (Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;)V
-	public synthetic fun <init> (Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/abeta/kmp/core/platform/PlatformCapabilities;
 	public final fun component10 ()Ldev/abeta/kmp/core/platform/LocationPort;
 	public final fun component11 ()Ldev/abeta/kmp/core/platform/FilePickerPort;
 	public final fun component12 ()Ldev/abeta/kmp/core/platform/PushNotificationPort;
+	public final fun component13 ()Ldev/abeta/kmp/core/platform/AudioCapturePort;
+	public final fun component14 ()Ldev/abeta/kmp/core/platform/SpeechToTextPort;
+	public final fun component15 ()Ldev/abeta/kmp/core/platform/DesktopSystemPort;
 	public final fun component2 ()Ldev/abeta/kmp/core/platform/HapticEngine;
 	public final fun component3 ()Ldev/abeta/kmp/core/platform/ClipboardPort;
 	public final fun component4 ()Ldev/abeta/kmp/core/platform/ExternalLauncherPort;
@@ -247,13 +250,15 @@ public final class dev/abeta/kmp/layout/platform/PlatformBridgeBundle {
 	public final fun component7 ()Ldev/abeta/kmp/core/security/SecureKeyValueStore;
 	public final fun component8 ()Ldev/abeta/kmp/core/security/BiometricAuthenticator;
 	public final fun component9 ()Ldev/abeta/kmp/core/platform/PermissionPort;
-	public final fun copy (Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;ILjava/lang/Object;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
+	public final fun copy (Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ldev/abeta/kmp/core/platform/PlatformCapabilities;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ClipboardPort;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ldev/abeta/kmp/core/security/SecureKeyValueStore;Ldev/abeta/kmp/core/security/BiometricAuthenticator;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;ILjava/lang/Object;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAudioCapturePort ()Ldev/abeta/kmp/core/platform/AudioCapturePort;
 	public final fun getBiometricAuthenticator ()Ldev/abeta/kmp/core/security/BiometricAuthenticator;
 	public final fun getCapabilities ()Ldev/abeta/kmp/core/platform/PlatformCapabilities;
 	public final fun getClipboardPort ()Ldev/abeta/kmp/core/platform/ClipboardPort;
 	public final fun getConnectivityMonitor ()Ldev/abeta/kmp/core/platform/ConnectivityMonitor;
+	public final fun getDesktopSystemPort ()Ldev/abeta/kmp/core/platform/DesktopSystemPort;
 	public final fun getExternalLauncher ()Ldev/abeta/kmp/core/platform/ExternalLauncherPort;
 	public final fun getFilePickerPort ()Ldev/abeta/kmp/core/platform/FilePickerPort;
 	public final fun getHapticEngine ()Ldev/abeta/kmp/core/platform/HapticEngine;
@@ -262,15 +267,16 @@ public final class dev/abeta/kmp/layout/platform/PlatformBridgeBundle {
 	public final fun getPushNotificationPort ()Ldev/abeta/kmp/core/platform/PushNotificationPort;
 	public final fun getSecureStore ()Ldev/abeta/kmp/core/security/SecureKeyValueStore;
 	public final fun getSharePort ()Ldev/abeta/kmp/core/platform/SharePort;
+	public final fun getSpeechToTextPort ()Ldev/abeta/kmp/core/platform/SpeechToTextPort;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/abeta/kmp/layout/platform/PlatformBridgeBundle$Companion {
-	public final fun createPlatformDefault (Ljava/lang/String;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
-	public static synthetic fun createPlatformDefault$default (Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle$Companion;Ljava/lang/String;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;ILjava/lang/Object;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
-	public final fun createTestDefault (ZLdev/abeta/kmp/core/security/BiometricResult;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
-	public static synthetic fun createTestDefault$default (Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle$Companion;ZLdev/abeta/kmp/core/security/BiometricResult;ILjava/lang/Object;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
+	public final fun createPlatformDefault (Ljava/lang/String;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
+	public static synthetic fun createPlatformDefault$default (Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle$Companion;Ljava/lang/String;Ldev/abeta/kmp/core/platform/PermissionPort;Ldev/abeta/kmp/core/platform/LocationPort;Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/PushNotificationPort;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;ILjava/lang/Object;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
+	public final fun createTestDefault (ZLdev/abeta/kmp/core/security/BiometricResult;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
+	public static synthetic fun createTestDefault$default (Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle$Companion;ZLdev/abeta/kmp/core/security/BiometricResult;Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/SpeechToTextPort;Ldev/abeta/kmp/core/platform/DesktopSystemPort;ILjava/lang/Object;)Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;
 }
 
 public final class dev/abeta/kmp/layout/platform/PlatformBridgeBundleKt {
@@ -471,6 +477,63 @@ public final class dev/abeta/kmp/layout/snippet/ComposableSingletons$SnippetRegi
 	public final fun getLambda$396503417$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function3;
 }
 
+public final class dev/abeta/kmp/layout/snippet/CustomSlotContext {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/util/Map;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun component6 ()Lkotlin/jvm/functions/Function2;
+	public final fun component7 ()Lkotlin/jvm/functions/Function1;
+	public final fun component8 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/util/Map;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Ljava/util/Map;)Ldev/abeta/kmp/layout/snippet/CustomSlotContext;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/snippet/CustomSlotContext;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/util/Map;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/layout/snippet/CustomSlotContext;
+	public final fun emitEvent (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
+	public static synthetic fun emitEvent$default (Ldev/abeta/kmp/layout/snippet/CustomSlotContext;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFormValues ()Ljava/util/Map;
+	public final fun getInitialState ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getOnAction ()Lkotlin/jvm/functions/Function1;
+	public final fun getOnEvent ()Ljava/util/Map;
+	public final fun getOnFormValueChange ()Lkotlin/jvm/functions/Function2;
+	public final fun getSlotId ()Ljava/lang/String;
+	public final fun getSlotType ()Ljava/lang/String;
+	public final fun getSnippetId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/abeta/kmp/layout/snippet/CustomSlotRegistry {
+	public static final field $stable I
+	public static final field Companion Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry$Companion;
+	public synthetic fun <init> (Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun registeredSlotTypes ()Ljava/util/Set;
+	public final fun resolve (Ljava/lang/String;)Ldev/abeta/kmp/layout/snippet/CustomSlotRenderer;
+	public final fun toBuilder ()Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry$Builder;
+}
+
+public final class dev/abeta/kmp/layout/snippet/CustomSlotRegistry$Builder {
+	public static final field $stable I
+	public fun <init> ()V
+	public final fun build ()Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry;
+	public final fun register (Ljava/lang/String;Ldev/abeta/kmp/layout/snippet/CustomSlotRenderer;)Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry$Builder;
+}
+
+public final class dev/abeta/kmp/layout/snippet/CustomSlotRegistry$Companion {
+	public final fun builder ()Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry$Builder;
+	public final fun getEmpty ()Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry;
+}
+
+public final class dev/abeta/kmp/layout/snippet/CustomSlotRegistryKt {
+	public static final fun getLocalCustomSlotRegistry ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+}
+
+public abstract interface class dev/abeta/kmp/layout/snippet/CustomSlotRenderer {
+	public abstract fun Render (Ldev/abeta/kmp/layout/snippet/CustomSlotContext;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class dev/abeta/kmp/layout/snippet/SnippetEntry {
 	public static final field $stable I
 	public fun <init> (Ldev/abeta/kmp/layout/snippet/SnippetRenderer;)V
@@ -540,6 +603,6 @@ public final class dev/abeta/kmp/layout/ui/SduiHostRootKt {
 }
 
 public final class dev/abeta/kmp/layout/ui/SduiScreenKt {
-	public static final fun SduiScreen (Ldev/abeta/kmp/layout/engine/LayoutUiState;Ldev/abeta/kmp/layout/snippet/SnippetRegistry;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;III)V
+	public static final fun SduiScreen (Ldev/abeta/kmp/layout/engine/LayoutUiState;Ldev/abeta/kmp/layout/snippet/SnippetRegistry;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry;Landroidx/compose/runtime/Composer;III)V
 }
 
