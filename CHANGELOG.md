@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.4.1] - 2026-11-24
+
+### Fixed
+
+- **Card Hover & Ripple Clipping (`ui-atoms`, `sdui-layout`)**: Moved `.clickable` ahead of inner `LayoutConfig.padding` in `UiSurfaceCard` and `ComposedBlockSnippetRenderer` so hover and ripple overlays fill the full rounded card bounds cleanly instead of painting inside the inner padding.
+- **Commerce Product Card Grid & Stepper Ergonomics (`ui-atoms`, `sdui-layout`)**:
+  - Deduplicated redundant `"ADD"` labels in `UiStepper` so narrow 2-column quick-commerce tiles never wrap `"ADD"` vertically (`AD / D`) or duplicate `"ADD"` next to the stepper control.
+  - Upgraded `UiPrice` to `FlowRow` for clean wrapping inside compact cards.
+  - Stacked the price row cleanly above a right-aligned `UiStepper` in `ProductCardSnippetRenderer` with single-line title/subtitle/rating defaults so 2-column product grids maintain uniform heights with zero price-to-button collision.
+- **Swipe Deck Peek Cards (`sdui-layout`)**: Enforced uniform card minimum height (`388dp`) and suppressed interest tags / excess bio lines on non-interactive peek cards in `SwipeDeckComponents` so background stack edges stay crisp with zero sliced chips.
+- **7-in-1 Super-App Showcase & Storybook Shell (`storybook`)**:
+  - Added 6dp inset margins to Express product tile overlay badges, increased bottom placeholder clearance in `StorybookDemoImageRenderer`, and moved tile peek clicks to the media box so tapping variant chips (`500g ▼` / `450g ▼`) directly opens the SDUI Variant Picker `ModalBottomSheet`.
+  - Added `textColor = ColorTokenRef("text.on_brand")` on the `brand.primary` banner badge (`SPOTLIGHT`) for WCAG contrast.
+  - Switched the `SuperAppDemoControlBar` app switcher to `FlowRow` so all 8 apps (`Abeta Fresh` through `Abeta Watch`) remain visible without clipping, and added `clipToBounds()` + ellipsis truncation on `ActionConsoleBar`.
+
+---
+
 ## [0.4.0] / [bff/v0.6.0] - 2026-11-24
 
 ### Added
