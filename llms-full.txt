@@ -273,13 +273,13 @@ dependencyResolutionManagement {
         google()
     }
     versionCatalogs {
-        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.4.0") }
+        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.4.1") }
     }
 }
 
 // build.gradle.kts (commonMain)
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1"))
     implementation("io.github.abeta-dev:core")
     implementation("io.github.abeta-dev:database")        // Optional Room 3 KMP local SQLite DB
     implementation("io.github.abeta-dev:design-tokens")
@@ -298,7 +298,7 @@ repositories {
     maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
 }
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1-SNAPSHOT"))
     implementation("io.github.abeta-dev:sdui-layout")
 }
 ```
@@ -308,7 +308,7 @@ Inside this monorepo, `abeta.kmpLocalBuild=true` substitutes `io.github.abeta-de
 ```swift
 // Package.swift — or Xcode -> File -> Add Package Dependencies...
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.1"),
 ]
 // Targets: import AbetaSduiKit (iOS/iPadOS) | import AbetaWatchKit (watchOS)
 ```

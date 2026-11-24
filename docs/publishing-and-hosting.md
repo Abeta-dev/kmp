@@ -33,7 +33,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaKmp") {
-            from("io.github.abeta-dev:dependencies:0.4.0")
+            from("io.github.abeta-dev:dependencies:0.4.1")
         }
     }
 }
@@ -45,7 +45,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:database") // Optional Room 3 KMP local SQLite DB
             implementation("io.github.abeta-dev:design-tokens")
@@ -79,7 +79,7 @@ dependencyResolutionManagement {
 ```kotlin
 // build.gradle.kts (commonMain)
 commonMain.dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1-SNAPSHOT"))
     implementation("io.github.abeta-dev:database")
     implementation("io.github.abeta-dev:sdui-layout")
 }
@@ -101,7 +101,7 @@ Or in a SwiftPM `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.1"),
 ]
 ```
 

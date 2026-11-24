@@ -2,8 +2,8 @@
 
 `abeta-dev/kmp` uses two Gradle artifacts on Maven Central (Kotlin package namespace remains `dev.abeta.kmp.*`) to standardize versions across internal modules and external consumers:
 
-1. **`io.github.abeta-dev:bom:0.4.0`** (`kmp/kmp-bom/build.gradle.kts`) — Java Platform BOM (`allowDependencies()` enabled) constraining all **11 publishable `io.github.abeta-dev:*` library modules** (including Room 3 `database`) + `dependencies` (13 Maven artifacts total).
-2. **`io.github.abeta-dev:dependencies:0.4.0`** (`kmp/dependencyManagement/build.gradle.kts`) — Gradle Version Catalog generated from `kmp/dependencyManagement/gradle/libs.versions.toml`.
+1. **`io.github.abeta-dev:bom:0.4.1`** (`kmp/kmp-bom/build.gradle.kts`) — Java Platform BOM (`allowDependencies()` enabled) constraining all **11 publishable `io.github.abeta-dev:*` library modules** (including Room 3 `database`) + `dependencies` (13 Maven artifacts total).
+2. **`io.github.abeta-dev:dependencies:0.4.1`** (`kmp/dependencyManagement/build.gradle.kts`) — Gradle Version Catalog generated from `kmp/dependencyManagement/gradle/libs.versions.toml`.
 
 ---
 
@@ -43,7 +43,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaLibs") {
-            from("io.github.abeta-dev:dependencies:0.4.0")
+            from("io.github.abeta-dev:dependencies:0.4.1")
         }
     }
 }
@@ -53,7 +53,7 @@ dependencyResolutionManagement {
 
 ```kotlin
 commonMain.dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1"))
     implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
     implementation("io.github.abeta-dev:design-tokens")
     implementation("io.github.abeta-dev:sdui-contracts")
