@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.5.0] / [bff/v0.7.0] - 2026-11-25
+
+### Added
+
+- **Version-Gated Caching, HTTP `304 Not Modified` & `/manifest` Handshake (`network`, `sdui-contracts`, `sdui-layout`, `bff`)**:
+  - Added `HttpResponseEnvelope<T>` (preserving status code, response headers, and `etag`), `ConditionalHttpResult<T>` (`Modified` / `NotModified`), and backwards-compatible `requestWithResponse` / `requestConditional` + `safeGetWithResponse` / `safeGetConditional` on `HttpTransport` & `KtorHttpTransport`.
+  - Extended `PageResponse` with optional `page_version`, `app_version`, `etag`, and `stream_spec`, and added `ScreenVersionMeta` & `ScreenManifestResponse` in `kmp/sdui-contracts` and `bff/pkg/sdui/snippets`.
+  - Added `ConditionalScreenRepository`, `RemoteScreenManifestRepository`, `ScreenCachePolicy.VERSION_GATED`, `If-None-Match` (`304 Not Modified`) revalidation, `/api/v1/screens/manifest` handshake, and `appVersion` cache busting in `CachedScreenRepository`.
+  - Added `GET /api/v1/screens/manifest` (ETag + `304` enabled, deterministic SHA-256 screen versions) and `APP_VERSION` stamping in Go BFF (`bff@v0.7.0`).
+- **Zero-KSP Lightweight Persistent Disk `KeyValueStore` (`state`, `sdui-layout`)**:
+  - Added `createDiskKeyValueStore(namespace, directoryPath)` backed by atomic `FileKeyValueStore` on JVM Desktop (no 8 KB `Preferences` cap, safe for multi-hundred-KB SDUI JSON), `UserDefaultsKeyValueStore` (namespace-isolated) on Apple, and `WebStorageKeyValueStore` (`localStorage` with in-memory fallback) on WasmJS.
+  - Added `useDiskCacheStore` option to `createSduiKoinModule(...)`.
+- **Streaming SSE Transport & Live SDUI Delta Patches (`network`, `sdui-contracts`, `sdui-layout`, `bff`)**:
+  - Added `SseEvent`, `SseReconnectPolicy`, `SseLineParser`, `SseTransport`, and `KtorSseTransport` (`Last-Event-ID` bounded exponential-backoff reconnect) in `kmp/network`.
+  - Added `SseStreamSpec`, `SnippetDeltaOp` (`append_text`, `patch_snippet_data`, `replace_snippet`, `insert_snippet`, `remove_snippet`, `update_page_meta`), and `SnippetDeltaPatch` with 1:1 KMP/Go parity + Golden Fixture #10 (`bff/testdata/golden/streaming_and_versioned_screen.json`).
+  - Added `applySnippetDeltaPatch(page, patch)`, `LayoutUiState.Ready.isStreaming`, and `LayoutController.applyDeltaPatch` / `observeStream` / `stopStream` (with automatic stream lifecycle for `PageResponse.streamSpec`).
+  - Added uncompressed real-time SSE endpoint `GET /api/v1/streams/:streamId` (honoring `Last-Event-ID`) in Go BFF with OpenAPI schemas.
+- **Loopback CSRF Token & Single `403` Retry Interceptor (`network`, `sdui-layout`)**:
+  - Added `CsrfTokenProvider` (`X-CSRF-Token` on `POST`/`PUT`/`PATCH`/`DELETE`), single refresh-and-retry-once on HTTP `403` in `KtorHttpTransport`, WasmJS `MetaTagCsrfTokenProvider`, and `csrfTokenProvider` parameter on `createSduiKoinModule(...)`.
+
+---
+
 ## [0.4.1] - 2026-11-24
 
 ### Fixed

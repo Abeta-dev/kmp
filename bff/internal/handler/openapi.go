@@ -205,6 +205,27 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 					},
 				},
 			},
+			"/api/v1/screens/manifest": map[string]any{
+				"get": map[string]any{
+					"summary":     "Fetch deterministic SDUI screen version & ETag manifest",
+					"operationId": "getScreenManifest",
+					"tags":        []string{"SDUI Screens"},
+					"security":    apiSecurity,
+					"parameters":  []map[string]any{ifNoneMatchParam},
+					"responses": map[string]any{
+						"200": map[string]any{
+							"description": "Screen version & ETag manifest envelope",
+							"headers": map[string]any{
+								"ETag":          etagHeader,
+								"Cache-Control": cacheHeader,
+							},
+							"content": jsonContent(envelopeSchema(refSchema("ScreenManifestResponse"))),
+						},
+						"304": map[string]any{"description": "Not Modified"},
+						"401": map[string]any{"description": "Unauthorized"},
+					},
+				},
+			},
 			"/api/v1/screens/{screenId}": map[string]any{
 				"get": map[string]any{
 					"summary":     "Fetch an SDUI screen payload",
@@ -234,6 +255,42 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						"400": map[string]any{"description": "Bad Request"},
 						"401": map[string]any{"description": "Unauthorized"},
 						"404": map[string]any{"description": "Screen Not Found"},
+					},
+				},
+			},
+			"/api/v1/streams/{streamId}": map[string]any{
+				"get": map[string]any{
+					"summary":     "Stream incremental SDUI SnippetDeltaPatch frames over SSE",
+					"operationId": "streamScreenDeltas",
+					"tags":        []string{"SDUI Streaming"},
+					"security":    apiSecurity,
+					"parameters": []map[string]any{
+						{
+							"name":        "streamId",
+							"in":          "path",
+							"required":    true,
+							"description": "Stream identifier (e.g., ai-assistant, order-live)",
+							"schema":      map[string]any{"type": "string", "example": "ai-assistant"},
+						},
+						{
+							"name":        "Last-Event-ID",
+							"in":          "header",
+							"required":    false,
+							"description": "Last delivered SSE event ID; server resumes strictly after this ID",
+							"schema":      map[string]any{"type": "string", "example": "2"},
+						},
+					},
+					"responses": map[string]any{
+						"200": map[string]any{
+							"description": "Server-Sent Events stream of delta frames carrying JSON-encoded SnippetDeltaPatch payloads",
+							"content": map[string]any{
+								"text/event-stream": map[string]any{
+									"schema": refSchema("SnippetDeltaPatch"),
+								},
+							},
+						},
+						"400": map[string]any{"description": "Invalid stream identifier"},
+						"401": map[string]any{"description": "Unauthorized"},
 					},
 				},
 			},

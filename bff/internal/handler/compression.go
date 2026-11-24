@@ -69,10 +69,13 @@ func (w *bufferedResponseWriter) Written() bool {
 
 // CompressionMiddleware negotiates Brotli ("br") or gzip ("gzip") response compression
 // based on the request Accept-Encoding header and appends Vary: Accept-Encoding.
-// Prometheus /metrics scrapes, HEAD requests, and no-body status codes are skipped.
+// Prometheus /metrics scrapes, SSE streams, HEAD requests, and no-body status codes are skipped.
 func CompressionMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.URL.Path == "/metrics" || c.Request.Method == http.MethodHead {
+		if c.Request.URL.Path == "/metrics" ||
+			strings.HasPrefix(c.Request.URL.Path, "/api/v1/streams/") ||
+			c.Request.Method == http.MethodHead ||
+			strings.Contains(strings.ToLower(c.GetHeader("Accept")), "text/event-stream") {
 			c.Next()
 			return
 		}

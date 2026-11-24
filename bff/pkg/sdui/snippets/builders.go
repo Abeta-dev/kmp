@@ -84,6 +84,42 @@ func (b *PageBuilder) WithTracking(eventName string, properties map[string]any) 
 	return b
 }
 
+// WithPageVersion sets the deterministic page_version stamp on the PageResponse.
+func (b *PageBuilder) WithPageVersion(version string) *PageBuilder {
+	b.page.PageVersion = version
+	return b
+}
+
+// WithAppVersion sets the app_version stamp on the PageResponse.
+func (b *PageBuilder) WithAppVersion(appVersion string) *PageBuilder {
+	b.page.AppVersion = appVersion
+	return b
+}
+
+// WithETag sets the quoted content ETag on the PageResponse.
+func (b *PageBuilder) WithETag(etag string) *PageBuilder {
+	b.page.ETag = etag
+	return b
+}
+
+// WithStreamSpec attaches an SSE streaming specification to the PageResponse.
+func (b *PageBuilder) WithStreamSpec(spec SseStreamSpec) *PageBuilder {
+	cp := spec
+	if len(spec.Headers) > 0 {
+		headers := make(map[string]string, len(spec.Headers))
+		for k, v := range spec.Headers {
+			headers[k] = v
+		}
+		cp.Headers = headers
+	}
+	if spec.RetryMs != nil {
+		ms := *spec.RetryMs
+		cp.RetryMs = &ms
+	}
+	b.page.StreamSpec = &cp
+	return b
+}
+
 // Build returns the constructed PageResponse.
 func (b *PageBuilder) Build() PageResponse {
 	return b.page

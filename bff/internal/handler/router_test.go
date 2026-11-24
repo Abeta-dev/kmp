@@ -367,6 +367,7 @@ func TestRouter_NilServicesAndFallbackErrors(t *testing.T) {
 	}{
 		{http.MethodGet, "/readyz", ""},
 		{http.MethodGet, "/api/v1/screens", ""},
+		{http.MethodGet, "/api/v1/screens/manifest", ""},
 		{http.MethodGet, "/api/v1/screens/home", ""},
 		{http.MethodPost, "/api/v1/actions/execute", `{"trigger":{"id":"a","type":"back_press"}}`},
 		{http.MethodPost, "/api/v1/orders/express", `{}`},

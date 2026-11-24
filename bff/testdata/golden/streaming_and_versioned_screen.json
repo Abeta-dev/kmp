@@ -1,0 +1,277 @@
+{
+  "page_id": "streaming-versioned-demo",
+  "title": "Abeta Live Stream",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Live Stream",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "Version-gated manifest & SSE delta streaming",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_streaming_demo",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "stream_demo_header",
+      "snippet_type": "header_v1",
+      "data": {
+        "title": {
+          "text": "Live AI Assistant Stream",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "headline.small"
+          }
+        },
+        "subtitle": {
+          "text": "Incremental SSE delta patches over versioned SDUI",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "leading_icon": {
+          "name": "sparkles",
+          "size_dp": 20,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "trailing_tag": {
+          "label": "SSE",
+          "bg_color": {
+            "token": "status.info_container"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "stream_demo_header",
+          "surface": "streaming-versioned-demo"
+        }
+      }
+    },
+    {
+      "snippet_id": "stream_response_card",
+      "snippet_type": "card_v1",
+      "data": {
+        "title": {
+          "text": "Streaming Output",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "title.medium"
+          }
+        },
+        "subtitle": {
+          "text": "Updated via append_text delta patches",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "body.small"
+          }
+        },
+        "description": {
+          "text": "Connecting to live stream... ",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "body.medium"
+          }
+        },
+        "badge": {
+          "label": "LIVE",
+          "bg_color": {
+            "token": "status.success_container"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "stream_response_card",
+          "surface": "streaming-versioned-demo"
+        }
+      }
+    },
+    {
+      "snippet_id": "stream_status_metric",
+      "snippet_type": "metric_card",
+      "data": {
+        "label": {
+          "text": "Stream Progress",
+          "color": {
+            "token": "text.secondary"
+          },
+          "typography": {
+            "token": "label.medium"
+          }
+        },
+        "value": {
+          "text": "0%",
+          "color": {
+            "token": "text.primary"
+          },
+          "typography": {
+            "token": "headline.small"
+          }
+        },
+        "delta": {
+          "label": "CONNECTING",
+          "bg_color": {
+            "token": "status.info_container"
+          }
+        },
+        "icon": {
+          "name": "bolt",
+          "size_dp": 20,
+          "color": {
+            "token": "brand.primary"
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 16,
+            "top": 16,
+            "end": 16,
+            "bottom": 16
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "border": {
+            "width_dp": 1,
+            "color": {
+              "token": "border.subtle"
+            }
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "stream_status_metric",
+          "surface": "streaming-versioned-demo"
+        }
+      }
+    }
+  ],
+  "tracking": {
+    "event_name": "page_loaded",
+    "properties": {
+      "page_id": "streaming-versioned-demo",
+      "version": "v1"
+    }
+  },
+  "page_version": "v1-b40f95bf2719",
+  "app_version": "0.7.0",
+  "etag": "\"b40f95bf27190da155083e001e6f99a452d0870ded3b803b4c09022c6caa3539\"",
+  "stream_spec": {
+    "path": "/api/v1/streams/ai-assistant",
+    "auto_connect": true,
+    "headers": {
+      "X-Stream-Mode": "delta"
+    },
+    "retry_ms": 3000
+  }
+}

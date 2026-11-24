@@ -133,6 +133,37 @@ func openAPIComponentSchemas() map[string]any {
 			"label": p.str, "eta_badge": p.anyObj, "cta": p.anyObj, "motion": p.motion,
 			"free_delivery_threshold_cents": p.int, "nudge_prefix": p.str, "unlocked_label": p.str,
 		}),
+		"ScreenVersionMeta": objSchema([]string{"version"}, map[string]any{
+			"version": p.str, "etag": p.str, "updated_at_epoch_ms": p.int,
+		}),
+		"ScreenManifestResponse": objSchema([]string{"app_version", "screens"}, map[string]any{
+			"app_version":           p.str,
+			"screens":               map[string]any{"type": "object", "additionalProperties": refSchema("ScreenVersionMeta")},
+			"generated_at_epoch_ms": p.int,
+		}),
+		"SseStreamSpec": objSchema([]string{"path"}, map[string]any{
+			"path": p.str, "auto_connect": p.bool, "headers": p.strMap, "retry_ms": p.int,
+		}),
+		"SnippetDeltaOp": enumSchema(
+			string(snippets.DeltaOpAppendText),
+			string(snippets.DeltaOpPatchSnippetData),
+			string(snippets.DeltaOpReplaceSnippet),
+			string(snippets.DeltaOpInsertSnippet),
+			string(snippets.DeltaOpRemoveSnippet),
+			string(snippets.DeltaOpUpdatePageMeta),
+		),
+		"SnippetDeltaPatch": objSchema([]string{"op"}, map[string]any{
+			"op":           refSchema("SnippetDeltaOp"),
+			"snippet_id":   p.str,
+			"field_path":   p.str,
+			"text_chunk":   p.str,
+			"data_patch":   p.anyObj,
+			"snippet":      refSchema("SnippetEnvelope"),
+			"insert_index": p.int,
+			"title":        p.str,
+			"page_version": p.str,
+			"done":         p.bool,
+		}),
 		"PageResponse": objSchema([]string{"page_id", "title", "snippets"}, map[string]any{
 			"page_id":         p.str,
 			"title":           p.str,
@@ -145,6 +176,10 @@ func openAPIComponentSchemas() map[string]any {
 			"pull_to_refresh": p.action,
 			"adaptive_layout": refSchema("AdaptivePageSpec"),
 			"tracking":        p.anyObj,
+			"page_version":    p.str,
+			"app_version":     p.str,
+			"etag":            p.str,
+			"stream_spec":     refSchema("SseStreamSpec"),
 		}),
 		"ActionExecutionInput": objSchema([]string{"trigger"}, map[string]any{
 			"trigger": p.action, "form_values": p.strMap, "screen_id": p.str, "metadata": p.anyObj,

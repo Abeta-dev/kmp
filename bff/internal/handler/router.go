@@ -26,6 +26,7 @@ import (
 // RouterConfig configures dependencies and middleware options for the BFF Gin engine.
 type RouterConfig struct {
 	ServiceName       string
+	AppVersion        string
 	Logger            *slog.Logger
 	AllowedOrigins    []string
 	Metrics           *ginmw.MetricsTracker
@@ -96,11 +97,23 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 		engine.Use(CompressionMiddleware())
 	}
 
+	appVersionOverride := strings.TrimSpace(cfg.AppVersion)
+	appVersion := appVersionOverride
+	if appVersion == "" {
+		if cfg.ScreenService != nil {
+			appVersion = cfg.ScreenService.AppVersion()
+		} else {
+			appVersion = usecase.DefaultAppVersion
+		}
+	}
+
 	h := &bffHandler{
-		screens:   cfg.ScreenService,
-		actions:   cfg.ActionService,
-		catalog:   cfg.CatalogService,
-		analytics: cfg.AnalyticsService,
+		screens:            cfg.ScreenService,
+		actions:            cfg.ActionService,
+		catalog:            cfg.CatalogService,
+		analytics:          cfg.AnalyticsService,
+		appVersion:         appVersion,
+		appVersionOverride: appVersionOverride,
 	}
 
 	engine.GET("/healthz", gin.WrapF(health.LivenessHandler))
@@ -124,7 +137,9 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 	{
 		v1.GET("/screens", withETag(h.listScreens)...)
+		v1.GET("/screens/manifest", withETag(h.getScreenManifest)...)
 		v1.GET("/screens/:screenId", withETag(h.getScreen)...)
+		v1.GET("/streams/:streamId", h.streamDeltas)
 		v1.POST("/actions/execute", h.executeAction)
 		v1.POST("/orders/express", h.placeExpressOrder)
 		v1.POST("/pay/transfer", h.executePayTransfer)
@@ -137,10 +152,12 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 }
 
 type bffHandler struct {
-	screens   *usecase.ScreenService
-	actions   *usecase.ActionService
-	catalog   *usecase.CatalogService
-	analytics *usecase.AnalyticsService
+	screens            *usecase.ScreenService
+	actions            *usecase.ActionService
+	catalog            *usecase.CatalogService
+	analytics          *usecase.AnalyticsService
+	appVersion         string
+	appVersionOverride string
 }
 
 func (h *bffHandler) listScreens(c *gin.Context) {
@@ -156,6 +173,19 @@ func (h *bffHandler) listScreens(c *gin.Context) {
 	ginmw.RespondSuccess(c, gin.H{"screens": ids})
 }
 
+func (h *bffHandler) getScreenManifest(c *gin.Context) {
+	if h.screens == nil {
+		respondDomainError(c, apperror.Internal("screen service unavailable"))
+		return
+	}
+	manifest, err := h.screens.BuildManifest(c.Request.Context(), h.appVersion)
+	if err != nil {
+		respondDomainError(c, err)
+		return
+	}
+	ginmw.RespondSuccess(c, manifest)
+}
+
 func (h *bffHandler) getScreen(c *gin.Context) {
 	if h.screens == nil {
 		respondDomainError(c, apperror.Internal("screen service unavailable"))
@@ -165,6 +195,9 @@ func (h *bffHandler) getScreen(c *gin.Context) {
 	if err != nil {
 		respondDomainError(c, err)
 		return
+	}
+	if h.appVersionOverride != "" {
+		page.AppVersion = h.appVersionOverride
 	}
 	ginmw.RespondSuccess(c, page)
 }

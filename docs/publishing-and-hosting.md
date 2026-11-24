@@ -33,7 +33,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaKmp") {
-            from("io.github.abeta-dev:dependencies:0.4.1")
+            from("io.github.abeta-dev:dependencies:0.5.0")
         }
     }
 }
@@ -45,7 +45,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.5.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:database") // Optional Room 3 KMP local SQLite DB
             implementation("io.github.abeta-dev:design-tokens")
@@ -79,7 +79,7 @@ dependencyResolutionManagement {
 ```kotlin
 // build.gradle.kts (commonMain)
 commonMain.dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.1-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.5.0-SNAPSHOT"))
     implementation("io.github.abeta-dev:database")
     implementation("io.github.abeta-dev:sdui-layout")
 }
@@ -101,14 +101,14 @@ Or in a SwiftPM `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.1"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.5.0"),
 ]
 ```
 
 ### D. Go 1.26.0 SDUI BFF — `proxy.golang.org`
 
 ```bash
-go get github.com/abeta-dev/kmp/bff@v0.6.0
+go get github.com/abeta-dev/kmp/bff@v0.7.0
 ```
 
 ---
@@ -266,7 +266,7 @@ No secrets, tokens, or account registration are needed for Go consumers:
 2. [release.yml](../.github/workflows/release.yml) verifies `gofmt`, `go vet ./...`, and `go test -race -cover ./...`, creates the GitHub Release, and automatically warms `https://proxy.golang.org/github.com/abeta-dev/kmp/bff/@v/v0.5.0.info`.
 3. Any Go developer worldwide can immediately install it with:
    ```bash
-   go get github.com/abeta-dev/kmp/bff@v0.6.0
+   go get github.com/abeta-dev/kmp/bff@v0.7.0
    ```
 
 ---

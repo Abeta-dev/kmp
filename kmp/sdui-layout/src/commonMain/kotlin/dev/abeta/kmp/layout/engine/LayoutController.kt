@@ -7,6 +7,7 @@ import dev.abeta.kmp.analytics.AnalyticsTracker
 import dev.abeta.kmp.analytics.AnalyticsTrackingPayload
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.PageResponse
+import dev.abeta.kmp.contracts.SnippetDeltaPatch
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.error.AppError
@@ -21,6 +22,8 @@ import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.platform.toHapticStyle
 import dev.abeta.kmp.layout.repository.ScreenRepository
+import dev.abeta.kmp.network.sse.SseReconnectPolicy
+import dev.abeta.kmp.network.sse.SseTransport
 import dev.abeta.kmp.state.session.SessionStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -56,6 +59,7 @@ sealed interface LayoutUiState {
         val isOffline: Boolean = false,
         val errorShakeSequence: Long = 0L,
         val errorShakeTargetId: String? = null,
+        val isStreaming: Boolean = false,
     ) : LayoutUiState
 
     /** Screen fetch failed with a typed [AppError]. */
@@ -82,6 +86,7 @@ class LayoutController(
     private val logger: AppLogger = NoOpAppLogger(),
     private val offlineCoordinator: OfflineActionCoordinator? = null,
     private val platformBridges: PlatformBridgeBundle = PlatformBridgeBundle.createTestDefault(),
+    private val sseTransport: SseTransport? = null,
 ) {
     private val _uiState = MutableStateFlow<LayoutUiState>(LayoutUiState.Idle)
 
@@ -102,6 +107,18 @@ class LayoutController(
     private var activeLoadJob: Job? = null
     private var pendingDeepLinkParams: Map<String, String> = emptyMap()
     private var pendingRestoredFormValues: Map<String, String> = emptyMap()
+    private val streamController =
+        LayoutStreamController(
+            scope = scope,
+            sseTransport = sseTransport,
+            logger = logger,
+            onPatch = ::applyDeltaPatch,
+            onStreamingChanged = { streaming ->
+                updateReady { current ->
+                    if (current.isStreaming != streaming) current.copy(isStreaming = streaming) else current
+                }
+            },
+        )
     private val bridgeOutcomeExecutor =
         PlatformBridgeOutcomeExecutor(
             bridges = platformBridges,
@@ -120,6 +137,7 @@ class LayoutController(
         screenId: String,
         showLoader: Boolean = true,
     ): Job {
+        stopStream()
         activeScreenId = screenId
         trackedImpressions.clear()
         trackedNodeImpressions.clear()
@@ -330,6 +348,22 @@ class LayoutController(
         return launchAction(action = action, isPullRefresh = isPullRefresh)
     }
 
+    /** Applies an incremental [SnippetDeltaPatch] to the active [LayoutUiState.Ready] page. */
+    fun applyDeltaPatch(patch: SnippetDeltaPatch) {
+        updateReady { current -> current.copy(page = applySnippetDeltaPatch(current.page, patch)) }
+    }
+
+    /** Connects to an SSE stream at [path] via [sseTransport] and applies incoming [SnippetDeltaPatch] frames. */
+    fun observeStream(
+        path: String,
+        headers: Map<String, String> = emptyMap(),
+        lastEventId: String? = null,
+        reconnectPolicy: SseReconnectPolicy = SseReconnectPolicy(),
+    ): Job? = streamController.observe(path, headers, lastEventId, reconnectPolicy)
+
+    /** Cancels the currently active SSE stream, if any, and resets [LayoutUiState.Ready.isStreaming]. */
+    fun stopStream() = streamController.stop()
+
     private fun launchAction(
         action: ActionRef,
         isPullRefresh: Boolean,
@@ -429,6 +463,7 @@ class LayoutController(
                 }
             }
         }
+        page.streamSpec?.let(streamController::observeFromSpec)
     }
 
     private suspend fun applyDispatchResult(result: AppResult<ActionOutcome>) {

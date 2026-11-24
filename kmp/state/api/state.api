@@ -378,6 +378,23 @@ public final class dev/abeta/kmp/state/storage/DataStoreKeyValueStore_jvmKt {
 	public static synthetic fun createDataStoreKeyValueStore$default (Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/storage/ObservableKeyValueStore;
 }
 
+public final class dev/abeta/kmp/state/storage/FileKeyValueStore : dev/abeta/kmp/core/storage/ObservableKeyValueStore {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun clear ()V
+	public fun contains (Ljava/lang/String;)Z
+	public fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public fun keys ()Ljava/util/Set;
+	public fun observeKey (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)V
+}
+
+public final class dev/abeta/kmp/state/storage/FileKeyValueStore_jvmKt {
+	public static final fun createDiskKeyValueStore (Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/core/storage/ObservableKeyValueStore;
+	public static synthetic fun createDiskKeyValueStore$default (Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/storage/ObservableKeyValueStore;
+}
+
 public final class dev/abeta/kmp/state/storage/SettingsKeyValueStore : dev/abeta/kmp/core/storage/ObservableKeyValueStore {
 	public fun <init> (Lcom/russhwolf/settings/Settings;Ljava/lang/String;)V
 	public synthetic fun <init> (Lcom/russhwolf/settings/Settings;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

@@ -23,6 +23,7 @@ import (
 
 type appConfig struct {
 	ServiceName        string
+	AppVersion         string
 	Addr               string
 	GinMode            string
 	CatalogVersion     string
@@ -55,6 +56,7 @@ func loadConfig() appConfig {
 
 	return appConfig{
 		ServiceName:        env.String("SERVICE_NAME", "abeta-sdui-bff"),
+		AppVersion:         env.String("APP_VERSION", usecase.DefaultAppVersion),
 		Addr:               addr,
 		GinMode:            env.String("GIN_MODE", gin.ReleaseMode),
 		CatalogVersion:     env.String("TOKEN_CATALOG_VERSION", "1.0.0"),
@@ -93,10 +95,11 @@ func buildServer(cfg appConfig, log *slog.Logger) *http.Server {
 
 	router := handler.NewRouter(handler.RouterConfig{
 		ServiceName:       cfg.ServiceName,
+		AppVersion:        cfg.AppVersion,
 		Logger:            log,
 		AllowedOrigins:    cfg.AllowedOrigins,
 		Metrics:           &ginmw.MetricsTracker{},
-		ScreenService:     usecase.NewScreenService(screenRepo),
+		ScreenService:     usecase.NewScreenServiceWithVersion(screenRepo, cfg.AppVersion),
 		ActionService:     usecase.NewActionService(actionExec),
 		CatalogService:    usecase.NewCatalogService(catalogProvider),
 		AnalyticsService:  usecase.NewAnalyticsService(analyticsStore),
