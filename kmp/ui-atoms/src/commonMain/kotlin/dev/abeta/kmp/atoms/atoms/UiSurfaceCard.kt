@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -19,7 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import dev.abeta.kmp.atoms.modifiers.applyLayoutConfig
+import dev.abeta.kmp.atoms.modifiers.toPaddingValues
 import dev.abeta.kmp.contracts.LayoutConfig
+import dev.abeta.kmp.contracts.SpacingValues
 import dev.abeta.kmp.tokens.ThemeTokens
 
 private const val CARD_PRESS_SCALE = 0.97f
@@ -36,54 +39,73 @@ fun UiSurfaceCard(
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val colors = ThemeTokens.colors
-    val spacing = ThemeTokens.spacing
-    val cornerRadius = ThemeTokens.cornerRadius
-    val strokeWidth = ThemeTokens.strokeWidth
-
     val interactionSource = if (onClick != null) remember { MutableInteractionSource() } else null
     val scaledModifier = applyCardPressScale(modifier = modifier, interactionSource = interactionSource)
-    val defaultShape = RoundedCornerShape(cornerRadius.md)
+    val interactiveModifier =
+        resolveCardSurfaceModifier(
+            baseModifier = scaledModifier,
+            layout = layout,
+            interactionSource = interactionSource,
+            onClick = onClick,
+        )
+
+    Column(modifier = interactiveModifier, content = content)
+}
+
+@Composable
+private fun resolveCardSurfaceModifier(
+    baseModifier: Modifier,
+    layout: LayoutConfig?,
+    interactionSource: MutableInteractionSource?,
+    onClick: (() -> Unit)?,
+): Modifier {
+    val colors = ThemeTokens.colors
+    val spacing = ThemeTokens.spacing
+    val defaultShape = RoundedCornerShape(ThemeTokens.cornerRadius.md)
+    val strokeWidth = ThemeTokens.strokeWidth
     val indication = LocalIndication.current
-    val clickableIfNeeded: Modifier.() -> Modifier = {
+    val clickableModifier: Modifier.() -> Modifier = {
         if (onClick != null && interactionSource != null) {
-            clickable(
-                interactionSource = interactionSource,
-                indication = indication,
-                onClick = onClick,
-            )
+            clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
         } else {
             this
         }
     }
-    val interactiveModifier =
-        when {
-            layout == null -> {
-                scaledModifier
-                    .clip(defaultShape)
-                    .background(colors.surface.elevated, defaultShape)
-                    .border(strokeWidth.thin, colors.border.subtle, defaultShape)
-                    .clickableIfNeeded()
-                    .padding(spacing.space16)
-            }
-
-            layout.bgColor == null && layout.cornerRadius == null -> {
-                scaledModifier
-                    .clip(defaultShape)
-                    .background(colors.surface.elevated, defaultShape)
-                    .clickableIfNeeded()
-                    .applyLayoutConfig(layout)
-            }
-
-            else -> {
-                scaledModifier
-                    .applyLayoutConfig(layout)
-                    .clickableIfNeeded()
-            }
+    return when {
+        layout == null -> {
+            baseModifier
+                .clip(defaultShape)
+                .background(colors.surface.elevated, defaultShape)
+                .border(strokeWidth.thin, colors.border.subtle, defaultShape)
+                .clickableModifier()
+                .padding(spacing.space16)
         }
 
-    Column(modifier = interactiveModifier, content = content)
+        layout.bgColor == null && layout.cornerRadius == null -> {
+            val outer =
+                baseModifier
+                    .let { if (layout.fillMaxWidth) it.fillMaxWidth() else it }
+                    .let { applyOptionalPadding(it, layout.margin) }
+            val surface =
+                outer
+                    .clip(defaultShape)
+                    .background(colors.surface.elevated, defaultShape)
+                    .applyLayoutConfig(layout.copy(fillMaxWidth = false, margin = null, padding = null))
+                    .clickableModifier()
+            applyOptionalPadding(surface, layout.padding)
+        }
+
+        else -> {
+            val surface = baseModifier.applyLayoutConfig(layout.copy(padding = null)).clickableModifier()
+            applyOptionalPadding(surface, layout.padding)
+        }
+    }
 }
+
+private fun applyOptionalPadding(
+    modifier: Modifier,
+    spacing: SpacingValues?,
+): Modifier = if (spacing != null) modifier.padding(spacing.toPaddingValues()) else modifier
 
 @Composable
 private fun applyCardPressScale(

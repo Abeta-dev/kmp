@@ -182,7 +182,7 @@ internal object SuperAppDemoFreshWorkflows {
                         ComposedNode(
                             nodeId = "fresh_qty_stepper",
                             kind = ComposedNodeKind.STEPPER,
-                            stepper = StepperAtom("cart_qty_fresh_avocados", "ADD", quantity = 1, maxQuantity = 10),
+                            stepper = StepperAtom("cart_qty_fresh_avocados", null, quantity = 1, maxQuantity = 10),
                         ),
                         ComposedNode(
                             nodeId = "fresh_qty_price",

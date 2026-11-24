@@ -41,8 +41,11 @@ import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.AvatarAtom
 import dev.abeta.kmp.contracts.ButtonAtom
 import dev.abeta.kmp.contracts.CheckboxAtom
+import dev.abeta.kmp.contracts.ColorTokenRef
+import dev.abeta.kmp.contracts.CornerRadiusSpec
 import dev.abeta.kmp.contracts.CountdownAtom
 import dev.abeta.kmp.contracts.IconAtom
+import dev.abeta.kmp.contracts.LayoutConfig
 import dev.abeta.kmp.contracts.MotionDurationToken
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.MotionSpec
@@ -50,6 +53,7 @@ import dev.abeta.kmp.contracts.MotionTransition
 import dev.abeta.kmp.contracts.SkeletonAtom
 import dev.abeta.kmp.contracts.SkeletonKind
 import dev.abeta.kmp.contracts.SliderAtom
+import dev.abeta.kmp.contracts.SpacingValues
 import dev.abeta.kmp.contracts.StepperAtom
 import dev.abeta.kmp.contracts.SwitchAtom
 import dev.abeta.kmp.contracts.TagAtom
@@ -615,5 +619,36 @@ class UiAtomsComposeTest {
             }
             onNodeWithText("Bouncy CTA").performClick()
             assertEquals(1, clicks)
+        }
+
+    @Test
+    fun stepperDeduplicatesRedundantAddLabelAndSurfaceCardHandlesPaddedClicks() =
+        runComposeUiTest {
+            var cardClicks = 0
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = true) {
+                    Column {
+                        UiStepper(
+                            atom = StepperAtom(fieldId = "qty_dup", label = "ADD", quantity = 1, maxQuantity = 5),
+                        )
+                        UiSurfaceCard(
+                            layout =
+                                LayoutConfig(
+                                    padding = SpacingValues(all = 16),
+                                    bgColor = ColorTokenRef("surface.primary"),
+                                    cornerRadius = CornerRadiusSpec(all = 12),
+                                ),
+                            onClick = { cardClicks += 1 },
+                        ) {
+                            Text("Padded Clickable Card")
+                        }
+                    }
+                }
+            }
+
+            onNodeWithText("ADD").assertDoesNotExist()
+            onNodeWithText("1").assertIsDisplayed()
+            onNodeWithText("Padded Clickable Card").performClick()
+            assertEquals(1, cardClicks)
         }
 }

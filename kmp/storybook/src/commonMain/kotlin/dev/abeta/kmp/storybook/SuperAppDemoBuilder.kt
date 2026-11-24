@@ -424,7 +424,12 @@ internal object SuperAppDemoBuilder {
                     BannerSnippetData(
                         title = text(title, "title.medium"),
                         body = text(message, "body.small", "text.secondary"),
-                        tag = TagAtom(label = badge, bgColor = ColorTokenRef("brand.primary")),
+                        tag =
+                            TagAtom(
+                                label = badge,
+                                bgColor = ColorTokenRef("brand.primary"),
+                                textColor = ColorTokenRef("text.on_brand"),
+                            ),
                         cta = cta,
                         layout = bannerLayout,
                     ),
@@ -573,7 +578,7 @@ internal object SuperAppDemoBuilder {
                                 cornerRadius = CornerRadiusSpec(all = 8),
                                 placeholderColor = ColorTokenRef(sku.badge.second),
                             ),
-                        stepper = StepperAtom("cart_qty_${sku.id}", "ADD", sku.qty, maxQuantity = 10),
+                        stepper = StepperAtom("cart_qty_${sku.id}", null, sku.qty, maxQuantity = 10),
                         rating = text("4.8 ★", "label.small", "status.success"),
                         onClick = onClick,
                         layout = compactCardLayout,

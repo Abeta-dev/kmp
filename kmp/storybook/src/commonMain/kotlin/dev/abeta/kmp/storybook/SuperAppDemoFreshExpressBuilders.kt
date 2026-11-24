@@ -85,6 +85,12 @@ internal object SuperAppDemoFreshExpressBuilders {
             fillMaxWidth = false,
         )
 
+    private val overlayBadgeLayout =
+        LayoutConfig(
+            margin = SpacingValues(all = 6),
+            fillMaxWidth = false,
+        )
+
     fun buildSectionHeaderRow(
         idPrefix: String,
         title: String,
@@ -113,9 +119,10 @@ internal object SuperAppDemoFreshExpressBuilders {
             mapOf("component_id" to prefix, "product_id" to spec.productId, "molecule" to "express_product_tile")
         val children =
             buildList {
-                add(buildTileMediaBox(prefix, spec, compactForScrollRow))
-                add(ComposedNode("${prefix}_title", ComposedNodeKind.TEXT, text = ui.text(spec.title, "title.small")))
-                val subText = ui.text(spec.subtitle, "body.small", "text.secondary")
+                add(buildTileMediaBox(prefix, spec, compactForScrollRow, trackingProps))
+                val titleAtom = ui.text(spec.title, "title.small").copy(maxLines = 1)
+                add(ComposedNode("${prefix}_title", ComposedNodeKind.TEXT, text = titleAtom))
+                val subText = ui.text(spec.subtitle, "body.small", "text.secondary").copy(maxLines = 1)
                 add(ComposedNode("${prefix}_subtitle", ComposedNodeKind.TEXT, text = subText))
                 buildVariantChipNode(prefix, spec)?.let(::add)
                 add(buildTilePriceNode(prefix, spec))
@@ -126,9 +133,6 @@ internal object SuperAppDemoFreshExpressBuilders {
             kind = ComposedNodeKind.CARD,
             spacingDp = 6,
             layout = if (compactForScrollRow) upsellTileCardLayout else ui.compactCardLayout,
-            onClick = ui.toastAction("peek_${spec.productId}", "${spec.title} · ${spec.priceText} (${spec.etaLabel})"),
-            tracking = TrackingContract(eventName = "node_impression", properties = trackingProps),
-            clickTracking = TrackingContract(eventName = "interaction_click", properties = trackingProps),
             children = children,
         )
     }
@@ -137,6 +141,7 @@ internal object SuperAppDemoFreshExpressBuilders {
         prefix: String,
         spec: ExpressTileSpec,
         compactForScrollRow: Boolean,
+        trackingProps: Map<String, String>,
     ): ComposedNode {
         val imageAtom =
             ImageAtom(
@@ -153,6 +158,9 @@ internal object SuperAppDemoFreshExpressBuilders {
             nodeId = "${prefix}_media_box",
             kind = ComposedNodeKind.BOX,
             layout = if (compactForScrollRow) null else ui.fullWidthLayout,
+            onClick = ui.toastAction("peek_${spec.productId}", "${spec.title} · ${spec.priceText} (${spec.etaLabel})"),
+            tracking = TrackingContract(eventName = "node_impression", properties = trackingProps),
+            clickTracking = TrackingContract(eventName = "interaction_click", properties = trackingProps),
             children =
                 listOf(
                     ComposedNode(nodeId = "${prefix}_img_node", kind = ComposedNodeKind.IMAGE, image = imageAtom),
@@ -160,18 +168,21 @@ internal object SuperAppDemoFreshExpressBuilders {
                         nodeId = "${prefix}_discount_ribbon",
                         kind = ComposedNodeKind.TAG,
                         boxAlignment = "top_start",
+                        layout = overlayBadgeLayout,
                         tag = TagAtom(label = spec.discountRibbon, variant = TagVariant.ERROR),
                     ),
                     ComposedNode(
                         nodeId = "${prefix}_top_end_badge",
                         kind = ComposedNodeKind.TAG,
                         boxAlignment = "top_end",
+                        layout = overlayBadgeLayout,
                         tag = topEndTag,
                     ),
                     ComposedNode(
                         nodeId = "${prefix}_eta_pill",
                         kind = ComposedNodeKind.TAG,
                         boxAlignment = "bottom_start",
+                        layout = overlayBadgeLayout,
                         tag = TagAtom(label = spec.etaLabel, bgColor = ColorTokenRef(OK_CONTAINER)),
                     ),
                 ),
@@ -204,7 +215,6 @@ internal object SuperAppDemoFreshExpressBuilders {
                     id = "${prefix}_price_atom",
                     amountText = spec.priceText,
                     originalAmountText = spec.originalPriceText,
-                    discountLabel = spec.discountRibbon,
                     emphasized = true,
                 ),
         )
@@ -244,7 +254,7 @@ internal object SuperAppDemoFreshExpressBuilders {
             stepper =
                 StepperAtom(
                     fieldId = spec.stepperFieldId,
-                    label = "ADD",
+                    label = null,
                     quantity = spec.initialQty,
                     maxQuantity = MAX_STEPPER_QTY,
                     onIncrement = incAction,

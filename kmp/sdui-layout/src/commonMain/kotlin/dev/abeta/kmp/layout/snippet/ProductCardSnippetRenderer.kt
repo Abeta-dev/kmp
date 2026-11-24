@@ -3,8 +3,6 @@ package dev.abeta.kmp.layout.snippet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -53,12 +51,12 @@ internal class ProductCardSnippetRenderer(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.space8)) {
                 ProductCardMedia(model = model, onAction = onAction)
-                UiText(atom = model.title, onAction = onAction)
+                UiText(atom = model.title.copy(maxLines = model.title.maxLines ?: 1), onAction = onAction)
                 model.subtitle?.let { subtitle ->
-                    UiText(atom = subtitle, onAction = onAction)
+                    UiText(atom = subtitle.copy(maxLines = subtitle.maxLines ?: 1), onAction = onAction)
                 }
                 model.rating?.let { rating ->
-                    UiText(atom = rating, onAction = onAction)
+                    UiText(atom = rating.copy(maxLines = rating.maxLines ?: 1), onAction = onAction)
                 }
                 ProductCardFooter(
                     model = model,
@@ -87,7 +85,7 @@ internal class ProductCardSnippetRenderer(
                 badge?.let { tag ->
                     UiTag(
                         atom = tag,
-                        modifier = Modifier.align(Alignment.TopStart).padding(spacing.space4),
+                        modifier = Modifier.align(Alignment.TopStart).padding(spacing.space8),
                         onAction = onAction,
                     )
                 }
@@ -97,7 +95,6 @@ internal class ProductCardSnippetRenderer(
         }
     }
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     @Suppress("ktlint:standard:function-naming", "FunctionName")
     private fun ProductCardFooter(
@@ -107,11 +104,9 @@ internal class ProductCardSnippetRenderer(
         onAction: (ActionRef) -> Unit,
     ) {
         val spacing = ThemeTokens.spacing
-        FlowRow(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalArrangement = Arrangement.spacedBy(spacing.space8),
-            itemVerticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -125,12 +120,17 @@ internal class ProductCardSnippetRenderer(
                     )
                 }
             }
-            UiStepper(
-                atom = model.stepper.copy(label = null),
-                quantityOverride = quantityOverride,
-                onQuantityChange = onQuantityChange,
-                onAction = onAction,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                UiStepper(
+                    atom = model.stepper.copy(label = null),
+                    quantityOverride = quantityOverride,
+                    onQuantityChange = onQuantityChange,
+                    onAction = onAction,
+                )
+            }
         }
     }
 }

@@ -38,7 +38,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.LocalImageRenderer
@@ -269,7 +271,7 @@ private fun StoryStagePane(
     onAction: (ActionRef) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.clipToBounds()) {
         StoryTopBar(
             entry = StoryCatalog.findById(selectedStoryId),
             preset = preset,
@@ -550,6 +552,8 @@ private fun ActionConsoleBar(logState: ActionLogState) {
                     style = ThemeTokens.typography.caption,
                     color = colors.text.tertiary,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             } else {
                 logs.take(ACTION_CONSOLE_PREVIEW_COUNT).forEach { entry ->
@@ -558,6 +562,8 @@ private fun ActionConsoleBar(logState: ActionLogState) {
                         style = ThemeTokens.typography.caption.copy(fontFamily = ThemeTokens.typography.fonts.mono),
                         color = colors.text.secondary,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }

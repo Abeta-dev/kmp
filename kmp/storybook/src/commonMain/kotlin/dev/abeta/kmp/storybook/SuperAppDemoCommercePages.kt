@@ -388,7 +388,7 @@ internal object SuperAppDemoCommercePages {
         val visibleSkus = filterSkus(martSkus, query, filter)
         val deals =
             listOf(
-                Triple("deal_anc", "Abeta Pulse ANC · 30% OFF", "44 dB ANC · 42h battery · \$149"),
+                Triple("deal_anc", "Pulse ANC · 30% OFF", "44 dB ANC · 42h battery · \$149"),
                 Triple("deal_lamp", "Nordic Desk Lamp Pro", "Adaptive glare-free LED · \$59"),
                 Triple("deal_kb", "Loom Mechanical 75%", "Hot-swap tactile switches · \$119"),
             )

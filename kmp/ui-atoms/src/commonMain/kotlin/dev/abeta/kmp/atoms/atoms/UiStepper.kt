@@ -133,7 +133,10 @@ fun UiStepper(
     val spacing = ThemeTokens.spacing
     val typography = ThemeTokens.typography
     val currentQuantity = resolveStepperQuantity(atom, quantityOverride)
-    val labelText = atom.label?.takeIf { it.isNotBlank() }
+    val labelText =
+        atom.label
+            ?.trim()
+            ?.takeIf { it.isNotBlank() && !it.equals(ADD_LABEL, ignoreCase = true) }
     val rootModifier = modifier.applyLayoutConfig(atom.layout)
 
     if (labelText != null) {

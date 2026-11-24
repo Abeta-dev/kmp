@@ -1,6 +1,8 @@
 package dev.abeta.kmp.atoms.atoms
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +25,7 @@ private const val TABULAR_NUMBERS_FEATURE = "tnum"
  * Displays tabular sale price with optional unit suffix, strikethrough original MRP,
  * and semantic discount pill.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")
 fun UiPrice(
@@ -33,13 +36,14 @@ fun UiPrice(
     val spacing = ThemeTokens.spacing
     val typography = ThemeTokens.typography
 
-    Row(
+    FlowRow(
         modifier =
             modifier
                 .applyLayoutConfig(atom.layout)
                 .testTag("price_${atom.id ?: "default"}"),
-        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+        verticalArrangement = Arrangement.spacedBy(spacing.space4),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         UiPriceAmountPair(atom = atom)
         atom.originalAmountText?.takeIf { it.isNotBlank() }?.let { originalPrice ->
