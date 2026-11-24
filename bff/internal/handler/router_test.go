@@ -19,6 +19,7 @@ import (
 	"github.com/abeta-dev/kmp/bff/internal/infra"
 	"github.com/abeta-dev/kmp/bff/internal/usecase"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,15 +35,17 @@ func newTestRouter() *gin.Engine {
 	repo := infra.NewInMemoryScreenRepository()
 	exec := infra.NewDefaultActionExecutor()
 	catalog := infra.NewStaticTokenCatalogProvider("1.0.0")
+	analyticsStore := infra.NewInMemoryAnalyticsStore(100)
 
 	return handler.NewRouter(handler.RouterConfig{
-		ServiceName:    "abeta-sdui-bff-test",
-		Logger:         discardLogger(),
-		AllowedOrigins: []string{"https://app.abeta.dev", "*.abeta.dev"},
-		Metrics:        &ginmw.MetricsTracker{},
-		ScreenService:  usecase.NewScreenService(repo),
-		ActionService:  usecase.NewActionService(exec),
-		CatalogService: usecase.NewCatalogService(catalog),
+		ServiceName:      "abeta-sdui-bff-test",
+		Logger:           discardLogger(),
+		AllowedOrigins:   []string{"https://app.abeta.dev", "*.abeta.dev"},
+		Metrics:          &ginmw.MetricsTracker{},
+		ScreenService:    usecase.NewScreenService(repo),
+		ActionService:    usecase.NewActionService(exec),
+		CatalogService:   usecase.NewCatalogService(catalog),
+		AnalyticsService: usecase.NewAnalyticsService(analyticsStore),
 	})
 }
 
@@ -124,7 +127,7 @@ func TestScreenEndpoints(t *testing.T) {
 		t.Fatalf("invalid list envelope: %s, err=%v", w.Body.String(), err)
 	}
 
-	for _, id := range []string{"home", "catalog", "containers", "profile", "form-demo", "store-home", "watch-status", "pay-home", "pay-transfer", "pay-cards", "pay-receipt"} {
+	for _, id := range []string{"home", "fresh-home", "catalog", "containers", "profile", "form-demo", "store-home", "watch-status", "pay-home", "pay-transfer", "pay-cards", "pay-receipt"} {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/v1/screens/"+id, nil))
 		if w.Code != http.StatusOK {
@@ -369,6 +372,8 @@ func TestRouter_NilServicesAndFallbackErrors(t *testing.T) {
 		{http.MethodPost, "/api/v1/orders/express", `{}`},
 		{http.MethodPost, "/api/v1/pay/transfer", `{}`},
 		{http.MethodGet, "/api/v1/catalog/tokens", ""},
+		{http.MethodPost, "/api/v1/analytics/events", `{"events":[{"event_name":"page_open"}]}`},
+		{http.MethodGet, "/api/v1/analytics/summary", ""},
 	}
 
 	for _, ep := range endpoints {
@@ -381,5 +386,76 @@ func TestRouter_NilServicesAndFallbackErrors(t *testing.T) {
 		if w.Code != http.StatusInternalServerError && w.Code != http.StatusServiceUnavailable {
 			t.Errorf("%s %s expected 500/503 with nil services, got %d", ep.method, ep.path, w.Code)
 		}
+	}
+}
+
+func TestAnalyticsEndpoints_IngestAndSummary(t *testing.T) {
+	r := newTestRouter()
+
+	// 1. Valid batch ingest -> 200 OK with ginmw.Envelope
+	batch := analytics.BatchRequest{
+		SessionID:  "sess_fresh_01",
+		UserID:     "usr_101",
+		Platform:   "android",
+		AppVersion: "1.5.0",
+		Events: []analytics.Event{
+			{EventName: analytics.EventPageOpen, PageID: "fresh-home"},
+			{EventName: analytics.EventSnippetImpression, PageID: "fresh-home", SnippetID: "fresh_sticky_search"},
+			{EventName: analytics.EventNodeImpression, PageID: "fresh-home", SnippetID: "fresh_bestsellers_block", ComponentID: "tile_avocados"},
+			{EventName: analytics.EventInteractionClick, PageID: "fresh-home", ComponentID: "tile_avocados", ActionID: "inc_fresh_avocado", ActionType: "trigger_feedback"},
+			{EventName: analytics.EventTrackEvent, PageID: "fresh-home", Properties: map[string]string{"coupon": "FRESH20"}},
+		},
+	}
+	payload, _ := json.Marshal(batch)
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/analytics/events", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("POST /api/v1/analytics/events status = %d, body = %s", w.Code, w.Body.String())
+	}
+	var ingestEnv apiEnvelope
+	if err := json.Unmarshal(w.Body.Bytes(), &ingestEnv); err != nil || !ingestEnv.Success {
+		t.Fatalf("invalid ingest envelope: %s, err=%v", w.Body.String(), err)
+	}
+	var ingestResp analytics.IngestResponse
+	if err := json.Unmarshal(ingestEnv.Data, &ingestResp); err != nil || ingestResp.Accepted != 5 || ingestResp.Dropped != 0 || ingestResp.ServerTimestampEpochMs <= 0 {
+		t.Fatalf("unexpected ingest response: %+v, err=%v", ingestResp, err)
+	}
+
+	// 2. GET /api/v1/analytics/summary -> 200 OK with live counters and recent events
+	wSum := httptest.NewRecorder()
+	r.ServeHTTP(wSum, httptest.NewRequest(http.MethodGet, "/api/v1/analytics/summary", nil))
+	if wSum.Code != http.StatusOK {
+		t.Fatalf("GET /api/v1/analytics/summary status = %d, body = %s", wSum.Code, wSum.Body.String())
+	}
+	var sumEnv apiEnvelope
+	if err := json.Unmarshal(wSum.Body.Bytes(), &sumEnv); err != nil || !sumEnv.Success {
+		t.Fatalf("invalid summary envelope: %s, err=%v", wSum.Body.String(), err)
+	}
+	var summary analytics.Summary
+	if err := json.Unmarshal(sumEnv.Data, &summary); err != nil {
+		t.Fatalf("unmarshal analytics.Summary: %v", err)
+	}
+	if summary.TotalEvents != 5 || summary.ByPageID["fresh-home"] != 5 || summary.ByComponentID["tile_avocados"] != 2 || len(summary.RecentEvents) != 5 {
+		t.Fatalf("unexpected analytics summary: %+v", summary)
+	}
+
+	// 3. Malformed JSON -> 400 BAD_REQUEST
+	wBad := httptest.NewRecorder()
+	reqBad := httptest.NewRequest(http.MethodPost, "/api/v1/analytics/events", strings.NewReader("{bad"))
+	reqBad.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(wBad, reqBad)
+	if wBad.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for malformed analytics JSON, got %d", wBad.Code)
+	}
+
+	// 4. Empty events -> 400 BAD_REQUEST from service validation
+	wEmpty := httptest.NewRecorder()
+	reqEmpty := httptest.NewRequest(http.MethodPost, "/api/v1/analytics/events", strings.NewReader(`{"events":[]}`))
+	reqEmpty.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(wEmpty, reqEmpty)
+	if wEmpty.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for empty events batch, got %d: %s", wEmpty.Code, wEmpty.Body.String())
 	}
 }

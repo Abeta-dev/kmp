@@ -1156,7 +1156,7 @@
       <a class="brand" href="#top" aria-label="Abeta KMP Kit Home">
         <span class="brand-mark" aria-hidden="true">A</span>
         <span>Abeta KMP Kit</span>
-        <span class="version-pill">v0.3.0</span>
+        <span class="version-pill">v0.4.0</span>
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
@@ -1199,7 +1199,7 @@
 
           <div class="hero-cta-group">
             <a class="btn btn-primary" href="./storybook/?story=super-app-demos&amp;app=fresh-home">Play All 7 Live Super-App Demos in Browser &rarr;</a>
-            <a class="btn btn-secondary" href="./storybook/?story=introduction">20-Story Storybook (30 Atoms)</a>
+            <a class="btn btn-secondary" href="./storybook/?story=introduction">20-Story Storybook (31 Atoms)</a>
             <a class="btn btn-secondary" href="./api/core/">API Reference</a>
             <a class="btn btn-secondary" href="./llms.txt">llms.txt</a>
             <a class="btn btn-secondary" href="https://github.com/Abeta-dev/kmp" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -1230,16 +1230,16 @@
               <div class="metric-label">Publishable KMP libs + Gradle BOM &amp; Version Catalog, ABI-checked via BCV</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">28 / 30 Atoms</div>
-              <div class="metric-label">28 pure wire atoms &amp; 30 stateless Compose UI atoms (incl. <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code>, <code>UiQrCode</code> &amp; 7 motion loops)</div>
+              <div class="metric-value">29 / 31 Atoms</div>
+              <div class="metric-label">29 pure wire atoms &amp; 31 stateless Compose UI atoms (incl. <code>UiMediaPager</code>, <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code>, <code>UiQrCode</code> &amp; 7 motion loops)</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">21 / 18 Wire</div>
-              <div class="metric-label">21 canonical SDUI snippets (incl. <code>composed_block</code> with 29 node kinds) &amp; 18 OCP action types with 1:1 KMP &harr; Go parity</div>
+              <div class="metric-value">36 Mold Kinds</div>
+              <div class="metric-label">21 canonical SDUI snippets + <code>composed_block</code> with <strong>36 <code>ComposedNodeKind</code>s</strong>, per-child <code>box_alignment</code>, sticky headers, rich SDUI bottom sheets &amp; end-to-end BFF analytics</div>
             </div>
             <div class="metric-card">
               <div class="metric-value">20 Stories</div>
-              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>7-in-1 Live Super-App Demos</strong>, <strong>30-Atom Gallery</strong>, <strong>Animation &amp; Nudges Lab</strong> &amp; <strong>Atomic Snippet Crafter</strong></div>
+              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>7-in-1 Live Super-App Demos</strong>, <strong>Live Analytics Event Stream</strong>, <strong>31-Atom Gallery</strong>, <strong>Animation &amp; Nudges Lab</strong> &amp; <strong>Atomic Snippet Crafter</strong></div>
             </div>
           </div>
         </div>
@@ -1272,7 +1272,7 @@
             <div class="tab-panel active" id="panel-kmp" role="tabpanel" aria-labelledby="tab-kmp">
               <div class="tab-meta">
                 <span>Gradle BOM &amp; multiplatform artifacts via <strong>Maven Central</strong></span>
-                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.3.0</span>
+                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.4.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
@@ -1285,14 +1285,14 @@
 }
 
 dependencies {
-    implementation(platform("io.github.abeta-dev:bom:0.3.0"))
+    implementation(platform("io.github.abeta-dev:bom:0.4.0"))
     implementation("io.github.abeta-dev:sdui-layout")
     implementation("io.github.abeta-dev:database")        // Optional Room 3 SQLite DB
     implementation("io.github.abeta-dev:watch-companion") // Optional Wear OS / watchOS
 }</code></pre>
               </div>
               <p class="code-note">
-                Published to Maven Central under verified <code>io.github.abeta-dev</code> coordinates while Kotlin source imports remain <code>dev.abeta.kmp.*</code>. Need nightly snapshots? Add anonymous Cloudsmith Open Source: <code>maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")</code>.
+                Published to Maven Central under verified <code>io.github.abeta-dev</code> coordinates while Kotlin source imports remain <code>dev.abeta.kmp.*</code>. Built with official Google AndroidX KMP <code>room3</code>, <code>datastore</code>, <code>lifecycle</code> &amp; <code>savedstate</code>.
               </p>
             </div>
 
@@ -1309,7 +1309,7 @@ dependencies {
                 </div>
                 <pre id="code-swift"><code>// Direct Git URL: https://github.com/Abeta-dev/kmp-spm
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.3.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.0"),
 ]
 
 // Import prebuilt binary targets directly in Swift:
@@ -1324,24 +1324,26 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
             <!-- Tab 3: Go SDUI SDK -->
             <div class="tab-panel" id="panel-go" role="tabpanel" aria-labelledby="tab-go">
               <div class="tab-meta">
-                <span>Canonical <code>v1</code> Go wire builders &amp; BFF contracts via <strong>proxy.golang.org</strong></span>
-                <span class="badge badge-emerald">bff@v0.5.0</span>
+                <span>Canonical <code>v1</code> Go wire builders, molecules &amp; analytics via <strong>proxy.golang.org</strong></span>
+                <span class="badge badge-emerald">bff@v0.6.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
                   <span>Terminal + Go imports</span>
                   <button class="copy-btn" type="button" data-copy-target="code-go">Copy</button>
                 </div>
-                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.5.0
+                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.6.0
 
 // Import 1:1 v1 wire packages in your Go BFF:
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/atoms"
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/molecules"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/theming"</code></pre>
               </div>
               <p class="code-note">
-                Golden-tested 1:1 parity across all 28 wire atoms, 21 canonical snippet types (incl. <code>composed_block</code> with 29 node kinds), 7 motion loops, and 18 built-in action types.
+                Golden-tested 1:1 parity across all 29 wire atoms, 21 canonical snippet types (incl. <code>composed_block</code> with 36 node kinds &amp; <code>pkg/sdui/molecules</code>), 7 motion loops, 18 action types, and <code>POST /api/v1/analytics/events</code>.
               </p>
             </div>
 
@@ -1357,10 +1359,10 @@ import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
                   <button class="copy-btn" type="button" data-copy-target="code-docker">Copy</button>
                 </div>
                 <pre id="code-docker"><code># Pull Visual Layout Studio &amp; Composition Engine
-docker pull ghcr.io/abeta-dev/layout-engine:0.3.0
+docker pull ghcr.io/abeta-dev/layout-engine:0.4.0
 
 # Pull Multi-Tenant 7-App SDUI BFF
-docker pull ghcr.io/abeta-dev/sdui-bff:0.3.0</code></pre>
+docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               </div>
               <p class="code-note">
                 Run locally and point the <a href="./storybook/" style="text-decoration: underline;">Live WasmJS Storybook</a> or <code>sample-app --bff-url</code> directly at your container.

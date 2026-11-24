@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.4.0] / [bff/v0.6.0] - 2026-11-24
+
+### Added
+
+- **Google Official AndroidX KMP Compliance (`state`, `sdui-layout`, `platforms`)**:
+  - Upgraded to official Google Maven KMP libraries across all 8 targets (`jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchos*`, `wasmJs`): `androidx.datastore:datastore-preferences-core:1.3.0`, `androidx.lifecycle:lifecycle-viewmodel:2.11.1`, `androidx.lifecycle:lifecycle-viewmodel-compose:2.11.1`, `androidx.lifecycle:lifecycle-runtime-compose:2.11.1`, and `androidx.savedstate:savedstate:1.5.0`.
+  - Added `DataStoreKeyValueStore` + `createDataStoreKeyValueStore(namespace)` in `kmp/state` backed by atomic `PreferenceDataStoreFactory.createWithPath` (JVM/Apple `NSFileManager`/WasmJS `WebSessionStorage`).
+  - Added `SduiLayoutViewModel` (`androidx.lifecycle.ViewModel` + `SavedState` snapshot export/restore) and switched `SduiHostRoot`, `storybook`, `sample-app`, and Android/Wear host templates to `collectAsStateWithLifecycle()`.
+  - Standardized `applyDefaultHierarchyTemplate()` across all KMP library modules, added Google's modern `com.android.kotlin.multiplatform.library` template (`kmp/platforms/android/build.gradle.template.kts`), and added Swift Concurrency `AsyncStream` helpers in `AbetaAppleHosts.swift`.
+- **Express Quick-Commerce Atomic → Molecular → Compound Engine (Wave A)**:
+  - Added 29th Wire Atom `MediaPagerAtom` & 31st Stateless Compose UI Atom `UiMediaPager` (swipeable `HorizontalPager` with draw-phase pill dot indicators and reduced-motion-safe auto-advance).
+  - Extended `ComposedNodeKind` from 29 to **36 kinds** (`scroll_row`, `grid`, `text_field`, `switch`, `checkbox`, `slider`, `media_pager`) plus per-child 9-position `box_alignment` for badge-over-image overlays.
+  - Added `SnippetEnvelope.sticky` (`LazyColumn` `stickyHeader` for pinned search/filter bars) and rich SDUI `ModalBottomSheet` body rendering via `OpenDialogPayload.snippets` & `sheet_screen_id`.
+  - Added Go Server-Side Molecule Library (`bff/pkg/sdui/molecules`): `ExpressProductTile`, `CategoryGridSection`, `ImpulseUpsellRail`, `DeliveryInstructionsCard`, `VariantPickerSheetAction`, `CouponApplyCard`, `CheckoutBillSummary` (100% test coverage) and Golden Fixture #9 (`express_molecules_and_analytics_screen.json`).
+- **Universal Component IDs & End-to-End BFF Analytics Pipeline (Wave B)**:
+  - Added `ActionRef.tracking`, `ComposedNode.tracking` (deduplicated node impression), `ComposedNode.click_tracking`, wired `ButtonAtom.tracking` propagation in `UiButton`, and added deterministic `snippets.EnsureComponentIDs(&page)` on all served BFF screens.
+  - Automatic `page_open`, `snippet_impression`, `node_impression`, and `interaction_click` emission in `LayoutController`, plus batched HTTP shipper `RemoteBffAnalyticsTracker` (`BufferedAnalyticsTracker` + `HttpTransport`) in `kmp/sdui-layout`.
+  - Added `bff/pkg/sdui/analytics`, `POST /api/v1/analytics/events`, `GET /api/v1/analytics/summary`, and a live **Analytics Event Stream** telemetry panel in Storybook `SuperAppDemosStory`.
+- **Unified `CI Quality Gate` Workflow**:
+  - Added `.github/workflows/ci-quality-gate.yml` (`CI Quality Gate`) mirroring `Abeta-dev/go-libs` for strict branch protection with zero stuck path-filtered PRs.
+
+---
+
 ## [0.3.0] / [bff/v0.5.0] - 2026-11-23
 
 ### Added

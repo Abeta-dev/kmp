@@ -1,0 +1,2145 @@
+{
+  "page_id": "express-molecules-demo",
+  "title": "Abeta Fresh Express",
+  "toolbar": {
+    "title": {
+      "text": "Abeta Fresh Express",
+      "color": {
+        "token": "text.primary"
+      },
+      "typography": {
+        "token": "title.large"
+      }
+    },
+    "subtitle": {
+      "text": "8 mins · Atomic molecules & component analytics",
+      "color": {
+        "token": "text.secondary"
+      },
+      "typography": {
+        "token": "body.small"
+      }
+    },
+    "navigation_icon": {
+      "name": "arrow_back",
+      "size_dp": 22,
+      "color": {
+        "token": "text.primary"
+      },
+      "content_description": "Navigate back",
+      "on_click": {
+        "id": "back_from_express_molecules",
+        "type": "back_press",
+        "payload": {
+          "steps": 1
+        }
+      }
+    },
+    "bg_color": {
+      "token": "surface.primary"
+    }
+  },
+  "snippets": [
+    {
+      "snippet_id": "express_sticky_search",
+      "snippet_type": "search_bar",
+      "data": {
+        "search_id": "express_search",
+        "placeholder": "Search milk, avocados, snacks...",
+        "leading_icon": {
+          "name": "search",
+          "size_dp": 20,
+          "color": {
+            "token": "text.secondary"
+          }
+        },
+        "submit_label": "Search",
+        "clearable": true,
+        "on_submit": {
+          "id": "submit_express_search",
+          "type": "navigate",
+          "payload": {
+            "route": "/screens/fresh-home?q={{query}}"
+          },
+          "tracking": {
+            "event_name": "search_submitted",
+            "properties": {
+              "surface": "express-molecules-demo"
+            }
+          }
+        },
+        "layout": {
+          "padding": {
+            "start": 12,
+            "top": 4,
+            "end": 12,
+            "bottom": 4
+          },
+          "margin": {
+            "start": 16,
+            "top": 4,
+            "end": 16,
+            "bottom": 4
+          },
+          "bg_color": {
+            "token": "surface.primary"
+          },
+          "corner_radius": {
+            "all": 12
+          },
+          "fill_max_width": true
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "express_sticky_search",
+          "sticky": "true"
+        }
+      },
+      "sticky": true
+    },
+    {
+      "snippet_id": "express_hero_pager_block",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_hero_media",
+        "recipe_name": "express_hero_media_pager",
+        "root": {
+          "node_id": "node_express_hero_pager",
+          "kind": "media_pager",
+          "media_pager": {
+            "id": "express_hero_pager",
+            "items": [
+              {
+                "id": "hero_img_1",
+                "url": "https://cdn.abeta.dev/fresh/hero-harvest.png",
+                "content_description": "Morning Harvest 25% OFF",
+                "scale_mode": "crop",
+                "corner_radius": {
+                  "all": 12
+                }
+              },
+              {
+                "id": "hero_img_2",
+                "url": "https://cdn.abeta.dev/fresh/hero-dairy.png",
+                "content_description": "Chilled Dairy in 8 Mins",
+                "scale_mode": "crop",
+                "corner_radius": {
+                  "all": 12
+                }
+              }
+            ],
+            "height_dp": 168,
+            "auto_advance_ms": 4000,
+            "show_indicators": true,
+            "corner_radius": {
+              "all": 12
+            },
+            "on_page_click": {
+              "id": "tap_express_hero_pager",
+              "type": "navigate",
+              "payload": {
+                "route": "/screens/fresh-home"
+              },
+              "tracking": {
+                "event_name": "hero_banner_clicked",
+                "properties": {
+                  "surface": "express-molecules-demo"
+                }
+              }
+            }
+          },
+          "tracking": {
+            "event_name": "node_impression",
+            "properties": {
+              "component_id": "node_express_hero_pager",
+              "molecule": "hero_media_pager"
+            }
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "express_hero_pager_block"
+        }
+      }
+    },
+    {
+      "snippet_id": "express_category_grid",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_cats",
+        "recipe_name": "express_category_grid",
+        "root": {
+          "node_id": "express_cats_root",
+          "kind": "column",
+          "spacing_dp": 8,
+          "children": [
+            {
+              "node_id": "express_cats_title",
+              "kind": "text",
+              "text": {
+                "text": "Shop by Category",
+                "color": {
+                  "token": "text.primary"
+                },
+                "typography": {
+                  "token": "title.medium"
+                }
+              }
+            },
+            {
+              "node_id": "express_cats_grid",
+              "kind": "grid",
+              "spacing_dp": 8,
+              "columns": 3,
+              "columns_by_width": {
+                "compact": 3,
+                "medium": 4,
+                "expanded": 6
+              },
+              "children": [
+                {
+                  "node_id": "express_cats_cat_produce",
+                  "kind": "card",
+                  "children": [
+                    {
+                      "node_id": "express_cats_cat_produce_col",
+                      "kind": "column",
+                      "spacing_dp": 4,
+                      "horizontal_alignment": "center",
+                      "children": [
+                        {
+                          "node_id": "express_cats_cat_produce_media_box",
+                          "kind": "box",
+                          "children": [
+                            {
+                              "node_id": "express_cats_cat_produce_img_node",
+                              "kind": "image",
+                              "image": {
+                                "id": "express_cats_cat_produce_img",
+                                "url": "https://cdn.abeta.dev/fresh/cat-produce.png",
+                                "content_description": "Fruits & Veg",
+                                "height_dp": 64,
+                                "scale_mode": "crop",
+                                "corner_radius": {
+                                  "all": 8
+                                }
+                              }
+                            },
+                            {
+                              "node_id": "express_cats_cat_produce_badge",
+                              "kind": "tag",
+                              "box_alignment": "top_end",
+                              "tag": {
+                                "label": "FRESH",
+                                "bg_color": {
+                                  "token": "brand.container"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "node_id": "express_cats_cat_produce_label",
+                          "kind": "text",
+                          "text": {
+                            "text": "Fruits & Veg",
+                            "color": {
+                              "token": "text.primary"
+                            },
+                            "typography": {
+                              "token": "label.medium"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "express_cats_cat_produce_subtitle",
+                          "kind": "text",
+                          "text": {
+                            "text": "Farm fresh",
+                            "color": {
+                              "token": "text.secondary"
+                            },
+                            "typography": {
+                              "token": "body.small"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "on_click": {
+                    "id": "tap_cat_produce",
+                    "type": "show_toast",
+                    "payload": {
+                      "message": "Opened Fruits \u0026 Veg aisle",
+                      "duration_ms": 1400,
+                      "variant": "info"
+                    },
+                    "tracking": {
+                      "event_name": "category_tapped",
+                      "properties": {
+                        "category_id": "produce"
+                      }
+                    }
+                  },
+                  "tracking": {
+                    "event_name": "node_impression",
+                    "properties": {
+                      "category_id": "produce",
+                      "component_id": "express_cats_cat_produce",
+                      "molecule": "category_grid_tile"
+                    }
+                  },
+                  "click_tracking": {
+                    "event_name": "interaction_click",
+                    "properties": {
+                      "category_id": "produce",
+                      "component_id": "express_cats_cat_produce",
+                      "molecule": "category_grid_tile"
+                    }
+                  },
+                  "layout": {
+                    "padding": {
+                      "start": 12,
+                      "top": 12,
+                      "end": 12,
+                      "bottom": 12
+                    },
+                    "bg_color": {
+                      "token": "surface.primary"
+                    },
+                    "corner_radius": {
+                      "all": 12
+                    },
+                    "border": {
+                      "width_dp": 1,
+                      "color": {
+                        "token": "border.subtle"
+                      }
+                    },
+                    "fill_max_width": true
+                  }
+                },
+                {
+                  "node_id": "express_cats_cat_dairy",
+                  "kind": "card",
+                  "children": [
+                    {
+                      "node_id": "express_cats_cat_dairy_col",
+                      "kind": "column",
+                      "spacing_dp": 4,
+                      "horizontal_alignment": "center",
+                      "children": [
+                        {
+                          "node_id": "express_cats_cat_dairy_media_box",
+                          "kind": "box",
+                          "children": [
+                            {
+                              "node_id": "express_cats_cat_dairy_img_node",
+                              "kind": "image",
+                              "image": {
+                                "id": "express_cats_cat_dairy_img",
+                                "url": "https://cdn.abeta.dev/fresh/cat-dairy.png",
+                                "content_description": "Dairy & Eggs",
+                                "height_dp": 64,
+                                "scale_mode": "crop",
+                                "corner_radius": {
+                                  "all": 8
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "node_id": "express_cats_cat_dairy_label",
+                          "kind": "text",
+                          "text": {
+                            "text": "Dairy & Eggs",
+                            "color": {
+                              "token": "text.primary"
+                            },
+                            "typography": {
+                              "token": "label.medium"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "tracking": {
+                    "event_name": "node_impression",
+                    "properties": {
+                      "category_id": "dairy",
+                      "component_id": "express_cats_cat_dairy",
+                      "molecule": "category_grid_tile"
+                    }
+                  },
+                  "click_tracking": {
+                    "event_name": "interaction_click",
+                    "properties": {
+                      "category_id": "dairy",
+                      "component_id": "express_cats_cat_dairy",
+                      "molecule": "category_grid_tile"
+                    }
+                  },
+                  "layout": {
+                    "padding": {
+                      "start": 12,
+                      "top": 12,
+                      "end": 12,
+                      "bottom": 12
+                    },
+                    "bg_color": {
+                      "token": "surface.primary"
+                    },
+                    "corner_radius": {
+                      "all": 12
+                    },
+                    "border": {
+                      "width_dp": 1,
+                      "color": {
+                        "token": "border.subtle"
+                      }
+                    },
+                    "fill_max_width": true
+                  }
+                },
+                {
+                  "node_id": "express_cats_cat_bakery",
+                  "kind": "card",
+                  "children": [
+                    {
+                      "node_id": "express_cats_cat_bakery_col",
+                      "kind": "column",
+                      "spacing_dp": 4,
+                      "horizontal_alignment": "center",
+                      "children": [
+                        {
+                          "node_id": "express_cats_cat_bakery_media_box",
+                          "kind": "box",
+                          "children": [
+                            {
+                              "node_id": "express_cats_cat_bakery_img_node",
+                              "kind": "image",
+                              "image": {
+                                "id": "express_cats_cat_bakery_img",
+                                "url": "https://cdn.abeta.dev/fresh/cat-bakery.png",
+                                "content_description": "Bakery",
+                                "height_dp": 64,
+                                "scale_mode": "crop",
+                                "corner_radius": {
+                                  "all": 8
+                                }
+                              }
+                            },
+                            {
+                              "node_id": "express_cats_cat_bakery_badge",
+                              "kind": "tag",
+                              "box_alignment": "top_end",
+                              "tag": {
+                                "label": "WARM",
+                                "bg_color": {
+                                  "token": "brand.container"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "node_id": "express_cats_cat_bakery_label",
+                          "kind": "text",
+                          "text": {
+                            "text": "Bakery",
+                            "color": {
+                              "token": "text.primary"
+                            },
+                            "typography": {
+                              "token": "label.medium"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "tracking": {
+                    "event_name": "node_impression",
+                    "properties": {
+                      "category_id": "bakery",
+                      "component_id": "express_cats_cat_bakery",
+                      "molecule": "category_grid_tile"
+                    }
+                  },
+                  "click_tracking": {
+                    "event_name": "interaction_click",
+                    "properties": {
+                      "category_id": "bakery",
+                      "component_id": "express_cats_cat_bakery",
+                      "molecule": "category_grid_tile"
+                    }
+                  },
+                  "layout": {
+                    "padding": {
+                      "start": 12,
+                      "top": 12,
+                      "end": 12,
+                      "bottom": 12
+                    },
+                    "bg_color": {
+                      "token": "surface.primary"
+                    },
+                    "corner_radius": {
+                      "all": 12
+                    },
+                    "border": {
+                      "width_dp": 1,
+                      "color": {
+                        "token": "border.subtle"
+                      }
+                    },
+                    "fill_max_width": true
+                  }
+                }
+              ]
+            }
+          ],
+          "tracking": {
+            "event_name": "node_impression",
+            "properties": {
+              "component_id": "express_cats_root",
+              "molecule": "category_grid_section"
+            }
+          },
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 8,
+              "end": 16,
+              "bottom": 8
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "molecule": "category_grid_section",
+          "snippet_id": "express_category_grid"
+        }
+      }
+    },
+    {
+      "snippet_id": "express_product_grid",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_products",
+        "recipe_name": "express_product_grid",
+        "root": {
+          "node_id": "express_products_grid",
+          "kind": "grid",
+          "spacing_dp": 8,
+          "columns": 2,
+          "columns_by_width": {
+            "compact": 2,
+            "medium": 3,
+            "expanded": 4
+          },
+          "children": [
+            {
+              "node_id": "tile_avocados",
+              "kind": "card",
+              "children": [
+                {
+                  "node_id": "tile_avocados_col",
+                  "kind": "column",
+                  "spacing_dp": 4,
+                  "children": [
+                    {
+                      "node_id": "tile_avocados_media_box",
+                      "kind": "box",
+                      "children": [
+                        {
+                          "node_id": "tile_avocados_img_node",
+                          "kind": "image",
+                          "image": {
+                            "id": "tile_avocados_img",
+                            "url": "https://cdn.abeta.dev/fresh/avocados.png",
+                            "content_description": "Organic Hass Avocados",
+                            "height_dp": 112,
+                            "scale_mode": "crop",
+                            "corner_radius": {
+                              "all": 8
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_avocados_discount_ribbon",
+                          "kind": "tag",
+                          "box_alignment": "top_start",
+                          "tag": {
+                            "label": "22% OFF",
+                            "bg_color": {
+                              "token": "status.error_container"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_avocados_top_end_badge",
+                          "kind": "tag",
+                          "box_alignment": "top_end",
+                          "tag": {
+                            "label": "VEG",
+                            "bg_color": {
+                              "token": "status.success_container"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_avocados_eta_pill",
+                          "kind": "tag",
+                          "box_alignment": "bottom_start",
+                          "tag": {
+                            "label": "8 MINS",
+                            "bg_color": {
+                              "token": "status.success_container"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "node_id": "tile_avocados_title",
+                      "kind": "text",
+                      "text": {
+                        "text": "Organic Hass Avocados",
+                        "color": {
+                          "token": "text.primary"
+                        },
+                        "typography": {
+                          "token": "title.small"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "tile_avocados_subtitle",
+                      "kind": "text",
+                      "text": {
+                        "text": "500 g · Ready to eat",
+                        "color": {
+                          "token": "text.secondary"
+                        },
+                        "typography": {
+                          "token": "body.small"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "tile_avocados_variant_chip",
+                      "kind": "chip",
+                      "chip": {
+                        "id": "tile_avocados_variant",
+                        "label": "500 g ▾",
+                        "enabled": true,
+                        "on_click": {
+                          "id": "open_avocado_variant_sheet",
+                          "type": "open_dialog",
+                          "payload": {
+                            "dialog_id": "avocado_variant_sheet",
+                            "title": "Organic Hass Avocados",
+                            "message": "Choose pack size",
+                            "presentation": "bottom_sheet",
+                            "dismissible": true,
+                            "positive_action": {
+                              "id": "confirm_avocado_variant",
+                              "type": "dismiss_overlay",
+                              "payload": {
+                                "overlay_id": "avocado_variant_sheet"
+                              },
+                              "tracking": {
+                                "event_name": "variant_confirmed",
+                                "properties": {
+                                  "product_id": "avocados"
+                                }
+                              }
+                            },
+                            "negative_action": {
+                              "id": "dismiss_avocado_variant_sheet",
+                              "type": "dismiss_overlay",
+                              "payload": {
+                                "overlay_id": "avocado_variant_sheet"
+                              }
+                            },
+                            "snippets": [
+                              {
+                                "snippet_id": "avocado_variant_sheet_snippet",
+                                "snippet_type": "composed_block",
+                                "data": {
+                                  "block_id": "avocado_variant_sheet_content",
+                                  "recipe_name": "express_variant_picker_sheet",
+                                  "root": {
+                                    "node_id": "avocado_variant_sheet_content_root",
+                                    "kind": "column",
+                                    "spacing_dp": 12,
+                                    "children": [
+                                      {
+                                        "node_id": "avocado_variant_sheet_content_header_row",
+                                        "kind": "row",
+                                        "spacing_dp": 12,
+                                        "vertical_alignment": "center",
+                                        "children": [
+                                          {
+                                            "node_id": "avocado_variant_sheet_content_img_node",
+                                            "kind": "image",
+                                            "image": {
+                                              "id": "avocado_variant_sheet_content_img",
+                                              "url": "https://cdn.abeta.dev/fresh/avocados.png",
+                                              "content_description": "Organic Hass Avocados",
+                                              "width_dp": 56,
+                                              "height_dp": 56,
+                                              "scale_mode": "crop",
+                                              "corner_radius": {
+                                                "all": 8
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "node_id": "avocado_variant_sheet_content_info_col",
+                                            "kind": "column",
+                                            "spacing_dp": 2,
+                                            "weight": 1,
+                                            "children": [
+                                              {
+                                                "node_id": "avocado_variant_sheet_content_title",
+                                                "kind": "text",
+                                                "text": {
+                                                  "text": "Organic Hass Avocados",
+                                                  "color": {
+                                                    "token": "text.primary"
+                                                  },
+                                                  "typography": {
+                                                    "token": "title.small"
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "node_id": "avocado_variant_sheet_content_subtitle",
+                                                "kind": "text",
+                                                "text": {
+                                                  "text": "Choose pack size",
+                                                  "color": {
+                                                    "token": "text.secondary"
+                                                  },
+                                                  "typography": {
+                                                    "token": "body.small"
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "node_id": "avocado_variant_sheet_content_price",
+                                                "kind": "price",
+                                                "price": {
+                                                  "id": "avocado_variant_sheet_content_price_atom",
+                                                  "amount_text": "$3.49",
+                                                  "original_amount_text": "$4.49",
+                                                  "discount_label": "22% OFF",
+                                                  "emphasized": true
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "node_id": "avocado_variant_sheet_content_divider",
+                                        "kind": "divider",
+                                        "divider": {
+                                          "thickness_dp": 1,
+                                          "color": {
+                                            "token": "divider.default"
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "node_id": "avocado_variant_sheet_content_radio_group",
+                                        "kind": "radio_group",
+                                        "radio_group": {
+                                          "field_id": "variant_avocados",
+                                          "label": "Choose pack size",
+                                          "options": [
+                                            {
+                                              "id": "500g",
+                                              "label": "500 g",
+                                              "subtitle": "2 pcs",
+                                              "badge": "POPULAR"
+                                            },
+                                            {
+                                              "id": "1kg",
+                                              "label": "1 kg",
+                                              "subtitle": "4 pcs",
+                                              "badge": "SAVE 15%"
+                                            },
+                                            {
+                                              "id": "2kg",
+                                              "label": "2 kg",
+                                              "subtitle": "8 pcs",
+                                              "badge": "BEST VALUE"
+                                            }
+                                          ],
+                                          "selected_id": "500g",
+                                          "enabled": true,
+                                          "on_change": {
+                                            "id": "select_avocado_pack",
+                                            "type": "save_state",
+                                            "payload": {
+                                              "key": "variant_avocados",
+                                              "value": "500g",
+                                              "scope": "session"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            ],
+                            "sheet_screen_id": "variant-picker-avocados"
+                          },
+                          "tracking": {
+                            "event_name": "variant_picker_opened",
+                            "properties": {
+                              "dialog_id": "avocado_variant_sheet",
+                              "product_id": "avocados"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "tile_avocados_rating",
+                      "kind": "rating",
+                      "rating": {
+                        "id": "tile_avocados_rating_atom",
+                        "value": 4.9,
+                        "max_stars": 5,
+                        "review_count": 540,
+                        "star_size_dp": 14
+                      }
+                    },
+                    {
+                      "node_id": "tile_avocados_footer_row",
+                      "kind": "row",
+                      "spacing_dp": 4,
+                      "vertical_alignment": "center",
+                      "main_axis_arrangement": "space_between",
+                      "children": [
+                        {
+                          "node_id": "tile_avocados_price",
+                          "kind": "price",
+                          "price": {
+                            "id": "tile_avocados_price_atom",
+                            "amount_text": "$3.49",
+                            "original_amount_text": "$4.49",
+                            "discount_label": "22% OFF",
+                            "emphasized": true
+                          }
+                        },
+                        {
+                          "node_id": "tile_avocados_stepper",
+                          "kind": "stepper",
+                          "stepper": {
+                            "field_id": "cart_qty_avocados",
+                            "label": "ADD",
+                            "quantity": 1,
+                            "max_quantity": 10,
+                            "enabled": true,
+                            "on_increment": {
+                              "id": "inc_express_avocado",
+                              "type": "trigger_feedback",
+                              "payload": {
+                                "effect": "cart_bounce",
+                                "target_id": "floating_cart_dock"
+                              },
+                              "tracking": {
+                                "event_name": "cart_item_incremented",
+                                "properties": {
+                                  "product_id": "avocados"
+                                }
+                              }
+                            },
+                            "on_decrement": {
+                              "id": "dec_express_avocado",
+                              "type": "track_event",
+                              "payload": {
+                                "event_name": "cart_item_decremented",
+                                "properties": {
+                                  "product_id": "avocados"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "layout": {
+                        "fill_max_width": true
+                      }
+                    }
+                  ],
+                  "layout": {
+                    "fill_max_width": true
+                  }
+                }
+              ],
+              "tracking": {
+                "event_name": "node_impression",
+                "properties": {
+                  "component_id": "tile_avocados",
+                  "molecule": "express_product_tile",
+                  "product_id": "avocados"
+                }
+              },
+              "click_tracking": {
+                "event_name": "interaction_click",
+                "properties": {
+                  "component_id": "tile_avocados",
+                  "molecule": "express_product_tile",
+                  "product_id": "avocados"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 12,
+                  "top": 12,
+                  "end": 12,
+                  "bottom": 12
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            },
+            {
+              "node_id": "tile_sourdough",
+              "kind": "card",
+              "children": [
+                {
+                  "node_id": "tile_sourdough_col",
+                  "kind": "column",
+                  "spacing_dp": 4,
+                  "children": [
+                    {
+                      "node_id": "tile_sourdough_media_box",
+                      "kind": "box",
+                      "children": [
+                        {
+                          "node_id": "tile_sourdough_img_node",
+                          "kind": "image",
+                          "image": {
+                            "id": "tile_sourdough_img",
+                            "url": "https://cdn.abeta.dev/fresh/sourdough.png",
+                            "content_description": "Artisan Sourdough",
+                            "height_dp": 112,
+                            "scale_mode": "crop",
+                            "corner_radius": {
+                              "all": 8
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_sourdough_discount_ribbon",
+                          "kind": "tag",
+                          "box_alignment": "top_start",
+                          "tag": {
+                            "label": "14% OFF",
+                            "bg_color": {
+                              "token": "status.error_container"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_sourdough_top_end_badge",
+                          "kind": "tag",
+                          "box_alignment": "top_end",
+                          "tag": {
+                            "label": "VEG",
+                            "bg_color": {
+                              "token": "status.success_container"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_sourdough_eta_pill",
+                          "kind": "tag",
+                          "box_alignment": "bottom_start",
+                          "tag": {
+                            "label": "8 MINS",
+                            "bg_color": {
+                              "token": "status.success_container"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "node_id": "tile_sourdough_title",
+                      "kind": "text",
+                      "text": {
+                        "text": "Artisan Sourdough",
+                        "color": {
+                          "token": "text.primary"
+                        },
+                        "typography": {
+                          "token": "title.small"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "tile_sourdough_subtitle",
+                      "kind": "text",
+                      "text": {
+                        "text": "450 g · Stone-baked",
+                        "color": {
+                          "token": "text.secondary"
+                        },
+                        "typography": {
+                          "token": "body.small"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "tile_sourdough_footer_row",
+                      "kind": "row",
+                      "spacing_dp": 4,
+                      "vertical_alignment": "center",
+                      "main_axis_arrangement": "space_between",
+                      "children": [
+                        {
+                          "node_id": "tile_sourdough_price",
+                          "kind": "price",
+                          "price": {
+                            "id": "tile_sourdough_price_atom",
+                            "amount_text": "$4.99",
+                            "original_amount_text": "$5.79",
+                            "discount_label": "14% OFF",
+                            "emphasized": true
+                          }
+                        },
+                        {
+                          "node_id": "tile_sourdough_stepper",
+                          "kind": "stepper",
+                          "stepper": {
+                            "field_id": "cart_qty_sourdough",
+                            "label": "ADD",
+                            "quantity": 0,
+                            "max_quantity": 10,
+                            "enabled": true,
+                            "on_increment": {
+                              "id": "inc_express_avocado",
+                              "type": "trigger_feedback",
+                              "payload": {
+                                "effect": "cart_bounce",
+                                "target_id": "floating_cart_dock"
+                              },
+                              "tracking": {
+                                "event_name": "cart_item_incremented",
+                                "properties": {
+                                  "product_id": "avocados"
+                                }
+                              }
+                            },
+                            "on_decrement": {
+                              "id": "dec_express_avocado",
+                              "type": "track_event",
+                              "payload": {
+                                "event_name": "cart_item_decremented",
+                                "properties": {
+                                  "product_id": "avocados"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "layout": {
+                        "fill_max_width": true
+                      }
+                    }
+                  ],
+                  "layout": {
+                    "fill_max_width": true
+                  }
+                }
+              ],
+              "tracking": {
+                "event_name": "node_impression",
+                "properties": {
+                  "component_id": "tile_sourdough",
+                  "molecule": "express_product_tile",
+                  "product_id": "sourdough"
+                }
+              },
+              "click_tracking": {
+                "event_name": "interaction_click",
+                "properties": {
+                  "component_id": "tile_sourdough",
+                  "molecule": "express_product_tile",
+                  "product_id": "sourdough"
+                }
+              },
+              "layout": {
+                "padding": {
+                  "start": 12,
+                  "top": 12,
+                  "end": 12,
+                  "bottom": 12
+                },
+                "bg_color": {
+                  "token": "surface.primary"
+                },
+                "corner_radius": {
+                  "all": 12
+                },
+                "border": {
+                  "width_dp": 1,
+                  "color": {
+                    "token": "border.subtle"
+                  }
+                },
+                "fill_max_width": true
+              }
+            }
+          ]
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "snippet_id": "express_product_grid"
+        }
+      }
+    },
+    {
+      "snippet_id": "express_upsell_rail",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_upsell",
+        "recipe_name": "express_impulse_upsell_rail",
+        "root": {
+          "node_id": "express_upsell_root",
+          "kind": "column",
+          "spacing_dp": 8,
+          "children": [
+            {
+              "node_id": "express_upsell_header",
+              "kind": "row",
+              "spacing_dp": 8,
+              "vertical_alignment": "center",
+              "main_axis_arrangement": "space_between",
+              "children": [
+                {
+                  "node_id": "express_upsell_title",
+                  "kind": "text",
+                  "text": {
+                    "text": "Before You Checkout",
+                    "color": {
+                      "token": "text.primary"
+                    },
+                    "typography": {
+                      "token": "title.medium"
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_upsell_badge",
+                  "kind": "tag",
+                  "tag": {
+                    "label": "QUICK ADD",
+                    "bg_color": {
+                      "token": "status.warning_container"
+                    }
+                  }
+                }
+              ],
+              "layout": {
+                "fill_max_width": true
+              }
+            },
+            {
+              "node_id": "express_upsell_scroll_row",
+              "kind": "scroll_row",
+              "spacing_dp": 12,
+              "children": [
+                {
+                  "node_id": "tile_yuzu",
+                  "kind": "card",
+                  "children": [
+                    {
+                      "node_id": "tile_yuzu_col",
+                      "kind": "column",
+                      "spacing_dp": 4,
+                      "children": [
+                        {
+                          "node_id": "tile_yuzu_media_box",
+                          "kind": "box",
+                          "children": [
+                            {
+                              "node_id": "tile_yuzu_img_node",
+                              "kind": "image",
+                              "image": {
+                                "id": "tile_yuzu_img",
+                                "url": "https://cdn.abeta.dev/fresh/yuzu.png",
+                                "content_description": "Sparkling Yuzu",
+                                "height_dp": 112,
+                                "scale_mode": "crop",
+                                "corner_radius": {
+                                  "all": 8
+                                }
+                              }
+                            },
+                            {
+                              "node_id": "tile_yuzu_discount_ribbon",
+                              "kind": "tag",
+                              "box_alignment": "top_start",
+                              "tag": {
+                                "label": "20% OFF",
+                                "bg_color": {
+                                  "token": "status.error_container"
+                                }
+                              }
+                            },
+                            {
+                              "node_id": "tile_yuzu_eta_pill",
+                              "kind": "tag",
+                              "box_alignment": "bottom_start",
+                              "tag": {
+                                "label": "8 MINS",
+                                "bg_color": {
+                                  "token": "status.success_container"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "node_id": "tile_yuzu_title",
+                          "kind": "text",
+                          "text": {
+                            "text": "Sparkling Yuzu",
+                            "color": {
+                              "token": "text.primary"
+                            },
+                            "typography": {
+                              "token": "title.small"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_yuzu_subtitle",
+                          "kind": "text",
+                          "text": {
+                            "text": "330 ml",
+                            "color": {
+                              "token": "text.secondary"
+                            },
+                            "typography": {
+                              "token": "body.small"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_yuzu_footer_row",
+                          "kind": "row",
+                          "spacing_dp": 4,
+                          "vertical_alignment": "center",
+                          "main_axis_arrangement": "space_between",
+                          "children": [
+                            {
+                              "node_id": "tile_yuzu_price",
+                              "kind": "price",
+                              "price": {
+                                "id": "tile_yuzu_price_atom",
+                                "amount_text": "$1.99",
+                                "discount_label": "20% OFF",
+                                "emphasized": true
+                              }
+                            },
+                            {
+                              "node_id": "tile_yuzu_stepper",
+                              "kind": "stepper",
+                              "stepper": {
+                                "field_id": "cart_qty_yuzu",
+                                "label": "ADD",
+                                "quantity": 0,
+                                "max_quantity": 10,
+                                "enabled": true
+                              }
+                            }
+                          ],
+                          "layout": {
+                            "fill_max_width": true
+                          }
+                        }
+                      ],
+                      "layout": {
+                        "fill_max_width": true
+                      }
+                    }
+                  ],
+                  "tracking": {
+                    "event_name": "node_impression",
+                    "properties": {
+                      "component_id": "tile_yuzu",
+                      "molecule": "express_product_tile",
+                      "product_id": "yuzu"
+                    }
+                  },
+                  "click_tracking": {
+                    "event_name": "interaction_click",
+                    "properties": {
+                      "component_id": "tile_yuzu",
+                      "molecule": "express_product_tile",
+                      "product_id": "yuzu"
+                    }
+                  },
+                  "layout": {
+                    "padding": {
+                      "start": 12,
+                      "top": 12,
+                      "end": 12,
+                      "bottom": 12
+                    },
+                    "bg_color": {
+                      "token": "surface.primary"
+                    },
+                    "corner_radius": {
+                      "all": 12
+                    },
+                    "border": {
+                      "width_dp": 1,
+                      "color": {
+                        "token": "border.subtle"
+                      }
+                    },
+                    "fill_max_width": true
+                  }
+                },
+                {
+                  "node_id": "tile_chips",
+                  "kind": "card",
+                  "children": [
+                    {
+                      "node_id": "tile_chips_col",
+                      "kind": "column",
+                      "spacing_dp": 4,
+                      "children": [
+                        {
+                          "node_id": "tile_chips_media_box",
+                          "kind": "box",
+                          "children": [
+                            {
+                              "node_id": "tile_chips_img_node",
+                              "kind": "image",
+                              "image": {
+                                "id": "tile_chips_img",
+                                "url": "https://cdn.abeta.dev/fresh/chips.png",
+                                "content_description": "Kettle Sea Salt Chips",
+                                "height_dp": 112,
+                                "scale_mode": "crop",
+                                "corner_radius": {
+                                  "all": 8
+                                }
+                              }
+                            },
+                            {
+                              "node_id": "tile_chips_top_end_badge",
+                              "kind": "tag",
+                              "box_alignment": "top_end",
+                              "tag": {
+                                "label": "VEG",
+                                "bg_color": {
+                                  "token": "status.success_container"
+                                }
+                              }
+                            },
+                            {
+                              "node_id": "tile_chips_eta_pill",
+                              "kind": "tag",
+                              "box_alignment": "bottom_start",
+                              "tag": {
+                                "label": "8 MINS",
+                                "bg_color": {
+                                  "token": "status.success_container"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "node_id": "tile_chips_title",
+                          "kind": "text",
+                          "text": {
+                            "text": "Kettle Sea Salt Chips",
+                            "color": {
+                              "token": "text.primary"
+                            },
+                            "typography": {
+                              "token": "title.small"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_chips_subtitle",
+                          "kind": "text",
+                          "text": {
+                            "text": "140 g",
+                            "color": {
+                              "token": "text.secondary"
+                            },
+                            "typography": {
+                              "token": "body.small"
+                            }
+                          }
+                        },
+                        {
+                          "node_id": "tile_chips_footer_row",
+                          "kind": "row",
+                          "spacing_dp": 4,
+                          "vertical_alignment": "center",
+                          "main_axis_arrangement": "space_between",
+                          "children": [
+                            {
+                              "node_id": "tile_chips_price",
+                              "kind": "price",
+                              "price": {
+                                "id": "tile_chips_price_atom",
+                                "amount_text": "$2.99",
+                                "emphasized": true
+                              }
+                            },
+                            {
+                              "node_id": "tile_chips_stepper",
+                              "kind": "stepper",
+                              "stepper": {
+                                "field_id": "cart_qty_chips",
+                                "label": "ADD",
+                                "quantity": 0,
+                                "max_quantity": 10,
+                                "enabled": true
+                              }
+                            }
+                          ],
+                          "layout": {
+                            "fill_max_width": true
+                          }
+                        }
+                      ],
+                      "layout": {
+                        "fill_max_width": true
+                      }
+                    }
+                  ],
+                  "tracking": {
+                    "event_name": "node_impression",
+                    "properties": {
+                      "component_id": "tile_chips",
+                      "molecule": "express_product_tile",
+                      "product_id": "chips"
+                    }
+                  },
+                  "click_tracking": {
+                    "event_name": "interaction_click",
+                    "properties": {
+                      "component_id": "tile_chips",
+                      "molecule": "express_product_tile",
+                      "product_id": "chips"
+                    }
+                  },
+                  "layout": {
+                    "padding": {
+                      "start": 12,
+                      "top": 12,
+                      "end": 12,
+                      "bottom": 12
+                    },
+                    "bg_color": {
+                      "token": "surface.primary"
+                    },
+                    "corner_radius": {
+                      "all": 12
+                    },
+                    "border": {
+                      "width_dp": 1,
+                      "color": {
+                        "token": "border.subtle"
+                      }
+                    },
+                    "fill_max_width": true
+                  }
+                }
+              ]
+            }
+          ],
+          "tracking": {
+            "event_name": "node_impression",
+            "properties": {
+              "component_id": "express_upsell_root",
+              "molecule": "impulse_upsell_rail"
+            }
+          },
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 8,
+              "end": 16,
+              "bottom": 8
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "molecule": "impulse_upsell_rail",
+          "snippet_id": "express_upsell_rail"
+        }
+      }
+    },
+    {
+      "snippet_id": "express_delivery_card",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_delivery",
+        "recipe_name": "express_delivery_instructions",
+        "root": {
+          "node_id": "express_delivery_root",
+          "kind": "card",
+          "children": [
+            {
+              "node_id": "express_delivery_col",
+              "kind": "column",
+              "spacing_dp": 12,
+              "children": [
+                {
+                  "node_id": "express_delivery_title",
+                  "kind": "text",
+                  "text": {
+                    "text": "Delivery Instructions",
+                    "color": {
+                      "token": "text.primary"
+                    },
+                    "typography": {
+                      "token": "title.medium"
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_delivery_leave_at_door_switch",
+                  "kind": "switch",
+                  "switch": {
+                    "field_id": "leave_at_door",
+                    "label": "Leave at door",
+                    "subtitle": "Zero-contact doorstep drop with photo confirmation",
+                    "checked": true,
+                    "enabled": true,
+                    "on_change": {
+                      "id": "save_express_delivery_pref",
+                      "type": "save_state",
+                      "payload": {
+                        "key": "leave_at_door",
+                        "value": true,
+                        "scope": "session"
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_delivery_dont_ring_checkbox",
+                  "kind": "checkbox",
+                  "checkbox": {
+                    "field_id": "dont_ring_bell",
+                    "label": "Don't ring the doorbell",
+                    "checked": true,
+                    "enabled": true,
+                    "required": false,
+                    "on_change": {
+                      "id": "save_express_delivery_pref",
+                      "type": "save_state",
+                      "payload": {
+                        "key": "leave_at_door",
+                        "value": true,
+                        "scope": "session"
+                      }
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_delivery_notes_field",
+                  "kind": "text_field",
+                  "text_field": {
+                    "field_id": "delivery_instructions",
+                    "label": "Delivery instructions",
+                    "placeholder": "Ring bell once or leave with lobby desk",
+                    "initial_value": "Leave with lobby concierge",
+                    "keyboard_type": "text"
+                  }
+                },
+                {
+                  "node_id": "express_delivery_tip_heading",
+                  "kind": "text",
+                  "text": {
+                    "text": "Tip your delivery partner",
+                    "color": {
+                      "token": "text.primary"
+                    },
+                    "typography": {
+                      "token": "label.large"
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_delivery_tip_chips_row",
+                  "kind": "flow_row",
+                  "spacing_dp": 8,
+                  "children": [
+                    {
+                      "node_id": "express_delivery_tip_chip_1",
+                      "kind": "chip",
+                      "chip": {
+                        "id": "express_delivery_tip_1",
+                        "label": "$1",
+                        "enabled": true,
+                        "on_click": {
+                          "id": "save_express_delivery_pref",
+                          "type": "save_state",
+                          "payload": {
+                            "key": "leave_at_door",
+                            "value": true,
+                            "scope": "session"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "express_delivery_tip_chip_2",
+                      "kind": "chip",
+                      "chip": {
+                        "id": "express_delivery_tip_2",
+                        "label": "$2",
+                        "selected": true,
+                        "enabled": true,
+                        "on_click": {
+                          "id": "save_express_delivery_pref",
+                          "type": "save_state",
+                          "payload": {
+                            "key": "leave_at_door",
+                            "value": true,
+                            "scope": "session"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "express_delivery_tip_chip_5",
+                      "kind": "chip",
+                      "chip": {
+                        "id": "express_delivery_tip_5",
+                        "label": "$5",
+                        "enabled": true,
+                        "on_click": {
+                          "id": "save_express_delivery_pref",
+                          "type": "save_state",
+                          "payload": {
+                            "key": "leave_at_door",
+                            "value": true,
+                            "scope": "session"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "node_id": "express_delivery_tip_slider",
+                  "kind": "slider",
+                  "slider": {
+                    "field_id": "custom_rider_tip",
+                    "label": "Custom Rider Tip",
+                    "value": 2,
+                    "min_value": 0,
+                    "max_value": 10,
+                    "steps": 10,
+                    "show_value": true,
+                    "unit_label": "$",
+                    "enabled": true,
+                    "on_change": {
+                      "id": "save_express_delivery_pref",
+                      "type": "save_state",
+                      "payload": {
+                        "key": "leave_at_door",
+                        "value": true,
+                        "scope": "session"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "tracking": {
+            "event_name": "node_impression",
+            "properties": {
+              "component_id": "express_delivery_root",
+              "molecule": "delivery_instructions_card"
+            }
+          },
+          "click_tracking": {
+            "event_name": "interaction_click",
+            "properties": {
+              "component_id": "express_delivery_root",
+              "molecule": "delivery_instructions_card"
+            }
+          },
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 16,
+              "end": 16,
+              "bottom": 16
+            },
+            "margin": {
+              "start": 16,
+              "top": 4,
+              "end": 16,
+              "bottom": 4
+            },
+            "bg_color": {
+              "token": "surface.primary"
+            },
+            "corner_radius": {
+              "all": 12
+            },
+            "border": {
+              "width_dp": 1,
+              "color": {
+                "token": "border.subtle"
+              }
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "molecule": "delivery_instructions_card",
+          "snippet_id": "express_delivery_card"
+        }
+      }
+    },
+    {
+      "snippet_id": "express_coupon_card",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_coupon",
+        "recipe_name": "express_coupon_apply_card",
+        "root": {
+          "node_id": "express_coupon_root",
+          "kind": "card",
+          "children": [
+            {
+              "node_id": "express_coupon_col",
+              "kind": "column",
+              "spacing_dp": 12,
+              "children": [
+                {
+                  "node_id": "express_coupon_header",
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "children": [
+                    {
+                      "node_id": "express_coupon_icon",
+                      "kind": "icon",
+                      "icon": {
+                        "name": "local_offer",
+                        "size_dp": 20,
+                        "color": {
+                          "token": "brand.primary"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "express_coupon_title",
+                      "kind": "text",
+                      "weight": 1,
+                      "text": {
+                        "text": "Apply Coupon",
+                        "color": {
+                          "token": "text.primary"
+                        },
+                        "typography": {
+                          "token": "title.medium"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "express_coupon_save_tag",
+                      "kind": "tag",
+                      "tag": {
+                        "label": "SAVE",
+                        "bg_color": {
+                          "token": "status.success_container"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "node_id": "express_coupon_input_row",
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "children": [
+                    {
+                      "node_id": "express_coupon_input",
+                      "kind": "text_field",
+                      "weight": 1,
+                      "text_field": {
+                        "field_id": "coupon_code",
+                        "label": "Promo Code",
+                        "placeholder": "Enter promo code (e.g. FRESH20)",
+                        "initial_value": "FRESH20",
+                        "keyboard_type": "text"
+                      }
+                    },
+                    {
+                      "node_id": "express_coupon_apply_btn_node",
+                      "kind": "button",
+                      "button": {
+                        "id": "express_coupon_apply_btn",
+                        "label": "Apply",
+                        "variant": "primary",
+                        "size": "sm",
+                        "enabled": true,
+                        "on_click": {
+                          "id": "apply_express_coupon",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "FRESH20 applied!",
+                            "duration_ms": 1600,
+                            "variant": "success"
+                          },
+                          "tracking": {
+                            "event_name": "coupon_applied",
+                            "properties": {
+                              "code": "FRESH20"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "node_id": "express_coupon_quick_chips",
+                  "kind": "flow_row",
+                  "spacing_dp": 8,
+                  "children": [
+                    {
+                      "node_id": "express_coupon_chip_FRESH20",
+                      "kind": "chip",
+                      "chip": {
+                        "id": "express_coupon_coupon_FRESH20",
+                        "label": "FRESH20",
+                        "selected": true,
+                        "enabled": true,
+                        "on_click": {
+                          "id": "apply_express_coupon",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "FRESH20 applied!",
+                            "duration_ms": 1600,
+                            "variant": "success"
+                          },
+                          "tracking": {
+                            "event_name": "coupon_applied",
+                            "properties": {
+                              "code": "FRESH20"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "express_coupon_chip_FREEDEL",
+                      "kind": "chip",
+                      "chip": {
+                        "id": "express_coupon_coupon_FREEDEL",
+                        "label": "FREEDEL",
+                        "enabled": true,
+                        "on_click": {
+                          "id": "apply_express_coupon",
+                          "type": "show_toast",
+                          "payload": {
+                            "message": "FRESH20 applied!",
+                            "duration_ms": 1600,
+                            "variant": "success"
+                          },
+                          "tracking": {
+                            "event_name": "coupon_applied",
+                            "properties": {
+                              "code": "FRESH20"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "node_id": "express_coupon_applied_banner",
+                  "kind": "alert_banner",
+                  "alert_banner": {
+                    "id": "express_coupon_applied_alert",
+                    "title": "FRESH20 applied",
+                    "message": "Saved $2.50 on your express basket",
+                    "variant": "success"
+                  }
+                }
+              ]
+            }
+          ],
+          "tracking": {
+            "event_name": "node_impression",
+            "properties": {
+              "component_id": "express_coupon_root",
+              "molecule": "coupon_apply_card"
+            }
+          },
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 16,
+              "end": 16,
+              "bottom": 16
+            },
+            "margin": {
+              "start": 16,
+              "top": 4,
+              "end": 16,
+              "bottom": 4
+            },
+            "bg_color": {
+              "token": "surface.primary"
+            },
+            "corner_radius": {
+              "all": 12
+            },
+            "border": {
+              "width_dp": 1,
+              "color": {
+                "token": "border.subtle"
+              }
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "molecule": "coupon_apply_card",
+          "snippet_id": "express_coupon_card"
+        }
+      }
+    },
+    {
+      "snippet_id": "express_bill_summary",
+      "snippet_type": "composed_block",
+      "data": {
+        "block_id": "express_bill",
+        "recipe_name": "express_checkout_bill_summary",
+        "root": {
+          "node_id": "express_bill_root",
+          "kind": "card",
+          "children": [
+            {
+              "node_id": "express_bill_col",
+              "kind": "column",
+              "spacing_dp": 8,
+              "children": [
+                {
+                  "node_id": "express_bill_header",
+                  "kind": "row",
+                  "spacing_dp": 8,
+                  "vertical_alignment": "center",
+                  "children": [
+                    {
+                      "node_id": "express_bill_title",
+                      "kind": "text",
+                      "weight": 1,
+                      "text": {
+                        "text": "Bill Details",
+                        "color": {
+                          "token": "text.primary"
+                        },
+                        "typography": {
+                          "token": "title.medium"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "express_bill_savings_tag",
+                      "kind": "tag",
+                      "tag": {
+                        "label": "SAVED $4.30",
+                        "bg_color": {
+                          "token": "status.success_container"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "node_id": "express_bill_kv_items",
+                  "kind": "key_value_row",
+                  "key_value_row": {
+                    "id": "express_bill_row_items",
+                    "label": "Items Total",
+                    "value": "$8.48",
+                    "sublabel": "2 items"
+                  }
+                },
+                {
+                  "node_id": "express_bill_kv_delivery",
+                  "kind": "key_value_row",
+                  "key_value_row": {
+                    "id": "express_bill_row_delivery",
+                    "label": "Delivery Fee",
+                    "value": "FREE",
+                    "value_color": {
+                      "token": "status.success"
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_bill_kv_coupon",
+                  "kind": "key_value_row",
+                  "key_value_row": {
+                    "id": "express_bill_row_coupon",
+                    "label": "FRESH20 Discount",
+                    "value": "-$2.50",
+                    "value_color": {
+                      "token": "status.success"
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_bill_divider",
+                  "kind": "divider",
+                  "divider": {
+                    "thickness_dp": 1,
+                    "color": {
+                      "token": "divider.default"
+                    }
+                  }
+                },
+                {
+                  "node_id": "express_bill_grand_total",
+                  "kind": "key_value_row",
+                  "key_value_row": {
+                    "id": "express_bill_grand_total_atom",
+                    "label": "Grand Total",
+                    "value": "$5.98",
+                    "sublabel": "Incl. taxes · 8-min guarantee",
+                    "value_color": {
+                      "token": "brand.primary"
+                    },
+                    "emphasized": true
+                  }
+                },
+                {
+                  "node_id": "express_bill_savings_banner",
+                  "kind": "alert_banner",
+                  "alert_banner": {
+                    "id": "express_bill_savings_alert",
+                    "title": "Total Basket Savings",
+                    "message": "You saved $4.30 on this express order!",
+                    "variant": "success"
+                  }
+                }
+              ]
+            }
+          ],
+          "tracking": {
+            "event_name": "node_impression",
+            "properties": {
+              "component_id": "express_bill_root",
+              "molecule": "checkout_bill_summary"
+            }
+          },
+          "layout": {
+            "padding": {
+              "start": 16,
+              "top": 16,
+              "end": 16,
+              "bottom": 16
+            },
+            "margin": {
+              "start": 16,
+              "top": 4,
+              "end": 16,
+              "bottom": 4
+            },
+            "bg_color": {
+              "token": "surface.primary"
+            },
+            "corner_radius": {
+              "all": 12
+            },
+            "border": {
+              "width_dp": 1,
+              "color": {
+                "token": "border.subtle"
+              }
+            },
+            "fill_max_width": true
+          }
+        }
+      },
+      "tracking": {
+        "event_name": "snippet_impression",
+        "properties": {
+          "molecule": "checkout_bill_summary",
+          "snippet_id": "express_bill_summary"
+        }
+      }
+    }
+  ],
+  "adaptive_layout": {
+    "layout_mode": "centered",
+    "max_width_dp": 1120
+  },
+  "tracking": {
+    "event_name": "page_open",
+    "properties": {
+      "page_id": "express-molecules-demo",
+      "version": "v1"
+    }
+  }
+}

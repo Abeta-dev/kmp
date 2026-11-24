@@ -105,6 +105,26 @@ const (
 	ComposedNodeStatTile         = "stat_tile"
 	ComposedNodeKeyValueRow      = "key_value_row"
 	ComposedNodeQrCode           = "qr_code"
+	ComposedNodeScrollRow        = "scroll_row"
+	ComposedNodeGrid             = "grid"
+	ComposedNodeTextField        = "text_field"
+	ComposedNodeSwitch           = "switch"
+	ComposedNodeCheckbox         = "checkbox"
+	ComposedNodeSlider           = "slider"
+	ComposedNodeMediaPager       = "media_pager"
+)
+
+// Box alignment wire identifiers for ComposedNode.BoxAlignment.
+const (
+	BoxAlignTopStart     = "top_start"
+	BoxAlignTopCenter    = "top_center"
+	BoxAlignTopEnd       = "top_end"
+	BoxAlignCenterStart  = "center_start"
+	BoxAlignCenter       = "center"
+	BoxAlignCenterEnd    = "center_end"
+	BoxAlignBottomStart  = "bottom_start"
+	BoxAlignBottomCenter = "bottom_center"
+	BoxAlignBottomEnd    = "bottom_end"
 )
 
 // ComposedNode alignment and main-axis arrangement wire identifiers.
@@ -129,6 +149,9 @@ type ComposedNode struct {
 	HorizontalAlignment string                      `json:"horizontal_alignment,omitempty"`
 	VerticalAlignment   string                      `json:"vertical_alignment,omitempty"`
 	MainAxisArrangement string                      `json:"main_axis_arrangement,omitempty"`
+	BoxAlignment        string                      `json:"box_alignment,omitempty"`
+	Columns             *int                        `json:"columns,omitempty"`
+	ColumnsByWidth      *ResponsiveColumnsSpec      `json:"columns_by_width,omitempty"`
 	Weight              *float64                    `json:"weight,omitempty"`
 	Children            []ComposedNode              `json:"children,omitempty"`
 	Text                *atoms.TextAtom             `json:"text,omitempty"`
@@ -157,7 +180,14 @@ type ComposedNode struct {
 	StatTile            *atoms.StatTileAtom         `json:"stat_tile,omitempty"`
 	KeyValueRow         *atoms.KeyValueRowAtom      `json:"key_value_row,omitempty"`
 	QrCode              *atoms.QrCodeAtom           `json:"qr_code,omitempty"`
+	TextField           *atoms.TextFieldAtom        `json:"text_field,omitempty"`
+	Switch              *atoms.SwitchAtom           `json:"switch,omitempty"`
+	Checkbox            *atoms.CheckboxAtom         `json:"checkbox,omitempty"`
+	Slider              *atoms.SliderAtom           `json:"slider,omitempty"`
+	MediaPager          *atoms.MediaPagerAtom       `json:"media_pager,omitempty"`
 	OnClick             *actions.ActionTrigger      `json:"on_click,omitempty"`
+	Tracking            *atoms.TrackingMeta         `json:"tracking,omitempty"`
+	ClickTracking       *atoms.TrackingMeta         `json:"click_tracking,omitempty"`
 	Layout              *atoms.LayoutConfig         `json:"layout,omitempty"`
 	Motion              *atoms.MotionSpec           `json:"motion,omitempty"`
 }

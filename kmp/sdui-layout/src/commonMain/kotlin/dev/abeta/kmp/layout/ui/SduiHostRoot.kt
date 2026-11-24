@@ -5,16 +5,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.actions.handler.ActionOutcome
 import dev.abeta.kmp.actions.handler.ApiCallExecutor
 import dev.abeta.kmp.actions.model.ActionContext
 import dev.abeta.kmp.actions.model.CallApiPayload
 import dev.abeta.kmp.atoms.atoms.LocalImageRenderer
 import dev.abeta.kmp.atoms.atoms.UiImageRenderer
+import dev.abeta.kmp.atoms.modifiers.UiHapticKind
 import dev.abeta.kmp.contracts.CardSnippetData
 import dev.abeta.kmp.contracts.HeaderSnippetData
 import dev.abeta.kmp.contracts.PageResponse
@@ -28,6 +29,7 @@ import dev.abeta.kmp.core.logging.KermitAppLogger
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.layout.di.createSduiKoinModule
 import dev.abeta.kmp.layout.engine.LayoutController
+import dev.abeta.kmp.layout.engine.SduiLayoutViewModel
 import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.platform.asUiHapticCallback
 import dev.abeta.kmp.layout.repository.ScreenRepository
@@ -72,7 +74,7 @@ fun SduiHostedRoot(
         onDispose { holder.koinApp.close() }
     }
 
-    val uiState by holder.controller.uiState.collectAsState()
+    val uiState by holder.controller.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(holder.controller) {
         holder.controller.observeConnectivity()
     }
@@ -99,6 +101,58 @@ fun SduiHostedRoot(
                 onLoadMore = { holder.controller.loadMore() },
                 isWatch = isWatch,
                 onHaptic = holder.platformBridges.hapticEngine.asUiHapticCallback(),
+                onNodeImpression = holder.controller::onNodeImpression,
+            )
+        }
+    }
+}
+
+/**
+ * Lifecycle-aware SDUI host composable bound to a caller-managed [SduiLayoutViewModel], collecting
+ * UI state via [collectAsStateWithLifecycle] so Android configuration changes preserve active screen,
+ * cart, and form state cleanly.
+ */
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
+fun SduiHostedRoot(
+    viewModel: SduiLayoutViewModel,
+    snippetRegistry: SnippetRegistry,
+    imageRenderer: UiImageRenderer,
+    screenId: String? = null,
+    isWatch: Boolean = false,
+    onHaptic: ((UiHapticKind) -> Unit)? = null,
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel) {
+        viewModel.observeConnectivity()
+    }
+    LaunchedEffect(viewModel, screenId) {
+        val target = screenId?.trim()?.takeIf { it.isNotEmpty() }
+        if (target != null && viewModel.lastLoadedScreenId != target) {
+            viewModel.loadScreen(target)
+        }
+    }
+
+    val capabilities = viewModel.capabilities
+    DesignTheme(
+        darkTheme = isSystemInDarkTheme() || capabilities.isDarkModePreferred,
+        reducedMotion = capabilities.isReducedMotionPreferred,
+    ) {
+        CompositionLocalProvider(LocalImageRenderer provides imageRenderer) {
+            SduiScreen(
+                state = uiState,
+                snippetRegistry = snippetRegistry,
+                onAction = viewModel::onAction,
+                onFormValueChange = viewModel::onFormFieldChanged,
+                onRetry = { viewModel.retry() },
+                onDismissOverlay = viewModel::dismissOverlay,
+                onDismissToast = viewModel::dismissToast,
+                onDismissFeedback = viewModel::dismissFeedback,
+                onSnippetImpression = viewModel::onSnippetImpression,
+                onLoadMore = { viewModel.loadMore() },
+                isWatch = isWatch,
+                onHaptic = onHaptic,
+                onNodeImpression = viewModel::onNodeImpression,
             )
         }
     }

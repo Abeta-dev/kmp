@@ -12,6 +12,7 @@ const openAPIVersion = "3.1.0"
 
 var builtInScreenIDs = []string{
 	"home",
+	"fresh-home",
 	"store-home",
 	"catalog",
 	"profile",
@@ -215,7 +216,7 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 							"name":        "screenId",
 							"in":          "path",
 							"required":    true,
-							"description": "Screen identifier (built-in: home, store-home, catalog, profile, form-demo, containers, watch-status, pay-home, pay-transfer, pay-cards, pay-receipt)",
+							"description": "Screen identifier (built-in: home, fresh-home, store-home, catalog, profile, form-demo, containers, watch-status, pay-home, pay-transfer, pay-cards, pay-receipt)",
 							"schema":      map[string]any{"type": "string", "enum": builtInScreenIDs},
 						},
 						ifNoneMatchParam,
@@ -332,6 +333,41 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 							"content": jsonContent(envelopeSchema(refSchema("TokenCatalog"))),
 						},
 						"304": map[string]any{"description": "Not Modified"},
+						"401": map[string]any{"description": "Unauthorized"},
+					},
+				},
+			},
+			"/api/v1/analytics/events": map[string]any{
+				"post": map[string]any{
+					"summary":     "Ingest batched SDUI client analytics events",
+					"operationId": "ingestAnalyticsEvents",
+					"tags":        []string{"SDUI Analytics"},
+					"security":    apiSecurity,
+					"requestBody": map[string]any{
+						"required": true,
+						"content":  jsonContent(refSchema("AnalyticsBatchRequest")),
+					},
+					"responses": map[string]any{
+						"200": map[string]any{
+							"description": "Analytics batch ingest acknowledgement",
+							"content":     jsonContent(envelopeSchema(refSchema("AnalyticsIngestResponse"))),
+						},
+						"400": map[string]any{"description": "Malformed or invalid analytics batch"},
+						"401": map[string]any{"description": "Unauthorized"},
+					},
+				},
+			},
+			"/api/v1/analytics/summary": map[string]any{
+				"get": map[string]any{
+					"summary":     "Fetch live aggregated SDUI analytics summary",
+					"operationId": "getAnalyticsSummary",
+					"tags":        []string{"SDUI Analytics"},
+					"security":    apiSecurity,
+					"responses": map[string]any{
+						"200": map[string]any{
+							"description": "Live analytics counters and recent events ring snapshot",
+							"content":     jsonContent(envelopeSchema(refSchema("AnalyticsSummary"))),
+						},
 						"401": map[string]any{"description": "Unauthorized"},
 					},
 				},

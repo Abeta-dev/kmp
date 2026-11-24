@@ -92,6 +92,14 @@ final class AbetaWatchViewModel: ObservableObject {
         syncFromControllerState()
     }
 
+    /// SwiftUI `.refreshable` compatible `async`/`await` reload awaiting the next settled state.
+    func refreshAsync() async {
+        isLoading = true
+        errorMessage = nil
+        let settled = await holder.refreshAndAwaitReady()
+        apply(state: settled)
+    }
+
     func trigger(_ action: ActionRef?) {
         guard let action else { return }
         holder.controller.onAction(action: action)
@@ -104,7 +112,10 @@ final class AbetaWatchViewModel: ObservableObject {
     }
 
     func syncFromControllerState() {
-        let rawState = holder.controller.uiState.value
+        apply(state: holder.controller.uiState.value)
+    }
+
+    private func apply(state rawState: Any?) {
         switch rawState {
         case is WatchUiStateIdle, is WatchUiStateLoading:
             isLoading = true
@@ -131,9 +142,10 @@ final class AbetaWatchViewModel: ObservableObject {
     private func startObservingState() {
         observeTask?.cancel()
         observeTask = Task { [weak self] in
-            while !Task.isCancelled {
-                self?.syncFromControllerState()
-                try? await Task.sleep(nanoseconds: 150_000_000)
+            guard let self else { return }
+            for await state in holder.uiStateStream() {
+                if Task.isCancelled { break }
+                self.apply(state: state)
             }
         }
     }
@@ -293,5 +305,68 @@ struct AbetaWatchSduiView: View {
             .accessibilityLabel("Retry loading screen")
         }
         .padding()
+    }
+}
+
+// MARK: - 3. Swift Concurrency (`async`/`await` + `AsyncStream`) Ergonomics
+
+/// Structured Swift Concurrency adapters bridging Kotlin `StateFlow<WatchUiState>` into native
+/// `AsyncStream` and `async`/`await` APIs for SwiftUI `.task` and `.refreshable` modifiers.
+///
+/// Tip: When your Xcode project enables Touchlab SKIE or Kotlin/Native Swift Export, you can
+/// iterate `for await state in holder.controller.uiState` directly with zero polling overhead;
+/// these helpers provide a drop-in zero-dependency fallback for plain Objective-C XCFrameworks.
+extension WatchCompanionHostHolder {
+    /// Emits `WatchUiState` updates as a cancellation-aware Swift `AsyncStream`.
+    func uiStateStream(
+        pollIntervalNanoseconds: UInt64 = 150_000_000
+    ) -> AsyncStream<WatchUiState> {
+        AsyncStream { continuation in
+            let task = Task {
+                var lastEmitted: WatchUiState?
+                while !Task.isCancelled {
+                    if let current = self.controller.uiState.value as? WatchUiState {
+                        let changed = lastEmitted.map { !$0.isEqual(current) } ?? true
+                        if changed {
+                            lastEmitted = current
+                            continuation.yield(current)
+                        }
+                    }
+                    do {
+                        try await Task.sleep(nanoseconds: pollIntervalNanoseconds)
+                    } catch {
+                        break
+                    }
+                }
+                continuation.finish()
+            }
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
+        }
+    }
+
+    /// Triggers `loadScreen(screenId:)` and suspends until a settled `Ready` or `Error` state arrives.
+    func loadScreenAndAwaitReady(
+        _ screenId: String = "watch-status"
+    ) async -> WatchUiState {
+        controller.loadScreen(screenId: screenId)
+        for await state in uiStateStream() {
+            if state is WatchUiStateReady || state is WatchUiStateError {
+                return state
+            }
+        }
+        return (controller.uiState.value as? WatchUiState) ?? WatchUiStateIdle.shared
+    }
+
+    /// Triggers `refresh()` and suspends until the refreshed screen settles (`Ready` or `Error`).
+    func refreshAndAwaitReady() async -> WatchUiState {
+        controller.refresh()
+        for await state in uiStateStream() {
+            if state is WatchUiStateReady || state is WatchUiStateError {
+                return state
+            }
+        }
+        return (controller.uiState.value as? WatchUiState) ?? WatchUiStateIdle.shared
     }
 }

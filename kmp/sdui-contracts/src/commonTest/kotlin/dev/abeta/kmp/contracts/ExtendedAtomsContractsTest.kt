@@ -254,6 +254,50 @@ class ExtendedAtomsContractsTest {
     }
 
     @Test
+    fun mediaPagerRoundTripsWithWireKeysAndDefaults() {
+        val pager =
+            MediaPagerAtom(
+                id = "hero_carousel",
+                items =
+                    listOf(
+                        ImageAtom(
+                            id = "slide_1",
+                            url = "https://cdn.abeta.dev/fresh-1.png",
+                            contentDescription = "Fresh Mangoes",
+                            onClick = sampleAction("tap_slide_1", "navigate"),
+                        ),
+                        ImageAtom(
+                            id = "slide_2",
+                            url = "https://cdn.abeta.dev/fresh-2.png",
+                            contentDescription = "Cold Pressed Juices",
+                        ),
+                    ),
+                heightDp = 220,
+                autoAdvanceMs = 3500,
+                showIndicators = false,
+                cornerRadius = CornerRadiusSpec(all = 16),
+                onPageClick = sampleAction("tap_default_slide", "open_dialog"),
+                layout = sampleLayout,
+            )
+        val encoded = SduiJson.encodeToString(pager)
+        assertWireKeys(
+            encoded,
+            "height_dp",
+            "auto_advance_ms",
+            "show_indicators",
+            "corner_radius",
+            "on_page_click",
+        )
+        assertEquals(pager, SduiJson.decodeFromString<MediaPagerAtom>(encoded))
+
+        val minimal = SduiJson.decodeFromString<MediaPagerAtom>("""{}""")
+        assertTrue(minimal.items.isEmpty())
+        assertEquals(200, minimal.heightDp)
+        assertNull(minimal.autoAdvanceMs)
+        assertTrue(minimal.showIndicators)
+    }
+
+    @Test
     fun composedNodeKindsExposeAllTwelveExtendedWireNames() {
         val expectedWireKinds =
             mapOf(

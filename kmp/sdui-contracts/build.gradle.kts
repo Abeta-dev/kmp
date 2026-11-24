@@ -11,6 +11,7 @@ plugins {
 version = internal.versions.sduiContracts.get()
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()

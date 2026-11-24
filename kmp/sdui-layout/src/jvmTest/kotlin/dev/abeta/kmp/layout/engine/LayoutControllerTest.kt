@@ -9,13 +9,16 @@ import dev.abeta.kmp.actions.handler.ApiCallExecutor
 import dev.abeta.kmp.actions.handler.BuiltInActionHandlers
 import dev.abeta.kmp.actions.handler.DefaultActionDispatcher
 import dev.abeta.kmp.actions.model.ActionTypes
+import dev.abeta.kmp.analytics.AnalyticsCategory
 import dev.abeta.kmp.analytics.RecordingAnalyticsTracker
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.FeedbackEffect
+import dev.abeta.kmp.contracts.OverlayPresentation
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.error.NotFoundError
 import dev.abeta.kmp.core.error.OfflineError
 import dev.abeta.kmp.core.identity.SequentialUuidGenerator
@@ -139,11 +142,7 @@ class LayoutControllerTest {
                 cancelAndIgnoreRemainingEvents()
             }
 
-            // page tracking + page_actions ("screen_viewed")
-            assertEquals(1, tracker.impressions.size)
-            assertEquals("page_loaded", tracker.impressions.single().eventName)
-            assertEquals(1, tracker.events.size)
-            assertEquals("screen_viewed", tracker.events.single().name)
+            assertHomeLoadAnalytics(tracker)
 
             // Snippet impression deduplication
             val headerSnippet = (controller.uiState.value as LayoutUiState.Ready).page.snippets.first()
@@ -185,6 +184,17 @@ class LayoutControllerTest {
             assertEquals("Copied!", readyAfterCopy.activeToast?.message)
             assertEquals("success", readyAfterCopy.activeToast?.variant)
         }
+
+    private fun assertHomeLoadAnalytics(tracker: RecordingAnalyticsTracker) {
+        assertEquals(1, tracker.impressions.size)
+        assertEquals("page_loaded", tracker.impressions.single().eventName)
+        assertEquals(listOf("page_open", "screen_viewed"), tracker.events.map { it.name })
+        val pageOpen = tracker.events.first()
+        assertEquals(AnalyticsCategory.SCREEN, pageOpen.category)
+        assertEquals("home", pageOpen.screenName)
+        assertEquals("home", pageOpen.properties["page_id"])
+        assertEquals("8", pageOpen.properties["snippet_count"])
+    }
 
     @Test
     fun formValidationFailureThenValidSubmission() =
@@ -481,6 +491,87 @@ class LayoutControllerTest {
             controller.dismissFeedback()
             assertNull(assertIs<LayoutUiState.Ready>(controller.uiState.value).activeFeedback)
         }
+
+    @Test
+    fun emitsAutomaticClickTrackingDeduplicatesNodeImpressionsAndLoadsRemoteSheetScreen() =
+        runTest(StandardTestDispatcher()) {
+            val (controller, _, tracker) =
+                createController(
+                    scope = this,
+                    pages =
+                        mapOf(
+                            "home" to readGoldenPage("home_screen.json"),
+                            "express-sheet" to sampleRemoteSheetPage(),
+                        ),
+                )
+
+            controller.loadScreen("home").join()
+            val nodeTracking = TrackingContract(eventName = "card_seen", properties = mapOf("slot" to "hero"))
+            controller.onNodeImpression("hero_node_1", nodeTracking)
+            controller.onNodeImpression("hero_node_1", nodeTracking)
+            val nodeImpressions = tracker.impressions.filter { it.eventName == "card_seen" }
+            assertEquals(1, nodeImpressions.size)
+            assertEquals("hero_node_1", nodeImpressions.single().properties["node_id"])
+            assertEquals("home", nodeImpressions.single().properties["page_id"])
+
+            controller.onAction(sampleOpenRemoteSheetAction()).join()
+
+            val ready = assertIs<LayoutUiState.Ready>(controller.uiState.value)
+            val overlay = assertNotNull(ready.activeOverlay)
+            assertEquals(OverlayPresentation.BOTTOM_SHEET, overlay.presentation)
+            assertEquals(listOf("sheet_spacer"), overlay.snippets.map { it.snippetId })
+
+            val autoClick = tracker.events.first { it.name == "interaction_click" }
+            assertEquals("open_express_sheet", autoClick.properties["action_id"])
+            assertEquals(ActionTypes.OPEN_DIALOG, autoClick.properties["action_type"])
+            assertEquals("floating_cta", autoClick.properties["source"])
+            assertTrue(tracker.events.any { it.name == "basket_sheet_tapped" })
+
+            val beforeTrackCount = tracker.events.count { it.name == "interaction_click" }
+            controller
+                .onAction(
+                    ActionRef(
+                        id = "explicit_track",
+                        type = ActionTypes.TRACK_EVENT,
+                        payload = buildJsonObject { put("event_name", "custom_ping") },
+                        tracking = TrackingContract(eventName = "custom_ping"),
+                    ),
+                ).join()
+            assertEquals(beforeTrackCount, tracker.events.count { it.name == "interaction_click" })
+            assertEquals(1, tracker.events.count { it.name == "custom_ping" })
+        }
+
+    private fun sampleRemoteSheetPage(): PageResponse =
+        PageResponse(
+            pageId = "express-sheet",
+            title = "Express Sheet",
+            snippets =
+                listOf(
+                    SnippetEnvelope(
+                        snippetId = "sheet_spacer",
+                        snippetType = SnippetTypes.SPACER,
+                        data = buildJsonObject { put("spacer", buildJsonObject { put("height_dp", 16) }) },
+                    ),
+                ),
+        )
+
+    private fun sampleOpenRemoteSheetAction(): ActionRef =
+        ActionRef(
+            id = "open_express_sheet",
+            type = ActionTypes.OPEN_DIALOG,
+            payload =
+                buildJsonObject {
+                    put("dialog_id", "sheet_1")
+                    put("title", "Quick Basket")
+                    put("presentation", "bottom_sheet")
+                    put("sheet_screen_id", "express-sheet")
+                },
+            tracking =
+                TrackingContract(
+                    eventName = "basket_sheet_tapped",
+                    properties = mapOf("source" to "floating_cta"),
+                ),
+        )
 
     private fun expressOrderCelebrationExecutor(): ApiCallExecutor {
         val celebrationAction =

@@ -25,7 +25,9 @@ import dev.abeta.kmp.contracts.BadgeAtom
 import dev.abeta.kmp.contracts.ChipAtom
 import dev.abeta.kmp.contracts.ColorTokenRef
 import dev.abeta.kmp.contracts.IconAtom
+import dev.abeta.kmp.contracts.ImageAtom
 import dev.abeta.kmp.contracts.KeyValueRowAtom
+import dev.abeta.kmp.contracts.MediaPagerAtom
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.MotionSpec
 import dev.abeta.kmp.contracts.OptionItem
@@ -454,4 +456,118 @@ class ExtendedAtomsComposeTest {
             onNodeWithText("Gate B4").assertIsDisplayed()
             assertEquals(listOf(qrAction), capturedActions)
         }
+
+    @Test
+    fun mediaPagerRendersSlidesIndicatorsAndDispatchesItemAndFallbackActions() =
+        runComposeUiTest {
+            val capturedActions = mutableListOf<ActionRef>()
+            val capturedHaptics = mutableListOf<UiHapticKind>()
+            val slideAction = ActionRef(id = "tap_slide_0", type = "navigate")
+            val fallbackAction = ActionRef(id = "tap_fallback", type = "open_dialog")
+            val heroPager = buildHeroMediaPagerAtom(slideAction, fallbackAction)
+            val singlePager =
+                MediaPagerAtom(
+                    id = "single_banner",
+                    heightDp = 120,
+                    items = listOf(ImageAtom(url = "https://cdn.abeta.dev/single.png", contentDescription = "Deal")),
+                    onPageClick = fallbackAction,
+                )
+
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = true) {
+                    CompositionLocalProvider(LocalUiHapticFeedback provides { capturedHaptics.add(it) }) {
+                        Column {
+                            UiMediaPager(atom = heroPager, onAction = capturedActions::add)
+                            UiMediaPager(atom = singlePager, onAction = capturedActions::add)
+                        }
+                    }
+                }
+            }
+
+            onNodeWithTag("media_pager_hero_banner").assertIsDisplayed()
+            onNodeWithTag("media_pager_indicators_hero_banner").assertIsDisplayed()
+            onNodeWithContentDescription("Page 1 of 2").assertIsDisplayed()
+            onNodeWithTag("media_pager_hero_banner_page_0").assertIsDisplayed().performClick()
+
+            onNodeWithTag("media_pager_single_banner").assertIsDisplayed()
+            onNodeWithTag("media_pager_indicators_single_banner").assertDoesNotExist()
+            onNodeWithTag("media_pager_single_banner_page_0").assertIsDisplayed().performClick()
+
+            assertEquals(listOf(slideAction, fallbackAction), capturedActions)
+            assertEquals(listOf(UiHapticKind.CLICK, UiHapticKind.CLICK), capturedHaptics)
+        }
+
+    @Test
+    fun mediaPagerAutoAdvancesWhenEnabledAndHonorsReducedMotion() =
+        runComposeUiTest {
+            mainClock.autoAdvance = false
+            val autoSlides =
+                listOf(
+                    ImageAtom(url = "https://cdn.abeta.dev/a.png", contentDescription = "Slide A"),
+                    ImageAtom(url = "https://cdn.abeta.dev/b.png", contentDescription = "Slide B"),
+                )
+            val reducedSlides =
+                listOf(
+                    ImageAtom(url = "https://cdn.abeta.dev/c.png", contentDescription = "Slide C"),
+                    ImageAtom(url = "https://cdn.abeta.dev/d.png", contentDescription = "Slide D"),
+                )
+
+            setContent {
+                Column {
+                    DesignTheme(darkTheme = false, reducedMotion = false) {
+                        UiMediaPager(
+                            atom =
+                                MediaPagerAtom(
+                                    id = "auto_banner",
+                                    heightDp = 120,
+                                    autoAdvanceMs = 1500,
+                                    items = autoSlides,
+                                ),
+                        )
+                    }
+                    DesignTheme(darkTheme = false, reducedMotion = true) {
+                        UiMediaPager(
+                            atom =
+                                MediaPagerAtom(
+                                    id = "reduced_banner",
+                                    heightDp = 120,
+                                    autoAdvanceMs = 1500,
+                                    items = reducedSlides,
+                                ),
+                        )
+                    }
+                }
+            }
+
+            mainClock.advanceTimeByFrame()
+            onNodeWithTag("media_pager_indicators_auto_banner").assertIsDisplayed()
+            onNodeWithTag("media_pager_indicators_reduced_banner").assertIsDisplayed()
+
+            mainClock.advanceTimeBy(2200L)
+            mainClock.advanceTimeByFrame()
+            onNodeWithContentDescription("Page 2 of 2").assertIsDisplayed()
+            onNodeWithContentDescription("Page 1 of 2").assertIsDisplayed()
+        }
+
+    private fun buildHeroMediaPagerAtom(
+        slideAction: ActionRef,
+        fallbackAction: ActionRef,
+    ): MediaPagerAtom =
+        MediaPagerAtom(
+            id = "hero_banner",
+            heightDp = 140,
+            items =
+                listOf(
+                    ImageAtom(
+                        url = "https://cdn.abeta.dev/fresh-1.png",
+                        contentDescription = "Alphonso Mangoes",
+                        onClick = slideAction,
+                    ),
+                    ImageAtom(
+                        url = "https://cdn.abeta.dev/fresh-2.png",
+                        contentDescription = "Fresh Strawberries",
+                    ),
+                ),
+            onPageClick = fallbackAction,
+        )
 }

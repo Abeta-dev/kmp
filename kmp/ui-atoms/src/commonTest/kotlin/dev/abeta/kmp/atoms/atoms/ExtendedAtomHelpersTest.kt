@@ -62,4 +62,13 @@ class ExtendedAtomHelpersTest {
             assertTrue(matrixA[r0 + 3][c0 + 3], "Inner finder core should be dark")
         }
     }
+
+    @Test
+    fun mediaPagerIndicatorCountReturnsZeroBelowTwoItems() {
+        assertEquals(0, resolvePagerIndicatorCount(-1))
+        assertEquals(0, resolvePagerIndicatorCount(0))
+        assertEquals(0, resolvePagerIndicatorCount(1))
+        assertEquals(2, resolvePagerIndicatorCount(2))
+        assertEquals(5, resolvePagerIndicatorCount(5))
+    }
 }

@@ -208,7 +208,7 @@ class NudgeAndComposedContractsTest {
 
     @Test
     fun composedBlockRoundTripsAllKinds() {
-        assertEquals(29, ComposedNodeKind.entries.size)
+        assertEquals(36, ComposedNodeKind.entries.size)
         ComposedNodeKind.entries.forEach { kind ->
             assertEquals(kind, SduiJson.decodeFromString<ComposedNodeKind>(SduiJson.encodeToString(kind)))
         }
@@ -281,4 +281,94 @@ class NudgeAndComposedContractsTest {
                 .counterValue,
         )
     }
+
+    @Test
+    fun composedNodeRoundTripsWaveAAndBContainersInputsMediaAndTracking() {
+        val expectedNewKinds =
+            mapOf(
+                ComposedNodeKind.SCROLL_ROW to "\"scroll_row\"",
+                ComposedNodeKind.GRID to "\"grid\"",
+                ComposedNodeKind.TEXT_FIELD to "\"text_field\"",
+                ComposedNodeKind.SWITCH to "\"switch\"",
+                ComposedNodeKind.CHECKBOX to "\"checkbox\"",
+                ComposedNodeKind.SLIDER to "\"slider\"",
+                ComposedNodeKind.MEDIA_PAGER to "\"media_pager\"",
+            )
+        expectedNewKinds.forEach { (kind, wireJson) ->
+            assertEquals(wireJson, SduiJson.encodeToString(kind))
+            assertEquals(kind, SduiJson.decodeFromString<ComposedNodeKind>(wireJson))
+        }
+
+        val root = buildWaveACompoundNode()
+        val encoded = SduiJson.encodeToString(root)
+        for (key in listOf(
+            "columns_by_width",
+            "box_alignment",
+            "media_pager",
+            "scroll_row",
+            "text_field",
+            "switch",
+            "checkbox",
+            "slider",
+            "tracking",
+            "click_tracking",
+        )) {
+            assertTrue(encoded.contains("\"$key\""), "Missing wire key \"$key\" in $encoded")
+        }
+        assertEquals(root, SduiJson.decodeFromString<ComposedNode>(encoded))
+    }
+
+    private fun buildWaveACompoundNode(): ComposedNode =
+        ComposedNode(
+            nodeId = "fresh_compound",
+            kind = ComposedNodeKind.GRID,
+            columns = 2,
+            columnsByWidth = ResponsiveColumnsSpec(compact = 2, medium = 3, expanded = 4),
+            tracking = TrackingContract(eventName = "grid_impression", properties = mapOf("section" to "deals")),
+            clickTracking = TrackingContract(eventName = "grid_clicked", properties = mapOf("section" to "deals")),
+            children =
+                listOf(
+                    ComposedNode(
+                        nodeId = "overlay_badge",
+                        kind = ComposedNodeKind.BOX,
+                        boxAlignment = "top_end",
+                        children =
+                            listOf(
+                                ComposedNode(
+                                    nodeId = "pager_1",
+                                    kind = ComposedNodeKind.MEDIA_PAGER,
+                                    mediaPager =
+                                        MediaPagerAtom(
+                                            id = "pdp_gallery",
+                                            items = listOf(ImageAtom(url = "https://cdn.abeta.dev/1.png")),
+                                            heightDp = 240,
+                                        ),
+                                ),
+                            ),
+                    ),
+                    ComposedNode(
+                        nodeId = "controls_scroll",
+                        kind = ComposedNodeKind.SCROLL_ROW,
+                        children =
+                            listOf(
+                                ComposedNode(
+                                    kind = ComposedNodeKind.TEXT_FIELD,
+                                    textField = TextFieldAtom(fieldId = "note", label = "Delivery Note"),
+                                ),
+                                ComposedNode(
+                                    kind = ComposedNodeKind.SWITCH,
+                                    switch = SwitchAtom(fieldId = "no_bag", label = "No paper bag"),
+                                ),
+                                ComposedNode(
+                                    kind = ComposedNodeKind.CHECKBOX,
+                                    checkbox = CheckboxAtom(fieldId = "leave_at_door", label = "Leave at door"),
+                                ),
+                                ComposedNode(
+                                    kind = ComposedNodeKind.SLIDER,
+                                    slider = SliderAtom(fieldId = "tip", label = "Rider Tip", value = 20f),
+                                ),
+                            ),
+                    ),
+                ),
+        )
 }

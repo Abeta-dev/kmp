@@ -11,6 +11,7 @@ plugins {
 extra["org.jetbrains.compose.experimental.macos.enabled"] = "true"
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()
@@ -37,6 +38,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core)
+            implementation(projects.analytics)
             implementation(projects.designTokens)
             implementation(projects.sduiContracts)
             implementation(projects.uiAtoms)
@@ -47,6 +49,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.ui)
             implementation(libs.compose.material3)
+            implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.serialization.json)
             implementation(project.dependencies.platform(libs.ktor.bom))
             implementation(libs.ktor.client.core)

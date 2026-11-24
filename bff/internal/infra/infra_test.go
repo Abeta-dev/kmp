@@ -25,6 +25,7 @@ func TestInMemoryScreenRepository(t *testing.T) {
 		"catalog",
 		"containers",
 		"form-demo",
+		"fresh-home",
 		"home",
 		"pay-cards",
 		"pay-home",
@@ -52,6 +53,24 @@ func TestInMemoryScreenRepository(t *testing.T) {
 
 	if _, err := repo.GetScreen(ctx, "does-not-exist"); !apperror.Is(err, apperror.CodeNotFound) {
 		t.Fatalf("expected CodeNotFound, got %v", err)
+	}
+
+	// Verify fresh-home includes sticky search bar and molded quick-commerce molecules
+	freshPage, err := repo.GetScreen(ctx, "fresh-home")
+	if err != nil {
+		t.Fatalf("GetScreen(fresh-home) error: %v", err)
+	}
+	if !freshPage.Snippets[0].Sticky || freshPage.Snippets[0].SnippetType != snippets.SnippetTypeSearchBar {
+		t.Fatalf("expected sticky search_bar on fresh-home, got %+v", freshPage.Snippets[0])
+	}
+	freshRaw, err := json.Marshal(freshPage)
+	if err != nil {
+		t.Fatalf("json.Marshal(fresh-home): %v", err)
+	}
+	for _, token := range []string{`"sticky":true`, `"media_pager"`, `"scroll_row"`, `"box_alignment"`, `"express_category_grid"`, `"express_impulse_upsell_rail"`, `"express_delivery_instructions"`} {
+		if !strings.Contains(string(freshRaw), token) {
+			t.Errorf("fresh-home JSON missing expected token %s", token)
+		}
 	}
 }
 

@@ -120,6 +120,11 @@ public final class dev/abeta/kmp/atoms/atoms/UiKeyValueRowKt {
 	public static final fun UiKeyValueRow (Ldev/abeta/kmp/contracts/KeyValueRowAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 }
 
+public final class dev/abeta/kmp/atoms/atoms/UiMediaPagerKt {
+	public static final fun UiMediaPager (Ldev/abeta/kmp/contracts/MediaPagerAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+	public static final fun resolvePagerIndicatorCount (I)I
+}
+
 public final class dev/abeta/kmp/atoms/atoms/UiOtpInputKt {
 	public static final fun UiOtpInput (Ldev/abeta/kmp/contracts/OtpInputAtom;Landroidx/compose/ui/Modifier;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 	public static final fun resolveOtpLength (I)I

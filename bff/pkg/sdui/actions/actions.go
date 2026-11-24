@@ -41,6 +41,13 @@ type ValidationRule struct {
 	Message string `json:"message"`
 }
 
+// TrackingSpec describes declarative analytics tracking metadata attached to an ActionTrigger.
+// It matches KMP TrackingContract (event_name + string-only properties) 1:1 on the wire.
+type TrackingSpec struct {
+	EventName  string            `json:"event_name"`
+	Properties map[string]string `json:"properties,omitempty"`
+}
+
 // ActionTrigger is the lightweight wire envelope embedded by SDUI atoms and pages.
 type ActionTrigger struct {
 	ID               string           `json:"id"`
@@ -48,6 +55,7 @@ type ActionTrigger struct {
 	Payload          json.RawMessage  `json:"payload,omitempty"`
 	Validations      []ValidationRule `json:"validations,omitempty"`
 	SecondaryActions []ActionTrigger  `json:"secondary_actions,omitempty"`
+	Tracking         *TrackingSpec    `json:"tracking,omitempty"`
 }
 
 // WithValidations returns a copy of the trigger with validation rules appended.
@@ -59,6 +67,22 @@ func (t ActionTrigger) WithValidations(rules ...ValidationRule) ActionTrigger {
 // WithSecondaryActions returns a copy of the trigger with secondary actions appended.
 func (t ActionTrigger) WithSecondaryActions(actions ...ActionTrigger) ActionTrigger {
 	t.SecondaryActions = append(append([]ActionTrigger(nil), t.SecondaryActions...), actions...)
+	return t
+}
+
+// WithTracking returns a copy of the trigger with declarative tracking metadata attached.
+func (t ActionTrigger) WithTracking(eventName string, props map[string]string) ActionTrigger {
+	var clonedProps map[string]string
+	if len(props) > 0 {
+		clonedProps = make(map[string]string, len(props))
+		for k, v := range props {
+			clonedProps[k] = v
+		}
+	}
+	t.Tracking = &TrackingSpec{
+		EventName:  eventName,
+		Properties: clonedProps,
+	}
 	return t
 }
 
@@ -133,6 +157,8 @@ type OpenDialogPayload struct {
 	Dismissible    *bool          `json:"dismissible,omitempty"`
 	PositiveAction *ActionTrigger `json:"positive_action,omitempty"`
 	NegativeAction *ActionTrigger `json:"negative_action,omitempty"`
+	Snippets       []any          `json:"snippets,omitempty"`
+	SheetScreenID  string         `json:"sheet_screen_id,omitempty"`
 }
 
 // DismissOverlayPayload closes an active dialog or bottom sheet.

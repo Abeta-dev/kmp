@@ -1,6 +1,30 @@
+public final class dev/abeta/kmp/layout/analytics/RemoteBffAnalyticsTracker : dev/abeta/kmp/analytics/AnalyticsTracker {
+	public static final field $stable I
+	public static final field Companion Ldev/abeta/kmp/layout/analytics/RemoteBffAnalyticsTracker$Companion;
+	public static final field DEFAULT_ANALYTICS_ENDPOINT Ljava/lang/String;
+	public static final field DEFAULT_STORAGE_KEY Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;Lkotlinx/coroutines/CoroutineScope;IJILjava/lang/String;Ldev/abeta/kmp/core/logging/AppLogger;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ldev/abeta/kmp/core/storage/KeyValueStore;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/core/time/Clock;Ldev/abeta/kmp/core/identity/UuidGenerator;Lkotlinx/coroutines/CoroutineScope;IJILjava/lang/String;Ldev/abeta/kmp/core/logging/AppLogger;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun buildBatchRequest (Ljava/util/List;)Ldev/abeta/kmp/contracts/AnalyticsBatchRequest;
+	public final fun clearQueue ()V
+	public final fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getQueuedEvents ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public fun reset ()V
+	public final fun startPeriodicFlush ()V
+	public final fun stopPeriodicFlush ()V
+	public final fun toEventContract (Ldev/abeta/kmp/analytics/AnalyticsEvent;)Ldev/abeta/kmp/contracts/AnalyticsEventContract;
+	public fun track (Ldev/abeta/kmp/analytics/AnalyticsEvent;)V
+	public fun trackImpression (Ldev/abeta/kmp/analytics/AnalyticsTrackingPayload;)V
+	public fun trackScreen (Ljava/lang/String;Ljava/util/Map;)V
+}
+
+public final class dev/abeta/kmp/layout/analytics/RemoteBffAnalyticsTracker$Companion {
+}
+
 public final class dev/abeta/kmp/layout/di/SduiKoinModuleKt {
-	public static final fun createSduiKoinModule (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;)Lorg/koin/core/module/Module;
-	public static synthetic fun createSduiKoinModule$default (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;ILjava/lang/Object;)Lorg/koin/core/module/Module;
+	public static final fun createSduiKoinModule (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;ZLjava/lang/String;)Lorg/koin/core/module/Module;
+	public static synthetic fun createSduiKoinModule$default (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;ZLjava/lang/String;ILjava/lang/Object;)Lorg/koin/core/module/Module;
 }
 
 public final class dev/abeta/kmp/layout/engine/LayoutController {
@@ -9,11 +33,13 @@ public final class dev/abeta/kmp/layout/engine/LayoutController {
 	public static final field TAG Ljava/lang/String;
 	public fun <init> (Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;)V
 	public synthetic fun <init> (Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun currentFormValuesSnapshot ()Ljava/util/Map;
 	public final fun dismissFeedback ()V
 	public final fun dismissOverlay ()V
 	public final fun dismissToast ()V
 	public final fun flushOfflineActions ()Lkotlinx/coroutines/Job;
 	public final fun getCapabilities ()Ldev/abeta/kmp/core/platform/PlatformCapabilities;
+	public final fun getCurrentScreenId ()Ljava/lang/String;
 	public final fun getUiState ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun handleDeepLink (Ljava/lang/String;)Lkotlinx/coroutines/Job;
 	public final fun loadMore ()Lkotlinx/coroutines/Job;
@@ -22,8 +48,10 @@ public final class dev/abeta/kmp/layout/engine/LayoutController {
 	public final fun observeConnectivity (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun onAction (Ldev/abeta/kmp/contracts/ActionRef;)Lkotlinx/coroutines/Job;
 	public final fun onFormFieldChanged (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun onNodeImpression (Ljava/lang/String;Ldev/abeta/kmp/contracts/TrackingContract;)V
 	public final fun onSnippetImpression (Ldev/abeta/kmp/contracts/SnippetEnvelope;)V
 	public final fun refreshFromPull ()Lkotlinx/coroutines/Job;
+	public final fun restoreFormValues (Ljava/util/Map;)V
 	public final fun retry ()Lkotlinx/coroutines/Job;
 }
 
@@ -109,6 +137,63 @@ public final class dev/abeta/kmp/layout/engine/OfflineActionCoordinator {
 	public static synthetic fun enqueueOfflineCall$default (Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/actions/model/CallApiPayload;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun flushAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getStatus ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public final class dev/abeta/kmp/layout/engine/SduiLayoutViewModel : androidx/lifecycle/ViewModel {
+	public static final field $stable I
+	public static final field Companion Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel$Companion;
+	public static final field KEY_FORM_VALUES Ljava/lang/String;
+	public static final field KEY_SCREEN_ID Ljava/lang/String;
+	public fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun createSavedState ()Landroidx/savedstate/SavedState;
+	public final fun dismissFeedback ()V
+	public final fun dismissOverlay ()V
+	public final fun dismissToast ()V
+	public final fun flushOfflineActions ()Lkotlinx/coroutines/Job;
+	public final fun getCapabilities ()Ldev/abeta/kmp/core/platform/PlatformCapabilities;
+	public final fun getController ()Ldev/abeta/kmp/layout/engine/LayoutController;
+	public final fun getLastLoadedScreenId ()Ljava/lang/String;
+	public final fun getUiState ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun handleDeepLink (Ljava/lang/String;)Lkotlinx/coroutines/Job;
+	public final fun loadMore ()Lkotlinx/coroutines/Job;
+	public final fun loadScreen (Ljava/lang/String;Z)Lkotlinx/coroutines/Job;
+	public static synthetic fun loadScreen$default (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;Ljava/lang/String;ZILjava/lang/Object;)Lkotlinx/coroutines/Job;
+	public final fun observeConnectivity (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun onAction (Ldev/abeta/kmp/contracts/ActionRef;)Lkotlinx/coroutines/Job;
+	public final fun onFormFieldChanged (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun onNodeImpression (Ljava/lang/String;Ldev/abeta/kmp/contracts/TrackingContract;)V
+	public final fun onSnippetImpression (Ldev/abeta/kmp/contracts/SnippetEnvelope;)V
+	public final fun refreshFromPull ()Lkotlinx/coroutines/Job;
+	public final fun restoreStateFrom (Landroidx/savedstate/SavedState;Z)Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;
+	public static synthetic fun restoreStateFrom$default (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;Landroidx/savedstate/SavedState;ZILjava/lang/Object;)Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;
+	public final fun retry ()Lkotlinx/coroutines/Job;
+	public final fun saveStateTo (Landroidx/savedstate/SavedState;)V
+	public final fun snapshotState ()Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;
+}
+
+public final class dev/abeta/kmp/layout/engine/SduiLayoutViewModel$Companion {
+	public final fun create (Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/CoroutineScope;)Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;
+	public static synthetic fun create$default (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel$Companion;Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/CoroutineScope;ILjava/lang/Object;)Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;
+	public final fun readSnapshot (Landroidx/savedstate/SavedState;)Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;
+}
+
+public final class dev/abeta/kmp/layout/engine/SduiSavedSnapshot {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFormValues ()Ljava/util/Map;
+	public final fun getScreenId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class dev/abeta/kmp/layout/media/ImageBytesFetcher {
@@ -348,6 +433,7 @@ public final class dev/abeta/kmp/layout/snippet/SnippetRegistry$Companion {
 
 public final class dev/abeta/kmp/layout/snippet/SnippetRegistryKt {
 	public static final fun getLocalFormValidationErrors ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun getLocalNodeImpressionHandler ()Landroidx/compose/runtime/ProvidableCompositionLocal;
 }
 
 public abstract interface class dev/abeta/kmp/layout/snippet/SnippetRenderer {
@@ -363,6 +449,13 @@ public final class dev/abeta/kmp/layout/ui/ComposableSingletons$AdaptiveScreenCo
 	public final fun getLambda$2103797671$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function4;
 }
 
+public final class dev/abeta/kmp/layout/ui/ComposableSingletons$SduiOverlaysKt {
+	public static final field INSTANCE Ldev/abeta/kmp/layout/ui/ComposableSingletons$SduiOverlaysKt;
+	public fun <init> ()V
+	public final fun getLambda$1466372373$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function4;
+	public final fun getLambda$233031299$io_github_abeta_dev_sdui_layout ()Lkotlin/jvm/functions/Function3;
+}
+
 public final class dev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt {
 	public static final field INSTANCE Ldev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt;
 	public fun <init> ()V
@@ -371,10 +464,11 @@ public final class dev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt {
 }
 
 public final class dev/abeta/kmp/layout/ui/SduiHostRootKt {
+	public static final fun SduiHostedRoot (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;Ldev/abeta/kmp/layout/snippet/SnippetRegistry;Ldev/abeta/kmp/atoms/atoms/UiImageRenderer;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 	public static final fun SduiHostedRoot (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;ZLandroidx/compose/runtime/Composer;II)V
 }
 
 public final class dev/abeta/kmp/layout/ui/SduiScreenKt {
-	public static final fun SduiScreen (Ldev/abeta/kmp/layout/engine/LayoutUiState;Ldev/abeta/kmp/layout/snippet/SnippetRegistry;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;III)V
+	public static final fun SduiScreen (Ldev/abeta/kmp/layout/engine/LayoutUiState;Ldev/abeta/kmp/layout/snippet/SnippetRegistry;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;ZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;III)V
 }
 

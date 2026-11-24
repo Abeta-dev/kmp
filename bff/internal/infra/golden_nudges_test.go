@@ -323,11 +323,13 @@ func assertStringOnlyTrackingProperties(t *testing.T, raw []byte) {
 	walk = func(node any, path string) {
 		switch v := node.(type) {
 		case map[string]any:
-			if tracking, ok := v["tracking"].(map[string]any); ok {
-				if props, ok := tracking["properties"].(map[string]any); ok {
-					for k, val := range props {
-						if _, isStr := val.(string); !isStr {
-							t.Errorf("%s.tracking.properties[%q] = %T (%v), want string", path, k, val, val)
+			for _, trackingKey := range []string{"tracking", "click_tracking"} {
+				if tracking, ok := v[trackingKey].(map[string]any); ok {
+					if props, ok := tracking["properties"].(map[string]any); ok {
+						for k, val := range props {
+							if _, isStr := val.(string); !isStr {
+								t.Errorf("%s.%s.properties[%q] = %T (%v), want string", path, trackingKey, k, val, val)
+							}
 						}
 					}
 				}

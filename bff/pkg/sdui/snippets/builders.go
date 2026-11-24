@@ -96,6 +96,7 @@ type envelopeMeta struct {
 	kind     string
 	tracking *atoms.TrackingMeta
 	motion   *atoms.MotionSpec
+	sticky   bool
 }
 
 func (m envelopeMeta) wrap(data any) SnippetEnvelope {
@@ -106,6 +107,7 @@ func (m envelopeMeta) wrap(data any) SnippetEnvelope {
 		Data:            data,
 		Tracking:        m.tracking,
 		Motion:          m.motion,
+		Sticky:          m.sticky,
 	}
 }
 
@@ -137,6 +139,11 @@ func (b *HeaderSnippetBuilder) WithTracking(eventName string, props map[string]a
 
 func (b *HeaderSnippetBuilder) WithMotion(motion atoms.MotionSpec) *HeaderSnippetBuilder {
 	b.meta.motion = &motion
+	return b
+}
+
+func (b *HeaderSnippetBuilder) WithSticky(sticky bool) *HeaderSnippetBuilder {
+	b.meta.sticky = sticky
 	return b
 }
 

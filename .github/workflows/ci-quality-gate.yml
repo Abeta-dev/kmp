@@ -1,0 +1,177 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect Changed Areas
+    runs-on: ubuntu-latest
+    outputs:
+      kmp: ${{ steps.detect.outputs.kmp }}
+      bff: ${{ steps.detect.outputs.bff }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: detect
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "kmp=true" >> "$GITHUB_OUTPUT"
+            echo "bff=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD)
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          if echo "$CHANGED" | grep -qE '^(kmp/|scripts/|\.github/workflows/ci-quality-gate\.yml|bff/testdata/golden/)'; then
+            echo "kmp=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "kmp=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if echo "$CHANGED" | grep -qE '^(bff/|scripts/|\.github/workflows/ci-quality-gate\.yml)'; then
+            echo "bff=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bff=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  hygiene-and-architecture:
+    name: Brand Hygiene & Architecture Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run brand hygiene & architecture/wire-parity gates
+        run: |
+          chmod +x ./scripts/check_brand_hygiene.sh ./scripts/check_architecture_and_owners.sh
+          ./scripts/check_brand_hygiene.sh
+          ./scripts/check_architecture_and_owners.sh
+
+  kmp-gate:
+    name: KMP Check & Headless Smoke
+    needs: [changes]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || needs.changes.outputs.kmp == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kmp
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Gradle check (Spotless, Detekt, BCV ABI, Unit & Compose UI tests)
+        run: ./gradlew check --no-daemon --stacktrace
+
+      - name: Run sample-app headless smoke test
+        run: ./gradlew :sample-app:run --args="--headless" --no-daemon
+
+  bff-gate:
+    name: Go BFF Format, Vet & Race Tests
+    needs: [changes]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || needs.changes.outputs.bff == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bff
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.26.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache-dependency-path: bff/go.sum
+
+      - name: Verify gofmt formatting
+        run: |
+          UNFORMATTED=$(gofmt -l .)
+          if [ -n "$UNFORMATTED" ]; then
+            echo "Unformatted Go files found:"
+            echo "$UNFORMATTED"
+            exit 1
+          fi
+
+      - name: Run go vet & race-enabled tests
+        run: |
+          go vet ./...
+          go test -count=1 -race -cover ./...
+
+  ci-quality-gate:
+    name: CI Quality Gate
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - changes
+      - hygiene-and-architecture
+      - kmp-gate
+      - bff-gate
+    steps:
+      - name: Evaluate CI Quality Gate
+        run: |
+          echo "========================================================"
+          echo "Evaluating Abeta KMP Kit CI Quality Gate"
+          echo "  Event: ${{ github.event_name }}"
+          echo "  KMP changes: ${{ needs.changes.outputs.kmp }}"
+          echo "  BFF changes: ${{ needs.changes.outputs.bff }}"
+          echo "========================================================"
+
+          if [ "${{ needs.changes.result }}" != "success" ]; then
+            echo "Path detection failed: ${{ needs.changes.result }}" >&2
+            exit 1
+          fi
+
+          if [ "${{ needs.hygiene-and-architecture.result }}" != "success" ]; then
+            echo "Brand Hygiene & Architecture Gate failed: ${{ needs.hygiene-and-architecture.result }}" >&2
+            exit 1
+          fi
+
+          FAILED=0
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ needs.changes.outputs.kmp }}" = "true" ]; then
+            if [ "${{ needs.kmp-gate.result }}" != "success" ]; then
+              echo "KMP gate failed: ${{ needs.kmp-gate.result }}" >&2
+              FAILED=1
+            fi
+          fi
+
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ needs.changes.outputs.bff }}" = "true" ]; then
+            if [ "${{ needs.bff-gate.result }}" != "success" ]; then
+              echo "Go BFF gate failed: ${{ needs.bff-gate.result }}" >&2
+              FAILED=1
+            fi
+          fi
+
+          if [ "$FAILED" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All CI Quality Gates satisfied!"

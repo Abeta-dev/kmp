@@ -19,7 +19,7 @@ type InMemoryScreenRepository struct {
 }
 
 // NewInMemoryScreenRepository initializes the repository with built-in sample screens
-// ("home", "catalog", "containers", "profile", "form-demo", "store-home", "watch-status")
+// ("home", "catalog", "containers", "profile", "form-demo", "fresh-home", "store-home", "watch-status")
 // and Abeta Pay fintech vertical screens ("pay-home", "pay-transfer", "pay-cards", "pay-receipt").
 func NewInMemoryScreenRepository() *InMemoryScreenRepository {
 	return &InMemoryScreenRepository{
@@ -29,6 +29,7 @@ func NewInMemoryScreenRepository() *InMemoryScreenRepository {
 			"containers":   buildContainersScreen(),
 			"profile":      buildProfileScreen(),
 			"form-demo":    buildFormDemoScreen(),
+			"fresh-home":   buildFreshHomeScreen(),
 			"store-home":   buildStoreHomeScreen(),
 			"watch-status": buildWatchStatusScreen(),
 			"pay-home":     buildPayHomeScreen(),

@@ -25,6 +25,8 @@ private fun registerOverlayAndToastHandlers(builder: ActionRegistry.Builder) {
                 positiveAction = payload.positiveAction,
                 negativeAction = payload.negativeAction,
                 presentation = payload.presentation,
+                snippets = payload.snippets,
+                sheetScreenId = payload.sheetScreenId,
             ),
         )
     }

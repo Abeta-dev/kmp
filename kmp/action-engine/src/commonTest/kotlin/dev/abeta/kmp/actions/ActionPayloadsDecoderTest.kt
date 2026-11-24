@@ -18,10 +18,15 @@ import dev.abeta.kmp.actions.model.SharePayload
 import dev.abeta.kmp.actions.model.ShowToastPayload
 import dev.abeta.kmp.actions.model.TrackEventPayload
 import dev.abeta.kmp.actions.model.TriggerFeedbackPayload
+import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.OsPermissionKind
 import dev.abeta.kmp.contracts.OverlayPresentation
+import dev.abeta.kmp.contracts.SduiJson
+import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.result.AppResult
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
@@ -111,6 +116,57 @@ class ActionPayloadsDecoderTest {
             )
         val sheet = assertIs<AppResult.Success<OpenDialogPayload>>(sheetResult).value
         assertEquals(OverlayPresentation.BOTTOM_SHEET, sheet.presentation)
+        assertTrue(sheet.snippets.isEmpty())
+        assertEquals(null, sheet.sheetScreenId)
+    }
+
+    @Test
+    fun decodesOpenDialogRichSnippetsSheetScreenIdAndActionRefTracking() {
+        val sheetResult =
+            decoderRegistry.decode(
+                type = ActionTypes.OPEN_DIALOG,
+                payload =
+                    buildJsonObject {
+                        put("dialog_id", "variant_picker")
+                        put("title", "Choose Pack Size")
+                        put("presentation", "bottom_sheet")
+                        put("sheet_screen_id", "fresh-variants")
+                        put(
+                            "snippets",
+                            buildJsonArray {
+                                add(
+                                    buildJsonObject {
+                                        put("snippet_id", "variant_row_1")
+                                        put("snippet_type", SnippetTypes.ACTION_ROW)
+                                        put("data", buildJsonObject { put("label", "500 g") })
+                                    },
+                                )
+                            },
+                        )
+                    },
+            )
+        val sheet = assertIs<AppResult.Success<OpenDialogPayload>>(sheetResult).value
+        assertEquals(OverlayPresentation.BOTTOM_SHEET, sheet.presentation)
+        assertEquals("fresh-variants", sheet.sheetScreenId)
+        assertEquals(1, sheet.snippets.size)
+        assertEquals("variant_row_1", sheet.snippets.first().snippetId)
+        assertEquals(SnippetTypes.ACTION_ROW, sheet.snippets.first().snippetType)
+
+        val trackedAction =
+            ActionRef(
+                id = "open_variants_1",
+                type = ActionTypes.OPEN_DIALOG,
+                payload = buildJsonObject { put("dialog_id", "variant_picker") },
+                tracking =
+                    TrackingContract(
+                        eventName = "variant_sheet_opened",
+                        properties = mapOf("sku" to "milk-1l"),
+                    ),
+            )
+        val roundTripped = SduiJson.decodeFromString<ActionRef>(SduiJson.encodeToString(trackedAction))
+        assertEquals(trackedAction, roundTripped)
+        assertEquals("variant_sheet_opened", roundTripped.tracking?.eventName)
+        assertEquals("milk-1l", roundTripped.tracking?.properties?.get("sku"))
     }
 
     @Test

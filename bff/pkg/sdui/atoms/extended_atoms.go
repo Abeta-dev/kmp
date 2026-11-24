@@ -173,6 +173,18 @@ type QrCodeAtom struct {
 	Layout  *LayoutConfig          `json:"layout,omitempty"`
 }
 
+// MediaPagerAtom describes a swipeable horizontal image/media pager primitive.
+type MediaPagerAtom struct {
+	ID             string                 `json:"id,omitempty"`
+	Items          []ImageAtom            `json:"items,omitempty"`
+	HeightDp       int                    `json:"height_dp,omitempty"`
+	AutoAdvanceMs  *int                   `json:"auto_advance_ms,omitempty"`
+	ShowIndicators *bool                  `json:"show_indicators,omitempty"`
+	CornerRadius   *CornerRadiusSpec      `json:"corner_radius,omitempty"`
+	OnPageClick    *actions.ActionTrigger `json:"on_page_click,omitempty"`
+	Layout         *LayoutConfig          `json:"layout,omitempty"`
+}
+
 // ── Pure Constructors ──────────────────────────────────────────────────────────
 
 func cloneOptions(options []OptionItem) []OptionItem {
@@ -303,5 +315,20 @@ func NewQrCode(id, payload, label string, sizeDp int) QrCodeAtom {
 		Payload: payload,
 		Label:   label,
 		SizeDp:  sizeDp,
+	}
+}
+
+// NewMediaPager creates a MediaPagerAtom with a defensive copy of items and ShowIndicators=true.
+func NewMediaPager(id string, items []ImageAtom, heightDp int) MediaPagerAtom {
+	var cloned []ImageAtom
+	if len(items) > 0 {
+		cloned = make([]ImageAtom, len(items))
+		copy(cloned, items)
+	}
+	return MediaPagerAtom{
+		ID:             id,
+		Items:          cloned,
+		HeightDp:       heightDp,
+		ShowIndicators: BoolPtr(true),
 	}
 }

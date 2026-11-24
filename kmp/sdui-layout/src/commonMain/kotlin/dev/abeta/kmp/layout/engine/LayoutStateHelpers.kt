@@ -30,10 +30,15 @@ internal object LayoutFormSeeder {
     fun extractInitialFormValues(
         page: PageResponse,
         sessionStore: SessionStore,
+    ): Map<String, String> = extractInitialFormValuesFromSnippets(page.snippets, sessionStore)
+
+    fun extractInitialFormValuesFromSnippets(
+        snippets: List<SnippetEnvelope>,
+        sessionStore: SessionStore,
     ): Map<String, String> {
         val values = linkedMapOf<String, String>()
         val existingState = sessionStore.state.value
-        val allEnvelopes = collectAllEnvelopes(page.snippets, SduiJson)
+        val allEnvelopes = collectAllEnvelopes(snippets, SduiJson)
         for (snippet in allEnvelopes) {
             when (snippet.snippetType) {
                 SnippetTypes.FORM -> {
@@ -78,8 +83,36 @@ internal object LayoutFormSeeder {
     ) {
         if (!canRenderComposedDepth(depth)) return
         seedComposedNodeValues(node, existingState, sessionStore, values)
+        seedComposedFormAtomValues(node, existingState, sessionStore, values)
         node.children.forEach { child ->
             seedComposedControls(child, depth + 1, existingState, sessionStore, values)
+        }
+    }
+
+    private fun seedComposedFormAtomValues(
+        node: ComposedNode,
+        existingState: Map<String, JsonElement>,
+        sessionStore: SessionStore,
+        values: MutableMap<String, String>,
+    ) {
+        node.textField?.let { field ->
+            val stored = (existingState[field.fieldId] as? JsonPrimitive)?.contentOrNull
+            val resolved = stored ?: field.initialValue
+            if (resolved.isNotEmpty()) {
+                values[field.fieldId] = resolved
+                if (stored == null) {
+                    sessionStore.put(field.fieldId, JsonPrimitive(resolved))
+                }
+            }
+        }
+        node.switch?.let { switchAtom ->
+            seedControlValue(switchAtom.fieldId, switchAtom.checked.toString(), existingState, sessionStore, values)
+        }
+        node.checkbox?.let { checkboxAtom ->
+            seedControlValue(checkboxAtom.fieldId, checkboxAtom.checked.toString(), existingState, sessionStore, values)
+        }
+        node.slider?.let { sliderAtom ->
+            seedControlValue(sliderAtom.fieldId, sliderAtom.value.toString(), existingState, sessionStore, values)
         }
     }
 

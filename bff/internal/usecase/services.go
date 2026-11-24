@@ -25,7 +25,8 @@ func NewScreenService(repo domain.ScreenRepository) *ScreenService {
 	return &ScreenService{repo: repo}
 }
 
-// GetScreen validates screenID and fetches the corresponding SDUI PageResponse.
+// GetScreen validates screenID, fetches the corresponding SDUI PageResponse,
+// and ensures deterministic component IDs across all snippets and composed nodes.
 func (s *ScreenService) GetScreen(ctx context.Context, screenID string) (snippets.PageResponse, error) {
 	id := strings.TrimSpace(screenID)
 	if id == "" {
@@ -34,7 +35,12 @@ func (s *ScreenService) GetScreen(ctx context.Context, screenID string) (snippet
 	if s.repo == nil {
 		return snippets.PageResponse{}, apperror.Internal("screen repository is not configured")
 	}
-	return s.repo.GetScreen(ctx, id)
+	page, err := s.repo.GetScreen(ctx, id)
+	if err != nil {
+		return snippets.PageResponse{}, err
+	}
+	snippets.EnsureComponentIDs(&page)
+	return page, nil
 }
 
 // ListScreens returns all available screen identifiers.

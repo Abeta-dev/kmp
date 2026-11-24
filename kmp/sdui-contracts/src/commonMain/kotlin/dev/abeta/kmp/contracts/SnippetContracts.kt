@@ -45,6 +45,7 @@ data class SnippetEnvelope(
     val data: JsonObject = JsonObject(emptyMap()),
     val tracking: TrackingContract? = null,
     val motion: MotionSpec? = null,
+    val sticky: Boolean = false,
 )
 
 /**

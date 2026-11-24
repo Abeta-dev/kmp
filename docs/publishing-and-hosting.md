@@ -33,7 +33,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaKmp") {
-            from("io.github.abeta-dev:dependencies:0.3.0")
+            from("io.github.abeta-dev:dependencies:0.4.0")
         }
     }
 }
@@ -45,7 +45,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:database") // Optional Room 3 KMP local SQLite DB
             implementation("io.github.abeta-dev:design-tokens")
@@ -79,7 +79,7 @@ dependencyResolutionManagement {
 ```kotlin
 // build.gradle.kts (commonMain)
 commonMain.dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0-SNAPSHOT"))
     implementation("io.github.abeta-dev:database")
     implementation("io.github.abeta-dev:sdui-layout")
 }
@@ -101,14 +101,14 @@ Or in a SwiftPM `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.3.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.0"),
 ]
 ```
 
 ### D. Go 1.26.0 SDUI BFF — `proxy.golang.org`
 
 ```bash
-go get github.com/abeta-dev/kmp/bff@v0.5.0
+go get github.com/abeta-dev/kmp/bff@v0.6.0
 ```
 
 ---
@@ -260,13 +260,13 @@ No secrets, tokens, or account registration are needed for Go consumers:
 
 1. Tag the Go BFF module under its subdirectory tag prefix `bff/`:
    ```bash
-   git tag -a bff/v0.5.0 -m "Release Go SDUI BFF v0.5.0"
-   git push origin bff/v0.5.0
+   git tag -a bff/v0.6.0 -m "Release Go SDUI BFF v0.5.0"
+   git push origin bff/v0.6.0
    ```
 2. [release.yml](../.github/workflows/release.yml) verifies `gofmt`, `go vet ./...`, and `go test -race -cover ./...`, creates the GitHub Release, and automatically warms `https://proxy.golang.org/github.com/abeta-dev/kmp/bff/@v/v0.5.0.info`.
 3. Any Go developer worldwide can immediately install it with:
    ```bash
-   go get github.com/abeta-dev/kmp/bff@v0.5.0
+   go get github.com/abeta-dev/kmp/bff@v0.6.0
    ```
 
 ---
@@ -318,8 +318,8 @@ git tag -a v0.3.0 -m "Release v0.3.0"
 git push origin v0.3.0
 
 # 2. Cut a Go BFF module release (GitHub Release + automatic proxy.golang.org indexing)
-git tag -a bff/v0.5.0 -m "Release Go SDUI BFF v0.5.0"
-git push origin bff/v0.5.0
+git tag -a bff/v0.6.0 -m "Release Go SDUI BFF v0.5.0"
+git push origin bff/v0.6.0
 ```
 
 You can also trigger `Release` or `Snapshot Publish (Cloudsmith Open Source)` manually via **GitHub Actions -> Run workflow** (`workflow_dispatch`) to target a specific registry (`maven-central`, `cloudsmith`, `github-packages`, `xcframeworks-only`) or override the version.

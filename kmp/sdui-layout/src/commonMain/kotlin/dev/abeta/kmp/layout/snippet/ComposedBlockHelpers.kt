@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.atoms.atoms.UiAvatar
 import dev.abeta.kmp.atoms.atoms.UiButton
 import dev.abeta.kmp.atoms.atoms.UiCountdown
@@ -25,6 +26,8 @@ import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.DividerAtom
 import dev.abeta.kmp.contracts.SpacerAtom
 import dev.abeta.kmp.tokens.ThemeTokens
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName", "CyclomaticComplexMethod")
@@ -211,5 +214,60 @@ internal fun resolveComposedBoxAlignment(
         horiz == "center" -> Alignment.Center
         horiz == "end" -> Alignment.CenterEnd
         else -> Alignment.TopStart
+    }
+}
+
+internal fun resolveChildBoxAlignment(
+    boxAlignment: String?,
+    fallback: Alignment = Alignment.TopStart,
+): Alignment =
+    when (boxAlignment?.trim()?.lowercase()) {
+        "top_start" -> Alignment.TopStart
+        "top_center" -> Alignment.TopCenter
+        "top_end" -> Alignment.TopEnd
+        "center_start" -> Alignment.CenterStart
+        "center" -> Alignment.Center
+        "center_end" -> Alignment.CenterEnd
+        "bottom_start" -> Alignment.BottomStart
+        "bottom_center" -> Alignment.BottomCenter
+        "bottom_end" -> Alignment.BottomEnd
+        else -> fallback
+    }
+
+internal fun resolveComposedNodeClickAction(node: ComposedNode): ActionRef? {
+    val clickAction = node.onClick
+    val clickTracking = node.clickTracking
+    return when {
+        clickAction != null && clickTracking != null && clickAction.tracking == null -> {
+            clickAction.copy(tracking = clickTracking)
+        }
+
+        clickAction != null -> {
+            clickAction
+        }
+
+        clickTracking != null -> {
+            ActionRef(
+                id = node.nodeId?.takeIf { it.isNotBlank() }?.let { "track_$it" },
+                type = ActionTypes.TRACK_EVENT,
+                payload =
+                    buildJsonObject {
+                        put("event_name", clickTracking.eventName)
+                        if (clickTracking.properties.isNotEmpty()) {
+                            put(
+                                "properties",
+                                buildJsonObject {
+                                    clickTracking.properties.forEach { (key, value) -> put(key, value) }
+                                },
+                            )
+                        }
+                    },
+                tracking = clickTracking,
+            )
+        }
+
+        else -> {
+            null
+        }
     }
 }

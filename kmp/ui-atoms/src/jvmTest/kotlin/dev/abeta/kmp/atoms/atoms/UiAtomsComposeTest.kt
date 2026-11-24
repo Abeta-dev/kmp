@@ -54,6 +54,7 @@ import dev.abeta.kmp.contracts.StepperAtom
 import dev.abeta.kmp.contracts.SwitchAtom
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TextFieldAtom
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.tokens.DesignTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -82,6 +83,57 @@ class UiAtomsComposeTest {
             onNodeWithText("Submit").assertIsDisplayed().performClick()
             assertEquals(listOf(expectedAction), capturedActions)
             assertEquals(listOf(UiHapticKind.CLICK), capturedHaptics)
+        }
+
+    @Test
+    fun clickingUiButtonPropagatesButtonTrackingWithoutOverwritingActionTracking() =
+        runComposeUiTest {
+            val capturedActions = mutableListOf<ActionRef>()
+            val buttonTracking =
+                TrackingContract(
+                    eventName = "checkout_cta_clicked",
+                    properties = mapOf("surface" to "cart_bar"),
+                )
+            val actionTracking =
+                TrackingContract(
+                    eventName = "explicit_action_event",
+                    properties = mapOf("priority" to "action"),
+                )
+            val untaggedClick = ActionRef(id = "btn_checkout", type = "navigate")
+            val taggedClick = ActionRef(id = "btn_explicit", type = "navigate", tracking = actionTracking)
+
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = true) {
+                    Column {
+                        UiButton(
+                            atom =
+                                ButtonAtom(
+                                    label = "Checkout Now",
+                                    onClick = untaggedClick,
+                                    tracking = buttonTracking,
+                                ),
+                            onAction = capturedActions::add,
+                        )
+                        UiButton(
+                            atom =
+                                ButtonAtom(
+                                    label = "Explicit Track",
+                                    onClick = taggedClick,
+                                    tracking = buttonTracking,
+                                ),
+                            onAction = capturedActions::add,
+                        )
+                    }
+                }
+            }
+
+            onNodeWithText("Checkout Now").assertIsDisplayed().performClick()
+            onNodeWithText("Explicit Track").assertIsDisplayed().performClick()
+
+            assertEquals(
+                listOf(untaggedClick.copy(tracking = buttonTracking), taggedClick),
+                capturedActions,
+            )
         }
 
     @Test

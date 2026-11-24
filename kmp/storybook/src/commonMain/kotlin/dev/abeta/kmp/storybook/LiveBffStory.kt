@@ -26,7 +26,6 @@ import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.actions.codec.BuiltInActionDecoders
 import dev.abeta.kmp.actions.handler.ActionOutcome
 import dev.abeta.kmp.actions.handler.BuiltInActionHandlers
@@ -131,7 +131,7 @@ fun LiveBffStory(onAction: (ActionRef) -> Unit) {
         if (fetchCount > 0) holder.controller.loadScreen(selectedScreen)
     }
 
-    val uiState by holder.controller.uiState.collectAsState()
+    val uiState by holder.controller.uiState.collectAsStateWithLifecycle()
     val triggerOverlayDemo: (OverlayPresentation) -> Unit = { presentation ->
         val action = createOverlayDemoAction(presentation)
         onAction(action)
@@ -323,6 +323,7 @@ private fun LiveBffViewportFrame(
                 onDismissToast = controller::dismissToast,
                 onDismissFeedback = controller::dismissFeedback,
                 onSnippetImpression = controller::onSnippetImpression,
+                onNodeImpression = controller::onNodeImpression,
                 onLoadMore = { controller.loadMore() },
                 modifier = Modifier.fillMaxSize(),
             )

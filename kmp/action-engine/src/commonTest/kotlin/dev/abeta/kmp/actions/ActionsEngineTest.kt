@@ -19,6 +19,8 @@ import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.OsPermissionKind
 import dev.abeta.kmp.contracts.OverlayPresentation
 import dev.abeta.kmp.contracts.SduiJson
+import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.error.NotFoundError
 import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.error.UnexpectedError
@@ -390,6 +392,53 @@ class ActionsEngineTest {
                 )
             assertEquals(OverlayPresentation.BOTTOM_SHEET, sheetOutcome.presentation)
             assertEquals("sort_options", sheetOutcome.dialogId)
+            assertTrue(sheetOutcome.snippets.isEmpty())
+            assertEquals(null, sheetOutcome.sheetScreenId)
+        }
+
+    @Test
+    fun openDialogPropagatesSnippetsAndSheetScreenIdToOverlayRequested() =
+        runTest {
+            val dispatcher = createApiDispatcher()
+            val richSheetAction =
+                ActionRef(
+                    id = "open_coupon_drawer",
+                    type = ActionTypes.OPEN_DIALOG,
+                    payload =
+                        buildJsonObject {
+                            put("dialog_id", "coupon_drawer")
+                            put("title", "Apply Coupon")
+                            put("presentation", "bottom_sheet")
+                            put("sheet_screen_id", "fresh-coupons")
+                            put(
+                                "snippets",
+                                buildJsonArray {
+                                    add(
+                                        buildJsonObject {
+                                            put("snippet_id", "coupon_save20")
+                                            put("snippet_type", SnippetTypes.CARD)
+                                            put("sticky", true)
+                                        },
+                                    )
+                                },
+                            )
+                        },
+                    tracking =
+                        TrackingContract(
+                            eventName = "coupon_drawer_opened",
+                            properties = mapOf("cart" to "fresh"),
+                        ),
+                )
+            val richSheetResults = dispatcher.dispatch(richSheetAction)
+            val richSheetOutcome =
+                assertIs<ActionOutcome.OverlayRequested>(
+                    assertIs<AppResult.Success<ActionOutcome>>(richSheetResults.single()).value,
+                )
+            assertEquals("coupon_drawer", richSheetOutcome.dialogId)
+            assertEquals("fresh-coupons", richSheetOutcome.sheetScreenId)
+            assertEquals(1, richSheetOutcome.snippets.size)
+            assertEquals("coupon_save20", richSheetOutcome.snippets.first().snippetId)
+            assertTrue(richSheetOutcome.snippets.first().sticky)
         }
 
     @Test

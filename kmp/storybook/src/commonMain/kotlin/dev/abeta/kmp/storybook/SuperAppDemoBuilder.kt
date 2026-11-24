@@ -1,6 +1,7 @@
 package dev.abeta.kmp.storybook
 
 import dev.abeta.kmp.actions.model.ActionTypes
+import dev.abeta.kmp.actions.model.OpenDialogPayload
 import dev.abeta.kmp.contracts.AccordionSnippetData
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.ActionRowSnippetData
@@ -39,6 +40,7 @@ import dev.abeta.kmp.contracts.StepperAtom
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TextAtom
 import dev.abeta.kmp.contracts.ToolbarSpec
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.contracts.TypographyTokenRef
 import dev.abeta.kmp.contracts.ValidationRuleContract
 import kotlinx.serialization.builtins.ListSerializer
@@ -299,16 +301,42 @@ internal object SuperAppDemoBuilder {
             bgColor = ColorTokenRef("surface.primary"),
         )
 
+    fun dismissOverlayAction(
+        id: String,
+        overlayId: String,
+    ): ActionRef =
+        ActionRef(
+            id = id,
+            type = ActionTypes.DISMISS_OVERLAY,
+            payload = buildJsonObject { put("overlay_id", overlayId) },
+        )
+
+    fun openDialogAction(
+        id: String,
+        payload: OpenDialogPayload,
+        tracking: TrackingContract? = null,
+    ): ActionRef =
+        ActionRef(
+            id = id,
+            type = ActionTypes.OPEN_DIALOG,
+            payload = encode(payload),
+            tracking = tracking,
+        )
+
     fun searchBar(
         snippetId: String,
         searchId: String,
         placeholder: String,
         routeBase: String,
         query: String = "",
+        sticky: Boolean = false,
+        tracking: TrackingContract? = null,
     ): SnippetEnvelope =
         SnippetEnvelope(
             snippetId = snippetId,
             snippetType = SnippetTypes.SEARCH_BAR,
+            sticky = sticky,
+            tracking = tracking,
             data =
                 encode(
                     SearchBarSnippetData(

@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/theming"
 )
@@ -54,4 +55,10 @@ type ActionExecutor interface {
 // TokenCatalogProvider supplies the active SDUI design token catalog.
 type TokenCatalogProvider interface {
 	GetCatalog(ctx context.Context) (TokenCatalog, error)
+}
+
+// AnalyticsStore persists ingested client/BFF analytics batches and aggregates live summaries.
+type AnalyticsStore interface {
+	RecordBatch(ctx context.Context, req analytics.BatchRequest) (analytics.IngestResponse, error)
+	GetSummary(ctx context.Context) (analytics.Summary, error)
 }

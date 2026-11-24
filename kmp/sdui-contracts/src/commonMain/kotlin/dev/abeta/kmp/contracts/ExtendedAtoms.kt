@@ -10,6 +10,7 @@ private const val DEFAULT_MAX_STARS = 5
 private const val DEFAULT_STAR_SIZE_DP = 20
 private const val DEFAULT_BADGE_MAX_COUNT = 99
 private const val DEFAULT_QR_CODE_SIZE_DP = 160
+private const val DEFAULT_MEDIA_PAGER_HEIGHT_DP = 200
 
 /**
  * Reusable selectable option item shared by [RadioGroupAtom], [SelectAtom], and [SegmentedControlAtom].
@@ -247,5 +248,25 @@ data class QrCodeAtom(
     val sizeDp: Int = DEFAULT_QR_CODE_SIZE_DP,
     @SerialName("on_click")
     val onClick: ActionRef? = null,
+    val layout: LayoutConfig? = null,
+)
+
+/**
+ * Pure wire contract for a swipeable horizontal media pager UI atom.
+ */
+@Serializable
+data class MediaPagerAtom(
+    val id: String? = null,
+    val items: List<ImageAtom> = emptyList(),
+    @SerialName("height_dp")
+    val heightDp: Int = DEFAULT_MEDIA_PAGER_HEIGHT_DP,
+    @SerialName("auto_advance_ms")
+    val autoAdvanceMs: Int? = null,
+    @SerialName("show_indicators")
+    val showIndicators: Boolean = true,
+    @SerialName("corner_radius")
+    val cornerRadius: CornerRadiusSpec? = null,
+    @SerialName("on_page_click")
+    val onPageClick: ActionRef? = null,
     val layout: LayoutConfig? = null,
 )

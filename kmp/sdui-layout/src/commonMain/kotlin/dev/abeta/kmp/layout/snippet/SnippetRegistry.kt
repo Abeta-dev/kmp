@@ -13,6 +13,7 @@ import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.error.AppError
 import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.result.AppResult
@@ -27,6 +28,14 @@ import kotlinx.serialization.serializer
  */
 val LocalFormValidationErrors: ProvidableCompositionLocal<Map<String, String>> =
     staticCompositionLocalOf { emptyMap() }
+
+/**
+ * [ProvidableCompositionLocal] supplying a callback invoked when an individual
+ * [dev.abeta.kmp.contracts.ComposedNode] with a non-null [TrackingContract] enters composition,
+ * without altering the [SnippetRenderer.Render] interface contract.
+ */
+val LocalNodeImpressionHandler: ProvidableCompositionLocal<(String, TrackingContract) -> Unit> =
+    staticCompositionLocalOf { { _, _ -> } }
 
 internal val LocalSnippetRegistry: ProvidableCompositionLocal<SnippetRegistry?> =
     staticCompositionLocalOf { null }

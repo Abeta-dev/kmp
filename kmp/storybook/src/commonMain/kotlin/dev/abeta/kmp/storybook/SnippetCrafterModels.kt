@@ -9,10 +9,12 @@ private const val FLASH_COUNTDOWN_SEC = 185
 private const val LOYALTY_COUNTDOWN_SEC = 720
 private const val RIDER_COUNTDOWN_SEC = 340
 private const val B2B_COUNTDOWN_SEC = 540
+private const val EXPRESS_TILE_COUNTDOWN_SEC = 480
 private const val FLASH_PROGRESS = 0.78f
 private const val LOYALTY_PROGRESS = 0.75f
 private const val RIDER_PROGRESS = 0.66f
 private const val B2B_PROGRESS = 0.85f
+private const val EXPRESS_TILE_PROGRESS = 0.82f
 
 internal enum class CrafterPreset(
     val label: String,
@@ -78,6 +80,19 @@ internal enum class CrafterPreset(
         progressLabel = "85% to extra 6% volume rebate",
         progressFraction = B2B_PROGRESS,
         ctaLabel = "Request Quote",
+    ),
+    EXPRESS_PRODUCT_TILE(
+        label = "Express Product Tile (Box Overlay)",
+        recipeName = "express_product_tile_overlay_v1",
+        title = "Organic Hass Avocados · 500g",
+        subtitle = "Molded BOX overlays (top_start / top_end / bottom_start) + Price + Stepper",
+        badgeLabel = "20% OFF",
+        badgeVariant = TagVariant.ERROR,
+        countdownLabel = "Fresh",
+        countdownSeconds = EXPRESS_TILE_COUNTDOWN_SEC,
+        progressLabel = "82% of express harvest batch claimed",
+        progressFraction = EXPRESS_TILE_PROGRESS,
+        ctaLabel = "500g ▼",
     ),
 }
 

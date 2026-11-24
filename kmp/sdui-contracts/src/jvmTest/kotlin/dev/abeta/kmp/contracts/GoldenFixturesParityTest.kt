@@ -415,4 +415,46 @@ class GoldenFixturesParityTest {
         assertEquals("$24.90", nodesById["node_key_value_row"]?.keyValueRow?.value)
         assertEquals("qr_pickup_pass", nodesById["node_qr_code"]?.qrCode?.id)
     }
+
+    @Test
+    fun decodesExpressMoleculesAndAnalyticsGoldenFixture() {
+        val rawJson = loadGoldenJson("express_molecules_and_analytics_screen.json")
+        val page = SduiJson.decodeFromString<PageResponse>(rawJson)
+        assertEquals("express-molecules-demo", page.pageId)
+        assertEquals(8, page.snippets.size)
+
+        val stickySearch = page.snippets[0]
+        assertTrue(stickySearch.sticky)
+        val searchData = SduiJson.decodeFromJsonElement<SearchBarSnippetData>(stickySearch.data)
+        assertEquals("search_submitted", searchData.onSubmit?.tracking?.eventName)
+
+        val heroBlock = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[1].data)
+        assertEquals(ComposedNodeKind.MEDIA_PAGER, heroBlock.root.kind)
+        assertEquals("express_hero_pager", heroBlock.root.mediaPager?.id)
+
+        val categoryBlock = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[2].data)
+        val upsellBlock = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[4].data)
+        val deliveryBlock = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[5].data)
+
+        val allNodes =
+            listOf(heroBlock, categoryBlock, upsellBlock, deliveryBlock)
+                .flatMap { collectComposedNodes(it.root) }
+        val kinds = allNodes.map { it.kind }.toSet()
+        assertTrue(ComposedNodeKind.GRID in kinds)
+        assertTrue(ComposedNodeKind.SCROLL_ROW in kinds)
+        assertTrue(ComposedNodeKind.SWITCH in kinds)
+        assertTrue(ComposedNodeKind.TEXT_FIELD in kinds)
+        assertTrue(ComposedNodeKind.CHECKBOX in kinds)
+        assertTrue(ComposedNodeKind.SLIDER in kinds)
+        assertTrue(allNodes.all { !it.nodeId.isNullOrBlank() })
+
+        val productBlock = SduiJson.decodeFromJsonElement<ComposedBlockSnippetData>(page.snippets[3].data)
+        val productNodes = collectComposedNodes(productBlock.root)
+        assertTrue(productNodes.any { it.boxAlignment == "top_start" })
+        assertTrue(productNodes.any { it.tracking != null })
+        assertTrue(productNodes.any { it.clickTracking != null })
+    }
+
+    private fun collectComposedNodes(root: ComposedNode): List<ComposedNode> =
+        listOf(root) + root.children.flatMap { collectComposedNodes(it) }
 }

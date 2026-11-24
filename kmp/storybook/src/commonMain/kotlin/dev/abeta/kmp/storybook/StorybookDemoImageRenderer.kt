@@ -120,33 +120,20 @@ private fun DemoArtworkPlaceholder(
     }
 }
 
+private val PRODUCE_KEYWORDS = listOf("avocado", "produce", "berr", "harvest")
+private val DRINK_KEYWORDS = listOf("milk", "dairy", "brew", "drink", "yuzu", "juice")
+private val BAKERY_KEYWORDS = listOf("sourdough", "bakery", "almond", "biryani", "chips")
+
 @Composable
 private fun resolveArtworkPalette(url: String): DemoArtworkPalette {
     val colors = ThemeTokens.colors
     val slug = url.lowercase()
     return when {
-        slug.contains("pay") -> {
-            DemoArtworkPalette(colors.brand.primary, colors.status.warning, "star")
-        }
-
-        slug.contains("spark") -> {
-            DemoArtworkPalette(colors.brand.primary, colors.status.warning, "person")
-        }
-
-        slug.contains("avocado") || slug.contains("produce") || slug.contains("berr") -> {
-            DemoArtworkPalette(colors.status.success, colors.brand.primary, "star")
-        }
-
-        slug.contains("milk") || slug.contains("brew") || slug.contains("drink") -> {
-            DemoArtworkPalette(colors.status.info, colors.brand.primary, "info")
-        }
-
-        slug.contains("sourdough") || slug.contains("almond") || slug.contains("biryani") -> {
-            DemoArtworkPalette(colors.status.warning, colors.brand.primary, "check")
-        }
-
-        else -> {
-            DemoArtworkPalette(colors.brand.primary, colors.status.info, "shopping_cart")
-        }
+        "pay" in slug -> DemoArtworkPalette(colors.brand.primary, colors.status.warning, "star")
+        "spark" in slug -> DemoArtworkPalette(colors.brand.primary, colors.status.warning, "person")
+        PRODUCE_KEYWORDS.any { it in slug } -> DemoArtworkPalette(colors.status.success, colors.brand.primary, "star")
+        DRINK_KEYWORDS.any { it in slug } -> DemoArtworkPalette(colors.status.info, colors.brand.primary, "info")
+        BAKERY_KEYWORDS.any { it in slug } -> DemoArtworkPalette(colors.status.warning, colors.brand.primary, "check")
+        else -> DemoArtworkPalette(colors.brand.primary, colors.status.info, "shopping_cart")
     }
 }

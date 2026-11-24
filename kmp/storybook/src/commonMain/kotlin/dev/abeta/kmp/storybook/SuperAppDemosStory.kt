@@ -5,12 +5,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +21,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,18 +31,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.actions.codec.BuiltInActionDecoders
 import dev.abeta.kmp.actions.handler.ActionOutcome
 import dev.abeta.kmp.actions.handler.BuiltInActionHandlers
 import dev.abeta.kmp.actions.handler.DefaultActionDispatcher
 import dev.abeta.kmp.actions.model.ActionTypes
-import dev.abeta.kmp.analytics.LoggerAnalyticsTracker
 import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiTag
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
-import dev.abeta.kmp.core.logging.NoOpAppLogger
 import dev.abeta.kmp.core.security.BiometricResult
 import dev.abeta.kmp.layout.engine.LayoutController
 import dev.abeta.kmp.layout.engine.LayoutUiState
@@ -60,6 +60,8 @@ import kotlinx.serialization.json.put
 private const val PHONE_FRAME_WIDTH_DP = 412
 private const val TABLET_FRAME_WIDTH_DP = 768
 private const val WATCH_FRAME_WIDTH_DP = 280
+private const val SIDE_TELEMETRY_MIN_WIDTH_DP = 680
+private const val SIDE_TELEMETRY_WIDTH_DP = 264
 
 private enum class DemoViewportMode(
     val label: String,
@@ -73,6 +75,7 @@ private enum class DemoViewportMode(
 private class SuperAppDemoHolder(
     val snippetRegistry: SnippetRegistry,
     val controller: LayoutController,
+    val analyticsTracker: LiveStorybookAnalyticsTracker,
     private val scope: CoroutineScope,
     private val backStack: ArrayDeque<String>,
     private val onScreenChanged: (String) -> Unit,
@@ -168,7 +171,8 @@ fun SuperAppDemosStory(
         holder.openScreen(startScreen, clearStack = true)
     }
 
-    val uiState by holder.controller.uiState.collectAsState()
+    val uiState by holder.controller.uiState.collectAsStateWithLifecycle()
+    val telemetrySnapshot by holder.analyticsTracker.snapshot.collectAsStateWithLifecycle()
     val activeApp = SuperAppDemoCatalog.appForScreen(activeScreen)
     val effectiveMaxWidth: Dp? =
         if (activeApp.isWatch) {
@@ -196,6 +200,7 @@ fun SuperAppDemosStory(
             activeApp = activeApp,
             effectiveMaxWidth = effectiveMaxWidth,
             uiState = uiState,
+            telemetrySnapshot = telemetrySnapshot,
             holder = holder,
             darkTheme = darkTheme,
             reducedMotion = reducedMotion,
@@ -211,6 +216,7 @@ private fun SuperAppDemoViewport(
     activeApp: DemoVerticalApp,
     effectiveMaxWidth: Dp?,
     uiState: LayoutUiState,
+    telemetrySnapshot: LiveTelemetrySnapshot,
     holder: SuperAppDemoHolder,
     darkTheme: Boolean,
     reducedMotion: Boolean,
@@ -218,7 +224,7 @@ private fun SuperAppDemoViewport(
     modifier: Modifier = Modifier,
 ) {
     val spacing = ThemeTokens.spacing
-    Box(
+    BoxWithConstraints(
         modifier =
             modifier
                 .clip(RoundedCornerShape(ThemeTokens.cornerRadius.md))
@@ -226,42 +232,127 @@ private fun SuperAppDemoViewport(
                 .padding(spacing.space12),
         contentAlignment = Alignment.TopCenter,
     ) {
-        val frameModifier =
-            if (effectiveMaxWidth != null) {
-                Modifier.fillMaxHeight().widthIn(max = effectiveMaxWidth).fillMaxWidth()
-            } else {
-                Modifier.fillMaxSize()
-            }
-        val frameShape = RoundedCornerShape(ThemeTokens.cornerRadius.lg)
-        Box(
-            modifier =
-                frameModifier
-                    .clip(frameShape)
-                    .border(ThemeTokens.strokeWidth.thin, ThemeTokens.colors.border.default, frameShape),
-        ) {
-            DesignTheme(
-                preset = activeApp.preset,
-                darkTheme = darkTheme,
-                reducedMotion = reducedMotion,
+        val showSideDrawer =
+            effectiveMaxWidth != null &&
+                effectiveMaxWidth <= PHONE_FRAME_WIDTH_DP.dp &&
+                maxWidth >= SIDE_TELEMETRY_MIN_WIDTH_DP.dp
+        if (showSideDrawer) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(spacing.space12, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.Top,
             ) {
-                SduiScreen(
-                    state = uiState,
-                    snippetRegistry = holder.snippetRegistry,
-                    onAction = { action ->
-                        onAction(action)
-                        holder.controller.onAction(action)
-                    },
-                    onFormValueChange = holder.controller::onFormFieldChanged,
-                    onRetry = { holder.controller.retry() },
-                    onDismissOverlay = holder.controller::dismissOverlay,
-                    onDismissToast = holder.controller::dismissToast,
-                    onDismissFeedback = holder.controller::dismissFeedback,
-                    onSnippetImpression = holder.controller::onSnippetImpression,
-                    onLoadMore = { holder.controller.loadMore() },
-                    isWatch = activeApp.isWatch,
-                    modifier = Modifier.fillMaxSize(),
+                SuperAppPhoneFrame(
+                    activeApp = activeApp,
+                    uiState = uiState,
+                    holder = holder,
+                    darkTheme = darkTheme,
+                    reducedMotion = reducedMotion,
+                    onAction = onAction,
+                    modifier = Modifier.fillMaxHeight().widthIn(max = effectiveMaxWidth).weight(1f, fill = false),
+                )
+                SuperAppAnalyticsDrawerPanel(
+                    snapshot = telemetrySnapshot,
+                    onClear = holder.analyticsTracker::clear,
+                    modifier = Modifier.width(SIDE_TELEMETRY_WIDTH_DP.dp),
                 )
             }
+        } else {
+            SuperAppStackedViewport(
+                activeApp = activeApp,
+                effectiveMaxWidth = effectiveMaxWidth,
+                uiState = uiState,
+                telemetrySnapshot = telemetrySnapshot,
+                holder = holder,
+                darkTheme = darkTheme,
+                reducedMotion = reducedMotion,
+                onAction = onAction,
+            )
+        }
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
+private fun SuperAppStackedViewport(
+    activeApp: DemoVerticalApp,
+    effectiveMaxWidth: Dp?,
+    uiState: LayoutUiState,
+    telemetrySnapshot: LiveTelemetrySnapshot,
+    holder: SuperAppDemoHolder,
+    darkTheme: Boolean,
+    reducedMotion: Boolean,
+    onAction: (ActionRef) -> Unit,
+) {
+    val spacing = ThemeTokens.spacing
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(spacing.space8),
+    ) {
+        val frameModifier =
+            if (effectiveMaxWidth != null) {
+                Modifier.weight(1f).widthIn(max = effectiveMaxWidth).fillMaxWidth()
+            } else {
+                Modifier.weight(1f).fillMaxWidth()
+            }
+        SuperAppPhoneFrame(
+            activeApp = activeApp,
+            uiState = uiState,
+            holder = holder,
+            darkTheme = darkTheme,
+            reducedMotion = reducedMotion,
+            onAction = onAction,
+            modifier = frameModifier,
+        )
+        SuperAppAnalyticsTelemetryStrip(
+            snapshot = telemetrySnapshot,
+            onClear = holder.analyticsTracker::clear,
+        )
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
+private fun SuperAppPhoneFrame(
+    activeApp: DemoVerticalApp,
+    uiState: LayoutUiState,
+    holder: SuperAppDemoHolder,
+    darkTheme: Boolean,
+    reducedMotion: Boolean,
+    onAction: (ActionRef) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val frameShape = RoundedCornerShape(ThemeTokens.cornerRadius.lg)
+    Box(
+        modifier =
+            modifier
+                .clip(frameShape)
+                .border(ThemeTokens.strokeWidth.thin, ThemeTokens.colors.border.default, frameShape),
+    ) {
+        DesignTheme(
+            preset = activeApp.preset,
+            darkTheme = darkTheme,
+            reducedMotion = reducedMotion,
+        ) {
+            SduiScreen(
+                state = uiState,
+                snippetRegistry = holder.snippetRegistry,
+                onAction = { action ->
+                    onAction(action)
+                    holder.controller.onAction(action)
+                },
+                onFormValueChange = holder.controller::onFormFieldChanged,
+                onRetry = { holder.controller.retry() },
+                onDismissOverlay = holder.controller::dismissOverlay,
+                onDismissToast = holder.controller::dismissToast,
+                onDismissFeedback = holder.controller::dismissFeedback,
+                onSnippetImpression = holder.controller::onSnippetImpression,
+                onNodeImpression = holder.controller::onNodeImpression,
+                onLoadMore = { holder.controller.loadMore() },
+                isWatch = activeApp.isWatch,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }
@@ -330,13 +421,14 @@ private fun createSuperAppDemoHolder(
             actionRegistry = BuiltInActionHandlers.createDefaultRegistry(apiExecutor = apiExecutor),
         )
     val backStack = ArrayDeque<String>()
+    val analyticsTracker = LiveStorybookAnalyticsTracker()
     var holderRef: SuperAppDemoHolder? = null
     val controller =
         LayoutController(
             screenRepository = repository,
             actionDispatcher = dispatcher,
             sessionStore = InMemorySessionStore(),
-            analyticsTracker = LoggerAnalyticsTracker(NoOpAppLogger()),
+            analyticsTracker = analyticsTracker,
             scope = scope,
             navigationListener = { nav ->
                 holderRef?.openScreen(nav.route, clearStack = nav.clearBackStack, preserveFeedback = true)
@@ -349,6 +441,7 @@ private fun createSuperAppDemoHolder(
     return SuperAppDemoHolder(
         snippetRegistry = BuiltInSnippetModule.createDefaultRegistry(),
         controller = controller,
+        analyticsTracker = analyticsTracker,
         scope = scope,
         backStack = backStack,
         onScreenChanged = onScreenChanged,

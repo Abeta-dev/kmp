@@ -58,7 +58,10 @@ sealed interface ActionOutcome {
         val steps: Int = 1,
     ) : ActionOutcome
 
-    /** Requests displaying a dialog/overlay. */
+    /**
+     * Requests displaying a dialog or bottom-sheet overlay, optionally with rich SDUI [snippets]
+     * or a remote [sheetScreenId].
+     */
     data class OverlayRequested(
         val dialogId: String,
         val title: String,
@@ -67,6 +70,8 @@ sealed interface ActionOutcome {
         val positiveAction: ActionRef? = null,
         val negativeAction: ActionRef? = null,
         val presentation: OverlayPresentation = OverlayPresentation.DIALOG,
+        val snippets: List<SnippetEnvelope> = emptyList(),
+        val sheetScreenId: String? = null,
     ) : ActionOutcome
 
     /** Requests dismissing an overlay by [overlayId] (or all overlays when [all] is `true`). */

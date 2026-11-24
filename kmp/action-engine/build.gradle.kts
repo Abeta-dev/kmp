@@ -11,6 +11,7 @@ plugins {
 version = internal.versions.actionEngine.get()
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()

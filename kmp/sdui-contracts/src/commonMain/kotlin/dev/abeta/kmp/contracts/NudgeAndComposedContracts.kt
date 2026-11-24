@@ -192,6 +192,27 @@ enum class ComposedNodeKind {
 
     @SerialName("qr_code")
     QR_CODE,
+
+    @SerialName("scroll_row")
+    SCROLL_ROW,
+
+    @SerialName("grid")
+    GRID,
+
+    @SerialName("text_field")
+    TEXT_FIELD,
+
+    @SerialName("switch")
+    SWITCH,
+
+    @SerialName("checkbox")
+    CHECKBOX,
+
+    @SerialName("slider")
+    SLIDER,
+
+    @SerialName("media_pager")
+    MEDIA_PAGER,
 }
 
 /**
@@ -256,6 +277,21 @@ data class ComposedNode(
     val onClick: ActionRef? = null,
     val layout: LayoutConfig? = null,
     val motion: MotionSpec? = null,
+    @SerialName("box_alignment")
+    val boxAlignment: String? = null,
+    val columns: Int? = null,
+    @SerialName("columns_by_width")
+    val columnsByWidth: ResponsiveColumnsSpec? = null,
+    @SerialName("text_field")
+    val textField: TextFieldAtom? = null,
+    val switch: SwitchAtom? = null,
+    val checkbox: CheckboxAtom? = null,
+    val slider: SliderAtom? = null,
+    @SerialName("media_pager")
+    val mediaPager: MediaPagerAtom? = null,
+    val tracking: TrackingContract? = null,
+    @SerialName("click_tracking")
+    val clickTracking: TrackingContract? = null,
 )
 
 /**

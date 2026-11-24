@@ -112,6 +112,7 @@ type ButtonAtom struct {
 
 // ImageAtom describes a remote image primitive.
 type ImageAtom struct {
+	ID                 string                 `json:"id,omitempty"`
 	URL                string                 `json:"url"`
 	ContentDescription string                 `json:"content_description,omitempty"`
 	WidthDp            *int                   `json:"width_dp,omitempty"`

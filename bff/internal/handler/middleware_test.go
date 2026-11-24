@@ -17,6 +17,7 @@ import (
 	"github.com/abeta-dev/kmp/bff/internal/handler"
 	"github.com/abeta-dev/kmp/bff/internal/infra"
 	"github.com/abeta-dev/kmp/bff/internal/usecase"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 	"github.com/andybalholm/brotli"
 	"github.com/gin-gonic/gin"
@@ -326,13 +327,15 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"/api/v1/orders/express",
 		"/api/v1/pay/transfer",
 		"/api/v1/catalog/tokens",
+		"/api/v1/analytics/events",
+		"/api/v1/analytics/summary",
 	} {
 		if _, ok := spec.Paths[route]; !ok {
 			t.Errorf("openapi.json missing path %q", route)
 		}
 	}
 	rawSpec := w.Body.String()
-	for _, screenID := range []string{"home", "store-home", "catalog", "profile", "form-demo", "containers", "watch-status", "pay-home", "pay-transfer", "pay-cards", "pay-receipt"} {
+	for _, screenID := range []string{"home", "fresh-home", "store-home", "catalog", "profile", "form-demo", "containers", "watch-status", "pay-home", "pay-transfer", "pay-cards", "pay-receipt"} {
 		if !strings.Contains(rawSpec, `"`+screenID+`"`) {
 			t.Errorf("openapi.json missing screen documentation for %q", screenID)
 		}
@@ -366,6 +369,7 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 	}
 	for _, schema := range []string{
 		"ActionType",
+		"TrackingSpec",
 		"SnippetType",
 		"ValidationRule",
 		"PageResponse",
@@ -382,6 +386,11 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"SkeletonAtom",
 		"StepperAtom",
 		"CountdownAtom",
+		"MediaPagerAtom",
+		"AnalyticsEvent",
+		"AnalyticsBatchRequest",
+		"AnalyticsIngestResponse",
+		"AnalyticsSummary",
 		"ProductCardSnippetData",
 		"SwipeCardItem",
 		"SwipeDeckSnippetData",
@@ -540,12 +549,23 @@ func (failingCatalogProvider) GetCatalog(_ context.Context) (domain.TokenCatalog
 	return domain.TokenCatalog{}, errors.New("catalog unavailable")
 }
 
+type failingAnalyticsStore struct{}
+
+func (failingAnalyticsStore) RecordBatch(_ context.Context, _ analytics.BatchRequest) (analytics.IngestResponse, error) {
+	return analytics.IngestResponse{}, errors.New("analytics unavailable")
+}
+
+func (failingAnalyticsStore) GetSummary(_ context.Context) (analytics.Summary, error) {
+	return analytics.Summary{}, errors.New("analytics unavailable")
+}
+
 func TestHandlerEdgeCases_WriterAndRepoErrors(t *testing.T) {
 	r := buildRouterWithOptions(func(cfg *handler.RouterConfig) {
 		cfg.EnableCompression = true
 		cfg.EnableETag = true
 		cfg.ScreenService = usecase.NewScreenService(failingScreenRepo{})
 		cfg.CatalogService = usecase.NewCatalogService(failingCatalogProvider{})
+		cfg.AnalyticsService = usecase.NewAnalyticsService(failingAnalyticsStore{})
 	})
 
 	// Cover WriteString, WriteHeaderNow, duplicate WriteHeader, Size, Written, Vary duplicate
@@ -602,8 +622,8 @@ func TestHandlerEdgeCases_WriterAndRepoErrors(t *testing.T) {
 		t.Fatalf("expected 200 for empty If-None-Match token, got %d", wEmptySeg.Code)
 	}
 
-	// Cover non-apperror fallback 500 on listScreens, getScreen, getTokenCatalog
-	for _, path := range []string{"/api/v1/screens", "/api/v1/screens/home", "/api/v1/catalog/tokens"} {
+	// Cover non-apperror fallback 500 on listScreens, getScreen, getTokenCatalog, and analytics summary
+	for _, path := range []string{"/api/v1/screens", "/api/v1/screens/home", "/api/v1/catalog/tokens", "/api/v1/analytics/summary"} {
 		wErr := httptest.NewRecorder()
 		r.ServeHTTP(wErr, httptest.NewRequest(http.MethodGet, path, nil))
 		if wErr.Code != http.StatusInternalServerError {

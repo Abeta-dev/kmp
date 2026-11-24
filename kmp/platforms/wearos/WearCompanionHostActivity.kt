@@ -18,13 +18,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
@@ -104,7 +104,7 @@ private fun WearSduiRoot(
     DisposableEffect(koinApp) { onDispose { koinApp.close() } }
 
     val controller = remember(koinApp) { koinApp.koin.get<WatchCompanionController>() }
-    val state by controller.uiState.collectAsState()
+    val state by controller.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(controller) { controller.observeConnectivity() }
     LaunchedEffect(controller) { controller.loadScreen("watch-status") }
 

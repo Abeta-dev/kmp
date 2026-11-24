@@ -22,6 +22,8 @@ import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiTag
 import dev.abeta.kmp.atoms.atoms.UiText
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.ColorTokenRef
+import dev.abeta.kmp.contracts.ComposedNodeKind
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.MotionTransition
 import dev.abeta.kmp.contracts.TagAtom
@@ -115,8 +117,21 @@ private fun PresetSelectorCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 UiText(TextAtom(text = "Preset Snippet Molds", typography = TypographyTokenRef("title.large")))
-                UiTag(TagAtom(label = "Zero App Releases", variant = TagVariant.SUCCESS))
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.space8)) {
+                    val nodeKindCount = ComposedNodeKind.entries.size
+                    UiTag(TagAtom(label = "$nodeKindCount ComposedNodeKinds", variant = TagVariant.BRAND))
+                    UiTag(TagAtom(label = "Zero App Releases", variant = TagVariant.SUCCESS))
+                }
             }
+            UiText(
+                TextAtom(
+                    text =
+                        "Powered by ${ComposedNodeKind.entries.size} ComposedNodeKinds — including " +
+                            "scroll_row, grid, media_pager, switch, text_field, and per-child box_alignment overlays.",
+                    typography = TypographyTokenRef("body.small"),
+                    color = ColorTokenRef("text.secondary"),
+                ),
+            )
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(spacing.space8),
                 verticalArrangement = Arrangement.spacedBy(spacing.space8),

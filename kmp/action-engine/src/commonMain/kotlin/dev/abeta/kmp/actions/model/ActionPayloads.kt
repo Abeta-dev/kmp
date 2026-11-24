@@ -69,7 +69,7 @@ data class BackPressPayload(
     val steps: Int = 1,
 ) : BuiltInActionPayload
 
-/** Opens a confirmation or informational dialog overlay identified by [dialogId]. */
+/** Opens a confirmation, informational, or rich SDUI snippet dialog/bottom-sheet overlay identified by [dialogId]. */
 @Serializable
 data class OpenDialogPayload(
     @SerialName("dialog_id")
@@ -83,6 +83,9 @@ data class OpenDialogPayload(
     val negativeAction: ActionRef? = null,
     @SerialName("presentation")
     val presentation: OverlayPresentation = OverlayPresentation.DIALOG,
+    val snippets: List<SnippetEnvelope> = emptyList(),
+    @SerialName("sheet_screen_id")
+    val sheetScreenId: String? = null,
 ) : BuiltInActionPayload
 
 /** Dismisses an active overlay identified by [overlayId], or all overlays when [all] is `true`. */

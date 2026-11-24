@@ -12,6 +12,7 @@ group = "io.github.abeta-dev"
 version = internal.versions.analytics.get()
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()

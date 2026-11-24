@@ -89,6 +89,7 @@ func buildServer(cfg appConfig, log *slog.Logger) *http.Server {
 	screenRepo := infra.NewInMemoryScreenRepository()
 	actionExec := infra.NewDefaultActionExecutor()
 	catalogProvider := infra.NewStaticTokenCatalogProvider(cfg.CatalogVersion)
+	analyticsStore := infra.NewInMemoryAnalyticsStore(100)
 
 	router := handler.NewRouter(handler.RouterConfig{
 		ServiceName:       cfg.ServiceName,
@@ -98,6 +99,7 @@ func buildServer(cfg appConfig, log *slog.Logger) *http.Server {
 		ScreenService:     usecase.NewScreenService(screenRepo),
 		ActionService:     usecase.NewActionService(actionExec),
 		CatalogService:    usecase.NewCatalogService(catalogProvider),
+		AnalyticsService:  usecase.NewAnalyticsService(analyticsStore),
 		EnableCompression: cfg.CompressionEnabled,
 		EnableETag:        cfg.ETagEnabled,
 		EnableRateLimit:   cfg.RateLimitEnabled,

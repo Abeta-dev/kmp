@@ -21,6 +21,7 @@ import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.SwitchAtom
 import dev.abeta.kmp.contracts.TagAtom
 import dev.abeta.kmp.contracts.TagVariant
+import dev.abeta.kmp.contracts.TrackingContract
 
 private const val OK_BG = "status.success_container"
 private const val INFO_BG = "status.info_container"
@@ -205,17 +206,20 @@ internal object SuperAppDemoCommercePages {
                 tag = "DETAILS" to OK_BG,
                 onClick = ui.navAction("nav_fresh_item_detail", "fresh-item-detail"),
             )
-        val search = ui.searchBar("fresh_search_bar", "fresh_search", "Search avocados, milk...", "fresh-home", query)
         return PageResponse(
             pageId = "fresh-home",
             title = "Abeta Fresh",
             toolbar = ui.toolbar("Abeta Fresh", "Express Hub · Delivery in 8 mins", "back_fresh", listOf(trackIcon)),
             snippets =
                 listOf(
-                    search,
+                    buildFreshStickySearch(query),
+                    SuperAppDemoFreshExpressMolecules.heroMediaPagerBlock(),
                     buildFreshPerksMarquee(),
                     ui.chipGroup("fresh_category_chips", "fresh_categories", "fresh-home", chips, filter),
+                    SuperAppDemoFreshExpressMolecules.expressProductTilesBlock(),
                     buildFreshFlashNudge(),
+                    SuperAppDemoFreshExpressMolecules.impulseUpsellShelfBlock(),
+                    SuperAppDemoFreshExpressMolecules.deliveryInstructionsBlock(),
                     detailRow,
                     buildFreshLoyaltyCard(),
                     ui.productGrid("fresh_grid", "Express Essentials (${visibleSkus.size})", visibleSkus),
@@ -229,9 +233,30 @@ internal object SuperAppDemoCommercePages {
                     freeDeliveryThresholdCents = 1500,
                     unlockedLabel = "FREE 8-min delivery unlocked!",
                 ),
+            tracking = TrackingContract("page_loaded", mapOf("page_id" to "fresh-home", "vertical" to "abeta-fresh")),
             adaptiveLayout = ui.centeredAdaptive,
         )
     }
+
+    private fun buildFreshStickySearch(query: String): SnippetEnvelope =
+        ui.searchBar(
+            snippetId = "fresh_search_bar",
+            searchId = "fresh_search",
+            placeholder = "Search avocados, milk, sourdough...",
+            routeBase = "fresh-home",
+            query = query,
+            sticky = true,
+            tracking =
+                TrackingContract(
+                    eventName = "snippet_impression",
+                    properties =
+                        mapOf(
+                            "snippet_id" to "fresh_search_bar",
+                            "sticky" to "true",
+                            "surface" to "fresh-home",
+                        ),
+                ),
+        )
 
     private fun buildFreshPerksMarquee(): SnippetEnvelope =
         nudges.marquee(

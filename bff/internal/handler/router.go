@@ -19,6 +19,7 @@ import (
 	"github.com/abeta-dev/kmp/bff/internal/domain"
 	"github.com/abeta-dev/kmp/bff/internal/usecase"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,6 +33,7 @@ type RouterConfig struct {
 	ScreenService     *usecase.ScreenService
 	ActionService     *usecase.ActionService
 	CatalogService    *usecase.CatalogService
+	AnalyticsService  *usecase.AnalyticsService
 	EnableCompression bool
 	EnableETag        bool
 	EnableRateLimit   bool
@@ -95,9 +97,10 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 
 	h := &bffHandler{
-		screens: cfg.ScreenService,
-		actions: cfg.ActionService,
-		catalog: cfg.CatalogService,
+		screens:   cfg.ScreenService,
+		actions:   cfg.ActionService,
+		catalog:   cfg.CatalogService,
+		analytics: cfg.AnalyticsService,
 	}
 
 	engine.GET("/healthz", gin.WrapF(health.LivenessHandler))
@@ -126,15 +129,18 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 		v1.POST("/orders/express", h.placeExpressOrder)
 		v1.POST("/pay/transfer", h.executePayTransfer)
 		v1.GET("/catalog/tokens", withETag(h.getTokenCatalog)...)
+		v1.POST("/analytics/events", h.ingestAnalyticsEvents)
+		v1.GET("/analytics/summary", h.getAnalyticsSummary)
 	}
 
 	return engine
 }
 
 type bffHandler struct {
-	screens *usecase.ScreenService
-	actions *usecase.ActionService
-	catalog *usecase.CatalogService
+	screens   *usecase.ScreenService
+	actions   *usecase.ActionService
+	catalog   *usecase.CatalogService
+	analytics *usecase.AnalyticsService
 }
 
 func (h *bffHandler) listScreens(c *gin.Context) {
@@ -291,6 +297,43 @@ func (h *bffHandler) getTokenCatalog(c *gin.Context) {
 		return
 	}
 	ginmw.RespondSuccess(c, catalog)
+}
+
+func (h *bffHandler) ingestAnalyticsEvents(c *gin.Context) {
+	if h.analytics == nil {
+		respondDomainError(c, apperror.Internal("analytics service unavailable"))
+		return
+	}
+	var req analytics.BatchRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginmw.RespondErrorWithDetail(
+			c,
+			http.StatusBadRequest,
+			string(apperror.CodeBadRequest),
+			"invalid analytics batch payload",
+			err.Error(),
+		)
+		return
+	}
+	res, err := h.analytics.IngestBatch(c.Request.Context(), req)
+	if err != nil {
+		respondDomainError(c, err)
+		return
+	}
+	ginmw.RespondSuccess(c, res)
+}
+
+func (h *bffHandler) getAnalyticsSummary(c *gin.Context) {
+	if h.analytics == nil {
+		respondDomainError(c, apperror.Internal("analytics service unavailable"))
+		return
+	}
+	summary, err := h.analytics.GetSummary(c.Request.Context())
+	if err != nil {
+		respondDomainError(c, err)
+		return
+	}
+	ginmw.RespondSuccess(c, summary)
 }
 
 func respondDomainError(c *gin.Context, err error) {

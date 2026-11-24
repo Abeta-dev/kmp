@@ -10,8 +10,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.abeta.kmp.atoms.atoms.UiAlertBanner
 import dev.abeta.kmp.atoms.atoms.UiBadge
+import dev.abeta.kmp.atoms.atoms.UiCheckbox
 import dev.abeta.kmp.atoms.atoms.UiChip
 import dev.abeta.kmp.atoms.atoms.UiKeyValueRow
+import dev.abeta.kmp.atoms.atoms.UiMediaPager
 import dev.abeta.kmp.atoms.atoms.UiOtpInput
 import dev.abeta.kmp.atoms.atoms.UiPrice
 import dev.abeta.kmp.atoms.atoms.UiQrCode
@@ -19,7 +21,10 @@ import dev.abeta.kmp.atoms.atoms.UiRadioGroup
 import dev.abeta.kmp.atoms.atoms.UiRating
 import dev.abeta.kmp.atoms.atoms.UiSegmentedControl
 import dev.abeta.kmp.atoms.atoms.UiSelect
+import dev.abeta.kmp.atoms.atoms.UiSlider
 import dev.abeta.kmp.atoms.atoms.UiStatTile
+import dev.abeta.kmp.atoms.atoms.UiSwitch
+import dev.abeta.kmp.atoms.atoms.UiTextField
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.ComposedNode
 import dev.abeta.kmp.contracts.ComposedNodeKind
@@ -80,6 +85,26 @@ internal fun RenderComposedExtendedLeafNode(
 
         ComposedNodeKind.QR_CODE -> {
             node.qrCode?.let { UiQrCode(atom = it, modifier = modifier, onAction = onAction) }
+        }
+
+        ComposedNodeKind.TEXT_FIELD -> {
+            RenderComposedTextField(node, formValues, onFormValueChange, onAction, modifier)
+        }
+
+        ComposedNodeKind.SWITCH -> {
+            RenderComposedSwitch(node, formValues, onFormValueChange, onAction, modifier)
+        }
+
+        ComposedNodeKind.CHECKBOX -> {
+            RenderComposedCheckbox(node, formValues, onFormValueChange, onAction, modifier)
+        }
+
+        ComposedNodeKind.SLIDER -> {
+            RenderComposedSlider(node, formValues, onFormValueChange, onAction, modifier)
+        }
+
+        ComposedNodeKind.MEDIA_PAGER -> {
+            node.mediaPager?.let { UiMediaPager(atom = it, modifier = modifier, onAction = onAction) }
         }
 
         else -> {
@@ -210,5 +235,91 @@ private fun RenderComposedAlertBanner(
                 onAction = onAction,
             )
         }
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun RenderComposedTextField(
+    node: ComposedNode,
+    formValues: Map<String, String>,
+    onFormValueChange: (String, String) -> Unit,
+    onAction: (ActionRef) -> Unit,
+    modifier: Modifier,
+) {
+    val validationErrors = LocalFormValidationErrors.current
+    node.textField?.let { field ->
+        val fieldError = validationErrors[field.fieldId]
+        val effectiveField = if (fieldError != null) field.copy(errorText = fieldError) else field
+        UiTextField(
+            atom = effectiveField,
+            modifier = modifier,
+            valueOverride = formValues[field.fieldId],
+            onValueChange = { updated -> onFormValueChange(field.fieldId, updated) },
+            onAction = onAction,
+        )
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun RenderComposedSwitch(
+    node: ComposedNode,
+    formValues: Map<String, String>,
+    onFormValueChange: (String, String) -> Unit,
+    onAction: (ActionRef) -> Unit,
+    modifier: Modifier,
+) {
+    node.switch?.let { switchAtom ->
+        val checkedOverride = formValues[switchAtom.fieldId]?.lowercase()?.toBooleanStrictOrNull()
+        UiSwitch(
+            atom = switchAtom,
+            modifier = modifier,
+            checkedOverride = checkedOverride,
+            onCheckedChange = { updated -> onFormValueChange(switchAtom.fieldId, updated.toString()) },
+            onAction = onAction,
+        )
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun RenderComposedCheckbox(
+    node: ComposedNode,
+    formValues: Map<String, String>,
+    onFormValueChange: (String, String) -> Unit,
+    onAction: (ActionRef) -> Unit,
+    modifier: Modifier,
+) {
+    node.checkbox?.let { checkboxAtom ->
+        val checkedOverride = formValues[checkboxAtom.fieldId]?.lowercase()?.toBooleanStrictOrNull()
+        UiCheckbox(
+            atom = checkboxAtom,
+            modifier = modifier,
+            checkedOverride = checkedOverride,
+            onCheckedChange = { updated -> onFormValueChange(checkboxAtom.fieldId, updated.toString()) },
+            onAction = onAction,
+        )
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun RenderComposedSlider(
+    node: ComposedNode,
+    formValues: Map<String, String>,
+    onFormValueChange: (String, String) -> Unit,
+    onAction: (ActionRef) -> Unit,
+    modifier: Modifier,
+) {
+    node.slider?.let { sliderAtom ->
+        val valueOverride = formValues[sliderAtom.fieldId]?.toFloatOrNull()
+        UiSlider(
+            atom = sliderAtom,
+            modifier = modifier,
+            valueOverride = valueOverride,
+            onValueChange = { updated -> onFormValueChange(sliderAtom.fieldId, updated.toString()) },
+            onAction = onAction,
+        )
     }
 }

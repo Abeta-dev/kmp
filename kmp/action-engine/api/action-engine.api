@@ -195,8 +195,8 @@ public final class dev/abeta/kmp/actions/handler/ActionOutcome$OverlayDismissed 
 }
 
 public final class dev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested : dev/abeta/kmp/actions/handler/ActionOutcome {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
@@ -204,8 +204,10 @@ public final class dev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested 
 	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun component6 ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun component7 ()Ldev/abeta/kmp/contracts/OverlayPresentation;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDialogId ()Ljava/lang/String;
 	public final fun getDismissible ()Z
@@ -213,6 +215,8 @@ public final class dev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested 
 	public final fun getNegativeAction ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun getPositiveAction ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun getPresentation ()Ldev/abeta/kmp/contracts/OverlayPresentation;
+	public final fun getSheetScreenId ()Ljava/lang/String;
+	public final fun getSnippets ()Ljava/util/List;
 	public final fun getTitle ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -685,8 +689,8 @@ public final class dev/abeta/kmp/actions/model/NavigatePayload$Companion {
 
 public final class dev/abeta/kmp/actions/model/OpenDialogPayload : dev/abeta/kmp/actions/model/BuiltInActionPayload {
 	public static final field Companion Ldev/abeta/kmp/actions/model/OpenDialogPayload$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
@@ -694,8 +698,10 @@ public final class dev/abeta/kmp/actions/model/OpenDialogPayload : dev/abeta/kmp
 	public final fun component5 ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun component6 ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun component7 ()Ldev/abeta/kmp/contracts/OverlayPresentation;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;)Ldev/abeta/kmp/actions/model/OpenDialogPayload;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/OpenDialogPayload;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/OpenDialogPayload;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;)Ldev/abeta/kmp/actions/model/OpenDialogPayload;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/actions/model/OpenDialogPayload;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/OverlayPresentation;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/actions/model/OpenDialogPayload;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDialogId ()Ljava/lang/String;
 	public final fun getDismissible ()Z
@@ -703,6 +709,8 @@ public final class dev/abeta/kmp/actions/model/OpenDialogPayload : dev/abeta/kmp
 	public final fun getNegativeAction ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun getPositiveAction ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun getPresentation ()Ldev/abeta/kmp/contracts/OverlayPresentation;
+	public final fun getSheetScreenId ()Ljava/lang/String;
+	public final fun getSnippets ()Ljava/util/List;
 	public final fun getTitle ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

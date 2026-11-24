@@ -1,7 +1,12 @@
 package dev.abeta.kmp.storybook
 
+import dev.abeta.kmp.actions.model.OpenDialogPayload
 import dev.abeta.kmp.contracts.ButtonAtom
 import dev.abeta.kmp.contracts.ButtonVariant
+import dev.abeta.kmp.contracts.ComposedBlockSnippetData
+import dev.abeta.kmp.contracts.ComposedNode
+import dev.abeta.kmp.contracts.ComposedNodeKind
+import dev.abeta.kmp.contracts.OverlayPresentation
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetTypes
@@ -221,8 +226,68 @@ class StorybookCatalogTest {
                 assertTrue(composedRenderer.decode(envelope.data) is AppResult.Success)
                 val json = SnippetCrafterPresets.formatEnvelopeJson(envelope)
                 assertTrue(json.contains(preset.recipeName))
+                if (preset == CrafterPreset.EXPRESS_PRODUCT_TILE) {
+                    assertTrue(json.contains("box_alignment"))
+                }
             }
         }
+    }
+
+    @Test
+    fun `fresh home showcases sticky search media pager express molecules variant sheet and delivery card`() {
+        val page = SuperAppDemoCommercePages.freshHome()
+        val search = page.snippets.first { it.snippetId == "fresh_search_bar" }
+        assertTrue(search.sticky, "Expected sticky=true on fresh_search_bar")
+
+        val heroBlock =
+            SduiJson.decodeFromJsonElement(
+                ComposedBlockSnippetData.serializer(),
+                page.snippets.first { it.snippetId == "fresh_hero_media_block" }.data,
+            )
+        val heroPager = flattenComposedNodes(heroBlock.root).firstOrNull { it.kind == ComposedNodeKind.MEDIA_PAGER }
+        assertNotNull(heroPager)
+        assertEquals(3, heroPager.mediaPager?.items?.size)
+
+        val tilesBlock =
+            SduiJson.decodeFromJsonElement(
+                ComposedBlockSnippetData.serializer(),
+                page.snippets.first { it.snippetId == "fresh_express_tiles_block" }.data,
+            )
+        val tileNodes = flattenComposedNodes(tilesBlock.root)
+        val alignments = tileNodes.mapNotNull { it.boxAlignment }.toSet()
+        assertTrue("top_start" in alignments)
+        assertTrue("top_end" in alignments)
+        assertTrue("bottom_start" in alignments)
+        assertTrue(tileNodes.any { it.tracking != null && it.clickTracking != null })
+
+        val variantChip =
+            assertNotNull(tileNodes.firstOrNull { it.chip?.label == "500g ▼" }?.chip)
+        val openAction = assertNotNull(variantChip.onClick)
+        val dialogPayload = SduiJson.decodeFromJsonElement(OpenDialogPayload.serializer(), openAction.payload)
+        assertEquals(OverlayPresentation.BOTTOM_SHEET, dialogPayload.presentation)
+        assertTrue(dialogPayload.snippets.isNotEmpty(), "Expected rich snippets in variant picker sheet")
+
+        val upsellBlock =
+            SduiJson.decodeFromJsonElement(
+                ComposedBlockSnippetData.serializer(),
+                page.snippets.first { it.snippetId == "fresh_upsell_rail" }.data,
+            )
+        assertTrue(flattenComposedNodes(upsellBlock.root).any { it.kind == ComposedNodeKind.SCROLL_ROW })
+
+        val deliveryBlock =
+            SduiJson.decodeFromJsonElement(
+                ComposedBlockSnippetData.serializer(),
+                page.snippets.first { it.snippetId == "fresh_delivery_instructions" }.data,
+            )
+        val deliveryKinds = flattenComposedNodes(deliveryBlock.root).map { it.kind }.toSet()
+        assertTrue(ComposedNodeKind.SWITCH in deliveryKinds)
+        assertTrue(ComposedNodeKind.TEXT_FIELD in deliveryKinds)
+        assertTrue(ComposedNodeKind.CHIP in deliveryKinds)
+    }
+
+    private fun flattenComposedNodes(node: ComposedNode): List<ComposedNode> {
+        val descendants = node.children.flatMap(::flattenComposedNodes)
+        return listOf(node) + descendants
     }
 
     @Test

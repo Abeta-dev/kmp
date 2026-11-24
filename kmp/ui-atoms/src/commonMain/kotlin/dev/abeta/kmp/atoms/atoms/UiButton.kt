@@ -48,6 +48,15 @@ private data class ButtonRenderSpec(
     val interactionSource: MutableInteractionSource,
 )
 
+private fun resolveButtonClickAction(atom: ButtonAtom): ActionRef? {
+    val clickAction = atom.onClick ?: return null
+    return if (atom.tracking != null && clickAction.tracking == null) {
+        clickAction.copy(tracking = atom.tracking)
+    } else {
+        clickAction
+    }
+}
+
 /**
  * Stateless interactive button UI atom rendered from a [ButtonAtom] contract.
  */
@@ -93,7 +102,7 @@ fun UiButton(
     val onClickLambda: () -> Unit = {
         if (isInteractive) {
             haptic(UiHapticKind.CLICK)
-            atom.onClick?.let(onAction)
+            resolveButtonClickAction(atom)?.let(onAction)
         }
     }
 

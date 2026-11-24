@@ -129,6 +129,11 @@ func (b *SearchBarSnippetBuilder) WithMotion(motion atoms.MotionSpec) *SearchBar
 	return b
 }
 
+func (b *SearchBarSnippetBuilder) WithSticky(sticky bool) *SearchBarSnippetBuilder {
+	b.meta.sticky = sticky
+	return b
+}
+
 func (b *SearchBarSnippetBuilder) WithQuery(query string) *SearchBarSnippetBuilder {
 	b.data.Query = query
 	return b
@@ -212,6 +217,11 @@ func (b *ChipGroupSnippetBuilder) WithTracking(eventName string, props map[strin
 
 func (b *ChipGroupSnippetBuilder) WithMotion(motion atoms.MotionSpec) *ChipGroupSnippetBuilder {
 	b.meta.motion = &motion
+	return b
+}
+
+func (b *ChipGroupSnippetBuilder) WithSticky(sticky bool) *ChipGroupSnippetBuilder {
+	b.meta.sticky = sticky
 	return b
 }
 

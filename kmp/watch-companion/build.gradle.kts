@@ -12,6 +12,7 @@ plugins {
 version = internal.versions.watchCompanion.get()
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()

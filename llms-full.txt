@@ -11,12 +11,12 @@ The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source r
 
 1. **`Abeta-dev/kmp` (this repository — Client Kit & Canonical `v1` Wire Contracts)**:
    - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** + `bom` + `dependencies`).
-   - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.5.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
-   - Runnable **7-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **20-story End-to-End Interactive Storybook** (`kmp/storybook`, featuring all 30 stateless UI atoms across 8 dedicated UI Atom stories and all 7 Super-App verticals — Fresh, Bites, Pulse, Mart, Spark, Trade, Pay + Watch — playable live in WasmJS browser with multi-step workflows).
+   - Reference **Go 1.26.0** SDUI BFF & shared Go wire packages (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.6.0` via `pkg/sdui/{actions,atoms,snippets,theming}`).
+   - Runnable **7-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **20-story End-to-End Interactive Storybook** (`kmp/storybook`, featuring all 31 stateless UI atoms across 8 dedicated UI Atom stories and all 7 Super-App verticals — Fresh, Bites, Pulse, Mart, Spark, Trade, Pay + Watch — playable live in WasmJS browser with multi-step workflows).
 2. **`Abeta-dev/layout-engine`** (`https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt`):
-   - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics (`bff@v0.5.0`).
+   - Companion SDUI layout & composition engine in the Abeta SDUI Platform aligned with the same `v1` wire semantics (`bff@v0.6.0`).
 3. **`Abeta-dev/sdui-bff`** (`https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt`):
-   - Multi-tenant production Go SDUI BFF importing `github.com/abeta-dev/kmp/bff@v0.5.0` to serve live vertical screens and interactive mutations for all 7 Super-App verticals (`abeta-fresh`, `abeta-bites`, `abeta-pulse`, `abeta-mart`, `abeta-spark`, `abeta-trade`, `abeta-pay`).
+   - Multi-tenant production Go SDUI BFF importing `github.com/abeta-dev/kmp/bff@v0.6.0` to serve live vertical screens and interactive mutations for all 7 Super-App verticals (`abeta-fresh`, `abeta-bites`, `abeta-pulse`, `abeta-mart`, `abeta-spark`, `abeta-trade`, `abeta-pay`).
 
 ### Core Toolchain Versions (`kmp/dependencyManagement/gradle/libs.versions.toml` & `bff/go.mod`)
 - **Kotlin**: `2.4.21` | **Compose Multiplatform**: `1.12.2` (Material 3 `1.12.0-alpha03`) | **Gradle**: `9.7.0` (JDK 21)
@@ -55,11 +55,11 @@ Dependencies strictly point **inward** (`Layer 3 -> Layer 2 -> Layer 1 -> Layer 
 | **Layer 0** | `analytics` | `io.github.abeta-dev:analytics` | `:core` | `AnalyticsEvent`, `AnalyticsTracker`, `Composite`, `Logger`, `Recording`, `Sanitizing`, `Deduplicating`, `Enriching`, and `Buffered` trackers |
 | **Layer 0** | `database` | `io.github.abeta-dev:database` | `:core` | **Room 3 (`3.0.3`)** KMP SQLite DB (`AbetaDatabase` with `@ConstructedBy(AbetaDatabaseConstructor::class)`, `AbetaLocalDatabase`): tables `cached_screens` (PK `screenId`, `payloadJson`, `etag`, TTL), `offline_mutations` (PK `id`, FIFO retry queue), `key_value_records` (PK `namespace`+`recordKey`, TTL). Uses `sqlite-bundled:2.7.1` on JVM/Android/Apple and `sqlite-web:2.7.1` OPFS Web Worker on `wasmJs`; KSP `2.3.14` schema export under `kmp/database/schemas/` |
 | **Layer 1** | `design-tokens` | `io.github.abeta-dev:design-tokens` | None | `ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens` (17 type roles), `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset` (`INDIGO`, `EMERALD`, `AMBER`), `ColorAccessibility`, `DesignTheme`, `ThemeTokens`, and `ResponsiveTokens.kt` (`WindowWidthClass`, `WindowHeightClass`, `DeviceFormFactor`, `AdaptiveLayoutMetrics`, `ThemeTokens.adaptiveMetrics`) |
-| **Layer 1** | `sdui-contracts` | `io.github.abeta-dev:sdui-contracts` | None | Pure `@Serializable` `v1` wire DTOs (`SduiJson` with `ignoreUnknownKeys = true`): `PageResponse`, `SnippetEnvelope`, **28 Wire Atoms** (incl. `CountdownAtom` & 12 `ExtendedAtoms.kt` primitives), **21 `SnippetTypes`** (incl. `nudge_bar`, `marquee_strip`, `order_tracker`, and **`composed_block`** Atomic Snippet Molding Engine with **29 `ComposedNodeKind`s**), `MotionSpec` (7 Ambient `MotionLoopEffect`s), `FloatingCartSpec` (free-delivery threshold nudge fields), `AdaptiveContracts`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`. Zero Compose or Ktor imports |
-| **Layer 1** | `ui-atoms` | `io.github.abeta-dev:ui-atoms` | `:design-tokens`, `:sdui-contracts` | **30 stateless Compose atoms** (incl. `UiStepper`, `UiCountdown`, `UiRollingCounter`, plus 12 extended atoms `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`, `UiRating`, `UiPrice`, `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiKeyValueRow`, `UiQrCode`) + `UiCelebrationOverlay`, `UiHapticFeedback`, `MotionModifier` + `MotionLoopModifiers` (`applyMotionSpec`, 7 Ambient `MotionLoopEffect`s, `Modifier.pressBounce`, `Modifier.shakeOnError` honoring `reducedMotion`), `LocalImageRenderer`, `TokenResolvers`. Emits `onAction: (ActionRef) -> Unit` only; NEVER imports `:core`, `:action-engine`, `:network`, or `:sdui-layout` |
+| **Layer 1** | `sdui-contracts` | `io.github.abeta-dev:sdui-contracts` | None | Pure `@Serializable` `v1` wire DTOs (`SduiJson` with `ignoreUnknownKeys = true`): `PageResponse`, `SnippetEnvelope`, **29 Wire Atoms** (incl. `CountdownAtom` & 12 `ExtendedAtoms.kt` primitives), **21 `SnippetTypes`** (incl. `nudge_bar`, `marquee_strip`, `order_tracker`, and **`composed_block`** Atomic Snippet Molding Engine with **36 `ComposedNodeKind`s**), `MotionSpec` (7 Ambient `MotionLoopEffect`s), `FloatingCartSpec` (free-delivery threshold nudge fields), `AdaptiveContracts`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`. Zero Compose or Ktor imports |
+| **Layer 1** | `ui-atoms` | `io.github.abeta-dev:ui-atoms` | `:design-tokens`, `:sdui-contracts` | **31 stateless Compose atoms** (incl. `UiStepper`, `UiCountdown`, `UiRollingCounter`, plus 12 extended atoms `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`, `UiRating`, `UiPrice`, `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiKeyValueRow`, `UiQrCode`) + `UiCelebrationOverlay`, `UiHapticFeedback`, `MotionModifier` + `MotionLoopModifiers` (`applyMotionSpec`, 7 Ambient `MotionLoopEffect`s, `Modifier.pressBounce`, `Modifier.shakeOnError` honoring `reducedMotion`), `LocalImageRenderer`, `TokenResolvers`. Emits `onAction: (ActionRef) -> Unit` only; NEVER imports `:core`, `:action-engine`, `:network`, or `:sdui-layout` |
 | **Layer 2** | `action-engine` | `io.github.abeta-dev:action-engine` | `:core`, `:sdui-contracts` | OCP action system: **18 `ActionTypes`**, `ActionPayloadDecoder`, `ActionDecoderRegistry`, `ActionHandler`, `ActionRegistry`, `DefaultActionDispatcher`, `ActionValidator`, `ApiCallExecutor`, `ActionOutcome` |
 | **Layer 2** | `network` | `io.github.abeta-dev:network` | `:core` | Ktor `3.6.1` `HttpTransport`/`KtorHttpTransport`/`HttpClientFactory`: HTTP/2 ALPN, Brotli (`br`), bearer refresh (`AuthTokenProvider`), shared SPKI/cert pinning (`CertificatePinMatcher` for JVM/OkHttp `CertificatePinner` and Apple Darwin `NSURLSession` across iOS/macOS/watchOS) |
-| **Layer 3** | `sdui-layout` | `io.github.abeta-dev:sdui-layout` | Layers 0–2 | `LayoutController` (`observeConnectivity`, `handleDeepLink`, `isOffline`, `loadMore`, `errorShakeSequence`, `dismissFeedback`), `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers` (`AdaptiveReadyViewport`, `SplitPaneBody`, `OfflineStatusBanner`), **21 snippet renderers** (`BuiltInSnippetModule`, incl. `NudgeBarSnippetRenderer`, `MarqueeStripSnippetRenderer`, `OrderTrackerSnippetRenderer`, and **`ComposedBlockSnippetRenderer`** Atomic Snippet Molding Engine with **29 `ComposedNodeKind`s**), `FloatingCartDockHost` (free-delivery threshold nudge progress & unlock bounce) + `PageCartCalculator`, `ModalBottomSheet`/`AlertDialog`, `PullToRefreshBox`, `CachedScreenRepository`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, `SduiHostedRoot`, iOS `createSduiViewController` (`AbetaSduiKit.xcframework`), macOS `launchMacOsSduiWindow` |
+| **Layer 3** | `sdui-layout` | `io.github.abeta-dev:sdui-layout` | Layers 0–2 | `LayoutController` (`observeConnectivity`, `handleDeepLink`, `isOffline`, `loadMore`, `errorShakeSequence`, `dismissFeedback`), `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers` (`AdaptiveReadyViewport`, `SplitPaneBody`, `OfflineStatusBanner`), **21 snippet renderers** (`BuiltInSnippetModule`, incl. `NudgeBarSnippetRenderer`, `MarqueeStripSnippetRenderer`, `OrderTrackerSnippetRenderer`, and **`ComposedBlockSnippetRenderer`** Atomic Snippet Molding Engine with **36 `ComposedNodeKind`s**), `FloatingCartDockHost` (free-delivery threshold nudge progress & unlock bounce) + `PageCartCalculator`, `ModalBottomSheet`/`AlertDialog`, `PullToRefreshBox`, `CachedScreenRepository`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, `SduiHostedRoot`, iOS `createSduiViewController` (`AbetaSduiKit.xcframework`), macOS `launchMacOsSduiWindow` |
 | **Layer 3** | `watch-companion` | `io.github.abeta-dev:watch-companion` | `:core`, `:state`, `:analytics`, `:database`, `:sdui-contracts`, `:action-engine`, `:network` | Headless wearable orchestrator (zero Compose UI imports): `WatchGlanceModels`, `WatchScreenMapper`, `RemoteWatchPageSource`, `WatchRemoteApiCallExecutor`, `WatchCompanionController`, `createWatchCompanionModule`, `createAppleWatchCompanionHost`, `AbetaWatchKit.xcframework` |
 
 **Key Architectural Invariants**:
@@ -109,7 +109,7 @@ On error: `{ "success": false, "data": null, "error": { "code": "...", "message"
    - `MotionSpec`: `enter`/`exit` (`none`|`fade_in`|`slide_up`|`slide_down`|`scale_in`|`spring_bounce`), `duration_token` (`instant`|`fast`|`normal`|`slow`), `duration_ms`, `stagger_ms`, `delay_ms`, `loop_effect` (`none` + **7 ambient loops**: `pulse`|`shimmer`|`wiggle`|`float`|`heartbeat`|`glow_ring`|`marquee`)
    - `ResponsiveColumnsSpec` / `ResponsiveIntSpec`: `compact`, `medium`, `expanded`
 
-### 3.3 All 28 Wire Atoms (`sdui-contracts` & `pkg/sdui/atoms`)
+### 3.3 All 29 Wire Atoms (`sdui-contracts` & `pkg/sdui/atoms`)
 1. `TextAtom`: `id`, `text`, `color`, `typography`, `max_lines`, `alignment` (`start`|`center`|`end`), `markdown`, `strike_through`, `underline`, `prefix_icon`, `suffix_icon`, `on_click`, `layout`
 2. `IconAtom`: `id`, `name`, `size_dp`, `color`, `content_description`, `on_click`, `layout`
 3. `TagAtom`: `id`, `label`, `variant` (`neutral`|`brand`|`success`|`warning`|`error`|`info`), `bg_color`, `text_color`, `border`, `icon`, `on_click`, `layout`, `motion`
@@ -139,8 +139,8 @@ On error: `{ "success": false, "data": null, "error": { "code": "...", "message"
 27. `KeyValueRowAtom`: `id`, `label`, `value`, `sublabel`, `value_color`, `emphasized`, `show_divider`, `on_click`, `layout`
 28. `QrCodeAtom`: `id`, `payload`, `label`, `caption`, `size_dp` (`160`), `on_click`, `layout`
 
-### 3.4 All 30 Stateless Compose UI Atoms (`kmp/ui-atoms`)
-Renders all 28 wire atoms plus `UiSurfaceCard` and `UiRollingCounter`:
+### 3.4 All 31 Stateless Compose UI Atoms (`kmp/ui-atoms`)
+Renders all 29 wire atoms plus `UiSurfaceCard` and `UiRollingCounter`:
 `UiText`, `UiIcon`, `UiTag`, `UiButton`, `UiImage`, `UiTextField`, `UiDivider`, `UiSpacer`, `UiProgress`, `UiSurfaceCard`, `UiSwitch`, `UiCheckbox`, `UiSlider`, `UiAvatar`, `UiSkeleton`, `UiStepper` (animated `ADD` <-> `- qty +` morph with `UiHapticFeedback` hooks), `UiCountdown` (live ticking urgency timer with expiration callback), `UiRollingCounter` (smooth odometer-style digit roll), plus 12 extended atoms (`UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`, `UiRating`, `UiPrice`, `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiKeyValueRow`, `UiQrCode`).
 Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`UiHapticKind`, `LocalUiHapticFeedback`, `rememberComposeHapticFallback`), `MotionModifier` + `MotionLoopModifiers` (`applyMotionSpec`, 7 ambient `MotionLoopEffect`s, `Modifier.pressBounce`, `Modifier.shakeOnError`, reduced-motion collapse).
 
@@ -168,7 +168,7 @@ Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`
 | `nudge_bar` *(v0.3.0)* | `NudgeBarSnippetData` | `nudge_id`, `title`, `subtitle`, `icon`, `badge`, `countdown`, `progress`, `cta`, `dismissible`, `pointer_edge` (`top`|`bottom`), `on_dismiss`, `on_click`, `layout` |
 | `marquee_strip` *(v0.3.0)* | `MarqueeStripSnippetData` | `strip_id`, `items` (`MarqueeItem[]`), `velocity_dp_per_sec` (`48`), `separator` (`"•"`), `layout` |
 | `order_tracker` *(v0.3.0)* | `OrderTrackerSnippetData` | `tracker_id`, `order_code`, `headline`, `eta_countdown`, `eta_badge`, `rider_name`, `rider_caption`, `steps` (`OrderTrackerStep[]`), `primary_action`, `secondary_action`, `layout` |
-| `composed_block` *(added in bff/v0.3.0; expanded to 29 node kinds in bff/v0.5.0)* | `ComposedBlockSnippetData` | `block_id`, `recipe_name`, `root` (`ComposedNode` tree up to depth 6 across **29 `ComposedNodeKind`s**: `column`, `row`, `box`, `card`, `flow_row`, `text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `rolling_counter`, `radio_group`, `select`, `otp_input`, `chip`, `segmented_control`, `rating`, `price`, `badge`, `alert_banner`, `stat_tile`, `key_value_row`, `qr_code`), `layout` |
+| `composed_block` *(added in bff/v0.3.0; expanded to 29 node kinds in bff/v0.6.0)* | `ComposedBlockSnippetData` | `block_id`, `recipe_name`, `root` (`ComposedNode` tree up to depth 6 across **36 `ComposedNodeKind`s**: `column`, `row`, `box`, `card`, `flow_row`, `text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `rolling_counter`, `radio_group`, `select`, `otp_input`, `chip`, `segmented_control`, `rating`, `price`, `badge`, `alert_banner`, `stat_tile`, `key_value_row`, `qr_code`), `layout` |
 
 **Exact Sub-Item Schemas (`InteractiveSnippetContracts.kt`, `NudgeAndComposedContracts.kt`, `ExtendedAtoms.kt`)**:
 - `SwipeCardItem` (inside `swipe_deck.cards`): `card_id`, `title` (`TextAtom`), `subtitle` (`TextAtom?`), `bio` (`TextAtom?`), `badge` (`TagAtom?`), `distance_text` (`TextAtom?`), `image` (`ImageAtom?`), `tags` (`TagAtom[]`), `on_like` (`ActionRef?`), `on_nope` (`ActionRef?`), `on_super_like` (`ActionRef?`), `on_click` (`ActionRef?`).
@@ -273,13 +273,13 @@ dependencyResolutionManagement {
         google()
     }
     versionCatalogs {
-        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.3.0") }
+        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.4.0") }
     }
 }
 
 // build.gradle.kts (commonMain)
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0"))
     implementation("io.github.abeta-dev:core")
     implementation("io.github.abeta-dev:database")        // Optional Room 3 KMP local SQLite DB
     implementation("io.github.abeta-dev:design-tokens")
@@ -298,7 +298,7 @@ repositories {
     maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
 }
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.4.0-SNAPSHOT"))
     implementation("io.github.abeta-dev:sdui-layout")
 }
 ```
@@ -308,14 +308,14 @@ Inside this monorepo, `abeta.kmpLocalBuild=true` substitutes `io.github.abeta-de
 ```swift
 // Package.swift — or Xcode -> File -> Add Package Dependencies...
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.3.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.4.0"),
 ]
 // Targets: import AbetaSduiKit (iOS/iPadOS) | import AbetaWatchKit (watchOS)
 ```
 
 ### Go Module Proxy (`proxy.golang.org`)
 ```bash
-go get github.com/abeta-dev/kmp/bff@v0.5.0
+go get github.com/abeta-dev/kmp/bff@v0.6.0
 ```
 ```go
 import (
@@ -328,8 +328,8 @@ import (
 
 ### Docker Images (GHCR)
 ```bash
-docker pull ghcr.io/abeta-dev/layout-engine:0.3.0
-docker pull ghcr.io/abeta-dev/sdui-bff:0.3.0
+docker pull ghcr.io/abeta-dev/layout-engine:0.4.0
+docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0
 ```
 
 ---

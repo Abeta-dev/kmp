@@ -217,4 +217,25 @@ func TestExtendedAtoms_JSONRoundTripAndWireParity(t *testing.T) {
 	qr.Layout = layout
 	assertRoundTrip(t, qr, "id", "payload", "label", "caption", "size_dp", "on_click", "layout")
 	assertOmitsKeys(t, atoms.QrCodeAtom{Payload: "abeta://min"}, "id", "label", "caption", "size_dp", "on_click", "layout")
+
+	// 13. MediaPagerAtom (29th wire atom) + defensive item copy
+	seedImgs := []atoms.ImageAtom{
+		{ID: "img_banner_1", URL: "https://cdn.abeta.dev/fresh/banner1.png", ContentDescription: "Fresh harvest"},
+		{ID: "img_banner_2", URL: "https://cdn.abeta.dev/fresh/banner2.png", ContentDescription: "8-min dairy"},
+	}
+	pager := atoms.NewMediaPager("pager_hero", seedImgs, 180)
+	seedImgs[0].URL = "https://mutated.example/bad.png"
+	if pager.Items[0].URL != "https://cdn.abeta.dev/fresh/banner1.png" {
+		t.Fatalf("expected defensive copy of MediaPagerAtom items, got %+v", pager.Items)
+	}
+	pager.AutoAdvanceMs = atoms.IntPtr(4000)
+	pager.CornerRadius = atoms.UniformRadius(12)
+	pager.OnPageClick = &act
+	pager.Layout = layout
+	assertRoundTrip(t, pager, "id", "items", "height_dp", "auto_advance_ms", "show_indicators", "corner_radius", "on_page_click", "layout")
+	assertOmitsKeys(t, atoms.MediaPagerAtom{}, "id", "items", "height_dp", "auto_advance_ms", "show_indicators", "corner_radius", "on_page_click", "layout")
+	emptyPager := atoms.NewMediaPager("pager_empty", nil, 120)
+	if emptyPager.Items != nil || emptyPager.ShowIndicators == nil || !*emptyPager.ShowIndicators {
+		t.Fatalf("unexpected empty MediaPagerAtom: %+v", emptyPager)
+	}
 }

@@ -8,10 +8,15 @@ import dev.abeta.kmp.contracts.ColorTokenRef
 import dev.abeta.kmp.contracts.ComposedBlockSnippetData
 import dev.abeta.kmp.contracts.ComposedNode
 import dev.abeta.kmp.contracts.ComposedNodeKind
+import dev.abeta.kmp.contracts.CornerRadiusSpec
 import dev.abeta.kmp.contracts.CountdownAtom
+import dev.abeta.kmp.contracts.ImageAtom
+import dev.abeta.kmp.contracts.ImageScaleMode
+import dev.abeta.kmp.contracts.LayoutConfig
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.MotionSpec
 import dev.abeta.kmp.contracts.MotionTransition
+import dev.abeta.kmp.contracts.PriceAtom
 import dev.abeta.kmp.contracts.ProgressAtom
 import dev.abeta.kmp.contracts.ProgressKind
 import dev.abeta.kmp.contracts.SduiJson
@@ -19,6 +24,8 @@ import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.StepperAtom
 import dev.abeta.kmp.contracts.TagAtom
+import dev.abeta.kmp.contracts.TagVariant
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.contracts.TypographyTokenRef
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
@@ -29,6 +36,9 @@ private const val INNER_SPACING_DP = 8
 private const val STEPPER_MAX_QTY = 12
 private const val FLASH_UNIT_CENTS = 899
 private const val B2B_UNIT_CENTS = 4800
+private const val EXPRESS_TILE_UNIT_CENTS = 349
+private const val EXPRESS_TILE_IMAGE_HEIGHT_DP = 116
+private const val EXPRESS_TILE_CORNER_DP = 10
 private const val LOYALTY_BASE_STAMPS = 5
 private const val LOYALTY_STAMPS_GOAL = 8
 private const val RIDER_BASE_ETA_MINS = 4
@@ -101,6 +111,17 @@ internal object SnippetCrafterPresets {
                     loopEffect = MotionLoopEffect.NONE,
                 )
             }
+
+            CrafterPreset.EXPRESS_PRODUCT_TILE -> {
+                CrafterConfig(
+                    preset = preset,
+                    rootContainer = CrafterRootContainer.COLUMN,
+                    enterTransition = MotionTransition.SPRING_BOUNCE,
+                    loopEffect = MotionLoopEffect.NONE,
+                    includeCountdown = false,
+                    includeProgressBar = false,
+                )
+            }
         }
 
     fun buildMoldedEnvelope(
@@ -152,7 +173,9 @@ internal object SnippetCrafterPresets {
 
     private fun buildInfoNodes(config: CrafterConfig): List<ComposedNode> =
         buildList {
-            if (config.includeBadgeTag) {
+            if (config.preset == CrafterPreset.EXPRESS_PRODUCT_TILE) {
+                add(buildExpressOverlayBoxNode(config))
+            } else if (config.includeBadgeTag) {
                 add(
                     ComposedNode(
                         nodeId = "crafter_badge",
@@ -175,6 +198,23 @@ internal object SnippetCrafterPresets {
                     text = SnippetsSamples.txt(config.preset.subtitle, "body.small", "text.secondary"),
                 ),
             )
+            if (config.preset == CrafterPreset.EXPRESS_PRODUCT_TILE) {
+                add(
+                    ComposedNode(
+                        nodeId = "crafter_express_price",
+                        kind = ComposedNodeKind.PRICE,
+                        price =
+                            PriceAtom(
+                                id = "crafter_avocados_price",
+                                amountText = "\$3.49",
+                                originalAmountText = "\$4.49",
+                                discountLabel = "20% OFF",
+                                unitSuffix = "/ 500g",
+                                emphasized = true,
+                            ),
+                    ),
+                )
+            }
             if (config.includeProgressBar) {
                 add(
                     ComposedNode(
@@ -190,6 +230,45 @@ internal object SnippetCrafterPresets {
                 )
             }
         }
+
+    private fun buildExpressOverlayBoxNode(config: CrafterConfig): ComposedNode {
+        val overlayChildren =
+            buildList {
+                add(buildExpressOverlayImageNode())
+                if (config.includeBadgeTag) {
+                    add(
+                        buildExpressOverlayTag(
+                            nodeId = "crafter_overlay_discount",
+                            alignment = "top_start",
+                            tag = TagAtom(label = config.preset.badgeLabel, variant = config.preset.badgeVariant),
+                        ),
+                    )
+                }
+                add(
+                    buildExpressOverlayTag(
+                        nodeId = "crafter_overlay_veg",
+                        alignment = "top_end",
+                        tag = TagAtom(label = "VEG", variant = TagVariant.SUCCESS),
+                    ),
+                )
+                add(
+                    buildExpressOverlayTag(
+                        nodeId = "crafter_overlay_eta",
+                        alignment = "bottom_start",
+                        tag = TagAtom(label = "8 MINS", bgColor = ColorTokenRef("status.success_container")),
+                    ),
+                )
+            }
+        val trackingProps = mapOf("component_id" to "crafter_express_media_box", "molecule" to "express_tile")
+        return ComposedNode(
+            nodeId = "crafter_express_media_box",
+            kind = ComposedNodeKind.BOX,
+            layout = LayoutConfig(fillMaxWidth = true),
+            tracking = TrackingContract(eventName = "node_impression", properties = trackingProps),
+            clickTracking = TrackingContract(eventName = "interaction_click", properties = trackingProps),
+            children = overlayChildren,
+        )
+    }
 
     private fun buildActionNodes(
         config: CrafterConfig,
@@ -364,6 +443,37 @@ internal object SnippetCrafterPresets {
             CrafterPreset.B2B_BULK_QUOTE -> {
                 AnimationNudgesFixtures.formatUsdCents(B2B_UNIT_CENTS * safeQty)
             }
+
+            CrafterPreset.EXPRESS_PRODUCT_TILE -> {
+                AnimationNudgesFixtures.formatUsdCents(EXPRESS_TILE_UNIT_CENTS * safeQty)
+            }
         }
     }
 }
+
+private fun buildExpressOverlayImageNode(): ComposedNode =
+    ComposedNode(
+        nodeId = "crafter_tile_img",
+        kind = ComposedNodeKind.IMAGE,
+        image =
+            ImageAtom(
+                id = "crafter_avocados_img",
+                url = "https://cdn.abeta.dev/fresh/avocados.png",
+                contentDescription = "Organic Hass Avocados",
+                heightDp = EXPRESS_TILE_IMAGE_HEIGHT_DP,
+                scaleMode = ImageScaleMode.CROP,
+                cornerRadius = CornerRadiusSpec(all = EXPRESS_TILE_CORNER_DP),
+            ),
+    )
+
+private fun buildExpressOverlayTag(
+    nodeId: String,
+    alignment: String,
+    tag: TagAtom,
+): ComposedNode =
+    ComposedNode(
+        nodeId = nodeId,
+        kind = ComposedNodeKind.TAG,
+        boxAlignment = alignment,
+        tag = tag,
+    )

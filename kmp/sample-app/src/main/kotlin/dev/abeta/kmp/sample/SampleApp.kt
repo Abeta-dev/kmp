@@ -7,12 +7,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.actions.codec.BuiltInActionDecoders
 import dev.abeta.kmp.actions.handler.ActionDispatcher
 import dev.abeta.kmp.actions.handler.ApiCallExecutor
@@ -407,9 +407,9 @@ fun SampleRoot(
     showTopBar: Boolean = true,
 ) {
     var darkTheme by remember(initialDarkTheme) { mutableStateOf(initialDarkTheme) }
-    val uiState by container.controller.uiState.collectAsState()
-    val activeScreen by container.currentScreenId.collectAsState()
-    val offlineStatus by container.offlineCoordinator.status.collectAsState()
+    val uiState by container.controller.uiState.collectAsStateWithLifecycle()
+    val activeScreen by container.currentScreenId.collectAsStateWithLifecycle()
+    val offlineStatus by container.offlineCoordinator.status.collectAsStateWithLifecycle()
     val pendingOfflineCount = (uiState as? LayoutUiState.Ready)?.pendingOfflineActions ?: offlineStatus.pendingCount
     var launcherMode by remember { mutableStateOf(launcherModeForScreen(activeScreen)) }
     val activePreset = SampleShowcaseApps.themePresetForScreen(activeScreen)
@@ -450,6 +450,7 @@ fun SampleRoot(
                     onDismissToast = container.controller::dismissToast,
                     onDismissFeedback = container.controller::dismissFeedback,
                     onSnippetImpression = container.controller::onSnippetImpression,
+                    onNodeImpression = container.controller::onNodeImpression,
                     onLoadMore = { container.controller.loadMore() },
                     isWatch = SampleShowcaseApps.normalizeBaseScreenId(activeScreen) == "watch-status",
                     onHaptic = container.platformBridges.hapticEngine.asUiHapticCallback(),

@@ -359,6 +359,25 @@ public abstract interface class dev/abeta/kmp/state/session/SessionStore {
 	public abstract fun remove (Ljava/util/Collection;)V
 }
 
+public final class dev/abeta/kmp/state/storage/DataStoreKeyValueStore : dev/abeta/kmp/core/storage/ObservableKeyValueStore {
+	public fun <init> (Landroidx/datastore/core/DataStore;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;)V
+	public synthetic fun <init> (Landroidx/datastore/core/DataStore;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun awaitSync (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun clear ()V
+	public fun contains (Ljava/lang/String;)Z
+	public fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public fun keys ()Ljava/util/Set;
+	public fun observeKey (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun observeString (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)V
+}
+
+public final class dev/abeta/kmp/state/storage/DataStoreKeyValueStore_jvmKt {
+	public static final fun createDataStoreKeyValueStore (Ljava/lang/String;)Ldev/abeta/kmp/core/storage/ObservableKeyValueStore;
+	public static synthetic fun createDataStoreKeyValueStore$default (Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/core/storage/ObservableKeyValueStore;
+}
+
 public final class dev/abeta/kmp/state/storage/SettingsKeyValueStore : dev/abeta/kmp/core/storage/ObservableKeyValueStore {
 	public fun <init> (Lcom/russhwolf/settings/Settings;Ljava/lang/String;)V
 	public synthetic fun <init> (Lcom/russhwolf/settings/Settings;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

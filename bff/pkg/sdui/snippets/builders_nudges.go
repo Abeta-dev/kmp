@@ -41,6 +41,11 @@ func (b *NudgeBarSnippetBuilder) WithMotion(motion atoms.MotionSpec) *NudgeBarSn
 	return b
 }
 
+func (b *NudgeBarSnippetBuilder) WithSticky(sticky bool) *NudgeBarSnippetBuilder {
+	b.meta.sticky = sticky
+	return b
+}
+
 func (b *NudgeBarSnippetBuilder) WithSubtitle(subtitle atoms.TextAtom) *NudgeBarSnippetBuilder {
 	b.data.Subtitle = &subtitle
 	return b
@@ -299,6 +304,11 @@ func (b *ComposedBlockSnippetBuilder) WithMotion(motion atoms.MotionSpec) *Compo
 	return b
 }
 
+func (b *ComposedBlockSnippetBuilder) WithSticky(sticky bool) *ComposedBlockSnippetBuilder {
+	b.meta.sticky = sticky
+	return b
+}
+
 func (b *ComposedBlockSnippetBuilder) WithRecipeName(name string) *ComposedBlockSnippetBuilder {
 	b.data.RecipeName = name
 	return b
@@ -317,11 +327,27 @@ func (b *ComposedBlockSnippetBuilder) Build() SnippetEnvelope {
 
 func isComposedContainerKind(kind string) bool {
 	switch kind {
-	case ComposedNodeColumn, ComposedNodeRow, ComposedNodeBox, ComposedNodeCard, ComposedNodeFlowRow:
+	case ComposedNodeColumn, ComposedNodeRow, ComposedNodeBox, ComposedNodeCard, ComposedNodeFlowRow,
+		ComposedNodeScrollRow, ComposedNodeGrid:
 		return true
 	default:
 		return false
 	}
+}
+
+func cloneTrackingMeta(meta *atoms.TrackingMeta) *atoms.TrackingMeta {
+	if meta == nil {
+		return nil
+	}
+	cp := *meta
+	if len(meta.Properties) > 0 {
+		props := make(map[string]any, len(meta.Properties))
+		for k, v := range meta.Properties {
+			props[k] = v
+		}
+		cp.Properties = props
+	}
+	return &cp
 }
 
 func cloneComposedNode(node ComposedNode) ComposedNode {
@@ -335,5 +361,20 @@ func cloneComposedNode(node ComposedNode) ComposedNode {
 	} else if isComposedContainerKind(node.Kind) {
 		cloned.Children = []ComposedNode{}
 	}
+	if node.ColumnsByWidth != nil {
+		cp := *node.ColumnsByWidth
+		cloned.ColumnsByWidth = &cp
+	}
+	if node.MediaPager != nil {
+		cp := *node.MediaPager
+		if len(node.MediaPager.Items) > 0 {
+			items := make([]atoms.ImageAtom, len(node.MediaPager.Items))
+			copy(items, node.MediaPager.Items)
+			cp.Items = items
+		}
+		cloned.MediaPager = &cp
+	}
+	cloned.Tracking = cloneTrackingMeta(node.Tracking)
+	cloned.ClickTracking = cloneTrackingMeta(node.ClickTracking)
 	return cloned
 }

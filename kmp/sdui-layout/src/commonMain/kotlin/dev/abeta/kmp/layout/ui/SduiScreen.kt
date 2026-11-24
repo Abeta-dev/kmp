@@ -3,6 +3,7 @@ package dev.abeta.kmp.layout.ui
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -33,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.UiButton
@@ -62,10 +64,12 @@ import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.TextAtom
 import dev.abeta.kmp.contracts.ToolbarSpec
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.error.AppError
 import dev.abeta.kmp.layout.engine.LayoutUiState
 import dev.abeta.kmp.layout.snippet.LocalFormValidationErrors
 import dev.abeta.kmp.layout.snippet.LocalMotionStaggerIndex
+import dev.abeta.kmp.layout.snippet.LocalNodeImpressionHandler
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.tokens.ProvideAdaptiveLayoutMetrics
 import dev.abeta.kmp.tokens.ThemeTokens
@@ -109,6 +113,7 @@ fun SduiScreen(
     onLoadMore: () -> Unit = {},
     isWatch: Boolean = false,
     onHaptic: ((UiHapticKind) -> Unit)? = null,
+    onNodeImpression: (String, TrackingContract) -> Unit = { _, _ -> },
 ) {
     val colors = ThemeTokens.colors
     val hapticCallback = onHaptic ?: rememberComposeHapticFallback()
@@ -119,7 +124,10 @@ fun SduiScreen(
             maxHeight = maxHeight,
             isWatch = isWatch,
         ) {
-            CompositionLocalProvider(LocalUiHapticFeedback provides hapticCallback) {
+            CompositionLocalProvider(
+                LocalUiHapticFeedback provides hapticCallback,
+                LocalNodeImpressionHandler provides onNodeImpression,
+            ) {
                 when (state) {
                     LayoutUiState.Idle -> {
                         Box(
@@ -266,6 +274,14 @@ private fun ReadyScreenContent(
     state.activeOverlay?.let { overlay ->
         OverlayHost(
             overlay = overlay,
+            snippetContext =
+                OverlaySnippetContext(
+                    snippetRegistry = snippetRegistry,
+                    formValues = state.formValues,
+                    validationErrors = state.validationErrors,
+                    onFormValueChange = onFormValueChange,
+                    onSnippetImpression = onSnippetImpression,
+                ),
             onAction = onAction,
             onDismiss = onDismissOverlay,
         )
@@ -333,6 +349,7 @@ internal fun SnippetLazyList(
     val enteredMotionKeys = remember(state.page.pageId) { mutableSetOf<Any>() }
     val listState = remember(state.page.pageId) { LazyListState() }
     val bottomExtraDp = resolveBottomSpacerDp(state.page.floatingCart)
+    val stickyBackground = ThemeTokens.colors.background.primary
 
     CompositionLocalProvider(
         LocalFormValidationErrors provides state.validationErrors,
@@ -344,34 +361,17 @@ internal fun SnippetLazyList(
             contentPadding = PaddingValues(vertical = spacing.space8, horizontal = 0.dp),
             verticalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {
-            itemsIndexed(
-                items = snippets,
-                key = { _, item -> item.snippetId },
-                contentType = { _, item -> item.snippetType },
-            ) { index, envelope ->
-                val baseModifier =
-                    if (reducedMotion) {
-                        Modifier
-                    } else {
-                        Modifier.animateItem(
-                            fadeInSpec = null,
-                            fadeOutSpec = null,
-                            placementSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                        )
-                    }
-                val shakeMatches =
-                    state.errorShakeTargetId == null || state.errorShakeTargetId == envelope.snippetId
-                val itemFormValues =
-                    if (envelope.snippetType in FORM_AWARE_SNIPPET_TYPES) state.formValues else emptyMap()
-                SnippetListItemSlot(
+            snippets.forEachIndexed { index, envelope ->
+                addSnippetEntry(
                     index = index,
                     envelope = envelope,
-                    formValues = itemFormValues,
+                    state = state,
+                    reducedMotion = reducedMotion,
+                    stickyBackground = stickyBackground,
                     snippetRegistry = snippetRegistry,
                     onFormValueChange = onFormValueChange,
                     onAction = onAction,
                     onSnippetImpression = onSnippetImpression,
-                    modifier = baseModifier.shakeOnError(state.errorShakeSequence, enabled = shakeMatches),
                 )
             }
             if (state.page.pagination?.hasMore == true) {
@@ -382,6 +382,73 @@ internal fun SnippetLazyList(
             item(key = "__bottom_spacer__") {
                 Box(modifier = Modifier.padding(bottom = bottomExtraDp.dp))
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Suppress("LongParameterList")
+private fun LazyListScope.addSnippetEntry(
+    index: Int,
+    envelope: SnippetEnvelope,
+    state: LayoutUiState.Ready,
+    reducedMotion: Boolean,
+    stickyBackground: Color,
+    snippetRegistry: SnippetRegistry,
+    onFormValueChange: (String, String) -> Unit,
+    onAction: (ActionRef) -> Unit,
+    onSnippetImpression: (SnippetEnvelope) -> Unit,
+) {
+    val shakeMatches =
+        state.errorShakeTargetId == null || state.errorShakeTargetId == envelope.snippetId
+    val itemFormValues =
+        if (envelope.snippetType in FORM_AWARE_SNIPPET_TYPES) state.formValues else emptyMap()
+    if (envelope.sticky) {
+        stickyHeader(
+            key = envelope.snippetId,
+            contentType = envelope.snippetType,
+        ) { _ ->
+            Surface(
+                modifier = Modifier.fillMaxWidth().testTag("sdui_sticky_snippet_${envelope.snippetId}"),
+                color = stickyBackground,
+            ) {
+                SnippetListItemSlot(
+                    index = index,
+                    envelope = envelope,
+                    formValues = itemFormValues,
+                    snippetRegistry = snippetRegistry,
+                    onFormValueChange = onFormValueChange,
+                    onAction = onAction,
+                    onSnippetImpression = onSnippetImpression,
+                    modifier = Modifier.shakeOnError(state.errorShakeSequence, enabled = shakeMatches),
+                )
+            }
+        }
+    } else {
+        item(
+            key = envelope.snippetId,
+            contentType = envelope.snippetType,
+        ) {
+            val baseModifier =
+                if (reducedMotion) {
+                    Modifier
+                } else {
+                    Modifier.animateItem(
+                        fadeInSpec = null,
+                        fadeOutSpec = null,
+                        placementSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                    )
+                }
+            SnippetListItemSlot(
+                index = index,
+                envelope = envelope,
+                formValues = itemFormValues,
+                snippetRegistry = snippetRegistry,
+                onFormValueChange = onFormValueChange,
+                onAction = onAction,
+                onSnippetImpression = onSnippetImpression,
+                modifier = baseModifier.shakeOnError(state.errorShakeSequence, enabled = shakeMatches),
+            )
         }
     }
 }

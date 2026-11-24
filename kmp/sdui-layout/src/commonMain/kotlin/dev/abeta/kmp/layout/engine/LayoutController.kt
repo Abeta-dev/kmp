@@ -8,6 +8,7 @@ import dev.abeta.kmp.analytics.AnalyticsTrackingPayload
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SnippetEnvelope
+import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.error.AppError
 import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.logging.AppLogger
@@ -91,10 +92,16 @@ class LayoutController(
     val capabilities: PlatformCapabilities
         get() = platformBridges.capabilities
 
+    /** Most recently requested or loaded screen identifier, if any. */
+    val currentScreenId: String?
+        get() = activeScreenId
+
     private val trackedImpressions = mutableSetOf<String>()
+    private val trackedNodeImpressions = mutableSetOf<String>()
     private var activeScreenId: String? = null
     private var activeLoadJob: Job? = null
     private var pendingDeepLinkParams: Map<String, String> = emptyMap()
+    private var pendingRestoredFormValues: Map<String, String> = emptyMap()
     private val bridgeOutcomeExecutor =
         PlatformBridgeOutcomeExecutor(
             bridges = platformBridges,
@@ -115,6 +122,7 @@ class LayoutController(
     ): Job {
         activeScreenId = screenId
         trackedImpressions.clear()
+        trackedNodeImpressions.clear()
         if (showLoader || _uiState.value !is LayoutUiState.Ready) {
             _uiState.value = LayoutUiState.Loading
         }
@@ -248,6 +256,27 @@ class LayoutController(
         }
     }
 
+    /** Returns a snapshot of active or pending restored form values for persistence. */
+    fun currentFormValuesSnapshot(): Map<String, String> {
+        val ready = _uiState.value as? LayoutUiState.Ready
+        return ready?.formValues ?: pendingRestoredFormValues
+    }
+
+    /**
+     * Restores persisted form field values into [SessionStore] and active UI state (or queues
+     * them for the next loaded page), supporting Android process-death recovery.
+     */
+    fun restoreFormValues(values: Map<String, String>) {
+        if (values.isEmpty()) return
+        values.forEach { (fieldId, value) ->
+            sessionStore.put(fieldId, JsonPrimitive(value))
+        }
+        pendingRestoredFormValues = pendingRestoredFormValues + values
+        updateReady { current ->
+            current.copy(formValues = current.formValues + values)
+        }
+    }
+
     /** Records a deduplicated impression for [snippet] when it becomes visible. */
     fun onSnippetImpression(snippet: SnippetEnvelope) {
         val tracking = snippet.tracking ?: return
@@ -255,9 +284,27 @@ class LayoutController(
             return
         }
         analyticsTracker.trackImpression(
-            AnalyticsTrackingPayload(
-                eventName = tracking.eventName,
-                properties = tracking.properties,
+            LayoutAnalyticsHelper.buildSnippetImpressionPayload(
+                snippet = snippet,
+                tracking = tracking,
+                pageId = currentPageId(),
+            ),
+        )
+    }
+
+    /** Records a deduplicated impression for a composed node identified by [nodeKey]. */
+    fun onNodeImpression(
+        nodeKey: String,
+        tracking: TrackingContract,
+    ) {
+        if (nodeKey.isBlank() || !trackedNodeImpressions.add(nodeKey)) {
+            return
+        }
+        analyticsTracker.trackImpression(
+            LayoutAnalyticsHelper.buildNodeImpressionPayload(
+                nodeKey = nodeKey,
+                tracking = tracking,
+                pageId = currentPageId(),
             ),
         )
     }
@@ -308,6 +355,9 @@ class LayoutController(
         updateReady { current ->
             if (current.validationErrors.isNotEmpty()) current.copy(validationErrors = emptyMap()) else current
         }
+        LayoutAnalyticsHelper
+            .buildActionInteractionEvents(action = action, pageId = currentPageId())
+            .forEach(analyticsTracker::track)
         val context =
             LayoutStateReducer.buildActionContext(
                 ready = _uiState.value as? LayoutUiState.Ready,
@@ -346,7 +396,11 @@ class LayoutController(
         activeScreenId = page.pageId
         val deepLinkParams = pendingDeepLinkParams
         pendingDeepLinkParams = emptyMap()
-        val initialFormValues = LayoutFormSeeder.extractInitialFormValues(page, sessionStore) + deepLinkParams
+        val restoredValues = pendingRestoredFormValues
+        pendingRestoredFormValues = emptyMap()
+        val initialFormValues =
+            restoredValues + LayoutFormSeeder.extractInitialFormValues(page, sessionStore) + deepLinkParams
+        analyticsTracker.track(LayoutAnalyticsHelper.buildPageOpenEvent(page, deepLinkParams))
         page.tracking?.let { tracking ->
             analyticsTracker.trackImpression(
                 AnalyticsTrackingPayload(
@@ -398,14 +452,14 @@ class LayoutController(
         }
     }
 
-    private fun applyStandardOutcome(outcome: ActionOutcome) {
+    private suspend fun applyStandardOutcome(outcome: ActionOutcome) {
         when (outcome) {
             ActionOutcome.Handled -> Unit
             is ActionOutcome.NavigationRequested -> navigationListener(outcome)
             is ActionOutcome.BackRequested -> backListener(outcome)
             is ActionOutcome.TrackingRequested -> trackOutcome(outcome)
             is ActionOutcome.StateMutated -> applyStateMutation(outcome)
-            is ActionOutcome.OverlayRequested -> updateReady { it.copy(activeOverlay = outcome) }
+            is ActionOutcome.OverlayRequested -> applyOverlayRequested(outcome)
             is ActionOutcome.OverlayDismissed -> updateReady { LayoutStateReducer.applyOverlayDismissed(it, outcome) }
             is ActionOutcome.ToastRequested -> updateReady { it.copy(activeToast = outcome) }
             is ActionOutcome.RefreshRequested -> applyRefreshRequested(outcome)
@@ -415,6 +469,47 @@ class LayoutController(
             else -> Unit
         }
     }
+
+    private suspend fun applyOverlayRequested(outcome: ActionOutcome.OverlayRequested) {
+        val initialSheetValues =
+            if (outcome.snippets.isNotEmpty()) {
+                LayoutFormSeeder.extractInitialFormValuesFromSnippets(outcome.snippets, sessionStore)
+            } else {
+                emptyMap()
+            }
+        updateReady { current ->
+            current.copy(
+                activeOverlay = outcome,
+                formValues = initialSheetValues + current.formValues,
+            )
+        }
+        val remoteSheetId = outcome.sheetScreenId?.trim()?.takeIf { it.isNotEmpty() }
+        if (remoteSheetId != null && outcome.snippets.isEmpty()) {
+            when (val result = screenRepository.fetchScreen(remoteSheetId)) {
+                is AppResult.Success -> {
+                    val fetchedSnippets = result.value.snippets
+                    val seeded = LayoutFormSeeder.extractInitialFormValuesFromSnippets(fetchedSnippets, sessionStore)
+                    updateReady { current ->
+                        val active = current.activeOverlay
+                        if (active != null && active.dialogId == outcome.dialogId) {
+                            current.copy(
+                                activeOverlay = active.copy(snippets = fetchedSnippets),
+                                formValues = seeded + current.formValues,
+                            )
+                        } else {
+                            current
+                        }
+                    }
+                }
+
+                is AppResult.Failure -> {
+                    logger.warn(TAG, "Failed to load sheet screen '$remoteSheetId': ${result.error.message}")
+                }
+            }
+        }
+    }
+
+    private fun currentPageId(): String? = (_uiState.value as? LayoutUiState.Ready)?.page?.pageId ?: activeScreenId
 
     private fun applySnippetsUpdated(outcome: ActionOutcome.SnippetsUpdated) {
         updateReady { current ->
@@ -433,6 +528,7 @@ class LayoutController(
             AnalyticsEvent(
                 name = outcome.eventName,
                 properties = LayoutStateReducer.toAnalyticsProperties(outcome.properties),
+                screenName = currentPageId(),
             ),
         )
     }

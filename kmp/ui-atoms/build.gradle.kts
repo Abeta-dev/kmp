@@ -13,6 +13,7 @@ version = internal.versions.uiAtoms.get()
 extra["org.jetbrains.compose.experimental.macos.enabled"] = "true"
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()

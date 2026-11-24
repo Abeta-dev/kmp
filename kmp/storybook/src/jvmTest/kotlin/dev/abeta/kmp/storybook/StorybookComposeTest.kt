@@ -1,13 +1,23 @@
 package dev.abeta.kmp.storybook
 
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.v2.runComposeUiTest
 import dev.abeta.kmp.actions.model.ActionContext
 import dev.abeta.kmp.actions.model.CallApiPayload
@@ -322,6 +332,7 @@ class StorybookComposeTest {
             }
 
             onNodeWithText("Preset Snippet Molds").assertIsDisplayed()
+            onNodeWithText("36 ComposedNodeKinds").assertIsDisplayed()
             onNodeWithText("FLASH COMBO").performScrollTo().assertIsDisplayed()
 
             onNode(hasText("Badge Tag") and hasClickAction()).performScrollTo().performClick()
@@ -329,10 +340,71 @@ class StorybookComposeTest {
 
             onNode(hasText("Loyalty Stamp Card") and hasClickAction()).performScrollTo().performClick()
             onNodeWithText("Abeta Rewards · 6 of 8 Stamps").performScrollTo().assertIsDisplayed()
+            onNode(hasText("Express Product Tile (Box Overlay)") and hasClickAction()).performScrollTo().performClick()
+            onNodeWithText("Organic Hass Avocados · 500g").performScrollTo().assertIsDisplayed()
+            onNodeWithText("VEG").performScrollTo().assertIsDisplayed()
+            onNodeWithText("8 MINS").performScrollTo().assertIsDisplayed()
             onNode(hasText("Row") and hasClickAction()).performScrollTo().performClick()
             onNodeWithText("Live SduiJson Wire Payload (composed_block · ready for sdui-bff)")
                 .performScrollTo()
                 .assertIsDisplayed()
+        }
+
+    @Test
+    fun mediaFeedbackStoryRendersUiMediaPagerAndEmitsActionRef() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(initialStoryId = StoryCatalog.STORY_MEDIA_FEEDBACK, initialReducedMotion = true)
+            }
+
+            onNodeWithText("UiMediaPager · Hero & Product Gallery").assertIsDisplayed()
+            onNodeWithTag("media_pager_story_media_pager").assertIsDisplayed()
+            onNodeWithTag("media_pager_indicators_story_media_pager").assertIsDisplayed()
+            onNodeWithTag("media_pager_story_media_pager_page_0").performClick()
+            onNodeWithText("ActionRef Event Console (1)").assertIsDisplayed()
+            onNodeWithText("MediaPagerAtom Wire JSON").performScrollTo().assertIsDisplayed()
+        }
+
+    @Test
+    fun superAppFreshShowcasesStickySearchVariantSheetAndLiveAnalyticsStream() =
+        runComposeUiTest {
+            setContent {
+                StorybookApp(
+                    initialStoryId = StoryCatalog.STORY_SUPER_APP_DEMOS,
+                    initialAppScreenId = "fresh-home",
+                    initialReducedMotion = true,
+                )
+            }
+
+            onNodeWithText("Hide").performClick()
+            onNodeWithText("/screens/fresh-home").assertIsDisplayed()
+            onNodeWithTag("sdui_sticky_snippet_fresh_search_bar").assertIsDisplayed()
+            onNodeWithTag("media_pager_fresh_hero_pager").assertIsDisplayed()
+            onNodeWithTag("super_app_analytics_strip").assertIsDisplayed()
+            onNodeWithText("page_open: 1").assertIsDisplayed()
+
+            val verticalList =
+                hasScrollToNodeAction() and SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange)
+            onNode(verticalList).performScrollToIndex(4)
+            onNode(verticalList).performTouchInput { swipeUp(startY = centerY, endY = centerY - 110f) }
+            onNodeWithText("500g ▼").assertIsDisplayed().performClick()
+
+            onNodeWithTag("overlay_snippets_fresh_variant_picker_sheet").assertIsDisplayed()
+            onNodeWithText("Choose pack size").assertIsDisplayed()
+            onNodeWithText("1 kg").performScrollTo().performClick()
+            onNodeWithText("Apply Variant").performScrollTo().performClick()
+            onNodeWithTag("overlay_snippets_fresh_variant_picker_sheet").assertDoesNotExist()
+
+            onNode(verticalList).performScrollToNode(hasTestTag("composed_node_fresh_upsell_scroll_row"))
+            onNodeWithText("Before You Checkout").assertIsDisplayed()
+
+            onNodeWithText("interaction_click:", substring = true).assertIsDisplayed()
+            onNodeWithText("interaction_click: 0").assertDoesNotExist()
+            onNodeWithText("node_impression:", substring = true).assertIsDisplayed()
+            onNodeWithText("node_impression: 0").assertDoesNotExist()
+            onNodeWithText("snippet_impression:", substring = true).assertIsDisplayed()
+            onNodeWithText("snippet_impression: 0").assertDoesNotExist()
+            assertTrue(onAllNodesWithText("[interaction_click]", substring = true).fetchSemanticsNodes().isNotEmpty())
         }
 
     @Test

@@ -33,6 +33,7 @@ import dev.abeta.kmp.core.security.SecureKeyValueStore
 import dev.abeta.kmp.core.storage.KeyValueStore
 import dev.abeta.kmp.core.time.Clock
 import dev.abeta.kmp.core.time.SystemClock
+import dev.abeta.kmp.layout.analytics.RemoteBffAnalyticsTracker
 import dev.abeta.kmp.layout.engine.LayoutController
 import dev.abeta.kmp.layout.engine.OfflineActionCoordinator
 import dev.abeta.kmp.layout.media.ImageBytesFetcher
@@ -86,9 +87,17 @@ fun createSduiKoinModule(
     apiCallExecutor: ApiCallExecutor? = null,
     platformBridges: PlatformBridgeBundle? = null,
     certificatePins: Map<String, List<String>> = emptyMap(),
+    enableRemoteAnalytics: Boolean = false,
+    analyticsEndpoint: String = RemoteBffAnalyticsTracker.DEFAULT_ANALYTICS_ENDPOINT,
 ): Module =
     module {
-        registerFoundationBindings(scope = scope, keyValueStore = keyValueStore, logger = logger)
+        registerFoundationBindings(
+            scope = scope,
+            keyValueStore = keyValueStore,
+            logger = logger,
+            enableRemoteAnalytics = enableRemoteAnalytics,
+            analyticsEndpoint = analyticsEndpoint,
+        )
         registerPlatformBridgeBindings(platformBridges = platformBridges)
         registerNetworkAndRepositoryBindings(
             baseUrl = baseUrl,
@@ -127,6 +136,8 @@ private fun Module.registerFoundationBindings(
     scope: CoroutineScope?,
     keyValueStore: KeyValueStore?,
     logger: AppLogger,
+    enableRemoteAnalytics: Boolean,
+    analyticsEndpoint: String,
 ) {
     single<Clock> { SystemClock() }
     single<UuidGenerator> { RandomUuidGenerator() }
@@ -137,7 +148,29 @@ private fun Module.registerFoundationBindings(
     single<PreferenceStore> { DefaultPreferenceStore(store = get()) }
     single<FeatureFlagProvider> { PersistentFeatureFlagStore(backingStore = get()) }
     single { OfflineMutationQueue(backingStore = get(), clock = get(), uuidGenerator = get()) }
-    single<AnalyticsTracker> { LoggerAnalyticsTracker(logger = get(), clock = get()) }
+    single {
+        RemoteBffAnalyticsTracker(
+            httpTransport = get(),
+            backingStore = get(),
+            endpointPath = analyticsEndpoint,
+            sessionId = get<UuidGenerator>().nextId(),
+            platform =
+                get<PlatformCapabilities>()
+                    .platform.kind.name
+                    .lowercase(),
+            clock = get(),
+            uuidGenerator = get(),
+            scope = get(),
+            logger = get(),
+        )
+    }
+    single<AnalyticsTracker> {
+        if (enableRemoteAnalytics) {
+            get<RemoteBffAnalyticsTracker>()
+        } else {
+            LoggerAnalyticsTracker(logger = get(), clock = get())
+        }
+    }
 }
 
 @Suppress("LongParameterList")

@@ -16,13 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.atoms.atoms.LocalImageRenderer
 import dev.abeta.kmp.atoms.atoms.UiImageRenderer
 import dev.abeta.kmp.layout.di.createSduiKoinModule
@@ -194,8 +194,8 @@ private fun AndroidSduiRoot(
     val controller = remember(koinApp) { koinApp.koin.get<LayoutController>() }
     val snippetRegistry = remember(koinApp) { koinApp.koin.get<SnippetRegistry>() }
     val imageRenderer = remember(koinApp) { koinApp.koin.get<UiImageRenderer>() }
-    val uiState by controller.uiState.collectAsState()
-    val pendingDeepLink by deepLinkFlow.collectAsState()
+    val uiState by controller.uiState.collectAsStateWithLifecycle()
+    val pendingDeepLink by deepLinkFlow.collectAsStateWithLifecycle()
 
     LaunchedEffect(controller) {
         onControllerReady(controller)

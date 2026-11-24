@@ -298,7 +298,7 @@ fun TextFieldStory(onAction: (ActionRef) -> Unit) {
 }
 
 /**
- * Showcase for [UiProgress], [UiIcon], [UiImage], [UiDivider], [UiSpacer], and [UiSurfaceCard].
+ * Showcase for [UiProgress], [UiIcon], [UiImage], `UiMediaPager`, [UiDivider], [UiSpacer], and [UiSurfaceCard].
  */
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")
@@ -308,6 +308,7 @@ fun MediaFeedbackStory(onAction: (ActionRef) -> Unit) {
     var indeterminate by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(spacing.space16)) {
+        MediaPagerSpecimenSection(onAction = onAction)
         UiSurfaceCard(modifier = Modifier.fillMaxWidth()) {
             UiText(TextAtom(text = "Progress Indicators", typography = TypographyTokenRef("title.large")))
             UiSpacer(SpacerAtom(heightDp = 8))

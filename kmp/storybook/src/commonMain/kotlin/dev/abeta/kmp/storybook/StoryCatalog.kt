@@ -99,8 +99,9 @@ object StoryCatalog {
                 id = STORY_MEDIA_FEEDBACK,
                 title = "Icons, Progress & Media",
                 category = StoryCategory.ATOMS,
-                subtitle = "UiIcon, UiProgress, UiImage, UiDivider & UiSurfaceCard",
-                description = "Built-in vector icon registry, progress indicators, and themed cards.",
+                subtitle = "UiIcon, UiProgress, UiImage, UiMediaPager, UiDivider & UiSurfaceCard",
+                description =
+                    "Built-in vector icon registry, progress indicators, swipeable media pager, and themed cards.",
             ),
             StoryEntry(
                 id = STORY_CONTROLS_DATA,
@@ -192,9 +193,10 @@ object StoryCatalog {
                 id = STORY_SNIPPET_CRAFTER,
                 title = "Atomic Snippet Crafter",
                 category = StoryCategory.PLAYGROUND,
-                subtitle = "ComposedBlock Molding Engine · Live Visual Builder · Real-Time Wire JSON",
+                subtitle = "36 ComposedNodeKinds · Express Box Overlays · Live Wire JSON",
                 description =
-                    "Mold unlimited server-driven snippets from stateless atoms and containers with zero app releases.",
+                    "Mold unlimited server-driven snippets from 36 stateless atoms and containers " +
+                        "with zero app releases.",
             ),
             StoryEntry(
                 id = STORY_E2E_JOURNEYS,

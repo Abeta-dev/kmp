@@ -15,6 +15,7 @@ version = internal.versions.sduiLayout.get()
 extra["org.jetbrains.compose.experimental.macos.enabled"] = "true"
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()
@@ -52,9 +53,13 @@ kotlin {
             api(compose.foundation)
             api(compose.ui)
             api(libs.compose.material3)
+            api(libs.androidx.lifecycle.viewmodel)
+            api(libs.androidx.savedstate)
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.serialization.json)
             api(libs.koin.core)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(project.dependencies.platform(libs.ktor.bom))
             implementation(libs.ktor.client.core)
         }

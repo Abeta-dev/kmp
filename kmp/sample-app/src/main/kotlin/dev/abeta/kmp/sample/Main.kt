@@ -128,6 +128,10 @@ private fun runHeadless(bffUrl: String?) {
                 container = created
                 created.runHeadlessVerification()
             }
+        val pageOpenCount = summary.recordedEvents.count { it == "page_open" }
+        val interactionClickCount = summary.recordedEvents.count { it == "interaction_click" }
+        check(pageOpenCount > 0) { "Expected page_open analytics events in headless verification" }
+        check(interactionClickCount > 0) { "Expected interaction_click analytics events in headless verification" }
         println("Abeta Sample Headless Verification: OK")
         println("  loadedPageId=${summary.loadedPageId}")
         println("  snippetCount=${summary.snippetCount}")
@@ -138,6 +142,7 @@ private fun runHeadless(bffUrl: String?) {
         println("  watchPageId=${summary.watchPageId}")
         println("  celebrationTriggered=${summary.celebrationTriggered}")
         println("  toastMessage=${summary.toastMessage}")
+        println("  analyticsSummary=page_open:$pageOpenCount, interaction_click:$interactionClickCount")
         println("  recordedEvents=${summary.recordedEvents}")
         println("  recordedImpressions=${summary.recordedImpressions}")
         println("  sessionKeys=${summary.sessionKeys}")

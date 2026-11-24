@@ -57,11 +57,13 @@ func TestActionConstructorsAndDecode(t *testing.T) {
 				Presentation:   actions.PresentationBottomSheet,
 				Dismissible:    &boolTrue,
 				PositiveAction: &sub,
+				Snippets:       []any{map[string]any{"snippet_id": "sheet_s1", "snippet_type": "composed_block"}},
+				SheetScreenID:  "variant-sheet",
 			}),
 			want: actions.ActionOpenDialog,
 			verify: func(t *testing.T, tr actions.ActionTrigger) {
 				p, err := actions.DecodePayload[actions.OpenDialogPayload](tr)
-				if err != nil || p.DialogID != "confirm" || p.Presentation != actions.PresentationBottomSheet || p.PositiveAction == nil {
+				if err != nil || p.DialogID != "confirm" || p.Presentation != actions.PresentationBottomSheet || p.PositiveAction == nil || len(p.Snippets) != 1 || p.SheetScreenID != "variant-sheet" {
 					t.Fatalf("unexpected open_dialog decode: %+v, err=%v", p, err)
 				}
 				if actions.PresentationDialog != "dialog" || actions.PresentationBottomSheet != "bottom_sheet" {
@@ -323,13 +325,19 @@ func TestTriggerBuildersAndErrors(t *testing.T) {
 		t.Fatal("expected error marshaling unsupported payload type")
 	}
 
+	props := map[string]string{"surface": "nav_bar", "sku": "avocados"}
 	enriched := actions.NewNavigateAction("nav", actions.NavigatePayload{Route: "/home"}).
 		WithValidations(actions.ValidationRule{
 			FieldID: "email",
 			Rule:    "required",
 			Message: "Email required",
 		}).
-		WithSecondaryActions(actions.NewTrackEventAction("trk", actions.TrackEventPayload{EventName: "nav"}))
+		WithSecondaryActions(actions.NewTrackEventAction("trk", actions.TrackEventPayload{EventName: "nav"})).
+		WithTracking("nav_clicked", props)
+	props["sku"] = "mutated"
+	if enriched.Tracking == nil || enriched.Tracking.Properties["sku"] != "avocados" {
+		t.Fatalf("expected defensive copy of tracking properties, got %+v", enriched.Tracking)
+	}
 
 	raw, err := json.Marshal(enriched)
 	if err != nil {
@@ -339,9 +347,27 @@ func TestTriggerBuildersAndErrors(t *testing.T) {
 	if err := json.Unmarshal(raw, &wire); err != nil {
 		t.Fatalf("unmarshal wire map: %v", err)
 	}
-	for _, key := range []string{"id", "type", "payload", "validations", "secondary_actions"} {
+	for _, key := range []string{"id", "type", "payload", "validations", "secondary_actions", "tracking"} {
 		if _, ok := wire[key]; !ok {
 			t.Errorf("missing expected snake_case wire key %q", key)
 		}
+	}
+	trackingMap, ok := wire["tracking"].(map[string]any)
+	if !ok || trackingMap["event_name"] != "nav_clicked" {
+		t.Fatalf("unexpected tracking wire payload: %+v", wire["tracking"])
+	}
+
+	// Empty tracking props omits properties key
+	noProps := actions.NewBackPressAction("bp", actions.BackPressPayload{}).WithTracking("back_pressed", nil)
+	noPropsRaw, err := json.Marshal(noProps)
+	if err != nil {
+		t.Fatalf("marshal noProps trigger: %v", err)
+	}
+	var noPropsWire map[string]any
+	if err := json.Unmarshal(noPropsRaw, &noPropsWire); err != nil {
+		t.Fatalf("unmarshal noProps wire map: %v", err)
+	}
+	if _, hasProps := noPropsWire["tracking"].(map[string]any)["properties"]; hasProps {
+		t.Errorf("expected nil tracking properties to be omitted")
 	}
 }

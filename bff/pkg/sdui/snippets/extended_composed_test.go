@@ -93,3 +93,117 @@ func TestExtendedComposedNodeKinds_WireParityAndRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+func TestExpressComposedNodeKinds_StickyAndTrackingRoundTrip(t *testing.T) {
+	expectedNewKinds := map[string]string{
+		"scroll_row":  snippets.ComposedNodeScrollRow,
+		"grid":        snippets.ComposedNodeGrid,
+		"text_field":  snippets.ComposedNodeTextField,
+		"switch":      snippets.ComposedNodeSwitch,
+		"checkbox":    snippets.ComposedNodeCheckbox,
+		"slider":      snippets.ComposedNodeSlider,
+		"media_pager": snippets.ComposedNodeMediaPager,
+	}
+	for want, got := range expectedNewKinds {
+		if got != want {
+			t.Errorf("ComposedNodeKind constant = %q, want %q", got, want)
+		}
+	}
+
+	expectedBoxAligns := map[string]string{
+		"top_start":     snippets.BoxAlignTopStart,
+		"top_center":    snippets.BoxAlignTopCenter,
+		"top_end":       snippets.BoxAlignTopEnd,
+		"center_start":  snippets.BoxAlignCenterStart,
+		"center":        snippets.BoxAlignCenter,
+		"center_end":    snippets.BoxAlignCenterEnd,
+		"bottom_start":  snippets.BoxAlignBottomStart,
+		"bottom_center": snippets.BoxAlignBottomCenter,
+		"bottom_end":    snippets.BoxAlignBottomEnd,
+	}
+	for want, got := range expectedBoxAligns {
+		if got != want {
+			t.Errorf("BoxAlign constant = %q, want %q", got, want)
+		}
+	}
+
+	// Verify Sticky flag on SnippetEnvelope and all builders that expose WithSticky
+	stickyHdr := snippets.NewHeaderSnippet("sh", atoms.NewText("H", theming.TypographyTitleSmall, theming.ColorTextPrimary)).WithSticky(true).Build()
+	stickySearch := snippets.NewSearchBarSnippet("ss", "s1", "Search").WithSticky(true).Build()
+	stickyChips := snippets.NewChipGroupSnippet("sc", "g1").WithSticky(true).Build()
+	stickyNudge := snippets.NewNudgeBarSnippet("sn", "n1", atoms.NewText("N", theming.TypographyBodySmall, theming.ColorTextPrimary)).WithSticky(true).Build()
+	stickyEnv := snippets.NewSpacerSnippet("sp", atoms.SpacerAtom{HeightDp: atoms.IntPtr(4)}).Build().WithSticky(true)
+	for _, env := range []snippets.SnippetEnvelope{stickyHdr, stickySearch, stickyChips, stickyNudge, stickyEnv} {
+		if !env.Sticky {
+			t.Errorf("expected Sticky=true on snippet %q", env.SnippetID)
+		}
+	}
+
+	// Verify 7 new ComposedNodeKinds + BoxAlignment + ColumnsByWidth + Tracking + ClickTracking + empty container cloning
+	pagerImgs := []atoms.ImageAtom{{ID: "p1", URL: "https://cdn.abeta.dev/p1.png"}}
+	pagerAtom := atoms.NewMediaPager("mp_1", pagerImgs, 160)
+	trackProps := map[string]any{"molecule": "tile"}
+	clickProps := map[string]any{"cta": "add"}
+
+	root := snippets.VStack(
+		8,
+		snippets.BoxNode(
+			snippets.ImageNode(atoms.ImageAtom{ID: "i1", URL: "https://cdn.abeta.dev/i1.png"}),
+			snippets.TagNode(atoms.NewTag("15% OFF", theming.ColorErrorContainer)).WithBoxAlignment(snippets.BoxAlignTopStart),
+		).WithTracking("node_impression", trackProps).WithClickTracking("interaction_click", clickProps),
+		snippets.ScrollRowNode(8, snippets.TextNode(atoms.NewText("Upsell", theming.TypographyBodySmall, theming.ColorTextPrimary))),
+		snippets.GridNode(3, 8, snippets.TextNode(atoms.NewText("Cat", theming.TypographyLabelSmall, theming.ColorTextPrimary))).
+			WithColumns(4).
+			WithColumnsByWidth(snippets.ResponsiveColumnsSpec{
+				Compact:  atoms.IntPtr(3),
+				Medium:   atoms.IntPtr(4),
+				Expanded: atoms.IntPtr(6),
+			}),
+		snippets.TextFieldNode(atoms.TextFieldAtom{FieldID: "note", Label: "Delivery Note"}),
+		snippets.SwitchNode(atoms.NewSwitch("leave_door", "Leave at door", true, nil)),
+		snippets.CheckboxNode(atoms.NewCheckbox("no_bell", "Don't ring bell", false, nil)),
+		snippets.SliderNode(atoms.NewSlider("tip", "Tip", 2, 0, 10, nil)),
+		snippets.MediaPagerNode(pagerAtom),
+		snippets.ScrollRowNode(0),
+		snippets.GridNode(0, 0),
+	)
+	trackProps["molecule"] = "mutated"
+
+	env := snippets.NewComposedBlockSnippet("blk_express", "express_36_kinds", root).
+		WithSticky(true).
+		Build()
+	raw, err := json.Marshal(env)
+	if err != nil {
+		t.Fatalf("marshal express composed_block: %v", err)
+	}
+	var decodedEnv snippets.SnippetEnvelope
+	if err := json.Unmarshal(raw, &decodedEnv); err != nil {
+		t.Fatalf("unmarshal express composed_block: %v", err)
+	}
+	if !decodedEnv.Sticky {
+		t.Fatal("expected Sticky=true to survive JSON round-trip")
+	}
+	data, err := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](decodedEnv)
+	if err != nil {
+		t.Fatalf("decode express composed_block: %v", err)
+	}
+	if data.Root.Children[0].Tracking == nil || data.Root.Children[0].Tracking.Properties["molecule"] != "tile" {
+		t.Fatalf("expected defensive copy of Tracking props, got %+v", data.Root.Children[0].Tracking)
+	}
+	if data.Root.Children[0].ClickTracking == nil || data.Root.Children[0].ClickTracking.EventName != "interaction_click" {
+		t.Fatalf("expected ClickTracking preserved, got %+v", data.Root.Children[0].ClickTracking)
+	}
+	if data.Root.Children[0].Children[1].BoxAlignment != snippets.BoxAlignTopStart {
+		t.Fatalf("expected box_alignment=%q, got %q", snippets.BoxAlignTopStart, data.Root.Children[0].Children[1].BoxAlignment)
+	}
+	gridNode := data.Root.Children[2]
+	if gridNode.Kind != snippets.ComposedNodeGrid || *gridNode.Columns != 4 || gridNode.ColumnsByWidth == nil || *gridNode.ColumnsByWidth.Expanded != 6 {
+		t.Fatalf("unexpected GridNode decode: %+v", gridNode)
+	}
+	if data.Root.Children[3].TextField == nil || data.Root.Children[4].Switch == nil || data.Root.Children[5].Checkbox == nil || data.Root.Children[6].Slider == nil || data.Root.Children[7].MediaPager == nil {
+		t.Fatalf("expected all 5 new leaf atoms present in decoded ComposedNode tree")
+	}
+	if data.Root.Children[8].Kind != snippets.ComposedNodeScrollRow || data.Root.Children[9].Kind != snippets.ComposedNodeGrid {
+		t.Fatalf("expected empty scroll_row and grid containers preserved")
+	}
+}

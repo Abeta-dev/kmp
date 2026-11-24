@@ -43,6 +43,13 @@ type SnippetEnvelope struct {
 	Data            any                 `json:"data"`
 	Tracking        *atoms.TrackingMeta `json:"tracking,omitempty"`
 	Motion          *atoms.MotionSpec   `json:"motion,omitempty"`
+	Sticky          bool                `json:"sticky,omitempty"`
+}
+
+// WithSticky returns a copy of the envelope with its sticky header flag configured.
+func (e SnippetEnvelope) WithSticky(sticky bool) SnippetEnvelope {
+	e.Sticky = sticky
+	return e
 }
 
 // DecodeSnippetData converts a SnippetEnvelope's Data (including unmarshaled map[string]any)

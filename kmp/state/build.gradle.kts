@@ -12,6 +12,7 @@ group = "io.github.abeta-dev"
 version = internal.versions.state.get()
 
 kotlin {
+    applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
     jvm()
@@ -32,10 +33,20 @@ kotlin {
     }
 
     sourceSets {
+        val apple64Main =
+            create("apple64Main") {
+                dependsOn(appleMain.get())
+            }
+        iosMain.get().dependsOn(apple64Main)
+        macosMain.get().dependsOn(apple64Main)
+        watchosSimulatorArm64Main.get().dependsOn(apple64Main)
+        watchosDeviceArm64Main.get().dependsOn(apple64Main)
+
         commonMain.dependencies {
             api(projects.core)
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.serialization.json)
+            implementation(libs.androidx.datastore.preferences.core)
             implementation(libs.multiplatform.settings)
         }
         commonTest.dependencies {

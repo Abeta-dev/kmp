@@ -29,6 +29,7 @@ data class ActionRef(
     val validations: List<ValidationRuleContract> = emptyList(),
     @SerialName("secondary_actions")
     val secondaryActions: List<ActionRef> = emptyList(),
+    val tracking: TrackingContract? = null,
 )
 
 /**
