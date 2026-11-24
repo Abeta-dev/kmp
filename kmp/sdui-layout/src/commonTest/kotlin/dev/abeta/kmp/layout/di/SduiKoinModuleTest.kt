@@ -7,12 +7,15 @@ import dev.abeta.kmp.actions.handler.ApiCallExecutor
 import dev.abeta.kmp.analytics.AnalyticsTracker
 import dev.abeta.kmp.atoms.atoms.UiImageRenderer
 import dev.abeta.kmp.core.identity.UuidGenerator
+import dev.abeta.kmp.core.platform.AudioCapturePort
 import dev.abeta.kmp.core.platform.ClipboardPort
 import dev.abeta.kmp.core.platform.ConnectivityMonitor
+import dev.abeta.kmp.core.platform.DesktopSystemPort
 import dev.abeta.kmp.core.platform.ExternalLauncherPort
 import dev.abeta.kmp.core.platform.HapticEngine
 import dev.abeta.kmp.core.platform.PlatformCapabilities
 import dev.abeta.kmp.core.platform.SharePort
+import dev.abeta.kmp.core.platform.SpeechToTextPort
 import dev.abeta.kmp.core.security.BiometricAuthenticator
 import dev.abeta.kmp.core.security.SecureKeyValueStore
 import dev.abeta.kmp.core.storage.InMemoryKeyValueStore
@@ -124,7 +127,7 @@ class SduiKoinModuleTest {
         assertNull(koin.getOrNull<ScreenManifestRepository>())
         assertIs<CachedScreenRepository>(koin.get<ScreenRepository>())
         assertNotNull(koin.get<ApiCallExecutor>())
-        assertEquals(21, koin.get<SnippetRegistry>().registeredTypes().size)
+        assertEquals(23, koin.get<SnippetRegistry>().registeredTypes().size)
         assertNotNull(koin.get<ActionDecoderRegistry>())
         assertNotNull(koin.get<ActionRegistry>())
         assertNotNull(koin.get<ActionDispatcher>())
@@ -139,6 +142,9 @@ class SduiKoinModuleTest {
         assertNotNull(koin.get<ConnectivityMonitor>())
         assertNotNull(koin.get<SecureKeyValueStore>())
         assertNotNull(koin.get<BiometricAuthenticator>())
+        assertNotNull(koin.get<AudioCapturePort>())
+        assertNotNull(koin.get<SpeechToTextPort>())
+        assertNotNull(koin.get<DesktopSystemPort>())
     }
 
     @Test

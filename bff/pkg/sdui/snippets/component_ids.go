@@ -265,6 +265,61 @@ func ensureSnippetEnvelope(env SnippetEnvelope, pageID, path string) SnippetEnve
 	case ComposedBlockSnippetData:
 		d.Root = ensureComposedNode(d.Root, scope, "0")
 		env.Data = d
+	case CustomSlotSnippetData:
+		if len(d.OnEvent) > 0 {
+			events := make(map[string]actions.ActionTrigger, len(d.OnEvent))
+			for k, act := range d.OnEvent {
+				events[k] = ensureAction(act, scope+".event_"+k)
+			}
+			d.OnEvent = events
+		}
+		if d.Fallback != nil {
+			fb := ensureSnippetEnvelope(*d.Fallback, pageID, path+"_fallback")
+			if strings.TrimSpace(fb.SnippetParentID) == "" {
+				fb.SnippetParentID = env.SnippetID
+			}
+			d.Fallback = &fb
+		}
+		env.Data = d
+	case GraphCanvasSnippetData:
+		if d.Title != nil {
+			cp := *d.Title
+			cp.OnClick = ensureActionPtr(cp.OnClick, scope+".title.click")
+			d.Title = &cp
+		}
+		if d.Subtitle != nil {
+			cp := *d.Subtitle
+			cp.OnClick = ensureActionPtr(cp.OnClick, scope+".subtitle.click")
+			d.Subtitle = &cp
+		}
+		if len(d.Nodes) > 0 {
+			nodes := make([]GraphNodeSpec, len(d.Nodes))
+			for i, n := range d.Nodes {
+				if strings.TrimSpace(n.NodeID) == "" {
+					n.NodeID = fmt.Sprintf("%s.node_%d", scope, i)
+				}
+				nScope := scope + "." + n.NodeID
+				n.OnClick = ensureActionPtr(n.OnClick, nScope+".click")
+				n.OnDragEnd = ensureActionPtr(n.OnDragEnd, nScope+".drag_end")
+				nodes[i] = n
+			}
+			d.Nodes = nodes
+		}
+		if len(d.Edges) > 0 {
+			edges := make([]GraphEdgeSpec, len(d.Edges))
+			for i, e := range d.Edges {
+				if strings.TrimSpace(e.EdgeID) == "" {
+					e.EdgeID = fmt.Sprintf("%s.edge_%d", scope, i)
+				}
+				eScope := scope + "." + e.EdgeID
+				e.OnClick = ensureActionPtr(e.OnClick, eScope+".click")
+				edges[i] = e
+			}
+			d.Edges = edges
+		}
+		d.OnNodeMoved = ensureActionPtr(d.OnNodeMoved, scope+".node_moved")
+		d.OnCanvasTap = ensureActionPtr(d.OnCanvasTap, scope+".canvas_tap")
+		env.Data = d
 	}
 
 	return env

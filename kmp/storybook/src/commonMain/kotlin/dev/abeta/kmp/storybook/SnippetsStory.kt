@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,19 +30,21 @@ import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.contracts.TextAtom
 import dev.abeta.kmp.contracts.TypographyTokenRef
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
+import dev.abeta.kmp.layout.snippet.LocalCustomSlotRegistry
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.tokens.ThemeTokens
 
-private const val TOTAL_SNIPPET_COUNT = 21
+private const val TOTAL_SNIPPET_COUNT = 23
 
 /**
- * Interactive gallery rendering all 21 built-in SDUI [SnippetTypes] through [BuiltInSnippetModule].
+ * Interactive gallery rendering all 23 built-in SDUI [SnippetTypes] through [BuiltInSnippetModule].
  */
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")
 fun SnippetsStory(onAction: (ActionRef) -> Unit) {
     val spacing = ThemeTokens.spacing
     val registry = remember { BuiltInSnippetModule.createDefaultRegistry() }
+    val customSlotRegistry = remember { SnippetsSpatialSamples.createStorybookCustomSlotRegistry() }
     val allItems = remember { SnippetsSamples.allItems() }
     val formValues = remember { mutableStateMapOf<String, String>() }
     var selectedType by remember { mutableStateOf<String?>(null) }
@@ -55,30 +58,32 @@ fun SnippetsStory(onAction: (ActionRef) -> Unit) {
             }
         }
 
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.space16)) {
-        SnippetGalleryHeaderCard(
-            registeredCount = registry.registeredTypes().size,
-            allItems = allItems,
-            selectedType = selectedType,
-            onSelectType = { selectedType = it },
-        )
-
-        visibleItems.forEach { item ->
-            SnippetPreviewSection(
-                item = item,
-                registry = registry,
-                formValues = formValues,
-                onFormValueChange = { fieldId, updated -> formValues[fieldId] = updated },
-                onAction = onAction,
+    CompositionLocalProvider(LocalCustomSlotRegistry provides customSlotRegistry) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.space16)) {
+            SnippetGalleryHeaderCard(
+                registeredCount = registry.registeredTypes().size,
+                allItems = allItems,
+                selectedType = selectedType,
+                onSelectType = { selectedType = it },
             )
-        }
 
-        if (selectedType != null && visibleItems.size == 1) {
-            val selectedEnvelope = visibleItems.first().envelope
-            JsonContractPreviewCard(
-                title = "SnippetEnvelope Wire JSON (${selectedEnvelope.snippetType})",
-                jsonText = SduiJson.encodeToString(SnippetEnvelope.serializer(), selectedEnvelope),
-            )
+            visibleItems.forEach { item ->
+                SnippetPreviewSection(
+                    item = item,
+                    registry = registry,
+                    formValues = formValues,
+                    onFormValueChange = { fieldId, updated -> formValues[fieldId] = updated },
+                    onAction = onAction,
+                )
+            }
+
+            if (selectedType != null && visibleItems.size == 1) {
+                val selectedEnvelope = visibleItems.first().envelope
+                JsonContractPreviewCard(
+                    title = "SnippetEnvelope Wire JSON (${selectedEnvelope.snippetType})",
+                    jsonText = SduiJson.encodeToString(SnippetEnvelope.serializer(), selectedEnvelope),
+                )
+            }
         }
     }
 }

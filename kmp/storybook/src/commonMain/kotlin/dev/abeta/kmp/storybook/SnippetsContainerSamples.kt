@@ -98,7 +98,7 @@ internal object SnippetsContainerSamples {
                     SnippetsSamples.encode(
                         MetricCardSnippetData(
                             label = SnippetsSamples.txt("Snippets", "label.medium", "text.secondary"),
-                            value = SnippetsSamples.txt("21", "headline.small"),
+                            value = SnippetsSamples.txt("23", "headline.small"),
                             layout = SnippetsSamples.cardLayout,
                         ),
                     ),

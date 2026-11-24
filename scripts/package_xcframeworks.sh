@@ -128,14 +128,22 @@ compute_sha256() {
 
 SDUI_XCF="$(find_xcframework "sdui-layout" "AbetaSduiKit")"
 WATCH_XCF="$(find_xcframework "watch-companion" "AbetaWatchKit")"
+SWIFTUI_SOURCES_SRC="${ROOT_DIR}/kmp/platforms/apple/Sources"
+
+if [[ ! -d "${SWIFTUI_SOURCES_SRC}/AbetaWatchSwiftUI" || ! -d "${SWIFTUI_SOURCES_SRC}/AbetaSduiSwiftUI" ]]; then
+  echo "ERROR: Missing SwiftUI wrapper source targets under ${SWIFTUI_SOURCES_SRC}." >&2
+  exit 1
+fi
 
 mkdir -p "$OUT_DIR"
 OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 
 SDUI_ZIP_NAME="AbetaSduiKit-${TAG}.xcframework.zip"
 WATCH_ZIP_NAME="AbetaWatchKit-${TAG}.xcframework.zip"
+SWIFTUI_SOURCES_ZIP_NAME="AbetaSwiftUI-Sources-${TAG}.zip"
 SDUI_ZIP="${OUT_DIR}/${SDUI_ZIP_NAME}"
 WATCH_ZIP="${OUT_DIR}/${WATCH_ZIP_NAME}"
+SWIFTUI_SOURCES_ZIP="${OUT_DIR}/${SWIFTUI_SOURCES_ZIP_NAME}"
 
 echo "==> Packaging AbetaSduiKit.xcframework -> ${SDUI_ZIP}"
 zip_xcframework "$SDUI_XCF" "$SDUI_ZIP"
@@ -143,12 +151,21 @@ zip_xcframework "$SDUI_XCF" "$SDUI_ZIP"
 echo "==> Packaging AbetaWatchKit.xcframework -> ${WATCH_ZIP}"
 zip_xcframework "$WATCH_XCF" "$WATCH_ZIP"
 
+echo "==> Copying SwiftUI source targets -> ${OUT_DIR}/Sources"
+rm -rf "${OUT_DIR}/Sources"
+cp -R "${SWIFTUI_SOURCES_SRC}" "${OUT_DIR}/Sources"
+
+echo "==> Packaging SwiftUI source targets -> ${SWIFTUI_SOURCES_ZIP}"
+zip_xcframework "${OUT_DIR}/Sources" "${SWIFTUI_SOURCES_ZIP}"
+
 SDUI_SHA="$(compute_sha256 "$SDUI_ZIP")"
 WATCH_SHA="$(compute_sha256 "$WATCH_ZIP")"
+SWIFTUI_SOURCES_SHA="$(compute_sha256 "$SWIFTUI_SOURCES_ZIP")"
 
 cat > "${OUT_DIR}/SHA256SUMS.txt" <<EOF
 ${SDUI_SHA}  ${SDUI_ZIP_NAME}
 ${WATCH_SHA}  ${WATCH_ZIP_NAME}
+${SWIFTUI_SOURCES_SHA}  ${SWIFTUI_SOURCES_ZIP_NAME}
 EOF
 
 SDUI_URL="https://github.com/${REPO}/releases/download/${TAG}/${SDUI_ZIP_NAME}"
@@ -176,6 +193,14 @@ let package = Package(
             name: "AbetaWatchKit",
             targets: ["AbetaWatchKit"]
         ),
+        .library(
+            name: "AbetaWatchSwiftUI",
+            targets: ["AbetaWatchSwiftUI"]
+        ),
+        .library(
+            name: "AbetaSduiSwiftUI",
+            targets: ["AbetaSduiSwiftUI"]
+        ),
     ],
     targets: [
         .binaryTarget(
@@ -188,30 +213,45 @@ let package = Package(
             url: "${WATCH_URL}",
             checksum: "${WATCH_SHA}"
         ),
+        .target(
+            name: "AbetaWatchSwiftUI",
+            dependencies: ["AbetaWatchKit"],
+            path: "Sources/AbetaWatchSwiftUI"
+        ),
+        .target(
+            name: "AbetaSduiSwiftUI",
+            dependencies: ["AbetaSduiKit"],
+            path: "Sources/AbetaSduiSwiftUI"
+        ),
     ]
 )
 EOF
 
 echo "==> Generated SwiftPM artifacts in ${OUT_DIR}:"
-ls -lh "${SDUI_ZIP}" "${WATCH_ZIP}" "${OUT_DIR}/SHA256SUMS.txt" "${OUT_DIR}/Package.swift"
+ls -lh "${SDUI_ZIP}" "${WATCH_ZIP}" "${SWIFTUI_SOURCES_ZIP}" "${OUT_DIR}/SHA256SUMS.txt" "${OUT_DIR}/Package.swift"
 cat <<EOF
 
 ==> SwiftPM Direct-URL Summary (${REPO} @ ${TAG}, swift-tools-version ${SWIFT_VERSION})
-  AbetaSduiKit  (iOS/iPadOS 15+)
+  AbetaSduiKit       (iOS/iPadOS 15+ binary XCFramework)
     URL:      ${SDUI_URL}
     SHA-256:  ${SDUI_SHA}
-  AbetaWatchKit (watchOS 9+)
+  AbetaWatchKit      (watchOS 9+ binary XCFramework)
     URL:      ${WATCH_URL}
     SHA-256:  ${WATCH_SHA}
+  AbetaSduiSwiftUI   (iOS/iPadOS 15+ SwiftUI source target -> Sources/AbetaSduiSwiftUI)
+  AbetaWatchSwiftUI  (watchOS 9+ SwiftUI source target -> Sources/AbetaWatchSwiftUI)
+  SwiftUI Sources Archive:
+    File:     ${SWIFTUI_SOURCES_ZIP_NAME}
+    SHA-256:  ${SWIFTUI_SOURCES_SHA}
 
 ==> Xcode Swift Package Manager Instructions
-  1. Upload ${SDUI_ZIP_NAME}, ${WATCH_ZIP_NAME}, SHA256SUMS.txt, and Package.swift to GitHub Release ${TAG} of ${REPO}.
+  1. Upload ${SDUI_ZIP_NAME}, ${WATCH_ZIP_NAME}, ${SWIFTUI_SOURCES_ZIP_NAME}, SHA256SUMS.txt, and Package.swift to GitHub Release ${TAG} of ${REPO}.
   2. In Xcode -> File -> Add Package Dependencies..., enter:
        https://github.com/${SPM_MIRROR_REPO}
-     and select version ${SPM_VERSION} (or copy ${OUT_DIR}/Package.swift into your SwiftPM repo).
-  3. Link the binary products to your Apple targets:
-       - iOS / iPadOS 15+ target: import AbetaSduiKit
-       - watchOS 9+ target:       import AbetaWatchKit
+     and select version ${SPM_VERSION} (or copy ${OUT_DIR}/Package.swift and ${OUT_DIR}/Sources into your SwiftPM repo).
+  3. Link the products to your Apple targets:
+       - iOS / iPadOS 15+ SwiftUI target: import AbetaSduiSwiftUI (or low-level import AbetaSduiKit)
+       - watchOS 9+ SwiftUI target:       import AbetaWatchSwiftUI (or low-level import AbetaWatchKit)
   4. Verify manifest locally:
        ./scripts/verify_spm_package.sh "${OUT_DIR}/Package.swift" --expected-tag "${TAG}"
 EOF

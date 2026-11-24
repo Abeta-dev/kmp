@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.6.0] / [bff/v0.8.0] - 2026-11-25
+
+### Added
+
+- **Universal `custom_slot` Host Bridge & Built-In `graph_canvas` Spatial Snippet (`sdui-contracts`, `sdui-layout`, `storybook`, `bff` — 23/23 `SnippetTypes` Parity)**:
+  - Added `SnippetTypes.CUSTOM_SLOT` (`"custom_slot"`) & `CustomSlotSnippetData` plus `CustomSlotContext`, `CustomSlotRenderer`, `CustomSlotRegistry`, `LocalCustomSlotRegistry`, `CustomSlotSnippetRenderer` (with automatic `fallback` snippet rendering when unregistered), and optional `customSlotRegistry` param on `SduiScreen`.
+  - Added `SnippetTypes.GRAPH_CANVAS` (`"graph_canvas"`), `GraphCanvasSnippetData`, `GraphNodeSpec`, `GraphEdgeSpec`, `GraphEdgeStyle` (`bezier`, `straight`, `dashed`), and interactive `GraphCanvasSnippetRenderer` supporting Bezier/straight/dashed edge rendering, pan/zoom controls, draggable nodes, and node tap/move `ActionRef` events.
+  - Mirrored 1:1 in Go BFF (`bff@v0.8.0`, `bff/pkg/sdui/snippets/spatial_and_slot.go`, `component_ids.go`, OpenAPI schemas) with Golden Fixture #11 (`bff/testdata/golden/spatial_custom_and_graph_screen.json`) and live interactive demos in Storybook (`All 23 Snippets`).
+- **Voice, Speech-to-Text & Desktop OS Ports (`core`, `sdui-layout`, `storybook`)**:
+  - Added `AudioCapturePort`, `SpeechToTextPort`, and `DesktopSystemPort` (tray status, OS settings deep-link, taskbar badge count, user attention) with `Unavailable*`, `Fake*`, `Recording*`, and JVM desktop implementations in `kmp/core`.
+  - Wired all three ports into `PlatformBridgeBundle` & `createSduiKoinModule(...)` with backwards-compatible defaults, and added an interactive `Voice & Desktop OS Bridges` card to Storybook `ResponsiveAndBridgesStory`.
+- **Importable SwiftPM Watch/iOS UI Package & Modular Wear OS Renderer (`platforms`, `kmp-spm`)**:
+  - Added directly importable Swift source targets `AbetaWatchSwiftUI` (`AbetaWatchSduiView`, `AbetaWatchViewModel`, `AbetaWatchMetricRow`, `AbetaWatchActionCardView`) and `AbetaSduiSwiftUI` (`AbetaIosSduiScreenView`, `AbetaIosRootAppView`) under `kmp/platforms/apple/Sources/`, automatically packaged by `scripts/package_xcframeworks.sh` and synced to `Abeta-dev/kmp-spm` as a 4-product SwiftPM package.
+  - Added modular `WearSduiRenderer.kt` (`WearSduiScreen`, `WearGlanceContent`, `WearMetricChip`, `WearActionCardChip`, `WearTileSnapshotMapper`) for Wear OS Compose & Tile/Glance hosts.
+
+---
+
 ## [0.5.0] / [bff/v0.7.0] - 2026-11-25
 
 ### Added

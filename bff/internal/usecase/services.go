@@ -17,7 +17,7 @@ import (
 )
 
 // DefaultAppVersion is the fallback app_version stamped on screens and manifests.
-const DefaultAppVersion = "0.7.0"
+const DefaultAppVersion = "0.8.0"
 
 // ScreenService orchestrates SDUI screen retrieval and manifest generation.
 type ScreenService struct {

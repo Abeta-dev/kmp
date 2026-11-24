@@ -67,6 +67,8 @@ import dev.abeta.kmp.contracts.ToolbarSpec
 import dev.abeta.kmp.contracts.TrackingContract
 import dev.abeta.kmp.core.error.AppError
 import dev.abeta.kmp.layout.engine.LayoutUiState
+import dev.abeta.kmp.layout.snippet.CustomSlotRegistry
+import dev.abeta.kmp.layout.snippet.LocalCustomSlotRegistry
 import dev.abeta.kmp.layout.snippet.LocalFormValidationErrors
 import dev.abeta.kmp.layout.snippet.LocalMotionStaggerIndex
 import dev.abeta.kmp.layout.snippet.LocalNodeImpressionHandler
@@ -91,6 +93,7 @@ private val FORM_AWARE_SNIPPET_TYPES =
         SnippetTypes.ACCORDION,
         SnippetTypes.SEARCH_BAR,
         SnippetTypes.COMPOSED_BLOCK,
+        SnippetTypes.CUSTOM_SLOT,
     )
 
 /**
@@ -114,9 +117,11 @@ fun SduiScreen(
     isWatch: Boolean = false,
     onHaptic: ((UiHapticKind) -> Unit)? = null,
     onNodeImpression: (String, TrackingContract) -> Unit = { _, _ -> },
+    customSlotRegistry: CustomSlotRegistry? = null,
 ) {
     val colors = ThemeTokens.colors
     val hapticCallback = onHaptic ?: rememberComposeHapticFallback()
+    val effectiveCustomSlotRegistry = customSlotRegistry ?: LocalCustomSlotRegistry.current
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         ProvideAdaptiveLayoutMetrics(
@@ -127,6 +132,7 @@ fun SduiScreen(
             CompositionLocalProvider(
                 LocalUiHapticFeedback provides hapticCallback,
                 LocalNodeImpressionHandler provides onNodeImpression,
+                LocalCustomSlotRegistry provides effectiveCustomSlotRegistry,
             ) {
                 when (state) {
                     LayoutUiState.Idle -> {

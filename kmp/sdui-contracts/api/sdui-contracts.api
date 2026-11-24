@@ -1137,6 +1137,48 @@ public final class dev/abeta/kmp/contracts/CountdownAtom$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/abeta/kmp/contracts/CustomSlotSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/CustomSlotSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Float;Lkotlinx/serialization/json/JsonObject;Ljava/util/Map;Ldev/abeta/kmp/contracts/SnippetEnvelope;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Float;Lkotlinx/serialization/json/JsonObject;Ljava/util/Map;Ldev/abeta/kmp/contracts/SnippetEnvelope;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Float;
+	public final fun component5 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun component6 ()Ljava/util/Map;
+	public final fun component7 ()Ldev/abeta/kmp/contracts/SnippetEnvelope;
+	public final fun component8 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Float;Lkotlinx/serialization/json/JsonObject;Ljava/util/Map;Ldev/abeta/kmp/contracts/SnippetEnvelope;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/CustomSlotSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/CustomSlotSnippetData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Float;Lkotlinx/serialization/json/JsonObject;Ljava/util/Map;Ldev/abeta/kmp/contracts/SnippetEnvelope;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/CustomSlotSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAspectRatio ()Ljava/lang/Float;
+	public final fun getFallback ()Ldev/abeta/kmp/contracts/SnippetEnvelope;
+	public final fun getInitialState ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getMinHeightDp ()Ljava/lang/Integer;
+	public final fun getOnEvent ()Ljava/util/Map;
+	public final fun getSlotId ()Ljava/lang/String;
+	public final fun getSlotType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/CustomSlotSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/CustomSlotSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/CustomSlotSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/CustomSlotSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/CustomSlotSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class dev/abeta/kmp/contracts/DividerAtom {
 	public static final field Companion Ldev/abeta/kmp/contracts/DividerAtom$Companion;
 	public fun <init> ()V
@@ -1379,6 +1421,170 @@ public final synthetic class dev/abeta/kmp/contracts/FormSnippetData$$serializer
 }
 
 public final class dev/abeta/kmp/contracts/FormSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/GraphCanvasSnippetData {
+	public static final field Companion Ldev/abeta/kmp/contracts/GraphCanvasSnippetData$Companion;
+	public fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;ILjava/util/List;Ljava/util/List;ZZZFFLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;ILjava/util/List;Ljava/util/List;ZZZFFLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()F
+	public final fun component11 ()F
+	public final fun component12 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component13 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component14 ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun component2 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component3 ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Z
+	public final fun component8 ()Z
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;ILjava/util/List;Ljava/util/List;ZZZFFLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;)Ldev/abeta/kmp/contracts/GraphCanvasSnippetData;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/GraphCanvasSnippetData;Ljava/lang/String;Ldev/abeta/kmp/contracts/TextAtom;Ldev/abeta/kmp/contracts/TextAtom;ILjava/util/List;Ljava/util/List;ZZZFFLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/LayoutConfig;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/GraphCanvasSnippetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowNodeDrag ()Z
+	public final fun getAllowPan ()Z
+	public final fun getAllowZoom ()Z
+	public final fun getCanvasId ()Ljava/lang/String;
+	public final fun getEdges ()Ljava/util/List;
+	public final fun getHeightDp ()I
+	public final fun getLayout ()Ldev/abeta/kmp/contracts/LayoutConfig;
+	public final fun getMaxZoom ()F
+	public final fun getMinZoom ()F
+	public final fun getNodes ()Ljava/util/List;
+	public final fun getOnCanvasTap ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnNodeMoved ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getSubtitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public final fun getTitle ()Ldev/abeta/kmp/contracts/TextAtom;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/GraphCanvasSnippetData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/GraphCanvasSnippetData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/GraphCanvasSnippetData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/GraphCanvasSnippetData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/GraphCanvasSnippetData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/GraphEdgeSpec {
+	public static final field Companion Ldev/abeta/kmp/contracts/GraphEdgeSpec$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/GraphEdgeStyle;Ldev/abeta/kmp/contracts/ColorTokenRef;ZLdev/abeta/kmp/contracts/ActionRef;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/GraphEdgeStyle;Ldev/abeta/kmp/contracts/ColorTokenRef;ZLdev/abeta/kmp/contracts/ActionRef;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ldev/abeta/kmp/contracts/GraphEdgeStyle;
+	public final fun component6 ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun component7 ()Z
+	public final fun component8 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/GraphEdgeStyle;Ldev/abeta/kmp/contracts/ColorTokenRef;ZLdev/abeta/kmp/contracts/ActionRef;)Ldev/abeta/kmp/contracts/GraphEdgeSpec;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/GraphEdgeSpec;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/contracts/GraphEdgeStyle;Ldev/abeta/kmp/contracts/ColorTokenRef;ZLdev/abeta/kmp/contracts/ActionRef;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/GraphEdgeSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColor ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun getEdgeId ()Ljava/lang/String;
+	public final fun getFromNodeId ()Ljava/lang/String;
+	public final fun getHighlighted ()Z
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getOnClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getStyle ()Ldev/abeta/kmp/contracts/GraphEdgeStyle;
+	public final fun getToNodeId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/GraphEdgeSpec$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/GraphEdgeSpec$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/GraphEdgeSpec;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/GraphEdgeSpec;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/GraphEdgeSpec$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/GraphEdgeStyle : java/lang/Enum {
+	public static final field BEZIER Ldev/abeta/kmp/contracts/GraphEdgeStyle;
+	public static final field Companion Ldev/abeta/kmp/contracts/GraphEdgeStyle$Companion;
+	public static final field DASHED Ldev/abeta/kmp/contracts/GraphEdgeStyle;
+	public static final field STRAIGHT Ldev/abeta/kmp/contracts/GraphEdgeStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/abeta/kmp/contracts/GraphEdgeStyle;
+	public static fun values ()[Ldev/abeta/kmp/contracts/GraphEdgeStyle;
+}
+
+public final class dev/abeta/kmp/contracts/GraphEdgeStyle$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/GraphNodeSpec {
+	public static final field Companion Ldev/abeta/kmp/contracts/GraphNodeSpec$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FFLdev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ljava/lang/String;ZZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/TrackingContract;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FFLdev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ljava/lang/String;ZZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/TrackingContract;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Z
+	public final fun component11 ()Z
+	public final fun component12 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component13 ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun component14 ()Ldev/abeta/kmp/contracts/TrackingContract;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()F
+	public final fun component6 ()F
+	public final fun component7 ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun component8 ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FFLdev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ljava/lang/String;ZZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/TrackingContract;)Ldev/abeta/kmp/contracts/GraphNodeSpec;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/GraphNodeSpec;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FFLdev/abeta/kmp/contracts/ColorTokenRef;Ldev/abeta/kmp/contracts/ColorTokenRef;Ljava/lang/String;ZZLdev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/TrackingContract;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/GraphNodeSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBadge ()Ljava/lang/String;
+	public final fun getBgColor ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun getBorderColor ()Ldev/abeta/kmp/contracts/ColorTokenRef;
+	public final fun getDraggable ()Z
+	public final fun getIconName ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getNodeId ()Ljava/lang/String;
+	public final fun getOnClick ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getOnDragEnd ()Ldev/abeta/kmp/contracts/ActionRef;
+	public final fun getPinned ()Z
+	public final fun getSubtitle ()Ljava/lang/String;
+	public final fun getTracking ()Ldev/abeta/kmp/contracts/TrackingContract;
+	public final fun getX ()F
+	public final fun getY ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/abeta/kmp/contracts/GraphNodeSpec$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/abeta/kmp/contracts/GraphNodeSpec$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/abeta/kmp/contracts/GraphNodeSpec;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/abeta/kmp/contracts/GraphNodeSpec;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/abeta/kmp/contracts/GraphNodeSpec$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -3018,9 +3224,11 @@ public final class dev/abeta/kmp/contracts/SnippetTypes {
 	public static final field CAROUSEL Ljava/lang/String;
 	public static final field CHIP_GROUP Ljava/lang/String;
 	public static final field COMPOSED_BLOCK Ljava/lang/String;
+	public static final field CUSTOM_SLOT Ljava/lang/String;
 	public static final field DIVIDER Ljava/lang/String;
 	public static final field EMPTY_STATE Ljava/lang/String;
 	public static final field FORM Ljava/lang/String;
+	public static final field GRAPH_CANVAS Ljava/lang/String;
 	public static final field GRID Ljava/lang/String;
 	public static final field HEADER Ljava/lang/String;
 	public static final field INSTANCE Ldev/abeta/kmp/contracts/SnippetTypes;

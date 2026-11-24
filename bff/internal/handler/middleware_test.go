@@ -357,6 +357,7 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"empty_state", "divider", "spacer", "carousel", "grid", "tabs", "accordion",
 		"product_card", "swipe_deck", "search_bar", "chip_group",
 		"nudge_bar", "marquee_strip", "order_tracker", "composed_block",
+		"custom_slot", "graph_canvas",
 	} {
 		if !strings.Contains(rawSpec, `"`+snippetType+`"`) {
 			t.Errorf("openapi.json missing snippet type %q", snippetType)
@@ -412,6 +413,11 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"ComposedNodeKind",
 		"ComposedNode",
 		"ComposedBlockSnippetData",
+		"CustomSlotSnippetData",
+		"GraphEdgeStyle",
+		"GraphNodeSpec",
+		"GraphEdgeSpec",
+		"GraphCanvasSnippetData",
 		"NavigatePayload",
 		"BackPressPayload",
 		"OpenDialogPayload",

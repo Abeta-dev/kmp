@@ -203,6 +203,31 @@ func TestEnsureComponentIDs_ComprehensiveAndDeterministic(t *testing.T) {
 	}).Build()
 	acc := snippets.NewAccordionSnippet("", title).AddSnippet(met).Build()
 
+	slotFallback := snippets.NewCardSnippet("", title).
+		WithPrimaryButton(anonBtn("Open")).
+		Build()
+	customSlot := snippets.NewCustomSlotSnippet("", snippets.CustomSlotSnippetData{
+		SlotID:   "slot_1",
+		SlotType: "native_map",
+		OnEvent:  map[string]actions.ActionTrigger{"marker_tap": anonAct()},
+		Fallback: &slotFallback,
+	})
+	graphTitle := title
+	graphSub := title
+	graphCanvas := snippets.NewGraphCanvasSnippet("", snippets.GraphCanvasSnippetData{
+		CanvasID:    "canvas_1",
+		Title:       &graphTitle,
+		Subtitle:    &graphSub,
+		OnNodeMoved: anonActPtr(),
+		OnCanvasTap: anonActPtr(),
+		Nodes: []snippets.GraphNodeSpec{
+			{Label: "Node 0", X: 10, Y: 20, OnClick: anonActPtr(), OnDragEnd: anonActPtr()},
+		},
+		Edges: []snippets.GraphEdgeSpec{
+			{FromNodeID: "n0", ToNodeID: "n1", OnClick: anonActPtr()},
+		},
+	})
+
 	page := snippets.NewPage("", "Blank PageID Test").
 		WithToolbar(snippets.ToolbarSpec{NavigationIcon: &navIc, TrailingActions: []atoms.IconAtom{tbTrail}}).
 		WithBottomBar(snippets.BottomBarSpec{PrimaryButton: &bbPrimary, SecondaryButton: &bbSecondary}).
@@ -210,7 +235,7 @@ func TestEnsureComponentIDs_ComprehensiveAndDeterministic(t *testing.T) {
 		AddPageAction(anonAct()).
 		WithPagination(snippets.PaginationSpec{HasMore: true, LoadMoreAction: anonActPtr()}).
 		WithPullToRefresh(anonAct()).
-		AddSnippets(hdr, bnr, frm, emp, deck, srch, chips, nudge, marquee, tracker, composed, carousel, grid, tabs, acc).
+		AddSnippets(hdr, bnr, frm, emp, deck, srch, chips, nudge, marquee, tracker, composed, carousel, grid, tabs, acc, customSlot, graphCanvas).
 		Build()
 
 	// Snapshot original slice element before mutation to verify defensive copying
@@ -282,6 +307,36 @@ func TestEnsureComponentIDs_ComprehensiveAndDeterministic(t *testing.T) {
 	accData, _ := snippets.DecodeSnippetData[snippets.AccordionSnippetData](page.Snippets[14])
 	if accData.Snippets[0].SnippetID != "page.snippet_14_0" {
 		t.Fatalf("unexpected nested accordion snippet ID: %q", accData.Snippets[0].SnippetID)
+	}
+
+	// Verify custom_slot fallback & event action IDs and graph_canvas node/edge/action IDs
+	slotData, err := snippets.DecodeSnippetData[snippets.CustomSlotSnippetData](page.Snippets[15])
+	if err != nil || slotData.Fallback == nil {
+		t.Fatalf("unexpected custom_slot data: %+v, err=%v", slotData, err)
+	}
+	if slotData.Fallback.SnippetID != "page.snippet_15_fallback" || slotData.Fallback.SnippetParentID != "page.snippet_15" {
+		t.Fatalf("unexpected custom_slot fallback identity: %+v", slotData.Fallback)
+	}
+	if slotData.OnEvent["marker_tap"].ID != "page.page.snippet_15.event_marker_tap" {
+		t.Fatalf("unexpected custom_slot on_event action ID: %q", slotData.OnEvent["marker_tap"].ID)
+	}
+	fbCard, err := snippets.DecodeSnippetData[snippets.CardSnippetData](*slotData.Fallback)
+	if err != nil || fbCard.PrimaryButton == nil || fbCard.PrimaryButton.ID == "" {
+		t.Fatalf("expected custom_slot fallback nested button ID populated, got %+v (err=%v)", fbCard, err)
+	}
+
+	graphData, err := snippets.DecodeSnippetData[snippets.GraphCanvasSnippetData](page.Snippets[16])
+	if err != nil || len(graphData.Nodes) != 1 || len(graphData.Edges) != 1 {
+		t.Fatalf("unexpected graph_canvas data: %+v, err=%v", graphData, err)
+	}
+	if graphData.Nodes[0].NodeID == "" || graphData.Nodes[0].OnClick.ID == "" || graphData.Nodes[0].OnDragEnd.ID == "" {
+		t.Fatalf("expected graph_canvas node IDs populated: %+v", graphData.Nodes[0])
+	}
+	if graphData.Edges[0].EdgeID == "" || graphData.Edges[0].OnClick.ID == "" {
+		t.Fatalf("expected graph_canvas edge IDs populated: %+v", graphData.Edges[0])
+	}
+	if graphData.OnNodeMoved.ID == "" || graphData.OnCanvasTap.ID == "" {
+		t.Fatalf("expected graph_canvas action IDs populated: %+v", graphData)
 	}
 
 	// Idempotency check: running EnsureComponentIDs a second time leaves IDs identical

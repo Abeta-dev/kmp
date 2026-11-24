@@ -2,8 +2,8 @@
 
 `abeta-dev/kmp` uses two Gradle artifacts on Maven Central (Kotlin package namespace remains `dev.abeta.kmp.*`) to standardize versions across internal modules and external consumers:
 
-1. **`io.github.abeta-dev:bom:0.5.0`** (`kmp/kmp-bom/build.gradle.kts`) — Java Platform BOM (`allowDependencies()` enabled) constraining all **11 publishable `io.github.abeta-dev:*` library modules** (including Room 3 `database`) + `dependencies` (13 Maven artifacts total).
-2. **`io.github.abeta-dev:dependencies:0.5.0`** (`kmp/dependencyManagement/build.gradle.kts`) — Gradle Version Catalog generated from `kmp/dependencyManagement/gradle/libs.versions.toml`.
+1. **`io.github.abeta-dev:bom:0.6.0`** (`kmp/kmp-bom/build.gradle.kts`) — Java Platform BOM (`allowDependencies()` enabled) constraining all **11 publishable `io.github.abeta-dev:*` library modules** (including Room 3 `database`) + `dependencies` (13 Maven artifacts total).
+2. **`io.github.abeta-dev:dependencies:0.6.0`** (`kmp/dependencyManagement/build.gradle.kts`) — Gradle Version Catalog generated from `kmp/dependencyManagement/gradle/libs.versions.toml`.
 
 ---
 
@@ -29,7 +29,7 @@ cd kmp
 
 ## Consumer Setup (Zero Auth Required)
 
-Stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`dl.cloudsmith.io`) — completely free and open to download without consumer tokens. Apple XCFrameworks (`AbetaSduiKit`, `AbetaWatchKit`) and verified SwiftPM `Package.swift` manifests attach to GitHub Releases and mirror to `Abeta-dev/kmp-spm` (`from: "0.3.0"`); the Go BFF (`github.com/abeta-dev/kmp/bff@v0.7.0`) publishes automatically to `proxy.golang.org` on `bff/v*` tags. See `docs/publishing-and-hosting.md` and `docs/local-database-room3.md` in the repository for complete setup playbooks.
+Stable releases publish to **Maven Central** (`mavenCentral()`) and snapshots/mirrors publish to **Cloudsmith Open Source** (`dl.cloudsmith.io`) — completely free and open to download without consumer tokens. Apple XCFrameworks (`AbetaSduiKit`, `AbetaWatchKit`) and verified SwiftPM `Package.swift` manifests attach to GitHub Releases and mirror to `Abeta-dev/kmp-spm` (`from: "0.3.0"`); the Go BFF (`github.com/abeta-dev/kmp/bff@v0.8.0`) publishes automatically to `proxy.golang.org` on `bff/v*` tags. See `docs/publishing-and-hosting.md` and `docs/local-database-room3.md` in the repository for complete setup playbooks.
 
 ### `settings.gradle.kts`
 
@@ -43,7 +43,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaLibs") {
-            from("io.github.abeta-dev:dependencies:0.5.0")
+            from("io.github.abeta-dev:dependencies:0.6.0")
         }
     }
 }
@@ -53,7 +53,7 @@ dependencyResolutionManagement {
 
 ```kotlin
 commonMain.dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.5.0"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0"))
     implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
     implementation("io.github.abeta-dev:design-tokens")
     implementation("io.github.abeta-dev:sdui-contracts")
