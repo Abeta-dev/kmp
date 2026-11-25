@@ -32,8 +32,8 @@ func (b *SwipeDeckSnippetBuilder) WithParentID(parentID string) *SwipeDeckSnippe
 	return b
 }
 
-func (b *SwipeDeckSnippetBuilder) WithTracking(eventName string, props map[string]any) *SwipeDeckSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *SwipeDeckSnippetBuilder) WithTracking(eventName string, props map[string]string) *SwipeDeckSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -119,8 +119,8 @@ func (b *SearchBarSnippetBuilder) WithParentID(parentID string) *SearchBarSnippe
 	return b
 }
 
-func (b *SearchBarSnippetBuilder) WithTracking(eventName string, props map[string]any) *SearchBarSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *SearchBarSnippetBuilder) WithTracking(eventName string, props map[string]string) *SearchBarSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -210,8 +210,8 @@ func (b *ChipGroupSnippetBuilder) WithParentID(parentID string) *ChipGroupSnippe
 	return b
 }
 
-func (b *ChipGroupSnippetBuilder) WithTracking(eventName string, props map[string]any) *ChipGroupSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *ChipGroupSnippetBuilder) WithTracking(eventName string, props map[string]string) *ChipGroupSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 

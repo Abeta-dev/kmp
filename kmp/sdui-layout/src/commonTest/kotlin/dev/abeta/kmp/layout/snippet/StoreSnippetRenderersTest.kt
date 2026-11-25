@@ -51,6 +51,7 @@ class StoreSnippetRenderersTest {
         assertEquals("$3.49", formatUsdCents(349))
         assertEquals("$11.97", formatUsdCents(1197))
         assertEquals("$0.00", formatUsdCents(-42))
+        assertEquals("$50000000.00", formatUsdCents(5_000_000_000L))
     }
 
     @Test
@@ -92,8 +93,13 @@ class StoreSnippetRenderersTest {
         val initialSummary = computeFloatingCartSummary(page, emptyMap())
         assertTrue(initialSummary.hasProductCards)
         assertEquals(2, initialSummary.itemCount)
-        assertEquals(848, initialSummary.totalCents)
+        assertEquals(848L, initialSummary.totalCents)
         assertEquals("2 items · $8.48", initialSummary.formattedLabel())
+
+        // Quantity above stepper.maxQuantity is clamped cleanly.
+        val clampedSummary = computeFloatingCartSummary(page, mapOf("cart_qty_avocados" to "999"))
+        assertEquals(10 + 1, clampedSummary.itemCount)
+        assertEquals(10L * 349L + 499L, clampedSummary.totalCents)
 
         val singleItemSummary =
             computeFloatingCartSummary(
@@ -111,6 +117,7 @@ class StoreSnippetRenderersTest {
         id: String,
         qty: Int,
         unitPriceCents: Int,
+        maxQuantity: Int = 10,
     ): SnippetEnvelope =
         SnippetEnvelope(
             snippetId = "prod_$id",
@@ -122,7 +129,7 @@ class StoreSnippetRenderersTest {
                         title = TextAtom(text = id, color = ColorTokenRef("text.primary")),
                         price = TextAtom(text = formatUsdCents(unitPriceCents)),
                         unitPriceCents = unitPriceCents,
-                        stepper = StepperAtom(fieldId = "cart_qty_$id", quantity = qty),
+                        stepper = StepperAtom(fieldId = "cart_qty_$id", quantity = qty, maxQuantity = maxQuantity),
                     ),
                 ),
         )

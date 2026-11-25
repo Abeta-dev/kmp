@@ -6,6 +6,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import platform.Foundation.NSLock
 import platform.Network.nw_path_get_status
 import platform.Network.nw_path_is_expensive
 import platform.Network.nw_path_monitor_cancel
@@ -19,27 +20,42 @@ import platform.darwin.NSObject
 import platform.darwin.dispatch_queue_create
 
 private class AppleNetworkPathMonitor : ConnectivityMonitor {
+    private val lock = NSLock()
     private val _status = MutableStateFlow(ConnectivityStatus.UNKNOWN)
     override val status: StateFlow<ConnectivityStatus> = _status.asStateFlow()
 
     private var monitor: NSObject? = null
 
     override fun start() {
-        if (monitor != null) return
-        val created = nw_path_monitor_create()
-        nw_path_monitor_set_update_handler(created) { path: nw_path_t ->
-            _status.value = mapPathStatus(path)
+        lock.lock()
+        try {
+            if (monitor != null) return
+            val created = nw_path_monitor_create()
+            nw_path_monitor_set_update_handler(created) { path: nw_path_t ->
+                _status.value = mapPathStatus(path)
+            }
+            val queue = dispatch_queue_create("dev.abeta.kmp.network", null)
+            nw_path_monitor_set_queue(created, queue)
+            nw_path_monitor_start(created)
+            monitor = created
+        } finally {
+            lock.unlock()
         }
-        val queue = dispatch_queue_create("dev.abeta.kmp.network", null)
-        nw_path_monitor_set_queue(created, queue)
-        nw_path_monitor_start(created)
-        monitor = created
     }
 
     override fun stop() {
-        val current = monitor ?: return
-        nw_path_monitor_cancel(current)
-        monitor = null
+        lock.lock()
+        val current =
+            try {
+                val active = monitor
+                monitor = null
+                active
+            } finally {
+                lock.unlock()
+            }
+        if (current != null) {
+            nw_path_monitor_cancel(current)
+        }
     }
 
     private fun mapPathStatus(path: nw_path_t): ConnectivityStatus =

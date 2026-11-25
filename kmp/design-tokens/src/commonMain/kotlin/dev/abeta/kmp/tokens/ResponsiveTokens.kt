@@ -9,6 +9,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 
 /**
  * Responsive horizontal viewport classification aligned with adaptive tablet, iPad, foldable,
@@ -52,7 +53,6 @@ data class AdaptiveLayoutMetrics(
     val useTwoPane: Boolean,
 )
 
-private const val WATCH_MAX_WIDTH_DP = 300
 private const val COMPACT_MAX_WIDTH_DP = 599
 private const val MEDIUM_MAX_WIDTH_DP = 839
 private const val COMPACT_MAX_HEIGHT_DP = 479
@@ -73,7 +73,7 @@ fun resolveAdaptiveLayoutMetrics(
     val safeHeight = heightDp.coerceAtLeast(0)
     val widthClass = classifyWidthClass(safeWidth)
     val heightClass = classifyHeightClass(safeHeight)
-    val formFactor = classifyFormFactor(widthClass, safeWidth, isWatch)
+    val formFactor = classifyFormFactor(widthClass, isWatch)
     val (maxContentWidth, recommendedColumns, useTwoPane) = defaultsForFormFactor(formFactor)
 
     return AdaptiveLayoutMetrics(
@@ -85,6 +85,16 @@ fun resolveAdaptiveLayoutMetrics(
         useTwoPane = useTwoPane,
     )
 }
+
+internal fun resolveViewportDimensionDp(
+    value: Dp,
+    fallbackDp: Int,
+): Int =
+    if (value.isSpecified && value.value.isFinite()) {
+        value.value.toInt().coerceAtLeast(0)
+    } else {
+        fallbackDp
+    }
 
 private fun classifyWidthClass(widthDp: Int): WindowWidthClass =
     when {
@@ -102,11 +112,10 @@ private fun classifyHeightClass(heightDp: Int): WindowHeightClass =
 
 private fun classifyFormFactor(
     widthClass: WindowWidthClass,
-    widthDp: Int,
     isWatch: Boolean,
 ): DeviceFormFactor =
     when {
-        isWatch || widthDp < WATCH_MAX_WIDTH_DP -> DeviceFormFactor.WATCH
+        isWatch -> DeviceFormFactor.WATCH
         widthClass == WindowWidthClass.COMPACT -> DeviceFormFactor.PHONE
         widthClass == WindowWidthClass.MEDIUM -> DeviceFormFactor.TABLET
         else -> DeviceFormFactor.DESKTOP_WIDE
@@ -144,8 +153,8 @@ fun ProvideAdaptiveLayoutMetrics(
 ) {
     val metrics =
         resolveAdaptiveLayoutMetrics(
-            widthDp = maxWidth.value.toInt(),
-            heightDp = maxHeight.value.toInt(),
+            widthDp = resolveViewportDimensionDp(maxWidth, DEFAULT_PHONE_WIDTH_DP),
+            heightDp = resolveViewportDimensionDp(maxHeight, DEFAULT_PHONE_HEIGHT_DP),
             isWatch = isWatch,
         )
     CompositionLocalProvider(LocalAdaptiveLayoutMetrics provides metrics, content = content)

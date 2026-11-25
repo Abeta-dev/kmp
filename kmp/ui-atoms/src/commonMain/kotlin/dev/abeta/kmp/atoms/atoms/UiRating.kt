@@ -5,9 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -155,12 +157,13 @@ private fun UiStarsRow(
 ) {
     val colors = ThemeTokens.colors
     val spacing = ThemeTokens.spacing
+    val sizing = ThemeTokens.sizing
     val filledColor = colors.status.warning
     val emptyColor = colors.border.default
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.space2),
+        horizontalArrangement = Arrangement.spacedBy(if (interactive) spacing.space0 else spacing.space2),
     ) {
         repeat(maxStars) { index ->
             val fillLevel = resolveStarFillLevel(currentRating, index)
@@ -168,6 +171,8 @@ private fun UiStarsRow(
             val starModifier =
                 if (interactive) {
                     Modifier
+                        .defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
+                        .minimumInteractiveComponentSize()
                         .testTag("rating_star_${ratingKey}_$starNumber")
                         .pressBounce()
                         .clickable(

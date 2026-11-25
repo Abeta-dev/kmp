@@ -341,7 +341,7 @@ func buildPayHomeScreen() snippets.PageResponse {
 			),
 			payBillPayCarouselSnippet(),
 		).
-		WithTracking("page_loaded", map[string]any{"page_id": "pay-home", "vertical": "abeta-pay"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "pay-home", "vertical": "abeta-pay"}).
 		Build()
 }
 
@@ -464,7 +464,7 @@ func buildPayTransferScreen() snippets.PageResponse {
 		WithToolbar(payToolbar("Send Money", "Abeta Pay · Zero-Fee Instant P2P", "back_pay_transfer")).
 		WithAdaptiveLayout(payCenteredAdaptive()).
 		AddSnippets(header, contactChips, transferForm, bioRow, receiptRow).
-		WithTracking("page_loaded", map[string]any{"page_id": "pay-transfer", "vertical": "abeta-pay"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "pay-transfer", "vertical": "abeta-pay"}).
 		Build()
 }
 
@@ -539,7 +539,7 @@ func buildPayCardsScreen() snippets.PageResponse {
 		WithToolbar(payToolbar("Smart Card Controls", "Abeta Metal · •••• 4092", "back_pay_cards")).
 		WithAdaptiveLayout(payCenteredAdaptive()).
 		AddSnippets(header, spendMetric, controlsForm).
-		WithTracking("page_loaded", map[string]any{"page_id": "pay-cards", "vertical": "abeta-pay"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "pay-cards", "vertical": "abeta-pay"}).
 		Build()
 }
 
@@ -625,6 +625,6 @@ func buildPayReceiptScreen() snippets.PageResponse {
 			DurationMs: 2400,
 		})).
 		AddSnippets(tracker, shareRow, cashbackRow).
-		WithTracking("page_loaded", map[string]any{"page_id": "pay-receipt", "vertical": "abeta-pay"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "pay-receipt", "vertical": "abeta-pay"}).
 		Build()
 }

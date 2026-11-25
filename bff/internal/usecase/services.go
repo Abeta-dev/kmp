@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/abeta-dev/go-libs/apperror"
@@ -16,8 +17,19 @@ import (
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 )
 
-// DefaultAppVersion is the fallback app_version stamped on screens and manifests.
-const DefaultAppVersion = "0.8.0"
+const (
+	// DefaultAppVersion is the fallback app_version stamped on screens and manifests.
+	DefaultAppVersion = "0.9.0"
+
+	maxValidationRules    = 64
+	maxValidationRegexLen = 256
+	maxRegexCacheEntries  = 256
+)
+
+var (
+	regexCacheMu sync.RWMutex
+	regexCache   = make(map[string]*regexp.Regexp)
+)
 
 // ScreenService orchestrates SDUI screen retrieval and manifest generation.
 type ScreenService struct {
@@ -90,6 +102,17 @@ func (s *ScreenService) BuildManifest(ctx context.Context, appVersion string) (s
 		ver = s.AppVersion()
 	}
 
+	if mp, ok := s.repo.(domain.ManifestProvider); ok {
+		manifest, err := mp.BuildManifest(ctx, ver)
+		if err != nil {
+			return snippets.ScreenManifestResponse{}, err
+		}
+		if manifest.SduiSchemaVersion == "" {
+			manifest.SduiSchemaVersion = snippets.DefaultSduiSchemaVersion
+		}
+		return manifest, nil
+	}
+
 	rawIDs, err := s.repo.ListScreenIDs(ctx)
 	if err != nil {
 		return snippets.ScreenManifestResponse{}, err
@@ -114,8 +137,9 @@ func (s *ScreenService) BuildManifest(ctx context.Context, appVersion string) (s
 	}
 
 	return snippets.ScreenManifestResponse{
-		AppVersion: ver,
-		Screens:    screens,
+		AppVersion:        ver,
+		SduiSchemaVersion: snippets.DefaultSduiSchemaVersion,
+		Screens:           screens,
 	}, nil
 }
 
@@ -158,6 +182,9 @@ func (s *ActionService) Execute(ctx context.Context, input domain.ActionExecutio
 	if s.executor == nil {
 		return domain.ActionExecutionResult{}, apperror.Internal("action executor is not configured")
 	}
+	if len(input.Trigger.Validations) > maxValidationRules {
+		return domain.ActionExecutionResult{}, apperror.BadRequest("too many validation rules")
+	}
 
 	if fieldErrors := validateRules(input.Trigger.Validations, input.FormValues); len(fieldErrors) > 0 {
 		res := domain.ActionExecutionResult{
@@ -186,28 +213,65 @@ func validateRules(rules []actions.ValidationRule, values map[string]string) map
 		switch rule.Rule {
 		case "required":
 			if val == "" {
-				errs[rule.FieldID] = rule.Message
+				errs[rule.FieldID] = validationMessage(rule, "field is required")
 			}
 		case "min_length":
-			minLen, err := strconv.Atoi(rule.Value)
-			if err == nil && utf8.RuneCountInString(val) < minLen {
-				errs[rule.FieldID] = rule.Message
+			minLen, err := strconv.Atoi(strings.TrimSpace(rule.Value))
+			if err != nil || minLen < 0 || utf8.RuneCountInString(val) < minLen {
+				errs[rule.FieldID] = validationMessage(rule, "field is too short")
 			}
 		case "max_length":
-			maxLen, err := strconv.Atoi(rule.Value)
-			if err == nil && utf8.RuneCountInString(val) > maxLen {
-				errs[rule.FieldID] = rule.Message
+			maxLen, err := strconv.Atoi(strings.TrimSpace(rule.Value))
+			if err != nil || maxLen < 0 || utf8.RuneCountInString(val) > maxLen {
+				errs[rule.FieldID] = validationMessage(rule, "field is too long")
+			}
+		case "equals":
+			if val != rule.Value {
+				errs[rule.FieldID] = validationMessage(rule, "field value does not match")
 			}
 		case "regex":
 			if rule.Value != "" {
-				re, err := regexp.Compile(rule.Value)
+				if len(rule.Value) > maxValidationRegexLen {
+					errs[rule.FieldID] = validationMessage(rule, "invalid validation pattern")
+					continue
+				}
+				re, err := compileCachedRegex(rule.Value)
 				if err != nil || !re.MatchString(val) {
-					errs[rule.FieldID] = rule.Message
+					errs[rule.FieldID] = validationMessage(rule, "field format is invalid")
 				}
 			}
 		}
 	}
 	return errs
+}
+
+func validationMessage(rule actions.ValidationRule, fallback string) string {
+	if strings.TrimSpace(rule.Message) != "" {
+		return rule.Message
+	}
+	return fallback
+}
+
+func compileCachedRegex(pattern string) (*regexp.Regexp, error) {
+	regexCacheMu.RLock()
+	re, ok := regexCache[pattern]
+	regexCacheMu.RUnlock()
+	if ok {
+		return re, nil
+	}
+
+	compiled, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, err
+	}
+
+	regexCacheMu.Lock()
+	if len(regexCache) >= maxRegexCacheEntries {
+		clear(regexCache)
+	}
+	regexCache[pattern] = compiled
+	regexCacheMu.Unlock()
+	return compiled, nil
 }
 
 // CatalogService provides read access to the active SDUI design token catalog.

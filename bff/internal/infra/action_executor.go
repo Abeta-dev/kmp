@@ -3,6 +3,7 @@ package infra
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -11,13 +12,18 @@ import (
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
 )
 
-const maxBatchDepth = 5
+const (
+	maxBatchDepth        = 5
+	maxTotalBatchActions = 50
+	maxExecutorStateKeys = 512
+)
 
 // DefaultActionExecutor executes SDUI actions in-process and manages
-// lightweight session state for save_state/delete_state actions.
+// bounded session state for save_state/delete_state actions.
 type DefaultActionExecutor struct {
-	mu    sync.RWMutex
-	state map[string]any
+	mu         sync.RWMutex
+	state      map[string]any
+	stateOrder []string
 }
 
 // NewDefaultActionExecutor constructs a DefaultActionExecutor.
@@ -29,10 +35,16 @@ func NewDefaultActionExecutor() *DefaultActionExecutor {
 
 // Execute processes input.Trigger and returns an ActionExecutionResult.
 func (e *DefaultActionExecutor) Execute(ctx context.Context, input domain.ActionExecutionInput) (domain.ActionExecutionResult, error) {
-	return e.executeWithDepth(ctx, input, 0)
+	executed := 0
+	return e.executeWithBudget(ctx, input, 0, &executed)
 }
 
-func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input domain.ActionExecutionInput, depth int) (domain.ActionExecutionResult, error) {
+func (e *DefaultActionExecutor) executeWithBudget(
+	ctx context.Context,
+	input domain.ActionExecutionInput,
+	depth int,
+	executed *int,
+) (domain.ActionExecutionResult, error) {
 	if err := ctx.Err(); err != nil {
 		return domain.ActionExecutionResult{}, apperror.Wrap(err, apperror.CodeUnavailable, "request cancelled")
 	}
@@ -42,6 +54,11 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 		ActionID:   t.ID,
 		ActionType: t.Type,
 		Status:     "executed",
+	}
+
+	*executed++
+	if *executed > maxTotalBatchActions {
+		return res, apperror.BadRequest("batch action budget exceeded")
 	}
 
 	switch t.Type {
@@ -100,7 +117,7 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 			return res, apperror.BadRequest("call_api requires endpoint and method")
 		}
 		res.Message = fmt.Sprintf("executed %s %s", p.Method, p.Endpoint)
-		if p.Endpoint == "/api/v1/orders/express" {
+		if p.Endpoint == "/api/v1/orders/express" && strings.EqualFold(strings.TrimSpace(p.Method), "POST") {
 			res.FollowUpActions = append(res.FollowUpActions,
 				actions.NewTriggerFeedbackAction("express_order_celebration", actions.TriggerFeedbackPayload{
 					Effect:     actions.FeedbackCelebration,
@@ -115,7 +132,7 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 				}),
 			)
 		}
-		if p.Endpoint == "/api/v1/pay/transfer" {
+		if p.Endpoint == "/api/v1/pay/transfer" && strings.EqualFold(strings.TrimSpace(p.Method), "POST") {
 			res.FollowUpActions = append(res.FollowUpActions,
 				actions.NewTriggerFeedbackAction("pay_transfer_celebration", actions.TriggerFeedbackPayload{
 					Effect:     actions.FeedbackCelebration,
@@ -137,7 +154,7 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 			res.FollowUpActions = append(res.FollowUpActions, *p.OnSuccess)
 		}
 		if len(input.FormValues) > 0 {
-			res.UpdatedState = map[string]any{"last_submitted_form": input.FormValues}
+			res.UpdatedState = map[string]any{"last_submitted_form": cloneStateValue(input.FormValues)}
 		}
 
 	case actions.ActionSaveState:
@@ -148,10 +165,9 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 		if p.Key == "" {
 			return res, apperror.BadRequest("save_state.key must not be empty")
 		}
-		e.mu.Lock()
-		e.state[p.Key] = p.Value
-		e.mu.Unlock()
-		res.UpdatedState = map[string]any{p.Key: p.Value}
+		stored := cloneStateValue(p.Value)
+		e.setStateBounded(p.Key, stored)
+		res.UpdatedState = map[string]any{p.Key: cloneStateValue(stored)}
 		res.Message = fmt.Sprintf("saved state key %s", p.Key)
 
 	case actions.ActionDeleteState:
@@ -162,9 +178,7 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 		if p.Key == "" {
 			return res, apperror.BadRequest("delete_state.key must not be empty")
 		}
-		e.mu.Lock()
-		delete(e.state, p.Key)
-		e.mu.Unlock()
+		e.deleteState(p.Key)
 		res.UpdatedState = map[string]any{p.Key: nil}
 		res.Message = fmt.Sprintf("deleted state key %s", p.Key)
 
@@ -219,15 +233,22 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 		}
 		mergedState := make(map[string]any)
 		for _, child := range p.Actions {
+			if strings.TrimSpace(child.ID) == "" || strings.TrimSpace(string(child.Type)) == "" {
+				childErr := apperror.BadRequest("batch child requires non-empty id and type")
+				if p.StopOnError {
+					return res, childErr
+				}
+				continue
+			}
 			childInput := domain.ActionExecutionInput{
 				Trigger:    child,
 				FormValues: input.FormValues,
 				ScreenID:   input.ScreenID,
 				Metadata:   input.Metadata,
 			}
-			childRes, err := e.executeWithDepth(ctx, childInput, depth+1)
+			childRes, err := e.executeWithBudget(ctx, childInput, depth+1, executed)
 			if err != nil {
-				if p.StopOnError {
+				if *executed > maxTotalBatchActions || p.StopOnError {
 					return res, err
 				}
 				continue
@@ -265,8 +286,8 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 		if err != nil {
 			return res, apperror.BadRequest(err.Error())
 		}
-		if strings.TrimSpace(p.URL) == "" {
-			return res, apperror.BadRequest("open_url.url must not be empty")
+		if err := validateOpenURL(p.URL); err != nil {
+			return res, err
 		}
 		res.Message = fmt.Sprintf("opened external url %s", p.URL)
 
@@ -313,10 +334,97 @@ func (e *DefaultActionExecutor) executeWithDepth(ctx context.Context, input doma
 	return res, nil
 }
 
-// GetState returns a snapshot value from the executor's in-memory state store.
+// GetState returns a cloned snapshot value from the executor's bounded in-memory state store.
 func (e *DefaultActionExecutor) GetState(key string) (any, bool) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	v, ok := e.state[key]
-	return v, ok
+	if !ok {
+		return nil, false
+	}
+	return cloneStateValue(v), true
+}
+
+func (e *DefaultActionExecutor) setStateBounded(key string, val any) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if _, exists := e.state[key]; exists {
+		e.state[key] = val
+		return
+	}
+	for len(e.state) >= maxExecutorStateKeys && len(e.stateOrder) > 0 {
+		oldest := e.stateOrder[0]
+		e.stateOrder = e.stateOrder[1:]
+		delete(e.state, oldest)
+	}
+	e.state[key] = val
+	e.stateOrder = append(e.stateOrder, key)
+}
+
+func (e *DefaultActionExecutor) deleteState(key string) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if _, exists := e.state[key]; !exists {
+		return
+	}
+	delete(e.state, key)
+	for i, k := range e.stateOrder {
+		if k == key {
+			e.stateOrder = append(e.stateOrder[:i], e.stateOrder[i+1:]...)
+			break
+		}
+	}
+}
+
+func validateOpenURL(raw string) error {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return apperror.BadRequest("open_url.url must not be empty")
+	}
+	parsed, err := url.Parse(trimmed)
+	if err != nil || parsed.Scheme == "" {
+		return apperror.BadRequest("open_url.url must be a valid absolute URL")
+	}
+	switch strings.ToLower(parsed.Scheme) {
+	case "http", "https":
+		if strings.TrimSpace(parsed.Host) == "" {
+			return apperror.BadRequest("open_url.url must include a host")
+		}
+	case "mailto", "tel":
+		if strings.TrimSpace(parsed.Opaque) == "" && strings.TrimSpace(parsed.Path) == "" {
+			return apperror.BadRequest("open_url.url must include a target")
+		}
+	default:
+		return apperror.BadRequest("open_url.url scheme is not allowed")
+	}
+	return nil
+}
+
+func cloneStateValue(v any) any {
+	switch typed := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(typed))
+		for k, item := range typed {
+			out[k] = cloneStateValue(item)
+		}
+		return out
+	case map[string]string:
+		out := make(map[string]string, len(typed))
+		for k, item := range typed {
+			out[k] = item
+		}
+		return out
+	case []any:
+		out := make([]any, len(typed))
+		for i, item := range typed {
+			out[i] = cloneStateValue(item)
+		}
+		return out
+	case []string:
+		out := make([]string, len(typed))
+		copy(out, typed)
+		return out
+	default:
+		return v
+	}
 }

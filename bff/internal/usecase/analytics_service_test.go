@@ -73,7 +73,7 @@ func TestAnalyticsService(t *testing.T) {
 		t.Fatalf("expected 3 recorded events, got %d", len(store.recorded.Events))
 	}
 	e0 := store.recorded.Events[0]
-	if e0.EventID == "" || e0.TimestampEpochMs == 0 || e0.EventName != "page_open" || e0.PageID != "fresh-home" || e0.Category != analytics.CategoryScreen {
+	if e0.EventID == "" || e0.TimestampEpochMs == 0 || e0.EventName != "page_open" || e0.PageID != "fresh-home" || e0.Category != analytics.CategoryPageOpen {
 		t.Fatalf("unexpected enriched event[0]: %+v", e0)
 	}
 	e1 := store.recorded.Events[1]
@@ -85,14 +85,31 @@ func TestAnalyticsService(t *testing.T) {
 		t.Fatalf("expected explicit fields preserved on event[2]: %+v", e2)
 	}
 
-	// Default action category for non-impression/non-page_open events
+	// Default interaction & custom categories plus legacy category compatibility
 	if _, err := svc.IngestBatch(ctx, analytics.BatchRequest{
-		Events: []analytics.Event{{EventName: analytics.EventTrackEvent}},
+		Events: []analytics.Event{
+			{EventName: analytics.EventInteractionClick},
+			{EventName: analytics.EventTrackEvent},
+			{EventName: analytics.EventPageOpen, Category: analytics.CategoryScreen},
+			{EventName: analytics.EventTrackEvent, Category: analytics.CategoryAction},
+			{EventName: "sys_boot", Category: analytics.CategorySystem},
+			{EventName: "err_net", Category: analytics.CategoryError},
+		},
 	}); err != nil {
-		t.Fatalf("IngestBatch track_event failed: %v", err)
+		t.Fatalf("IngestBatch canonical/legacy categories failed: %v", err)
 	}
-	if store.recorded.Events[0].Category != analytics.CategoryAction {
-		t.Fatalf("expected default category action, got %q", store.recorded.Events[0].Category)
+	wantCats := []string{
+		analytics.CategoryInteraction,
+		analytics.CategoryCustom,
+		analytics.CategoryScreen,
+		analytics.CategoryAction,
+		analytics.CategorySystem,
+		analytics.CategoryError,
+	}
+	for i, want := range wantCats {
+		if store.recorded.Events[i].Category != want {
+			t.Fatalf("event[%d] category = %q, want %q", i, store.recorded.Events[i].Category, want)
+		}
 	}
 
 	// Summary delegation

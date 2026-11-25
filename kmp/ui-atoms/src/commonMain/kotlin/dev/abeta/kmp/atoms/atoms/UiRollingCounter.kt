@@ -33,6 +33,8 @@ private const val TABULAR_NUMBERS_FEATURE = "tnum"
 private const val MIN_ROLL_DURATION_MS = 200
 private val DIGIT_SAMPLES = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 
+private fun Char.isAsciiDigit(): Boolean = this in '0'..'9'
+
 /**
  * Pure helper determining whether a rolling digit slot should animate upward (`true`)
  * or downward (`false`) when transitioning from [previous] to [current].
@@ -41,7 +43,7 @@ fun shouldRollDigitUp(
     previous: Char,
     current: Char,
 ): Boolean =
-    if (previous.isDigit() && current.isDigit()) {
+    if (previous.isAsciiDigit() && current.isAsciiDigit()) {
         current >= previous
     } else {
         true
@@ -50,10 +52,11 @@ fun shouldRollDigitUp(
 /**
  * Stateless rolling odometer text counter UI atom.
  *
- * Animates changing numeric digits vertically purely in [graphicsLayer] (zero `AnimatedContent`
- * subtree churn, zero layout shifts across tabular digit slots) while keeping non-digit glyphs
- * stable, exposing a single merged accessibility text node, and collapsing cleanly to static text
- * when [dev.abeta.kmp.tokens.MotionTokens.reducedMotion] is enabled.
+ * Animates changing ASCII `'0'..'9'` digits vertically purely in [graphicsLayer] (zero
+ * `AnimatedContent` subtree churn, zero layout shifts across tabular digit slots) while keeping
+ * non-ASCII and symbol glyphs static without clipping, exposing a single merged accessibility
+ * text node, and collapsing cleanly to static ellipsized text when
+ * [dev.abeta.kmp.tokens.MotionTokens.reducedMotion] is enabled.
  */
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")
@@ -71,7 +74,7 @@ fun UiRollingCounter(
             style
         }
 
-    if (motion.reducedMotion || value.isEmpty()) {
+    if (motion.reducedMotion || value.isEmpty() || value.none { it.isAsciiDigit() }) {
         Text(
             text = value,
             style = tabularStyle,
@@ -88,16 +91,19 @@ fun UiRollingCounter(
 
     Row(
         modifier =
-            modifier.clearAndSetSemantics {
-                text = AnnotatedString(value)
-            },
+            modifier
+                .clipToBounds()
+                .clearAndSetSemantics {
+                    text = AnnotatedString(value)
+                },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         value.forEachIndexed { index, ch ->
             // Key from the right so prefix width changes ($9.50 -> $10.00) keep trailing digits anchored.
             val slotKey = value.length - 1 - index
-            key(slotKey, ch.isDigit()) {
-                if (ch.isDigit()) {
+            val isAscii = ch.isAsciiDigit()
+            key(slotKey, isAscii) {
+                if (isAscii) {
                     RollingDigitSlot(
                         digit = ch,
                         durationMs = rollDurationMs,
@@ -112,6 +118,7 @@ fun UiRollingCounter(
                         color = color,
                         maxLines = 1,
                         softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }

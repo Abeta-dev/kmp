@@ -24,6 +24,7 @@ import dev.abeta.kmp.contracts.AlertBannerAtom
 import dev.abeta.kmp.contracts.BadgeAtom
 import dev.abeta.kmp.contracts.ChipAtom
 import dev.abeta.kmp.contracts.ColorTokenRef
+import dev.abeta.kmp.contracts.CountdownAtom
 import dev.abeta.kmp.contracts.IconAtom
 import dev.abeta.kmp.contracts.ImageAtom
 import dev.abeta.kmp.contracts.KeyValueRowAtom
@@ -135,6 +136,12 @@ class ExtendedAtomsComposeTest {
             onNodeWithTag("select_option_plan_pro").performClick()
 
             onNodeWithText("Pro").assertIsDisplayed()
+            assertEquals(listOf("pro"), selections)
+            assertEquals(listOf(changeAction), capturedActions)
+
+            // Re-selecting the already-selected option is a no-op.
+            onNodeWithTag("select_plan").performClick()
+            onNodeWithTag("select_option_plan_pro").performClick()
             assertEquals(listOf("pro"), selections)
             assertEquals(listOf(changeAction), capturedActions)
         }
@@ -547,6 +554,46 @@ class ExtendedAtomsComposeTest {
             mainClock.advanceTimeByFrame()
             onNodeWithContentDescription("Page 2 of 2").assertIsDisplayed()
             onNodeWithContentDescription("Page 1 of 2").assertIsDisplayed()
+        }
+
+    @Test
+    fun countdownDoesNotFireOnExpireOnInitialMountWhenAlreadyExpired() =
+        runComposeUiTest {
+            val capturedActions = mutableListOf<ActionRef>()
+            val expireAction = ActionRef(id = "deal_expired", type = "refresh_page")
+
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = true) {
+                    Column {
+                        UiCountdown(
+                            atom =
+                                CountdownAtom(
+                                    countdownId = "already_zero",
+                                    remainingSeconds = 0,
+                                    expiredText = "Expired Zero",
+                                    onExpire = expireAction,
+                                ),
+                            onAction = capturedActions::add,
+                        )
+                        UiCountdown(
+                            atom =
+                                CountdownAtom(
+                                    countdownId = "past_epoch",
+                                    remainingSeconds = 30,
+                                    expiresAtEpochMs = 1_000L,
+                                    expiredText = "Expired Epoch",
+                                    onExpire = expireAction,
+                                ),
+                            onAction = capturedActions::add,
+                        )
+                    }
+                }
+            }
+
+            waitForIdle()
+            onNodeWithText("Expired Zero").assertIsDisplayed()
+            onNodeWithText("Expired Epoch").assertIsDisplayed()
+            assertEquals(emptyList(), capturedActions)
         }
 
     private fun buildHeroMediaPagerAtom(

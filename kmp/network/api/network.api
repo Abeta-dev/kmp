@@ -150,8 +150,9 @@ public final class dev/abeta/kmp/network/config/HttpProtocolMode : java/lang/Enu
 }
 
 public final class dev/abeta/kmp/network/config/NetworkConfig {
-	public fun <init> (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final field SHA256_PIN_PREFIX Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Z
 	public final fun component3 ()Ldev/abeta/kmp/network/config/TimeoutPolicy;
@@ -160,9 +161,11 @@ public final class dev/abeta/kmp/network/config/NetworkConfig {
 	public final fun component6 ()Ldev/abeta/kmp/network/config/CompressionPolicy;
 	public final fun component7 ()Ljava/util/Map;
 	public final fun component8 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;)Ldev/abeta/kmp/network/config/NetworkConfig;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/network/config/NetworkConfig;Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Ldev/abeta/kmp/network/config/NetworkConfig;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;)Ldev/abeta/kmp/network/config/NetworkConfig;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/network/config/NetworkConfig;Ljava/lang/String;ZLdev/abeta/kmp/network/config/TimeoutPolicy;Ldev/abeta/kmp/network/config/RetryPolicy;Ldev/abeta/kmp/network/config/HttpProtocolMode;Ldev/abeta/kmp/network/config/CompressionPolicy;Ljava/util/Map;Ljava/util/Map;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/network/config/NetworkConfig;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAppVersion ()Ljava/lang/String;
 	public final fun getBaseUrl ()Ljava/lang/String;
 	public final fun getCertificatePins ()Ljava/util/Map;
 	public final fun getCompression ()Ldev/abeta/kmp/network/config/CompressionPolicy;
@@ -314,9 +317,10 @@ public final class dev/abeta/kmp/network/sse/SseEvent$Companion {
 
 public final class dev/abeta/kmp/network/sse/SseLineParser {
 	public static final field Companion Ldev/abeta/kmp/network/sse/SseLineParser$Companion;
+	public static final field DEFAULT_MAX_EVENT_DATA_BYTES I
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;I)V
+	public synthetic fun <init> (Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun flush ()Ldev/abeta/kmp/network/sse/SseEvent;
 	public final fun getLastEventId ()Ljava/lang/String;
 	public final fun getLastRetryMillis ()Ljava/lang/Long;

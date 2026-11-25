@@ -2,13 +2,22 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TAG="v0.1.0"
+INTERNAL_TOML="${ROOT_DIR}/kmp/dependencyManagement/gradle/internal.versions.toml"
+DEFAULT_BOM_VERSION=""
+if [[ -f "$INTERNAL_TOML" ]]; then
+  DEFAULT_BOM_VERSION="$(grep -E '^kmpBom[[:space:]]*=' "$INTERNAL_TOML" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')"
+fi
+if [[ -z "$DEFAULT_BOM_VERSION" ]]; then
+  echo "ERROR: Could not derive default kmpBom version from ${INTERNAL_TOML}." >&2
+  exit 1
+fi
+TAG="v${DEFAULT_BOM_VERSION}"
 REPO="Abeta-dev/kmp"
 OUT_DIR=""
 SWIFT_VERSION="5.9"
 
 usage() {
-  echo "Usage: $0 [--tag v0.1.0] [--repo Abeta-dev/kmp] [--out-dir dist/xcframeworks] [--swift-version 5.9]" >&2
+  echo "Usage: $0 [--tag ${TAG}] [--repo Abeta-dev/kmp] [--out-dir dist/xcframeworks] [--swift-version 5.9]" >&2
 }
 
 while [[ $# -gt 0 ]]; do

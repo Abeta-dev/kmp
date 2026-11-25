@@ -73,6 +73,7 @@ import dev.abeta.kmp.layout.snippet.LocalFormValidationErrors
 import dev.abeta.kmp.layout.snippet.LocalMotionStaggerIndex
 import dev.abeta.kmp.layout.snippet.LocalNodeImpressionHandler
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
+import dev.abeta.kmp.layout.snippet.buildUniqueSnippetKeys
 import dev.abeta.kmp.tokens.ProvideAdaptiveLayoutMetrics
 import dev.abeta.kmp.tokens.ThemeTokens
 import kotlinx.coroutines.delay
@@ -92,6 +93,7 @@ private val FORM_AWARE_SNIPPET_TYPES =
         SnippetTypes.TABS,
         SnippetTypes.ACCORDION,
         SnippetTypes.SEARCH_BAR,
+        SnippetTypes.CHIP_GROUP,
         SnippetTypes.COMPOSED_BLOCK,
         SnippetTypes.CUSTOM_SLOT,
     )
@@ -356,6 +358,7 @@ internal fun SnippetLazyList(
     val listState = remember(state.page.pageId) { LazyListState() }
     val bottomExtraDp = resolveBottomSpacerDp(state.page.floatingCart)
     val stickyBackground = ThemeTokens.colors.background.primary
+    val snippetKeys = remember(snippets) { buildUniqueSnippetKeys(snippets) }
 
     CompositionLocalProvider(
         LocalFormValidationErrors provides state.validationErrors,
@@ -370,6 +373,7 @@ internal fun SnippetLazyList(
             snippets.forEachIndexed { index, envelope ->
                 addSnippetEntry(
                     index = index,
+                    itemKey = snippetKeys[index],
                     envelope = envelope,
                     state = state,
                     reducedMotion = reducedMotion,
@@ -396,6 +400,7 @@ internal fun SnippetLazyList(
 @Suppress("LongParameterList")
 private fun LazyListScope.addSnippetEntry(
     index: Int,
+    itemKey: String,
     envelope: SnippetEnvelope,
     state: LayoutUiState.Ready,
     reducedMotion: Boolean,
@@ -411,7 +416,7 @@ private fun LazyListScope.addSnippetEntry(
         if (envelope.snippetType in FORM_AWARE_SNIPPET_TYPES) state.formValues else emptyMap()
     if (envelope.sticky) {
         stickyHeader(
-            key = envelope.snippetId,
+            key = itemKey,
             contentType = envelope.snippetType,
         ) { _ ->
             Surface(
@@ -432,7 +437,7 @@ private fun LazyListScope.addSnippetEntry(
         }
     } else {
         item(
-            key = envelope.snippetId,
+            key = itemKey,
             contentType = envelope.snippetType,
         ) {
             val baseModifier =

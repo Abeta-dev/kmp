@@ -30,14 +30,21 @@ import dev.abeta.kmp.actions.handler.ActionOutcome
 import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.actions.model.OpenDialogPayload
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.CardSnippetData
 import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SduiJson
+import dev.abeta.kmp.contracts.SnippetEnvelope
+import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.contracts.TabItemSpec
+import dev.abeta.kmp.contracts.TabsSnippetData
+import dev.abeta.kmp.contracts.TextAtom
 import dev.abeta.kmp.core.error.NetworkError
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.layout.engine.LayoutUiState
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
 import dev.abeta.kmp.tokens.DesignTheme
+import kotlinx.serialization.json.JsonObject
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -375,6 +382,81 @@ class SduiScreenComposeTest {
             ).assertIsDisplayed()
             onNodeWithText("Saved to cart").assertIsDisplayed()
         }
+
+    @Test
+    fun nonDismissibleOverlayHidesFallbackOkButtonAndShrinkingTabsDoNotCrash() =
+        runComposeUiTest {
+            val registry = BuiltInSnippetModule.createDefaultRegistry()
+            val tab1 = sampleTabItem(id = "t1", title = "Tab One", body = "First Tab Body")
+            val tab2 = sampleTabItem(id = "t2", title = "Tab Two", body = "Second Tab Body")
+            var tabsModel by mutableStateOf(TabsSnippetData(tabs = listOf(tab1, tab2), selectedIndex = 1))
+            var activeOverlay by mutableStateOf<ActionOutcome.OverlayRequested?>(
+                ActionOutcome.OverlayRequested(
+                    dialogId = "mandatory_update",
+                    title = "Update Required",
+                    message = "Please upgrade to continue",
+                    dismissible = false,
+                ),
+            )
+
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = false) {
+                    val page =
+                        PageResponse(
+                            pageId = "tabs_and_overlay",
+                            snippets =
+                                listOf(
+                                    SnippetEnvelope(
+                                        snippetId = "tabs_shrink",
+                                        snippetType = SnippetTypes.TABS,
+                                        data =
+                                            SduiJson.encodeToJsonElement(
+                                                TabsSnippetData.serializer(),
+                                                tabsModel,
+                                            ) as JsonObject,
+                                    ),
+                                ),
+                        )
+                    SduiScreen(
+                        state = LayoutUiState.Ready(page = page, activeOverlay = activeOverlay),
+                        snippetRegistry = registry,
+                        onAction = {},
+                        onFormValueChange = { _, _ -> },
+                    )
+                }
+            }
+
+            onNodeWithText("Update Required").assertIsDisplayed()
+            onNodeWithText("OK").assertDoesNotExist()
+
+            // Dismiss overlay and shrink tabs from 2 (selected=1) down to 1 while AnimatedContent transitions.
+            activeOverlay = null
+            tabsModel = TabsSnippetData(tabs = listOf(tab1), selectedIndex = 0)
+            waitForIdle()
+            onNodeWithText("First Tab Body").assertIsDisplayed()
+        }
+
+    private fun sampleTabItem(
+        id: String,
+        title: String,
+        body: String,
+    ): TabItemSpec =
+        TabItemSpec(
+            id = id,
+            title = title,
+            snippets =
+                listOf(
+                    SnippetEnvelope(
+                        snippetId = "card_$id",
+                        snippetType = SnippetTypes.CARD,
+                        data =
+                            SduiJson.encodeToJsonElement(
+                                CardSnippetData.serializer(),
+                                CardSnippetData(title = TextAtom(text = body)),
+                            ) as JsonObject,
+                    ),
+                ),
+        )
 
     @Composable
     @Suppress("ktlint:standard:function-naming", "FunctionName")

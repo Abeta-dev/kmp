@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -46,32 +47,39 @@ internal class CustomSlotSnippetRenderer(
         onFormValueChange: (String, String) -> Unit,
         onAction: (ActionRef) -> Unit,
     ) {
+        val depth = LocalSnippetDepth.current
+        if (depth >= MAX_SNIPPET_NESTING_DEPTH) return
+
         val hostRenderer = LocalCustomSlotRegistry.current.resolve(model.slotType)
-        if (hostRenderer != null) {
-            RenderRegisteredSlot(
-                model = model,
-                envelope = envelope,
-                formValues = formValues,
-                onFormValueChange = onFormValueChange,
-                onAction = onAction,
-                hostRenderer = hostRenderer,
-            )
-            return
-        }
-
         val fallbackEnvelope = model.fallback
-        if (fallbackEnvelope != null) {
-            val registry = LocalSnippetRegistry.current ?: registryProvider()
-            registry.Render(
-                envelope = fallbackEnvelope,
-                formValues = formValues,
-                onFormValueChange = onFormValueChange,
-                onAction = onAction,
-            )
-            return
-        }
+        when {
+            hostRenderer != null -> {
+                RenderRegisteredSlot(
+                    model = model,
+                    envelope = envelope,
+                    formValues = formValues,
+                    onFormValueChange = onFormValueChange,
+                    onAction = onAction,
+                    hostRenderer = hostRenderer,
+                )
+            }
 
-        RenderUnregisteredSlotNotice(model = model)
+            fallbackEnvelope != null -> {
+                val registry = LocalSnippetRegistry.current ?: registryProvider()
+                CompositionLocalProvider(LocalSnippetDepth provides depth + 1) {
+                    registry.Render(
+                        envelope = fallbackEnvelope,
+                        formValues = formValues,
+                        onFormValueChange = onFormValueChange,
+                        onAction = onAction,
+                    )
+                }
+            }
+
+            else -> {
+                RenderUnregisteredSlotNotice(model = model)
+            }
+        }
     }
 
     @Composable
@@ -97,7 +105,7 @@ internal class CustomSlotSnippetRenderer(
                         mod
                     }
                 }.let { mod ->
-                    if (aspectRatio != null && aspectRatio > 0f) {
+                    if (aspectRatio != null && aspectRatio.isFinite() && aspectRatio > 0f) {
                         mod.aspectRatio(aspectRatio, matchHeightConstraintsFirst = false)
                     } else {
                         mod

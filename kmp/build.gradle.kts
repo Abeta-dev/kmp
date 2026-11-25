@@ -29,6 +29,13 @@ val publishableModules = setOf(
     "dependencyManagement",
 )
 
+val publishVersionOverride: String? =
+    providers.gradleProperty("abeta.publishVersion")
+        .orElse(providers.environmentVariable("ABETA_PUBLISH_VERSION"))
+        .map(String::trim)
+        .orNull
+        ?.takeIf { it.isNotEmpty() }
+
 val isMacOsHost = System.getProperty("os.name").orEmpty().lowercase().contains("mac")
 val useNoSyncBuildDir = isMacOsHost && rootDir.absolutePath.contains("/Documents/")
 
@@ -70,6 +77,8 @@ subprojects {
         apply(plugin = "org.jetbrains.dokka")
         apply(plugin = "dev.detekt")
         if (name in publishableModules && name != "kmp-bom" && name != "dependencyManagement") {
+            // Keep JVM ABI validation deterministic across Linux and macOS CI; experimental klib BCV
+            // requires compiling Apple targets that are unavailable on ubuntu-latest runners.
             apply(plugin = "org.jetbrains.kotlinx.binary-compatibility-validator")
         }
         afterEvaluate {
@@ -95,6 +104,13 @@ subprojects {
             }
         }
     }
+    plugins.withId("dev.detekt") {
+        configure<dev.detekt.gradle.extensions.DetektExtension> {
+            buildUponDefaultConfig.set(true)
+            config.setFrom(rootProject.files("detekt.yml"))
+            parallel.set(true)
+        }
+    }
 
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {
@@ -108,16 +124,9 @@ subprojects {
     }
 
     if (name in publishableModules) {
-        val publishVersionOverride =
-            (findProperty("abeta.publishVersion") as String?)
-                ?.trim()
-                ?.takeIf { it.isNotEmpty() }
-                ?: System.getenv("ABETA_PUBLISH_VERSION")?.trim()?.takeIf { it.isNotEmpty() }
-
         if (publishVersionOverride != null) {
-            afterEvaluate {
-                version = publishVersionOverride
-            }
+            version = publishVersionOverride
+            extra["VERSION_NAME"] = publishVersionOverride
         }
 
         plugins.withId("com.vanniktech.maven.publish") {
@@ -220,6 +229,22 @@ subprojects {
             }
         }
     }
+}
+
+gradle.projectsEvaluated {
+    subprojects
+        .filter { it.name in publishableModules }
+        .forEach { proj ->
+            val resolvedVersion = publishVersionOverride ?: proj.version.toString()
+            proj.version = resolvedVersion
+            proj.extensions
+                .findByType<PublishingExtension>()
+                ?.publications
+                ?.withType<MavenPublication>()
+                ?.configureEach {
+                    version = resolvedVersion
+                }
+        }
 }
 
 if (isMacOsHost && (!hasIosSimulatorRuntime || !hasWatchOsSimulatorRuntime)) {

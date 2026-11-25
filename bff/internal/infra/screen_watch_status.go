@@ -62,6 +62,6 @@ func buildWatchStatusScreen() snippets.PageResponse {
 			MaxWidthDp: atoms.IntPtr(280),
 		}).
 		AddSnippets(metric, card).
-		WithTracking("watch_screen_viewed", map[string]any{"page_id": "watch-status"}).
+		WithTracking("watch_screen_viewed", map[string]string{"page_id": "watch-status"}).
 		Build()
 }

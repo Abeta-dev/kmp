@@ -16,8 +16,11 @@ func TestAnalyticsWireRoundTripAndConstants(t *testing.T) {
 		analytics.EventTrackEvent != "track_event" {
 		t.Fatal("unexpected canonical analytics event name constants")
 	}
-	if analytics.CategoryAction != "action" ||
+	if analytics.CategoryPageOpen != "page_open" ||
 		analytics.CategoryImpression != "impression" ||
+		analytics.CategoryInteraction != "interaction" ||
+		analytics.CategoryCustom != "custom" ||
+		analytics.CategoryAction != "action" ||
 		analytics.CategoryScreen != "screen" ||
 		analytics.CategoryLifecycle != "lifecycle" ||
 		analytics.CategorySystem != "system" ||

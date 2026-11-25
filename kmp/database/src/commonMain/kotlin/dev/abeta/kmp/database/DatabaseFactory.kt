@@ -10,6 +10,13 @@ import dev.abeta.kmp.core.time.SystemClock
 
 internal expect fun createRawAbetaDatabaseBuilder(config: AbetaDatabaseConfig): Builder<AbetaDatabase>
 
+internal fun requireSafeRelativeDatabaseName(relativeName: String) {
+    val segments = relativeName.split('/', '\\')
+    require(segments.none { it == ".." }) {
+        "Relative databaseName must not contain '..' path traversal segments: $relativeName"
+    }
+}
+
 /**
  * Creates a platform-configured [RoomDatabase.Builder] for [AbetaDatabase].
  *
@@ -29,6 +36,7 @@ fun createAbetaDatabaseBuilder(
     config: AbetaDatabaseConfig = AbetaDatabaseConfig(),
 ): Builder<AbetaDatabase> =
     createRawAbetaDatabaseBuilder(config).apply {
+        addMigrations(AbetaDatabase.MIGRATION_1_2)
         setDriver(driver)
         config.queryCoroutineContext?.let(::setQueryCoroutineContext)
     }

@@ -27,6 +27,7 @@ func TestCleanArchitectureDependencyRule(t *testing.T) {
 		filepath.Join("..", "..", "pkg", "sdui", "snippets"),
 		filepath.Join("..", "..", "pkg", "sdui", "analytics"),
 		filepath.Join("..", "..", "pkg", "sdui", "molecules"),
+		filepath.Join("..", "..", "pkg", "sdui", "cache"),
 	}
 
 	fset := token.NewFileSet()

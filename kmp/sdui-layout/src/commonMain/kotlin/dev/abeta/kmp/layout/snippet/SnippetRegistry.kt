@@ -43,6 +43,29 @@ internal val LocalSnippetRegistry: ProvidableCompositionLocal<SnippetRegistry?> 
 internal val LocalMotionStaggerIndex: ProvidableCompositionLocal<Int> =
     staticCompositionLocalOf { 0 }
 
+internal const val MAX_SNIPPET_NESTING_DEPTH = 6
+
+internal val LocalSnippetDepth: ProvidableCompositionLocal<Int> =
+    staticCompositionLocalOf { 0 }
+
+internal fun buildUniqueSnippetKeys(snippets: List<SnippetEnvelope>): List<String> {
+    val used = HashSet<String>(snippets.size)
+    return snippets.mapIndexed { index, envelope ->
+        val base = envelope.snippetId
+        if (used.add(base)) {
+            base
+        } else {
+            var suffix = index
+            var candidate = "$base#$suffix"
+            while (!used.add(candidate)) {
+                suffix += 1
+                candidate = "$base#$suffix"
+            }
+            candidate
+        }
+    }
+}
+
 /**
  * Open/Closed Strategy interface for decoding and rendering a single SDUI snippet type [T].
  *

@@ -1,6 +1,7 @@
 package dev.abeta.kmp.network.sse
 
 import dev.abeta.kmp.core.error.AppError
+import dev.abeta.kmp.core.error.NetworkError
 import dev.abeta.kmp.core.error.RateLimitError
 import dev.abeta.kmp.core.error.isRetryable
 import dev.abeta.kmp.core.result.AppResult
@@ -15,6 +16,8 @@ import dev.abeta.kmp.network.client.mapTransportThrowable
 import dev.abeta.kmp.network.ports.NetworkMetric
 import dev.abeta.kmp.network.ports.NetworkTelemetrySink
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeoutConfig
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -24,7 +27,8 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
-import io.ktor.utils.io.readLine
+import io.ktor.utils.io.LineEnding
+import io.ktor.utils.io.readLineStrict
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ProducerScope
@@ -35,9 +39,11 @@ import kotlinx.coroutines.flow.channelFlow
 
 private const val SSE_ACCEPT_HEADER = "text/event-stream"
 private const val SSE_CACHE_CONTROL = "no-cache"
+private const val SSE_ACCEPT_ENCODING = "identity"
 private const val HEADER_LAST_EVENT_ID = "Last-Event-ID"
 private const val BACKOFF_MULTIPLIER = 2L
 private const val MAX_BACKOFF_SHIFT = 30
+private const val MAX_SSE_LINE_BYTES: Long = 65_536L
 
 /**
  * Ktor-backed streaming [SseTransport] using `prepareGet` and incremental `ByteReadChannel.readLine()`.
@@ -80,7 +86,10 @@ class KtorSseTransport(
                         active = false
                     }
 
-                    AttemptOutcome.StreamClosed -> {
+                    is AttemptOutcome.StreamClosed -> {
+                        if (outcome.receivedEvents) {
+                            reconnectAttempts = 0
+                        }
                         active =
                             scheduleReconnectIfAllowed(
                                 policy = reconnectPolicy,
@@ -122,6 +131,10 @@ class KtorSseTransport(
         return try {
             val statement =
                 httpClient.prepareGet(spec.path) {
+                    timeout {
+                        requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                        socketTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                    }
                     applySseHeaders(spec.headers, state.lastSeenEventId)
                     spec.queryParams.forEach { (name, value) -> parameter(name, value) }
                 }
@@ -164,7 +177,7 @@ class KtorSseTransport(
             }
 
             !status.isSuccess() -> {
-                val retryAfterMillis = extractRetryAfterMillis(response.headers)
+                val retryAfterMillis = extractRetryAfterMillis(response.headers, clock.nowEpochMillis())
                 val error = mapStatusError(status, requestUrl, retryAfterMillis)
                 emitMetric(
                     url = requestUrl,
@@ -179,38 +192,60 @@ class KtorSseTransport(
                 )
             }
 
+            !hasEventStreamContentType(response) -> {
+                val actualContentType = response.headers[HttpHeaders.ContentType].orEmpty()
+                val error =
+                    NetworkError(
+                        statusCode = status.value,
+                        message =
+                            "Expected Content-Type '$SSE_ACCEPT_HEADER' for $requestUrl, got '$actualContentType'.",
+                    )
+                emitMetric(
+                    url = requestUrl,
+                    statusCode = status.value,
+                    durationMillis = elapsedSince(clock, startedAt),
+                    isSuccess = false,
+                    errorType = NetworkError::class.simpleName,
+                )
+                AttemptOutcome.Failed(error = error, retryAfterMillis = null)
+            }
+
             else -> {
-                streamEvents(response, state)
+                val emittedCount = streamEvents(response, state)
                 emitMetric(
                     url = requestUrl,
                     statusCode = status.value,
                     durationMillis = elapsedSince(clock, startedAt),
                     isSuccess = true,
                 )
-                AttemptOutcome.StreamClosed
+                AttemptOutcome.StreamClosed(receivedEvents = emittedCount > 0)
             }
         }
+    }
+
+    private fun hasEventStreamContentType(response: HttpResponse): Boolean {
+        val contentType = response.headers[HttpHeaders.ContentType]?.trim().orEmpty()
+        return contentType.startsWith(SSE_ACCEPT_HEADER, ignoreCase = true)
     }
 
     private suspend fun ProducerScope<AppResult<SseEvent>>.streamEvents(
         response: HttpResponse,
         state: SseStreamState,
-    ) {
+    ): Int {
         val channel = response.bodyAsChannel()
         val parser = SseLineParser(initialLastEventId = state.lastSeenEventId)
+        var emittedCount = 0
         while (true) {
-            val line = channel.readLine() ?: break
+            val line =
+                channel.readLineStrict(limit = MAX_SSE_LINE_BYTES, lineEnding = LineEnding.Lenient) ?: break
             val event = parser.parseLine(line)
             state.syncFrom(parser)
             if (event != null) {
+                emittedCount += 1
                 send(AppResult.Success(event))
             }
         }
-        val trailingEvent = parser.flush()
-        state.syncFrom(parser)
-        if (trailingEvent != null) {
-            send(AppResult.Success(trailingEvent))
-        }
+        return emittedCount
     }
 
     private suspend fun scheduleReconnectIfAllowed(
@@ -275,7 +310,9 @@ class KtorSseTransport(
     private sealed interface AttemptOutcome {
         data object Completed : AttemptOutcome
 
-        data object StreamClosed : AttemptOutcome
+        data class StreamClosed(
+            val receivedEvents: Boolean,
+        ) : AttemptOutcome
 
         data class Failed(
             val error: AppError,
@@ -290,6 +327,7 @@ private fun HttpRequestBuilder.applySseHeaders(
 ) {
     headers.forEach { (name, value) ->
         if (!name.equals(HEADER_LAST_EVENT_ID, ignoreCase = true)) {
+            this.headers.remove(name)
             header(name, value)
         }
     }
@@ -299,7 +337,12 @@ private fun HttpRequestBuilder.applySseHeaders(
     if (!headers.containsHeaderIgnoreCase(HttpHeaders.CacheControl)) {
         header(HttpHeaders.CacheControl, SSE_CACHE_CONTROL)
     }
+    if (!headers.containsHeaderIgnoreCase(HttpHeaders.AcceptEncoding)) {
+        this.headers.remove(HttpHeaders.AcceptEncoding)
+        header(HttpHeaders.AcceptEncoding, SSE_ACCEPT_ENCODING)
+    }
     if (!lastEventId.isNullOrBlank()) {
+        this.headers.remove(HEADER_LAST_EVENT_ID)
         header(HEADER_LAST_EVENT_ID, lastEventId)
     }
 }

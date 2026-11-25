@@ -142,9 +142,12 @@ private fun RenderComposedSelect(
     onAction: (ActionRef) -> Unit,
     modifier: Modifier,
 ) {
+    val validationErrors = LocalFormValidationErrors.current
     node.select?.let { select ->
+        val fieldError = validationErrors[select.fieldId]
+        val effectiveSelect = if (fieldError != null) select.copy(errorText = fieldError) else select
         UiSelect(
-            atom = select,
+            atom = effectiveSelect,
             modifier = modifier,
             selectedIdOverride = formValues[select.fieldId],
             onSelect = { selected -> onFormValueChange(select.fieldId, selected) },
@@ -162,9 +165,12 @@ private fun RenderComposedOtpInput(
     onAction: (ActionRef) -> Unit,
     modifier: Modifier,
 ) {
+    val validationErrors = LocalFormValidationErrors.current
     node.otpInput?.let { otp ->
+        val fieldError = validationErrors[otp.fieldId]
+        val effectiveOtp = if (fieldError != null) otp.copy(errorText = fieldError) else otp
         UiOtpInput(
-            atom = otp,
+            atom = effectiveOtp,
             modifier = modifier,
             valueOverride = formValues[otp.fieldId],
             onValueChange = { updated -> onFormValueChange(otp.fieldId, updated) },

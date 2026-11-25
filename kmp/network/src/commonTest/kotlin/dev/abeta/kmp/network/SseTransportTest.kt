@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
@@ -298,5 +299,98 @@ class SseTransportTest {
             assertEquals(1, taken.size)
             assertEquals("one", assertIs<AppResult.Success<SseEvent>>(taken.single()).value.data)
             assertEquals(1, calls)
+        }
+
+    @Test
+    fun sseRejectsNonEventStreamContentTypeAndEnforcesDataLimits() =
+        runTest {
+            var capturedAcceptEncoding: String? = null
+            val htmlEngine =
+                MockEngine { request ->
+                    capturedAcceptEncoding = request.headers[HttpHeaders.AcceptEncoding]
+                    respond(
+                        content = "<html>Not SSE</html>",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "text/html"),
+                    )
+                }
+            val htmlTransport =
+                KtorSseTransport(httpClient = HttpClientFactory.create(config = testConfig(), engine = htmlEngine))
+            val wrongType =
+                htmlTransport
+                    .connect(
+                        path = "/v1/wrong",
+                        reconnectPolicy = SseReconnectPolicy(enabled = true, maxReconnectAttempts = 3),
+                    ).toList()
+            assertEquals("identity", capturedAcceptEncoding)
+            assertEquals(1, wrongType.size)
+            assertIs<NetworkError>(assertIs<AppResult.Failure>(wrongType.single()).error)
+
+            val boundedParser = SseLineParser(maxEventDataBytes = 8)
+            assertNull(boundedParser.parseLine("data: 12345"))
+            assertFailsWith<IllegalStateException> {
+                boundedParser.parseLine("data: 67890")
+            }
+        }
+
+    @Test
+    fun sseDropsTruncatedEofEventsAndResetsReconnectCounter() =
+        runTest {
+            val lastIds = mutableListOf<String?>()
+            var streamAttempt = 0
+            val dropEngine =
+                MockEngine { request ->
+                    streamAttempt += 1
+                    lastIds.add(request.headers["Last-Event-ID"])
+                    when (streamAttempt) {
+                        1 -> {
+                            respond(
+                                content = "id: 1\ndata: ok-1\n\nid: 2\ndata: truncated-no-blank-line",
+                                status = HttpStatusCode.OK,
+                                headers = headersOf(HttpHeaders.ContentType, "text/event-stream; charset=utf-8"),
+                            )
+                        }
+
+                        2 -> {
+                            respond(
+                                content = "id: 2\ndata: ok-2\n\n",
+                                status = HttpStatusCode.OK,
+                                headers = headersOf(HttpHeaders.ContentType, "text/event-stream"),
+                            )
+                        }
+
+                        3 -> {
+                            respond(
+                                content = "id: 3\ndata: ok-3\n\n",
+                                status = HttpStatusCode.OK,
+                                headers = headersOf(HttpHeaders.ContentType, "text/event-stream"),
+                            )
+                        }
+
+                        else -> {
+                            respond(content = "", status = HttpStatusCode.NoContent)
+                        }
+                    }
+                }
+            val dropTransport =
+                KtorSseTransport(httpClient = HttpClientFactory.create(config = testConfig(), engine = dropEngine))
+            val results =
+                dropTransport
+                    .connect(
+                        path = "/v1/resilient",
+                        reconnectPolicy =
+                            SseReconnectPolicy(
+                                enabled = true,
+                                maxReconnectAttempts = 1,
+                                initialDelayMillis = 1L,
+                                maxDelayMillis = 5L,
+                            ),
+                    ).toList()
+
+            assertEquals(listOf<String?>(null, "1", "2", "3"), lastIds)
+            assertEquals(
+                listOf("ok-1", "ok-2", "ok-3"),
+                results.map { assertIs<AppResult.Success<SseEvent>>(it).value.data },
+            )
         }
 }

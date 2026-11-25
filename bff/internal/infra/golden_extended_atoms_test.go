@@ -226,7 +226,7 @@ func canonicalExtendedAtomsScreen() snippets.PageResponse {
 			Enter:         atoms.MotionTransitionFadeIn,
 			DurationToken: atoms.MotionDurationNormal,
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "demo_extended_atoms_block",
 			"recipe":     "extended_atoms_all_12",
 		}).
@@ -244,7 +244,7 @@ func canonicalExtendedAtomsScreen() snippets.PageResponse {
 			MaxWidthDp: atoms.IntPtr(960),
 		}).
 		AddSnippets(extendedBlock).
-		WithTracking("page_loaded", map[string]any{
+		WithTracking("page_loaded", map[string]string{
 			"page_id": "extended-atoms-demo",
 			"version": "v1",
 		}).

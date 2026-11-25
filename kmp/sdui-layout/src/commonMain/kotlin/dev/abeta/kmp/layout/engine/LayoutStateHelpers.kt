@@ -20,6 +20,7 @@ import dev.abeta.kmp.core.error.NetworkError
 import dev.abeta.kmp.core.error.OfflineError
 import dev.abeta.kmp.core.error.TimeoutError
 import dev.abeta.kmp.core.error.ValidationError
+import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.layout.snippet.canRenderComposedDepth
 import dev.abeta.kmp.state.session.SessionStore
 import kotlinx.serialization.json.JsonElement
@@ -227,16 +228,18 @@ internal object LayoutStateReducer {
                 current.validationErrors
             }
         val bumpShake = error is ValidationError
-        return current.copy(
-            validationErrors = updatedErrors,
-            errorShakeSequence =
-                if (bumpShake) current.errorShakeSequence + 1L else current.errorShakeSequence,
-            activeToast =
+        return current
+            .copy(
+                validationErrors = updatedErrors,
+                errorShakeSequence =
+                    if (bumpShake) current.errorShakeSequence + 1L else current.errorShakeSequence,
+                errorShakeTargetId = if (bumpShake) null else current.errorShakeTargetId,
+            ).withToast(
                 ActionOutcome.ToastRequested(
                     message = error.message,
                     variant = "error",
                 ),
-        )
+            )
     }
 
     fun applyFeedback(
@@ -261,8 +264,13 @@ internal object LayoutStateReducer {
         val updatedFormValues = current.formValues.toMutableMap()
         outcome.deletedKeys.forEach(updatedFormValues::remove)
         outcome.savedEntries.forEach { (key, value) ->
-            if (key in updatedFormValues && value is JsonPrimitive && value.isString) {
-                updatedFormValues[key] = value.content
+            if (value is JsonPrimitive) {
+                val content = value.contentOrNull
+                if (content != null) {
+                    updatedFormValues[key] = content
+                } else {
+                    updatedFormValues.remove(key)
+                }
             }
         }
         return current.copy(formValues = updatedFormValues.toMap())
@@ -284,36 +292,36 @@ internal object LayoutStateReducer {
         pendingCount: Int,
         hasCustomErrorAction: Boolean,
     ): LayoutUiState.Ready =
-        current.copy(
-            pendingOfflineActions = pendingCount,
-            activeToast =
-                if (!hasCustomErrorAction) {
+        if (!hasCustomErrorAction) {
+            current
+                .copy(pendingOfflineActions = pendingCount)
+                .withToast(
                     ActionOutcome.ToastRequested(
                         message = "Saved offline ($pendingCount pending)",
                         variant = "warning",
-                    )
-                } else {
-                    current.activeToast
-                },
-        )
+                    ),
+                )
+        } else {
+            current.copy(pendingOfflineActions = pendingCount)
+        }
 
     fun applyOfflineFlushed(
         current: LayoutUiState.Ready,
         pendingCount: Int,
         succeededCount: Int,
     ): LayoutUiState.Ready =
-        current.copy(
-            pendingOfflineActions = pendingCount,
-            activeToast =
-                if (succeededCount > 0) {
+        if (succeededCount > 0) {
+            current
+                .copy(pendingOfflineActions = pendingCount)
+                .withToast(
                     ActionOutcome.ToastRequested(
                         message = "Synced $succeededCount offline action(s)",
                         variant = "success",
-                    )
-                } else {
-                    current.activeToast
-                },
-        )
+                    ),
+                )
+        } else {
+            current.copy(pendingOfflineActions = pendingCount)
+        }
 
     fun applyApiCallFailure(
         current: LayoutUiState.Ready,
@@ -321,7 +329,7 @@ internal object LayoutStateReducer {
     ): LayoutUiState.Ready =
         if (!outcome.isSuccess && outcome.followUpActions.isEmpty()) {
             val message = outcome.errorMessage ?: "Request failed for ${outcome.endpoint}"
-            current.copy(activeToast = ActionOutcome.ToastRequested(message = message, variant = "error"))
+            current.withToast(ActionOutcome.ToastRequested(message = message, variant = "error"))
         } else {
             current
         }
@@ -333,6 +341,49 @@ internal object LayoutStateReducer {
         error is OfflineError ||
             error is TimeoutError ||
             (error is NetworkError && (error.statusCode == null || error.statusCode!! >= httpServerErrorMin))
+
+    fun toAnalyticsProperties(properties: Map<String, JsonElement>): Map<String, String> =
+        properties.mapValues { (_, value) ->
+            when (value) {
+                is JsonPrimitive -> value.contentOrNull ?: value.toString()
+                else -> value.toString()
+            }
+        }
+}
+
+internal object OfflinePayloadSelector {
+    fun selectFailedNonGetCallApiPayloads(
+        action: ActionRef,
+        results: List<AppResult<ActionOutcome>>,
+        transientFailureCount: Int,
+    ): List<CallApiPayload> {
+        val allPayloads = if (transientFailureCount > 0) extractCallApiPayloads(action) else emptyList()
+        if (allPayloads.isEmpty()) return emptyList()
+
+        val completedCounts = mutableMapOf<Pair<String, String>, Int>()
+        results.forEach { result ->
+            val outcome = (result as? AppResult.Success)?.value as? ActionOutcome.ApiCallResult
+            if (outcome != null) {
+                val key = outcome.endpoint to outcome.method.trim().uppercase()
+                completedCounts[key] = (completedCounts[key] ?: 0) + 1
+            }
+        }
+
+        val unmatched = mutableListOf<CallApiPayload>()
+        for (payload in allPayloads) {
+            val key = payload.endpoint to payload.method.trim().uppercase()
+            val remainingCompleted = completedCounts[key] ?: 0
+            if (remainingCompleted > 0) {
+                completedCounts[key] = remainingCompleted - 1
+            } else {
+                unmatched.add(payload)
+            }
+        }
+
+        return unmatched
+            .take(transientFailureCount)
+            .filterNot { it.method.trim().equals("GET", ignoreCase = true) }
+    }
 
     fun extractCallApiPayloads(action: ActionRef): List<CallApiPayload> =
         when (action.type) {
@@ -356,14 +407,6 @@ internal object LayoutStateReducer {
                 emptyList()
             }
         }
-
-    fun toAnalyticsProperties(properties: Map<String, JsonElement>): Map<String, String> =
-        properties.mapValues { (_, value) ->
-            when (value) {
-                is JsonPrimitive -> value.contentOrNull ?: value.toString()
-                else -> value.toString()
-            }
-        }
 }
 
 internal object SnippetListMutator {
@@ -373,57 +416,79 @@ internal object SnippetListMutator {
     ): List<SnippetEnvelope> =
         when (update.operation.trim().lowercase()) {
             "append" -> append(existing, update.targetSnippetId, update.snippets)
-            "prepend" -> update.snippets + existing
+            "prepend" -> prepend(existing, update.snippets)
             "replace" -> replace(existing, update.targetSnippetId, update.snippets)
             "remove" -> remove(existing, update.targetSnippetId, update.snippets)
             else -> existing
         }
 
+    private fun prepend(
+        existing: List<SnippetEnvelope>,
+        additions: List<SnippetEnvelope>,
+    ): List<SnippetEnvelope> {
+        if (additions.isEmpty()) return existing
+        val deduped = deduplicateById(additions)
+        val incomingIds = deduped.mapTo(hashSetOf()) { it.snippetId }
+        return deduped + existing.filterNot { it.snippetId in incomingIds }
+    }
+
     private fun append(
         existing: List<SnippetEnvelope>,
         targetId: String?,
         additions: List<SnippetEnvelope>,
-    ): List<SnippetEnvelope> =
-        when {
-            additions.isEmpty() -> {
-                existing
-            }
-
-            targetId == null -> {
-                existing + additions
-            }
-
-            else -> {
-                val index = existing.indexOfFirst { it.snippetId == targetId }
-                if (index < 0) {
-                    existing + additions
-                } else {
-                    existing.toMutableList().apply { addAll(index + 1, additions) }.toList()
-                }
-            }
+    ): List<SnippetEnvelope> {
+        if (additions.isEmpty()) return existing
+        val deduped = deduplicateById(additions)
+        val targetIndex = targetId?.let { id -> existing.indexOfFirst { it.snippetId == id } } ?: -1
+        return if (targetIndex < 0) {
+            upsertAtEnd(existing, deduped)
+        } else {
+            val incomingIds = deduped.mapTo(hashSetOf()) { it.snippetId }
+            val before = existing.subList(0, targetIndex + 1).filterNot { it.snippetId in incomingIds }
+            val after = existing.subList(targetIndex + 1, existing.size).filterNot { it.snippetId in incomingIds }
+            before + deduped + after
         }
+    }
 
     private fun replace(
         existing: List<SnippetEnvelope>,
         targetId: String?,
         replacements: List<SnippetEnvelope>,
-    ): List<SnippetEnvelope> =
-        if (targetId != null) {
+    ): List<SnippetEnvelope> {
+        val deduped = deduplicateById(replacements)
+        return if (targetId != null) {
             val index = existing.indexOfFirst { it.snippetId == targetId }
             if (index < 0) {
                 existing
             } else {
-                existing
-                    .toMutableList()
-                    .apply {
-                        removeAt(index)
-                        addAll(index, replacements)
-                    }.toList()
+                val incomingIds = deduped.mapTo(hashSetOf()) { it.snippetId }
+                val before = existing.subList(0, index).filterNot { it.snippetId in incomingIds }
+                val after = existing.subList(index + 1, existing.size).filterNot { it.snippetId in incomingIds }
+                before + deduped + after
             }
         } else {
-            val byId = replacements.associateBy { it.snippetId }
-            existing.map { envelope -> byId[envelope.snippetId] ?: envelope }
+            val byId = deduped.associateBy { it.snippetId }
+            deduplicateById(existing.map { envelope -> byId[envelope.snippetId] ?: envelope })
         }
+    }
+
+    private fun upsertAtEnd(
+        existing: List<SnippetEnvelope>,
+        additions: List<SnippetEnvelope>,
+    ): List<SnippetEnvelope> {
+        val byId = additions.associateBy { it.snippetId }
+        val existingIds = existing.mapTo(hashSetOf()) { it.snippetId }
+        val updatedExisting = existing.map { envelope -> byId[envelope.snippetId] ?: envelope }
+        val brandNew = additions.filterNot { it.snippetId in existingIds }
+        return updatedExisting + brandNew
+    }
+
+    private fun deduplicateById(snippets: List<SnippetEnvelope>): List<SnippetEnvelope> {
+        if (snippets.size <= 1) return snippets
+        val unique = linkedMapOf<String, SnippetEnvelope>()
+        snippets.forEach { unique[it.snippetId] = it }
+        return unique.values.toList()
+    }
 
     private fun remove(
         existing: List<SnippetEnvelope>,

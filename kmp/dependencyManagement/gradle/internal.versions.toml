@@ -1,18 +1,18 @@
 [versions]
-kmpBom = "0.6.0"
-kmpDependencies = "0.6.0"
+kmpBom = "0.7.0"
+kmpDependencies = "0.7.0"
 
-core = "0.6.0"
-state = "0.6.0"
-analytics = "0.6.0"
-database = "0.6.0"
-designTokens = "0.6.0"
-sduiContracts = "0.6.0"
-uiAtoms = "0.6.0"
-actionEngine = "0.6.0"
-network = "0.6.0"
-sduiLayout = "0.6.0"
-watchCompanion = "0.6.0"
+core = "0.7.0"
+state = "0.7.0"
+analytics = "0.7.0"
+database = "0.7.0"
+designTokens = "0.7.0"
+sduiContracts = "0.7.0"
+uiAtoms = "0.7.0"
+actionEngine = "0.7.0"
+network = "0.7.0"
+sduiLayout = "0.7.0"
+watchCompanion = "0.7.0"
 
 [libraries]
 kmp-bom = { group = "io.github.abeta-dev", name = "bom", version.ref = "kmpBom" }

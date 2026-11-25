@@ -27,6 +27,7 @@ import dev.abeta.kmp.atoms.atoms.LocalImageRenderer
 import dev.abeta.kmp.atoms.atoms.UiImageRenderer
 import dev.abeta.kmp.layout.di.createSduiKoinModule
 import dev.abeta.kmp.layout.engine.LayoutController
+import dev.abeta.kmp.layout.engine.LayoutUiState
 import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.platform.asUiHapticCallback
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
@@ -39,7 +40,9 @@ import dev.abeta.kmp.tokens.ReducedMotionTokens
 import dev.abeta.kmp.tokens.ThemePreset
 import dev.abeta.kmp.tokens.resolveColorTokens
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 import org.koin.dsl.koinApplication
 
 /**
@@ -113,13 +116,20 @@ class AbetaAndroidHostActivity : FragmentActivity() {
         }
     }
 
-    private suspend fun requestRuntimePermission(permission: String): Boolean {
-        val deferred = CompletableDeferred<Boolean>()
-        pendingPermissionResult?.cancel()
-        pendingPermissionResult = deferred
-        permissionLauncher.launch(permission)
-        return deferred.await()
-    }
+    private suspend fun requestRuntimePermission(permission: String): Boolean =
+        withContext(Dispatchers.Main.immediate) {
+            val deferred = CompletableDeferred<Boolean>()
+            pendingPermissionResult?.cancel()
+            pendingPermissionResult = deferred
+            try {
+                permissionLauncher.launch(permission)
+                deferred.await()
+            } finally {
+                if (pendingPermissionResult === deferred) {
+                    pendingPermissionResult = null
+                }
+            }
+        }
 
     private fun navigateToScreen(
         route: String,
@@ -174,12 +184,17 @@ private fun AndroidSduiRoot(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val koinApp =
-        remember(bffBaseUrl, platformBridges) {
+        remember(bffBaseUrl, platformBridges, context) {
             koinApplication {
                 modules(
                     createSduiKoinModule(
                         baseUrl = bffBaseUrl,
                         scope = scope,
+                        keyValueStore =
+                            AndroidSharedPreferencesKeyValueStore(
+                                context = context.applicationContext,
+                                preferencesName = "abeta.sdui.settings",
+                            ),
                         platformBridges = platformBridges,
                         navigationListener = { nav -> onNavigate(nav.route, nav.clearBackStack) },
                         backListener = { back -> onBackRequested(back.steps) },
@@ -208,7 +223,10 @@ private fun AndroidSduiRoot(
     }
     LaunchedEffect(controller, pendingDeepLink) {
         val uri = pendingDeepLink ?: return@LaunchedEffect
-        controller.handleDeepLink(uri)
+        val handledJob = controller.handleDeepLink(uri)
+        if (handledJob == null && controller.uiState.value is LayoutUiState.Idle) {
+            controller.loadScreen(initialScreenId)
+        }
         deepLinkFlow.value = null
     }
 
@@ -239,6 +257,7 @@ private fun AndroidSduiRoot(
                 onDismissToast = controller::dismissToast,
                 onDismissFeedback = controller::dismissFeedback,
                 onSnippetImpression = controller::onSnippetImpression,
+                onNodeImpression = controller::onNodeImpression,
                 onLoadMore = { controller.loadMore() },
                 onHaptic = platformBridges.hapticEngine.asUiHapticCallback(),
                 modifier = Modifier.fillMaxSize(),

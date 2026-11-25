@@ -1,6 +1,6 @@
 # Open Package Hosting & Release Publishing Guide
 
-`abeta-dev/kmp` distributes all **13 Gradle artifacts** (**11 KMP library modules** including Room 3 `database` + `bom` + `dependencies`), **2 Apple Release XCFrameworks** (`AbetaSduiKit` + `AbetaWatchKit` via SwiftPM), and the **Go 1.26.0 SDUI BFF module** through **100% free, open-to-download registries** — with **zero consumer authentication tokens required**.
+`abeta-dev/kmp` distributes all **13 Gradle artifacts** (**11 KMP library modules** including Room 3 `database` + `bom` + `dependencies` at **`0.7.0`**), **4 Apple SwiftPM products** (`AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI` via `Abeta-dev/kmp-spm` **`0.7.0`**), and the **Go 1.26.0 SDUI BFF module (`bff@v0.9.0`)** through **100% free, open-to-download registries** — with **zero consumer authentication tokens required**.
 
 ---
 
@@ -8,10 +8,10 @@
 
 | Channel | Cost | Consumer Auth Required? | Artifacts Hosted | Automated Workflow |
 | :--- | :--- | :---: | :--- | :--- |
-| **Maven Central** (`central.sonatype.com`) | **Free forever (OSS)** | **No** (`mavenCentral()`) | All **11 KMP modules** (`core`, `state`, `analytics`, `database`, `design-tokens`, `sdui-contracts`, `ui-atoms`, `action-engine`, `network`, `sdui-layout`, `watch-companion`) across `jvm`, `ios*`, `macosArm64`, `watchos*`, `wasmJs` + `bom` + `dependencies` (**13 Gradle modules**) | [release.yml](../.github/workflows/release.yml) (`v*` tags on `macos-latest`) |
+| **Maven Central** (`central.sonatype.com`) | **Free forever (OSS)** | **No** (`mavenCentral()`) | All **11 KMP modules** (`core`, `state`, `analytics`, `database`, `design-tokens`, `sdui-contracts`, `ui-atoms`, `action-engine`, `network`, `sdui-layout`, `watch-companion`) across `jvm`, `ios*`, `macosArm64`, `watchos*`, `wasmJs` + `bom` + `dependencies` (**13 Gradle modules**) | [release.yml](../.github/workflows/release.yml) (`v*` tags on `macos-latest`, requires repo variable `ENABLE_MAVEN_CENTRAL=true`) |
 | **Cloudsmith Open Source** (`cloudsmith.com/open-source`) | **Free OSS tier** | **No** (`dl.cloudsmith.io/public/...`) | JFrog-style universal Maven registry — stable mirrors & automated `main` `-SNAPSHOT` builds | [release.yml](../.github/workflows/release.yml) & [snapshot-publish.yml](../.github/workflows/snapshot-publish.yml) |
-| **Apple SwiftPM (Direct Git URL + GitHub Releases)** | **Free** | **No** | `AbetaSduiKit-<tag>.xcframework.zip`, `AbetaWatchKit-<tag>.xcframework.zip`, `SHA256SUMS.txt`, verified `Package.swift` mirrored to lightweight `Abeta-dev/kmp-spm` repo | [release.yml](../.github/workflows/release.yml) + [package_xcframeworks.sh](../scripts/package_xcframeworks.sh) + [verify_spm_package.sh](../scripts/verify_spm_package.sh) |
-| **Go Module Proxy** (`proxy.golang.org`) | **Free (automatic)** | **No** | `github.com/abeta-dev/kmp/bff` | [release.yml](../.github/workflows/release.yml) (`bff/v*` tags) |
+| **Apple SwiftPM (Direct Git URL + GitHub Releases)** | **Free** | **No** | 4 SwiftPM products: `AbetaSduiKit` (iOS 15+ XCFramework), `AbetaWatchKit` (watchOS 9+ XCFramework), `AbetaSduiSwiftUI` (iOS SwiftUI wrapper), `AbetaWatchSwiftUI` (watchOS SwiftUI renderer), plus `SHA256SUMS.txt` & generated `Package.swift` mirrored to `Abeta-dev/kmp-spm` | [release.yml](../.github/workflows/release.yml) + [package_xcframeworks.sh](../scripts/package_xcframeworks.sh) + [verify_spm_package.sh](../scripts/verify_spm_package.sh) |
+| **Go Module Proxy** (`proxy.golang.org`) | **Free (automatic)** | **No** | `github.com/abeta-dev/kmp/bff` (`bff@v0.9.0` — 8 `pkg/sdui/*` packages) | [release.yml](../.github/workflows/release.yml) (`bff/v*` tags) |
 | **Custom Maven2 Mirror** (GitLab Package Registry / Reposilite) | **Free** | **No** (for public repos) | Optional mirror via `CUSTOM_MAVEN_URL` | [release.yml](../.github/workflows/release.yml) |
 
 > **Why GitHub Packages is opt-in only & why JitPack is not used:**
@@ -33,7 +33,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaKmp") {
-            from("io.github.abeta-dev:dependencies:0.6.0")
+            from("io.github.abeta-dev:dependencies:0.7.0")
         }
     }
 }
@@ -45,7 +45,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:database") // Optional Room 3 KMP local SQLite DB
             implementation("io.github.abeta-dev:design-tokens")
@@ -79,36 +79,40 @@ dependencyResolutionManagement {
 ```kotlin
 // build.gradle.kts (commonMain)
 commonMain.dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0-SNAPSHOT"))
     implementation("io.github.abeta-dev:database")
     implementation("io.github.abeta-dev:sdui-layout")
 }
 ```
 
-### C. Pure Swift / Xcode — Swift Package Manager (Direct Git URL)
+### C. Pure Swift / Xcode — Swift Package Manager (Direct Git URL — 4 Products)
 
 1. In Xcode, open **File -> Add Package Dependencies...**.
 2. Paste `https://github.com/Abeta-dev/kmp-spm` into the search field.
-3. Choose **Exact Version** `0.3.0` (or **Up to Next Minor** `0.3.0`).
-4. Add **`AbetaSduiKit`** to your iOS target and/or **`AbetaWatchKit`** to your watchOS target.
+3. Choose **Exact Version** `0.7.0` (or **Up to Next Minor** `0.7.0`).
+4. Add the desired product(s) to your app target:
+   - **`AbetaSduiSwiftUI`** (iOS / iPadOS 15+ ready-made SwiftUI host wrapper — re-exports/links `AbetaSduiKit`)
+   - **`AbetaSduiKit`** (iOS / iPadOS 15+ binary XCFramework)
+   - **`AbetaWatchSwiftUI`** (watchOS 9+ ready-made SwiftUI renderer — links `AbetaWatchKit`)
+   - **`AbetaWatchKit`** (watchOS 9+ headless binary XCFramework)
 5. Import directly in Swift:
    ```swift
-   import AbetaSduiKit   // iOS / iPadOS Compose + SDUI host
-   import AbetaWatchKit  // watchOS headless wearable companion
+   import AbetaSduiSwiftUI   // iOS / iPadOS 15+ SwiftUI SDUI views (or import AbetaSduiKit)
+   import AbetaWatchSwiftUI  // watchOS 9+ SwiftUI watch renderer (or import AbetaWatchKit)
    ```
 
 Or in a SwiftPM `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.6.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.7.0"),
 ]
 ```
 
 ### D. Go 1.26.0 SDUI BFF — `proxy.golang.org`
 
 ```bash
-go get github.com/abeta-dev/kmp/bff@v0.8.0
+go get github.com/abeta-dev/kmp/bff@v0.9.0
 ```
 
 ---
@@ -160,8 +164,16 @@ gpg --export-secret-keys --armor <KEY_ID>
 
 > Copy the entire output from `-----BEGIN PGP PRIVATE KEY BLOCK-----` through `-----END PGP PRIVATE KEY BLOCK-----` (including blank lines).
 
-#### Step 5: Add the Exact 5 GitHub Secrets
-Open your GitHub repository -> **Settings -> Secrets and variables -> Actions -> Secrets -> New repository secret** and add all 5 secrets:
+#### Step 5: Add the Exact 5 GitHub Secrets + Enable Repository Variable
+Open your GitHub repository -> **Settings -> Secrets and variables -> Actions**:
+
+1. Under **Variables -> New repository variable**, set:
+
+| Variable Name | Required? | Exact Value |
+| :--- | :---: | :--- |
+| **`ENABLE_MAVEN_CENTRAL`** (`vars.ENABLE_MAVEN_CENTRAL`) | **Yes (mandatory gate)** | **`true`** — [release.yml](../.github/workflows/release.yml) explicitly gates automatic Maven Central uploads behind `vars.ENABLE_MAVEN_CENTRAL == 'true'`; without this variable set to `true`, `v*` tag pushes skip Maven Central publishing even when secrets are present. |
+
+2. Under **Secrets -> New repository secret**, add all 5 secrets:
 
 | Secret Name | Required? | Exact Value |
 | :--- | :---: | :--- |
@@ -171,12 +183,12 @@ Open your GitHub repository -> **Settings -> Secrets and variables -> Actions ->
 | `GPG_SIGNING_KEY_ID` | Recommended | Last 8 characters of your GPG key ID (e.g., `1A2B3C4D`) |
 | `GPG_SIGNING_PASSWORD` | If set | Passphrase used in Step 4 (leave empty / omit if unprotected) |
 
-#### Step 6: Push Tag `v0.3.0` to Auto-Build, Sign & Release
+#### Step 6: Push Tag `v0.7.0` to Auto-Build, Sign & Release
 ```bash
-git tag -a v0.3.0 -m "Release v0.3.0"
-git push origin v0.3.0
+git tag -a v0.7.0 -m "Release v0.7.0"
+git push origin v0.7.0
 ```
-[release.yml](../.github/workflows/release.yml) automatically runs on **`macos-latest`**, signs all **13 Gradle modules** (**11 KMP libraries** including `:database` + `:kmp-bom` + `:dependencyManagement`), uploads the deployment bundle to Central Portal via `publishAndReleaseToMavenCentral`, and automatically releases it to `mavenCentral()`!
+[release.yml](../.github/workflows/release.yml) automatically runs on **`macos-latest`** when `vars.ENABLE_MAVEN_CENTRAL == 'true'`, signs all **13 Gradle modules** (**11 KMP libraries** including `:database` + `:kmp-bom` + `:dependencyManagement`), uploads the deployment bundle to Central Portal via `publishAndReleaseToMavenCentral`, and automatically releases it to `mavenCentral()`!
 
 ---
 
@@ -228,19 +240,19 @@ Why a separate mirror repo? SwiftPM clones the Git repository whose URL you past
 | **Secret** | `SPM_REPO_TOKEN` | **Yes** | Fine-grained PAT scoped strictly to `Abeta-dev/kmp-spm` (`Contents: Read & Write`) |
 | **Variable** | `SPM_REPO` | Optional | Defaults to `Abeta-dev/kmp-spm` |
 
-4. **Push a release tag (`v0.3.0`) on `Abeta-dev/kmp`**:
-   When you push `v0.3.0`, [release.yml](../.github/workflows/release.yml) automatically:
+4. **Push a release tag (`v0.7.0`) on `Abeta-dev/kmp`**:
+   When you push `v0.7.0`, [release.yml](../.github/workflows/release.yml) automatically:
    1. Builds Release **`AbetaSduiKit.xcframework`** (`iosArm64` + `iosSimulatorArm64`) and **`AbetaWatchKit.xcframework`** (`watchosArm64` + `watchosSimulatorArm64` + `watchosDeviceArm64`) on **`macos-latest`**.
-   2. Zips both XCFrameworks, computes SwiftPM SHA-256 checksums (`SHA256SUMS.txt`), and renders `Package.swift` from [`kmp/platforms/apple/Package.template.swift`](../kmp/platforms/apple/Package.template.swift) via [`scripts/package_xcframeworks.sh`](../scripts/package_xcframeworks.sh).
+   2. Zips both XCFrameworks, computes SwiftPM SHA-256 checksums (`SHA256SUMS.txt`), copies SwiftUI source targets from `kmp/platforms/apple/Sources/{AbetaSduiSwiftUI,AbetaWatchSwiftUI}/`, and **generates `Package.swift` directly** via [`scripts/package_xcframeworks.sh`](../scripts/package_xcframeworks.sh) exposing all **4 SwiftPM products** (`AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI`).
    3. Verifies `Package.swift` syntax, checksums, and manifest integrity using [`scripts/verify_spm_package.sh`](../scripts/verify_spm_package.sh).
    4. Uploads both `.xcframework.zip` archives, `SHA256SUMS.txt`, and `Package.swift` to the **`Abeta-dev/kmp`** GitHub Release.
-   5. Commits the verified `Package.swift` and pushes SemVer tag **`0.3.0`** (without leading `v`, matching SwiftPM conventions) to **`Abeta-dev/kmp-spm`**!
+   5. Commits the generated `Package.swift` + `Sources/{AbetaSduiSwiftUI,AbetaWatchSwiftUI}` and pushes SemVer tag **`0.7.0`** (without leading `v`, matching SwiftPM conventions) to **`Abeta-dev/kmp-spm`**!
 5. **Consume in Xcode**:
    - Open **File -> Add Package Dependencies...**
    - Paste **`https://github.com/Abeta-dev/kmp-spm`**
-   - Choose **`0.3.0`**
-   - Add **`AbetaSduiKit`** (iOS) or **`AbetaWatchKit`** (watchOS) to your app target
-   - Use `import AbetaSduiKit` or `import AbetaWatchKit`!
+   - Choose **`0.7.0`**
+   - Add **`AbetaSduiSwiftUI`** (or low-level **`AbetaSduiKit`**) to your iOS 15+ target, and/or **`AbetaWatchSwiftUI`** (or low-level **`AbetaWatchKit`**) to your watchOS 9+ target
+   - Use `import AbetaSduiSwiftUI` / `import AbetaSduiKit` or `import AbetaWatchSwiftUI` / `import AbetaWatchKit`!
 
 #### Path 2 (Zero Extra Repository — Manual Release Download)
 
@@ -248,7 +260,7 @@ If you prefer not to create `Abeta-dev/kmp-spm`, every `v*` GitHub Release on `A
 - `AbetaSduiKit-<tag>.xcframework.zip`
 - `AbetaWatchKit-<tag>.xcframework.zip`
 - `SHA256SUMS.txt`
-- A ready-to-use `Package.swift` with exact release URLs and SwiftPM checksums
+- A ready-to-use generated `Package.swift` with exact release URLs, SwiftPM checksums, and all 4 product declarations
 
 Pure Swift teams can download `Package.swift` from the release assets (or copy its `.binaryTarget(name:url:checksum:)` entries directly into their own `Package.swift` / local Swift package).
 
@@ -260,13 +272,13 @@ No secrets, tokens, or account registration are needed for Go consumers:
 
 1. Tag the Go BFF module under its subdirectory tag prefix `bff/`:
    ```bash
-   git tag -a bff/v0.6.0 -m "Release Go SDUI BFF v0.5.0"
-   git push origin bff/v0.6.0
+   git tag -a bff/v0.9.0 -m "Release Go SDUI BFF v0.9.0"
+   git push origin bff/v0.9.0
    ```
-2. [release.yml](../.github/workflows/release.yml) verifies `gofmt`, `go vet ./...`, and `go test -race -cover ./...`, creates the GitHub Release, and automatically warms `https://proxy.golang.org/github.com/abeta-dev/kmp/bff/@v/v0.5.0.info`.
+2. [release.yml](../.github/workflows/release.yml) verifies `gofmt`, `go vet ./...`, and `go test -race -cover ./...`, creates the GitHub Release, and automatically warms `https://proxy.golang.org/github.com/abeta-dev/kmp/bff/@v/v0.9.0.info`.
 3. Any Go developer worldwide can immediately install it with:
    ```bash
-   go get github.com/abeta-dev/kmp/bff@v0.8.0
+   go get github.com/abeta-dev/kmp/bff@v0.9.0
    ```
 
 ---
@@ -285,27 +297,27 @@ If your organization hosts a public GitLab Package Registry or Reposilite mirror
 
 ## 4. Local Publishing & Packaging Verification (Zero Secrets)
 
-Verify all **13 Maven artifacts** (POMs, `.module` Gradle Module Metadata, `.jar`, `.klib`, sources & javadoc jars) and Apple SwiftPM packaging locally before tagging:
+Verify all **13 Maven artifacts** (POMs, `.module` Gradle Module Metadata, `.jar`, `.klib`, sources & javadoc jars) and 4-product Apple SwiftPM packaging locally before tagging:
 
 ```bash
-# 1. Verify all 13 stable artifacts (io.github.abeta-dev:*:0.3.0, incl. :database) in ~/.m2/repository
+# 1. Verify all 13 stable artifacts (io.github.abeta-dev:*:0.7.0, incl. :database) in ~/.m2/repository
 (cd kmp && ./gradlew publishToMavenLocal -Pabeta.kmpLocalBuild=false --no-daemon)
 
-# 2. Verify snapshot version override (0.3.0-SNAPSHOT, including BOM constraints)
+# 2. Verify snapshot version override (0.7.0-SNAPSHOT, including BOM constraints)
 (cd kmp && ./gradlew publishToMavenLocal \
   -Pabeta.kmpLocalBuild=false \
-  -Pabeta.publishVersion=0.3.0-SNAPSHOT \
+  -Pabeta.publishVersion=0.7.0-SNAPSHOT \
   --no-daemon)
 
-# 3. Assemble & package Apple Release XCFrameworks + verify SwiftPM Package.swift (macOS)
+# 3. Assemble & package Apple Release XCFrameworks + generate & verify 4-product SwiftPM Package.swift (macOS)
 (cd kmp && ./gradlew \
   :watch-companion:assembleAbetaWatchKitReleaseXCFramework \
   :sdui-layout:assembleAbetaSduiKitReleaseXCFramework \
   --max-workers=1 --no-daemon \
   -Dorg.gradle.jvmargs="-Xmx6g -Dfile.encoding=UTF-8" \
   -Dkotlin.daemon.jvm.options="-Xmx6g")
-./scripts/package_xcframeworks.sh --tag v0.3.0 --out-dir dist/xcframeworks
-./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.3.0
+./scripts/package_xcframeworks.sh --tag v0.7.0 --out-dir dist/xcframeworks
+./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.7.0
 ```
 
 ---
@@ -313,13 +325,14 @@ Verify all **13 Maven artifacts** (POMs, `.module` Gradle Module Metadata, `.jar
 ## 5. Cutting a Production Release
 
 ```bash
-# 1. Cut a full KMP (13 Gradle modules) + Apple XCFramework + SwiftPM mirror release
-git tag -a v0.3.0 -m "Release v0.3.0"
-git push origin v0.3.0
+# 1. Cut a full KMP (13 Gradle modules) + 4-product Apple XCFramework/SwiftUI SwiftPM mirror release
+#    (Ensure repository variable ENABLE_MAVEN_CENTRAL=true for Maven Central upload)
+git tag -a v0.7.0 -m "Release v0.7.0"
+git push origin v0.7.0
 
 # 2. Cut a Go BFF module release (GitHub Release + automatic proxy.golang.org indexing)
-git tag -a bff/v0.6.0 -m "Release Go SDUI BFF v0.5.0"
-git push origin bff/v0.6.0
+git tag -a bff/v0.9.0 -m "Release Go SDUI BFF v0.9.0"
+git push origin bff/v0.9.0
 ```
 
 You can also trigger `Release` or `Snapshot Publish (Cloudsmith Open Source)` manually via **GitHub Actions -> Run workflow** (`workflow_dispatch`) to target a specific registry (`maven-central`, `cloudsmith`, `github-packages`, `xcframeworks-only`) or override the version.

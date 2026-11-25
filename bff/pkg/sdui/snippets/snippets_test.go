@@ -44,7 +44,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithTrailingAction(btn).
 		WithLayout(layout).
 		WithMotion(motion).
-		WithTracking("hdr_view", map[string]any{"pos": 1}).
+		WithTracking("hdr_view", map[string]string{"pos": "1"}).
 		Build()
 
 	bannerEnv := snippets.NewBannerSnippet("b1", title).
@@ -242,7 +242,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithOnUndo(act).
 		WithLayout(layout).
 		WithMotion(motion).
-		WithTracking("deck_view", map[string]any{"deck": "discover_deck"}).
+		WithTracking("deck_view", map[string]string{"deck": "discover_deck"}).
 		Build()
 
 	searchBarEnv := snippets.NewSearchBarSnippet("srch1", "global_search", "Search catalog").
@@ -257,7 +257,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithOnTrailingClick(act).
 		WithLayout(layout).
 		WithMotion(motion).
-		WithTracking("search_view", map[string]any{"surface": "demo"}).
+		WithTracking("search_view", map[string]string{"surface": "demo"}).
 		Build()
 
 	chip1 := snippets.FilterChipItem{
@@ -286,7 +286,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		AddChips(chip3).
 		WithLayout(layout).
 		WithMotion(motion).
-		WithTracking("chips_view", map[string]any{"group": "catalog_filters"}).
+		WithTracking("chips_view", map[string]string{"group": "catalog_filters"}).
 		Build()
 
 	countdown := atoms.NewCountdown("flash_cd", 420, "Ends in")
@@ -304,7 +304,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithOnClick(act).
 		WithLayout(layout).
 		WithMotion(motion).
-		WithTracking("nudge_view", map[string]any{"nudge_id": "free_delivery_nudge"}).
+		WithTracking("nudge_view", map[string]string{"nudge_id": "free_delivery_nudge"}).
 		Build()
 
 	marqueeItem1 := snippets.MarqueeItem{ID: "mq_1", Text: "Free express delivery over $25", Icon: &icon, Badge: &tag, OnClick: &act}
@@ -318,7 +318,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithSeparator("✦").
 		WithLayout(layout).
 		WithMotion(atoms.MotionSpec{LoopEffect: atoms.MotionLoopMarquee}).
-		WithTracking("marquee_view", map[string]any{"strip_id": "promo_ticker"}).
+		WithTracking("marquee_view", map[string]string{"strip_id": "promo_ticker"}).
 		Build()
 
 	step1 := snippets.OrderTrackerStep{ID: "s_packed", Label: "Packed", Caption: "2 mins ago", Icon: &icon, Completed: true, Active: false}
@@ -335,7 +335,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithSecondaryAction(btn).
 		WithLayout(layout).
 		WithMotion(motion).
-		WithTracking("tracker_view", map[string]any{"order_code": "#AF-4092"}).
+		WithTracking("tracker_view", map[string]string{"order_code": "#AF-4092"}).
 		Build()
 
 	composedRoot := snippets.CardNode(
@@ -369,7 +369,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 		WithRecipeName("custom_card").
 		WithLayout(layout).
 		WithMotion(motion).
-		WithTracking("composed_view", map[string]any{"block_id": "molded_block_1"}).
+		WithTracking("composed_view", map[string]string{"block_id": "molded_block_1"}).
 		Build()
 
 	page := snippets.NewPage("demo", "Demo Page").
@@ -404,7 +404,7 @@ func TestBuildersAndWireFormat(t *testing.T) {
 			SplitPaneEnabled:    true,
 			SecondarySnippetIDs: []string{"acc1"},
 		}).
-		WithTracking("page_view", map[string]any{"page": "demo"}).
+		WithTracking("page_view", map[string]string{"page": "demo"}).
 		Build()
 
 	expectedTypes := []string{

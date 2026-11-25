@@ -19,8 +19,8 @@ internal object CertificatePinMatcher {
         host: String,
         pattern: String,
     ): Boolean {
-        val cleanHost = host.trim().lowercase()
-        val cleanPattern = pattern.trim().lowercase()
+        val cleanHost = host.trim().trimEnd('.').lowercase()
+        val cleanPattern = pattern.trim().trimEnd('.').lowercase()
         return when {
             cleanHost.isEmpty() || cleanPattern.isEmpty() -> {
                 false
@@ -104,25 +104,29 @@ internal object CertificatePinMatcher {
     ): TlvBounds? {
         val header = if (offset >= 0 && offset + 2 <= bytes.size) parseLength(bytes, offset + 1) else null
         return header?.let { (contentStart, length) ->
-            val end = contentStart + length
-            if (length >= 0 && end <= bytes.size) TlvBounds(contentStart = contentStart, end = end) else null
+            val endLong = contentStart.toLong() + length
+            if (length >= 0L && endLong <= bytes.size.toLong()) {
+                TlvBounds(contentStart = contentStart, end = endLong.toInt())
+            } else {
+                null
+            }
         }
     }
 
     private fun parseLength(
         bytes: ByteArray,
         lengthOffset: Int,
-    ): Pair<Int, Int>? {
+    ): Pair<Int, Long>? {
         val lengthByte = bytes[lengthOffset].toInt() and 0xFF
         val afterLengthByte = lengthOffset + 1
         return if ((lengthByte and LONG_FORM_MASK) == 0) {
-            afterLengthByte to lengthByte
+            afterLengthByte to lengthByte.toLong()
         } else {
             val count = lengthByte and LENGTH_MASK
             if (count in 1..4 && afterLengthByte + count <= bytes.size) {
-                var parsed = 0
+                var parsed = 0L
                 repeat(count) { idx ->
-                    parsed = (parsed shl BITS_PER_BYTE) or (bytes[afterLengthByte + idx].toInt() and 0xFF)
+                    parsed = (parsed shl BITS_PER_BYTE) or (bytes[afterLengthByte + idx].toInt() and 0xFF).toLong()
                 }
                 (afterLengthByte + count) to parsed
             } else {

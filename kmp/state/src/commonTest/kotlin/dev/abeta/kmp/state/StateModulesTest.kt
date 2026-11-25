@@ -3,6 +3,8 @@ package dev.abeta.kmp.state
 import app.cash.turbine.test
 import com.russhwolf.settings.MapSettings
 import dev.abeta.kmp.core.error.NetworkError
+import dev.abeta.kmp.core.error.OfflineError
+import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.identity.SequentialUuidGenerator
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.storage.InMemoryKeyValueStore
@@ -36,6 +38,9 @@ import dev.abeta.kmp.state.session.PersistentSessionStore
 import dev.abeta.kmp.state.session.SessionLifecycleManager
 import dev.abeta.kmp.state.storage.SettingsKeyValueStore
 import dev.abeta.kmp.state.sync.OfflineMutationQueue
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
@@ -242,5 +247,126 @@ class StateModulesTest {
             assertEquals(0, reloaded.status.value.pendingCount)
             assertFalse(reloaded.queue.value.any { it.id == m2.id })
             assertNull(kv.getString(OfflineMutationQueue.DEFAULT_STORAGE_KEY))
+        }
+
+    @Test
+    fun `offline mutation queue handles cancellation offline errors validation errors and concurrent enqueue`() =
+        runTest {
+            val kv = InMemoryKeyValueStore()
+            val clock = MutableClock(2_000L)
+            val queue =
+                OfflineMutationQueue(
+                    backingStore = kv,
+                    clock = clock,
+                    uuidGenerator = SequentialUuidGenerator(),
+                    maxRetries = 5,
+                )
+
+            val m1 = queue.enqueue("order_create", JsonPrimitive("o1"))
+            val m2 = queue.enqueue("order_create", JsonPrimitive("o2"))
+            val secondStarted = CompletableDeferred<Unit>()
+            val neverFinish = CompletableDeferred<Unit>()
+            val delivered = mutableListOf<String>()
+
+            val flushJob =
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    queue.flush { item ->
+                        delivered.add(item.id)
+                        if (item.id == m1.id) {
+                            AppResult.Success(Unit)
+                        } else {
+                            secondStarted.complete(Unit)
+                            neverFinish.await()
+                            AppResult.Success(Unit)
+                        }
+                    }
+                }
+            secondStarted.await()
+
+            // Enqueue must NOT be blocked while flush is running handler I/O.
+            val m3 = queue.enqueue("order_create", JsonPrimitive("o3"))
+            assertTrue(queue.queue.value.any { it.id == m3.id })
+
+            // Cancel mid-flush: m1 must stay dequeued and isFlushing must reset to false.
+            flushJob.cancel()
+            flushJob.join()
+            assertFalse(queue.status.value.isFlushing)
+            assertFalse(queue.queue.value.any { it.id == m1.id })
+            assertEquals(listOf(m2.id, m3.id), queue.queue.value.map { it.id })
+
+            // OfflineError stops flush without incrementing retryCount.
+            val offlineReport = queue.flush { AppResult.Failure(OfflineError()) }
+            assertEquals(0, offlineReport.succeeded)
+            assertEquals(2, offlineReport.retainedForRetry)
+            assertEquals(0, offlineReport.droppedDeadLetters)
+            assertTrue(queue.queue.value.all { it.retryCount == 0 })
+
+            // ValidationError drops immediately instead of retrying maxRetries times.
+            val validationReport =
+                queue.flush { item ->
+                    if (item.id == m2.id) {
+                        AppResult.Failure(ValidationError(field = "sku", message = "invalid"))
+                    } else {
+                        AppResult.Success(Unit)
+                    }
+                }
+            assertEquals(1, validationReport.succeeded)
+            assertEquals(1, validationReport.droppedDeadLetters)
+            assertEquals(0, queue.queue.value.size)
+        }
+
+    @Test
+    fun `session lifecycle expires idle authenticated sessions on touch and reload and preserves expired state`() =
+        runTest {
+            val kv = InMemoryKeyValueStore()
+            val clock = MutableClock(10_000L)
+            val lifecycle =
+                SessionLifecycleManager(
+                    backingStore = kv,
+                    clock = clock,
+                    uuidGenerator = SequentialUuidGenerator(),
+                    idleTimeoutMillis = 5_000L,
+                )
+
+            lifecycle.signIn(
+                userId = "user-99",
+                displayName = "Grace",
+                roles = setOf("editor"),
+                attributes = mapOf("tier" to "pro"),
+            )
+            val activeSessionId = lifecycle.metadata.value.sessionId
+
+            // Exceed idle timeout -> touch clears credentials, rotates sessionId, transitions to Expired.
+            clock.advanceByMillis(5_000L)
+            val expiredMeta = lifecycle.touch()
+            assertNotEquals(activeSessionId, expiredMeta.sessionId)
+            assertNull(expiredMeta.userId)
+            assertTrue(expiredMeta.roles.isEmpty())
+            assertTrue(expiredMeta.attributes.isEmpty())
+            val expiredAuth = lifecycle.authState.value as AuthSessionState.Expired
+            assertEquals("user-99", expiredAuth.previousUserId)
+
+            // Subsequent touch() preserves Expired until signIn or signOut.
+            clock.advanceByMillis(1_000L)
+            lifecycle.touch()
+            assertTrue(lifecycle.authState.value is AuthSessionState.Expired)
+
+            // Re-sign-in and simulate cold restart after idle timeout -> loadOrInitialize transitions to Expired.
+            lifecycle.signIn(userId = "user-100", roles = setOf("owner"))
+            clock.advanceByMillis(10_000L)
+            val restarted =
+                SessionLifecycleManager(
+                    backingStore = kv,
+                    clock = clock,
+                    uuidGenerator = SequentialUuidGenerator(),
+                    idleTimeoutMillis = 5_000L,
+                )
+            assertNull(restarted.metadata.value.userId)
+            assertTrue(
+                restarted.metadata.value.roles
+                    .isEmpty(),
+            )
+            val restartedExpired = restarted.authState.value as AuthSessionState.Expired
+            assertEquals("user-100", restartedExpired.previousUserId)
         }
 }

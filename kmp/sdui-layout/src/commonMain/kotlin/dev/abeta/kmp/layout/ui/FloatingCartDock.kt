@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.UiButton
 import dev.abeta.kmp.atoms.atoms.UiIcon
@@ -72,7 +73,7 @@ private const val ONE = 1f
  */
 internal data class FreeDeliveryNudgeState(
     val progress: Float,
-    val remainingCents: Int,
+    val remainingCents: Long,
     val unlocked: Boolean,
     val message: String,
 )
@@ -80,12 +81,17 @@ internal data class FreeDeliveryNudgeState(
 internal fun computeFreeDeliveryNudge(
     floatingCart: FloatingCartSpec,
     totalCents: Int,
+): FreeDeliveryNudgeState? = computeFreeDeliveryNudge(floatingCart = floatingCart, totalCents = totalCents.toLong())
+
+internal fun computeFreeDeliveryNudge(
+    floatingCart: FloatingCartSpec,
+    totalCents: Long,
 ): FreeDeliveryNudgeState? {
-    val threshold = floatingCart.freeDeliveryThresholdCents?.takeIf { it > 0 } ?: return null
-    val safeTotal = totalCents.coerceAtLeast(0)
-    val progress = (safeTotal.toFloat() / threshold.toFloat()).coerceIn(0f, 1f)
-    val remainingCents = (threshold - safeTotal).coerceAtLeast(0)
-    val unlocked = progress >= ONE
+    val threshold = floatingCart.freeDeliveryThresholdCents?.takeIf { it > 0 }?.toLong() ?: return null
+    val safeTotal = totalCents.coerceAtLeast(0L)
+    val progress = (safeTotal.toDouble() / threshold.toDouble()).toFloat().coerceIn(0f, ONE)
+    val remainingCents = (threshold - safeTotal).coerceAtLeast(0L)
+    val unlocked = safeTotal >= threshold
     val prefix = floatingCart.nudgePrefix?.trim()?.takeIf { it.isNotEmpty() }
     val message =
         when {
@@ -386,32 +392,55 @@ private fun FreeDeliveryNudgeHeader(nudge: FreeDeliveryNudgeState) {
             val amountText = formatUsdCents(nudge.remainingCents)
             val amountStart = nudge.message.indexOf(amountText)
             if (amountStart >= 0) {
-                val leadText = nudge.message.substring(0, amountStart)
-                val trailText = nudge.message.substring(amountStart + amountText.length)
-                Row(
-                    modifier =
-                        Modifier.weight(1f).clearAndSetSemantics {
-                            text = AnnotatedString(nudge.message)
-                        },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (leadText.isNotEmpty()) {
-                        Text(text = leadText, style = typography.labelMedium, color = colors.text.brand, maxLines = 1)
-                    }
-                    UiRollingCounter(value = amountText, style = typography.labelMedium, color = colors.text.brand)
-                    if (trailText.isNotEmpty()) {
-                        Text(text = trailText, style = typography.labelMedium, color = colors.text.brand, maxLines = 1)
-                    }
-                }
+                NudgeRemainingAmountRow(
+                    message = nudge.message,
+                    amountText = amountText,
+                    amountStart = amountStart,
+                    modifier = Modifier.weight(1f),
+                )
             } else {
                 Text(
                     text = nudge.message,
                     style = typography.labelMedium,
                     color = colors.text.brand,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
             }
+        }
+    }
+}
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun NudgeRemainingAmountRow(
+    message: String,
+    amountText: String,
+    amountStart: Int,
+    modifier: Modifier = Modifier,
+) {
+    val colors = ThemeTokens.colors
+    val typography = ThemeTokens.typography
+    val leadText = message.substring(0, amountStart)
+    val trailText = message.substring(amountStart + amountText.length)
+    Row(
+        modifier = modifier.clearAndSetSemantics { text = AnnotatedString(message) },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (leadText.isNotEmpty()) {
+            Text(text = leadText, style = typography.labelMedium, color = colors.text.brand, maxLines = 1)
+        }
+        UiRollingCounter(value = amountText, style = typography.labelMedium, color = colors.text.brand)
+        if (trailText.isNotEmpty()) {
+            Text(
+                text = trailText,
+                style = typography.labelMedium,
+                color = colors.text.brand,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
         }
     }
 }

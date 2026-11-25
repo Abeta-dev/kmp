@@ -26,8 +26,8 @@ func (b *MetricCardSnippetBuilder) WithParentID(parentID string) *MetricCardSnip
 	return b
 }
 
-func (b *MetricCardSnippetBuilder) WithTracking(eventName string, props map[string]any) *MetricCardSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *MetricCardSnippetBuilder) WithTracking(eventName string, props map[string]string) *MetricCardSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -100,8 +100,8 @@ func (b *ProductCardSnippetBuilder) WithParentID(parentID string) *ProductCardSn
 	return b
 }
 
-func (b *ProductCardSnippetBuilder) WithTracking(eventName string, props map[string]any) *ProductCardSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *ProductCardSnippetBuilder) WithTracking(eventName string, props map[string]string) *ProductCardSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 

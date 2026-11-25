@@ -51,6 +51,7 @@ import dev.abeta.kmp.layout.repository.ScreenCachePolicy
 import dev.abeta.kmp.layout.repository.ScreenManifestRepository
 import dev.abeta.kmp.layout.repository.ScreenRepository
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
+import dev.abeta.kmp.layout.snippet.CustomSlotRegistry
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.network.client.HttpClientFactory
 import dev.abeta.kmp.network.client.HttpTransport
@@ -72,8 +73,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 /**
  * Creates a self-contained Koin [Module] wiring Layer 0–3 SDUI components cleanly via
@@ -101,7 +104,8 @@ fun createSduiKoinModule(
     csrfTokenProvider: CsrfTokenProvider? = null,
     appVersion: String? = null,
     manifestPath: String? = null,
-    useDiskCacheStore: Boolean = false,
+    useDiskCacheStore: Boolean = true,
+    customSlotRegistry: CustomSlotRegistry = CustomSlotRegistry.Empty,
 ): Module =
     module {
         registerFoundationBindings(
@@ -110,6 +114,7 @@ fun createSduiKoinModule(
             logger = logger,
             enableRemoteAnalytics = enableRemoteAnalytics,
             analyticsEndpoint = analyticsEndpoint,
+            appVersion = appVersion,
             useDiskCacheStore = useDiskCacheStore,
         )
         registerPlatformBridgeBindings(platformBridges = platformBridges)
@@ -130,6 +135,7 @@ fun createSduiKoinModule(
             navigationListener = navigationListener,
             backListener = backListener,
             clipboardListener = clipboardListener,
+            customSlotRegistry = customSlotRegistry,
         )
     }
 
@@ -159,12 +165,21 @@ private fun Module.registerFoundationBindings(
     logger: AppLogger,
     enableRemoteAnalytics: Boolean,
     analyticsEndpoint: String,
+    appVersion: String?,
     useDiskCacheStore: Boolean,
 ) {
     single<Clock> { SystemClock() }
     single<UuidGenerator> { RandomUuidGenerator() }
     single<AppLogger> { logger }
-    single<CoroutineScope> { scope ?: CoroutineScope(SupervisorJob() + DefaultDispatcherProvider().default) }
+    if (scope != null) {
+        single<CoroutineScope> { scope }
+    } else {
+        single<CoroutineScope> {
+            CoroutineScope(SupervisorJob() + DefaultDispatcherProvider().default)
+        } onClose {
+            it?.cancel()
+        }
+    }
     single<KeyValueStore> {
         keyValueStore
             ?: if (useDiskCacheStore) {
@@ -187,6 +202,7 @@ private fun Module.registerFoundationBindings(
                 get<PlatformCapabilities>()
                     .platform.kind.name
                     .lowercase(),
+            appVersion = appVersion,
             clock = get(),
             uuidGenerator = get(),
             scope = get(),
@@ -227,6 +243,8 @@ private fun Module.registerNetworkAndRepositoryBindings(
             json = SduiJson,
             engine = httpEngine,
         )
+    } onClose {
+        it?.close()
     }
     single<HttpTransport> {
         KtorHttpTransport(
@@ -242,16 +260,8 @@ private fun Module.registerNetworkAndRepositoryBindings(
             clock = get(),
         )
     }
-    val cleanManifestPath = manifestPath?.trim()?.takeIf { it.isNotEmpty() }
-    if (cleanManifestPath != null) {
-        single<ScreenManifestRepository> {
-            RemoteScreenManifestRepository(
-                httpClient = get(),
-                manifestPath = cleanManifestPath,
-            )
-        }
-    }
-    single { RemoteScreenRepository(httpClient = get()) }
+    registerManifestBinding(manifestPath = manifestPath, cachePolicy = cachePolicy, appVersion = appVersion)
+    single { RemoteScreenRepository(httpClient = get(), appVersion = appVersion) }
     single {
         CachedScreenRepository(
             remote = remoteScreenRepository ?: get<RemoteScreenRepository>(),
@@ -259,6 +269,7 @@ private fun Module.registerNetworkAndRepositoryBindings(
             clock = get(),
             policy = cachePolicy,
             ttlMillis = cacheTtlMillis,
+            backgroundScope = get(),
             appVersion = appVersion,
             manifestRepository = getOrNull<ScreenManifestRepository>(),
         )
@@ -269,12 +280,40 @@ private fun Module.registerNetworkAndRepositoryBindings(
     single<UiImageRenderer> { KtorImageRenderer(fetcher = get()) }
 }
 
+private fun Module.registerManifestBinding(
+    manifestPath: String?,
+    cachePolicy: ScreenCachePolicy,
+    appVersion: String?,
+) {
+    val cleanPath = resolveEffectiveManifestPath(manifestPath, cachePolicy) ?: return
+    single<ScreenManifestRepository> {
+        RemoteScreenManifestRepository(
+            httpClient = get(),
+            manifestPath = cleanPath,
+            appVersion = appVersion,
+        )
+    }
+}
+
+private fun resolveEffectiveManifestPath(
+    manifestPath: String?,
+    cachePolicy: ScreenCachePolicy,
+): String? =
+    manifestPath?.trim()?.takeIf { it.isNotEmpty() }
+        ?: if (cachePolicy == ScreenCachePolicy.VERSION_GATED) {
+            RemoteScreenManifestRepository.DEFAULT_MANIFEST_PATH
+        } else {
+            null
+        }
+
 private fun Module.registerOrchestrationBindings(
     navigationListener: (ActionOutcome.NavigationRequested) -> Unit,
     backListener: (ActionOutcome.BackRequested) -> Unit,
     clipboardListener: (ActionOutcome.ClipboardCopyRequested) -> Unit,
+    customSlotRegistry: CustomSlotRegistry,
 ) {
     single<SnippetRegistry> { BuiltInSnippetModule.createDefaultRegistry() }
+    single<CustomSlotRegistry> { customSlotRegistry }
     single<ActionDecoderRegistry> { BuiltInActionDecoders.createDefaultRegistry() }
     single<ActionRegistry> { BuiltInActionHandlers.createDefaultRegistry(apiExecutor = get()) }
     single<ActionDispatcher> { DefaultActionDispatcher(decoderRegistry = get(), actionRegistry = get()) }

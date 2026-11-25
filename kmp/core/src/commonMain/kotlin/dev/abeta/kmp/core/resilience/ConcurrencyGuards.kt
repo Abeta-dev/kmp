@@ -2,62 +2,97 @@ package dev.abeta.kmp.core.resilience
 
 import dev.abeta.kmp.core.time.Clock
 import dev.abeta.kmp.core.time.SystemClock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * Deduplicates concurrent in-flight suspend operations sharing the same [key], ensuring only
  * a single execution runs at a time per key while all callers await its result.
  */
 class SingleFlight<K, V> {
+    private sealed interface FlightOutcome<out V> {
+        data class Succeeded<V>(
+            val value: V,
+        ) : FlightOutcome<V>
+
+        data class Failed(
+            val throwable: Throwable,
+        ) : FlightOutcome<Nothing>
+
+        data object LeaderCancelled : FlightOutcome<Nothing>
+    }
+
     private val mutex = Mutex()
-    private val active = mutableMapOf<K, CompletableDeferred<V>>()
+    private val active = mutableMapOf<K, CompletableDeferred<FlightOutcome<V>>>()
 
     /**
      * Joins any active operation for [key] or starts [block] as the leader and completes all waiters.
+     * If the leader is cancelled while live waiters exist, the key is cleaned up non-cancellably and
+     * waiters cleanly retry rather than being cancelled or poison-locked.
      */
-    @Suppress("TooGenericExceptionCaught")
     suspend fun execute(
         key: K,
         block: suspend () -> V,
     ): V {
-        val joinTarget: CompletableDeferred<V>?
-        val owned: CompletableDeferred<V>
+        while (true) {
+            val (owned, isLeader) = acquireOrJoin(key)
+            if (!isLeader) {
+                when (val outcome = owned.await()) {
+                    is FlightOutcome.Succeeded -> return outcome.value
+                    is FlightOutcome.Failed -> throw outcome.throwable
+                    FlightOutcome.LeaderCancelled -> continue
+                }
+            }
+            return runAsLeader(key = key, owned = owned, block = block)
+        }
+    }
+
+    private suspend fun acquireOrJoin(key: K): Pair<CompletableDeferred<FlightOutcome<V>>, Boolean> =
         mutex.withLock {
             val current = active[key]
             if (current != null) {
-                joinTarget = current
-                owned = current
+                current to false
             } else {
-                val created = CompletableDeferred<V>()
+                val created = CompletableDeferred<FlightOutcome<V>>()
                 active[key] = created
-                joinTarget = null
-                owned = created
+                created to true
             }
         }
 
-        if (joinTarget != null) {
-            return joinTarget.await()
-        }
-
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun runAsLeader(
+        key: K,
+        owned: CompletableDeferred<FlightOutcome<V>>,
+        block: suspend () -> V,
+    ): V {
+        var outcome: FlightOutcome<V> = FlightOutcome.LeaderCancelled
         return try {
             val result = block()
-            owned.complete(result)
+            outcome = FlightOutcome.Succeeded(result)
             result
+        } catch (cancelled: CancellationException) {
+            outcome = FlightOutcome.LeaderCancelled
+            throw cancelled
         } catch (throwable: Throwable) {
-            owned.completeExceptionally(throwable)
+            outcome = FlightOutcome.Failed(throwable)
             throw throwable
         } finally {
-            mutex.withLock {
-                if (active[key] === owned) {
-                    active.remove(key)
+            withContext(NonCancellable) {
+                mutex.withLock {
+                    if (active[key] === owned) {
+                        active.remove(key)
+                    }
                 }
+                owned.complete(outcome)
             }
         }
     }
@@ -109,15 +144,18 @@ class ClickBackpressureGuard(
 ) {
     private val lastAcceptedAt = MutableStateFlow<Long?>(null)
 
-    /** Returns `true` and updates the timestamp if [cooldownMillis] has elapsed since the previous accepted event. */
+    /** Returns `true` and atomically updates the timestamp if [cooldownMillis] has elapsed since the previous event. */
     fun tryAcquire(): Boolean {
-        val now = clock.nowEpochMillis()
-        val previous = lastAcceptedAt.value
-        val allowed = previous == null || (now - previous) >= cooldownMillis
-        if (allowed) {
-            lastAcceptedAt.value = now
+        while (true) {
+            val now = clock.nowEpochMillis()
+            val previous = lastAcceptedAt.value
+            if (previous != null && (now - previous) < cooldownMillis) {
+                return false
+            }
+            if (lastAcceptedAt.compareAndSet(previous, now)) {
+                return true
+            }
         }
-        return allowed
     }
 
     /** Resets the guard so the next event is accepted immediately. */

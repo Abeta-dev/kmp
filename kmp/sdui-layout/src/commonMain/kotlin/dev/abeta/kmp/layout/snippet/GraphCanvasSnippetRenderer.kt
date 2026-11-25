@@ -3,19 +3,27 @@ package dev.abeta.kmp.layout.snippet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculateCentroidSize
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -28,10 +36,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -47,6 +60,7 @@ import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.tokens.ThemeTokens
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private const val MIN_CANVAS_HEIGHT_DP = 160
@@ -76,30 +90,39 @@ internal class GraphCanvasSnippetRenderer(
         val initialZoom = clampGraphZoom(1f, model.minZoom, model.maxZoom)
         var zoom by remember(envelope.snippetId, model.canvasId) { mutableFloatStateOf(initialZoom) }
         var panPx by remember(envelope.snippetId, model.canvasId) { mutableStateOf(Offset.Zero) }
+        var viewportSize by remember(envelope.snippetId, model.canvasId) { mutableStateOf(IntSize.Zero) }
         val nodePositions =
-            remember(envelope.snippetId, model.canvasId, model.nodes) {
+            remember(envelope.snippetId, model.canvasId) {
                 mutableStateMapOf<String, Offset>().apply {
                     model.nodes.forEach { node -> put(node.nodeId, Offset(node.x, node.y)) }
                 }
             }
         val nodeSizes = remember(envelope.snippetId, model.canvasId) { mutableStateMapOf<String, IntSize>() }
-        val hasHeaderText = model.title != null || model.subtitle != null
-        val hasTransformControls = model.allowZoom || model.allowPan
+        LaunchedEffect(envelope.snippetId, model.canvasId, model.nodes) {
+            reconcileGraphNodeState(model.nodes, nodePositions, nodeSizes)
+        }
+        val applyToolbarZoom: (Float) -> Unit = { stepDelta ->
+            val (nextZoom, nextPan) = computeToolbarZoom(model, zoom, panPx, viewportSize, stepDelta)
+            zoom = nextZoom
+            panPx = nextPan
+        }
+        val handleTransform: (Offset, Offset, Float) -> Unit = { centroid, panDelta, zoomFactor ->
+            val (nextZoom, nextPan) = applyViewportTransform(model, zoom, panPx, centroid, panDelta, zoomFactor)
+            zoom = nextZoom
+            panPx = nextPan
+        }
 
-        UiSurfaceCard(
-            modifier = Modifier.fillMaxWidth(),
-            layout = model.layout,
-        ) {
+        UiSurfaceCard(modifier = Modifier.fillMaxWidth(), layout = model.layout) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(spacing.space12),
             ) {
-                if (hasHeaderText || hasTransformControls) {
+                if (hasGraphHeaderOrControls(model)) {
                     GraphCanvasHeaderBar(
                         model = model,
                         zoom = zoom,
-                        onZoomOut = { zoom = clampGraphZoom(zoom - GRAPH_ZOOM_STEP, model.minZoom, model.maxZoom) },
-                        onZoomIn = { zoom = clampGraphZoom(zoom + GRAPH_ZOOM_STEP, model.minZoom, model.maxZoom) },
+                        onZoomOut = { applyToolbarZoom(-GRAPH_ZOOM_STEP) },
+                        onZoomIn = { applyToolbarZoom(GRAPH_ZOOM_STEP) },
                         onReset = {
                             zoom = clampGraphZoom(1f, model.minZoom, model.maxZoom)
                             panPx = Offset.Zero
@@ -114,15 +137,32 @@ internal class GraphCanvasSnippetRenderer(
                     panPx = panPx,
                     nodePositions = nodePositions,
                     nodeSizes = nodeSizes,
-                    onTransform = { panDelta, zoomFactor ->
-                        if (model.allowPan) panPx += panDelta
-                        if (model.allowZoom && zoomFactor != 1f) {
-                            zoom = clampGraphZoom(zoom * zoomFactor, model.minZoom, model.maxZoom)
-                        }
-                    },
+                    onViewportSizeChanged = { viewportSize = it },
+                    onTransform = handleTransform,
                     onAction = onAction,
                 )
             }
+        }
+    }
+}
+
+private fun hasGraphHeaderOrControls(model: GraphCanvasSnippetData): Boolean {
+    val hasHeader = model.title != null || model.subtitle != null
+    val hasControls = model.allowZoom || model.allowPan
+    return hasHeader || hasControls
+}
+
+private fun reconcileGraphNodeState(
+    nodes: List<GraphNodeSpec>,
+    nodePositions: MutableMap<String, Offset>,
+    nodeSizes: MutableMap<String, IntSize>,
+) {
+    val incomingIds = nodes.mapTo(HashSet(nodes.size)) { it.nodeId }
+    nodePositions.keys.retainAll(incomingIds)
+    nodeSizes.keys.retainAll(incomingIds)
+    nodes.forEach { node ->
+        if (node.nodeId !in nodePositions) {
+            nodePositions[node.nodeId] = Offset(node.x, node.y)
         }
     }
 }
@@ -183,16 +223,31 @@ private fun GraphZoomToolbar(
         horizontalArrangement = Arrangement.spacedBy(spacing.space4),
     ) {
         if (allowZoom) {
-            GraphToolbarChip(label = "-", testTag = "graph_zoom_out_$canvasId", onClick = onZoomOut)
+            GraphToolbarChip(
+                label = "-",
+                description = "Zoom out",
+                testTag = "graph_zoom_out_$canvasId",
+                onClick = onZoomOut,
+            )
             Text(
                 text = zoomPercent,
                 style = typography.labelMedium,
                 color = colors.text.secondary,
                 modifier = Modifier.testTag("graph_zoom_label_$canvasId"),
             )
-            GraphToolbarChip(label = "+", testTag = "graph_zoom_in_$canvasId", onClick = onZoomIn)
+            GraphToolbarChip(
+                label = "+",
+                description = "Zoom in",
+                testTag = "graph_zoom_in_$canvasId",
+                onClick = onZoomIn,
+            )
         }
-        GraphToolbarChip(label = "Reset", testTag = "graph_zoom_reset_$canvasId", onClick = onReset)
+        GraphToolbarChip(
+            label = "Reset",
+            description = "Reset zoom and pan",
+            testTag = "graph_zoom_reset_$canvasId",
+            onClick = onReset,
+        )
     }
 }
 
@@ -200,29 +255,39 @@ private fun GraphZoomToolbar(
 @Suppress("ktlint:standard:function-naming", "FunctionName")
 private fun GraphToolbarChip(
     label: String,
+    description: String,
     testTag: String,
     onClick: () -> Unit,
 ) {
     val colors = ThemeTokens.colors
+    val sizing = ThemeTokens.sizing
     val shape = RoundedCornerShape(ThemeTokens.cornerRadius.sm)
 
     Box(
         modifier =
             Modifier
-                .clip(shape)
-                .background(colors.surface.secondary, shape)
-                .border(ThemeTokens.strokeWidth.thin, colors.border.subtle, shape)
+                .defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
                 .clickable(role = Role.Button, onClick = onClick)
-                .padding(horizontal = TOOLBAR_BUTTON_HORIZONTAL_DP.dp, vertical = TOOLBAR_BUTTON_VERTICAL_DP.dp)
+                .semantics { contentDescription = description }
                 .testTag(testTag),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = label,
-            style = ThemeTokens.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.text.primary,
-        )
+        Box(
+            modifier =
+                Modifier
+                    .clip(shape)
+                    .background(colors.surface.secondary, shape)
+                    .border(ThemeTokens.strokeWidth.thin, colors.border.subtle, shape)
+                    .padding(horizontal = TOOLBAR_BUTTON_HORIZONTAL_DP.dp, vertical = TOOLBAR_BUTTON_VERTICAL_DP.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = ThemeTokens.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = colors.text.primary,
+            )
+        }
     }
 }
 
@@ -234,7 +299,8 @@ private fun GraphCanvasViewport(
     panPx: Offset,
     nodePositions: MutableMap<String, Offset>,
     nodeSizes: MutableMap<String, IntSize>,
-    onTransform: (Offset, Float) -> Unit,
+    onViewportSizeChanged: (IntSize) -> Unit,
+    onTransform: (Offset, Offset, Float) -> Unit,
     onAction: (ActionRef) -> Unit,
 ) {
     val colors = ThemeTokens.colors
@@ -253,7 +319,13 @@ private fun GraphCanvasViewport(
             panPx = panPx,
             density = density,
         )
-    val viewportModifier = rememberViewportModifier(model = model, onTransform = onTransform, onAction = onAction)
+    val viewportModifier =
+        rememberViewportModifier(
+            model = model,
+            onViewportSizeChanged = onViewportSizeChanged,
+            onTransform = onTransform,
+            onAction = onAction,
+        )
 
     Box(modifier = viewportModifier) {
         GraphEdgesCanvasLayer(
@@ -285,7 +357,8 @@ private fun GraphCanvasViewport(
 @Composable
 private fun rememberViewportModifier(
     model: GraphCanvasSnippetData,
-    onTransform: (Offset, Float) -> Unit,
+    onViewportSizeChanged: (IntSize) -> Unit,
+    onTransform: (Offset, Offset, Float) -> Unit,
     onAction: (ActionRef) -> Unit,
 ): Modifier {
     val colors = ThemeTokens.colors
@@ -297,6 +370,7 @@ private fun rememberViewportModifier(
     return Modifier
         .fillMaxWidth()
         .height(model.heightDp.coerceAtLeast(MIN_CANVAS_HEIGHT_DP).dp)
+        .onSizeChanged(onViewportSizeChanged)
         .clip(shape)
         .background(colors.background.secondary, shape)
         .border(ThemeTokens.strokeWidth.thin, colors.border.subtle, shape)
@@ -310,16 +384,58 @@ private fun rememberViewportModifier(
                 base
             }
         }.let { base ->
-            if (model.allowPan || model.allowZoom) {
-                base.pointerInput(model.canvasId, model.allowPan, model.allowZoom) {
-                    detectTransformGestures { _, pan, gestureZoom, _ ->
-                        latestOnTransform(pan, gestureZoom)
+            when {
+                model.allowPan -> {
+                    base.pointerInput(model.canvasId, model.allowPan, model.allowZoom) {
+                        detectTransformGestures { centroid, pan, gestureZoom, _ ->
+                            latestOnTransform(centroid, pan, gestureZoom)
+                        }
                     }
                 }
-            } else {
-                base
+
+                model.allowZoom -> {
+                    base.pointerInput(model.canvasId, model.allowZoom) {
+                        detectMultiTouchZoomOnly { centroid, gestureZoom ->
+                            latestOnTransform(centroid, Offset.Zero, gestureZoom)
+                        }
+                    }
+                }
+
+                else -> {
+                    base
+                }
             }
         }.testTag("graph_canvas_${model.canvasId}")
+}
+
+private suspend fun PointerInputScope.detectMultiTouchZoomOnly(onZoom: (centroid: Offset, zoomFactor: Float) -> Unit) {
+    awaitEachGesture {
+        var zoomAccum = 1f
+        var pastTouchSlop = false
+        val touchSlop = viewConfiguration.touchSlop
+        awaitFirstDown(requireUnconsumed = false)
+        do {
+            val event = awaitPointerEvent()
+            val canceled = event.changes.any { it.isConsumed }
+            val pressedCount = event.changes.count { it.pressed }
+            if (!canceled && pressedCount > 1) {
+                val zoomChange = event.calculateZoom()
+                if (!pastTouchSlop) {
+                    zoomAccum *= zoomChange
+                    val zoomMotion = abs(1f - zoomAccum) * event.calculateCentroidSize(useCurrent = false)
+                    if (zoomMotion > touchSlop) {
+                        pastTouchSlop = true
+                    }
+                }
+                if (pastTouchSlop && zoomChange != 1f) {
+                    onZoom(event.calculateCentroid(useCurrent = true), zoomChange)
+                    event.changes.forEach { change ->
+                        if (change.positionChanged()) change.consume()
+                    }
+                }
+            }
+        } while (!canceled && event.changes.any { it.pressed })
+    }
 }
 
 @Composable
@@ -335,13 +451,15 @@ private fun GraphEdgeLabelsLayer(
         val labelText = edge.label?.takeIf { it.isNotBlank() } ?: return@forEach
         val start = edgeCenters[edge.fromNodeId] ?: return@forEach
         val end = edgeCenters[edge.toNodeId] ?: return@forEach
-        GraphEdgeLabelPill(
-            edge = edge,
-            labelText = labelText,
-            midpointPx = computeBezierMidpoint(start, end),
-            accentColor = resolvedEdgeColors[edge.edgeId] ?: fallbackAccent,
-            onAction = onAction,
-        )
+        key(edge.edgeId) {
+            GraphEdgeLabelPill(
+                edge = edge,
+                labelText = labelText,
+                midpointPx = computeBezierMidpoint(start, end),
+                accentColor = resolvedEdgeColors[edge.edgeId] ?: fallbackAccent,
+                onAction = onAction,
+            )
+        }
     }
 }
 
@@ -358,21 +476,23 @@ private fun GraphNodesLayer(
 ) {
     val latestOnAction by rememberUpdatedState(onAction)
     model.nodes.forEach { node ->
-        val worldPos = nodePositions[node.nodeId] ?: Offset(node.x, node.y)
-        GraphNodeCard(
-            node = node,
-            screenTopLeft = worldToViewportPx(worldPos, zoom, panPx, density),
-            zoom = zoom,
-            density = density,
-            canDrag = model.allowNodeDrag && node.draggable && !node.pinned,
-            onMeasured = { size -> nodeSizes[node.nodeId] = size },
-            onDragDeltaDp = { deltaDp ->
-                val current = nodePositions[node.nodeId] ?: Offset(node.x, node.y)
-                nodePositions[node.nodeId] = current + deltaDp
-            },
-            onDragFinished = { emitNodeMoved(model, node, nodePositions, latestOnAction) },
-            onAction = latestOnAction,
-        )
+        key(node.nodeId) {
+            val worldPos = nodePositions[node.nodeId] ?: Offset(node.x, node.y)
+            GraphNodeCard(
+                node = node,
+                screenTopLeft = worldToViewportPx(worldPos, zoom, panPx, density),
+                zoom = zoom,
+                density = density,
+                canDrag = model.allowNodeDrag && node.draggable && !node.pinned,
+                onMeasured = { size -> nodeSizes[node.nodeId] = size },
+                onDragDeltaDp = { deltaDp ->
+                    val current = nodePositions[node.nodeId] ?: Offset(node.x, node.y)
+                    nodePositions[node.nodeId] = current + deltaDp
+                },
+                onDragFinished = { emitNodeMoved(model, node, nodePositions, latestOnAction) },
+                onAction = latestOnAction,
+            )
+        }
     }
 }
 

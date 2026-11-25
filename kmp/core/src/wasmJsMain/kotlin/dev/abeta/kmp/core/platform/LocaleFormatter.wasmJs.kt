@@ -2,19 +2,22 @@
 
 package dev.abeta.kmp.core.platform
 
-private const val CENTS_PER_UNIT = 100.0
-private const val CENTS_SCALE_INT = 100L
-private const val FRACTION_DIGITS = 2
+private const val ZERO_DECIMAL_DIVISOR = 1.0
+private const val TWO_DECIMAL_DIVISOR = 100.0
+private const val THREE_DECIMAL_DIVISOR = 1000.0
+private const val THREE_FRACTION_DIGITS = 3
 
 @JsFun(
-    "(localeTag, currencyCode, amount) => { try { " +
-        "return new Intl.NumberFormat(localeTag, { style: 'currency', currency: currencyCode }).format(amount); " +
+    "(localeTag, currencyCode, amount, fractionDigits) => { try { " +
+        "return new Intl.NumberFormat(localeTag, { style: 'currency', currency: currencyCode, " +
+        "minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }).format(amount); " +
         "} catch (e) { return ''; } }",
 )
 private external fun jsFormatCurrency(
     localeTag: String,
     currencyCode: String,
     amount: Double,
+    fractionDigits: Int,
 ): String
 
 @JsFun("() => (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : 'en-US'")
@@ -25,15 +28,18 @@ actual fun formatCurrencyCents(
     amountCents: Long,
     currencyCode: String,
 ): String {
+    val normalizedCode = currencyCode.uppercase()
+    val digits = currencyMinorUnitDigits(normalizedCode)
+    val divisor =
+        when (digits) {
+            0 -> ZERO_DECIMAL_DIVISOR
+            THREE_FRACTION_DIGITS -> THREE_DECIMAL_DIVISOR
+            else -> TWO_DECIMAL_DIVISOR
+        }
     val locale = currentLocaleTag()
-    val formatted = jsFormatCurrency(locale, currencyCode.uppercase(), amountCents.toDouble() / CENTS_PER_UNIT)
+    val formatted = jsFormatCurrency(locale, normalizedCode, amountCents.toDouble() / divisor, digits)
     if (formatted.isNotEmpty()) return formatted
-
-    val absCents = kotlin.math.abs(amountCents)
-    val whole = absCents / CENTS_SCALE_INT
-    val remainder = (absCents % CENTS_SCALE_INT).toString().padStart(FRACTION_DIGITS, '0')
-    val sign = if (amountCents < 0L) "-" else ""
-    return "$sign${currencyCode.uppercase()} $whole.$remainder"
+    return formatCurrencyMinorUnitsFallback(amountMinorUnits = amountCents, currencyCode = normalizedCode)
 }
 
 /** Returns the browser BCP-47 locale tag on WasmJS. */

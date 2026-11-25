@@ -39,101 +39,20 @@ import kotlin.math.ceil
  */
 const val QR_MATRIX_SIZE = 21
 
-private const val FINDER_SIZE = 7
-private const val FINDER_INNER_START = 2
-private const val FINDER_INNER_END = 4
-private const val FINDER_FAR_ORIGIN = QR_MATRIX_SIZE - FINDER_SIZE
-private const val SEPARATOR_INDEX = FINDER_SIZE
-private const val FAR_SEPARATOR_INDEX = FINDER_FAR_ORIGIN - 1
-private const val TIMING_LINE_INDEX = 6
+/**
+ * ISO/IEC 18004 required light quiet-zone margin around every QR symbol (4 modules on each edge).
+ */
+const val QR_QUIET_ZONE_MODULES = 4
+
 private const val MIN_QR_SIZE_DP = 80
 private const val MAX_QR_SIZE_DP = 360
-private const val FNV_OFFSET_BASIS = -3750763034362895579L // 0xCBF29CE484222325u
-private const val FNV_PRIME = 1099511628211L
-private const val XORSHIFT_A = 13
-private const val XORSHIFT_B = 7
-private const val XORSHIFT_C = 17
 private const val MODULE_SEAM_OVERLAP_PX = 0.5f
 
 /**
- * Pure deterministic generator building a 21×21 QR-style matrix with 3 corner finder patterns,
- * separator quiet margins, timing tracks, and hash-seeded data modules from [payload].
+ * Pure standards-compliant ISO/IEC 18004 QR Code matrix generator (Byte Mode, Error Correction
+ * Level M, Versions 1–10 supporting up to 213 UTF-8 bytes with graceful UTF-8 truncation if longer).
  */
-fun generateQrMatrix(payload: String): List<List<Boolean>> {
-    val grid = Array(QR_MATRIX_SIZE) { BooleanArray(QR_MATRIX_SIZE) }
-    val reserved = Array(QR_MATRIX_SIZE) { BooleanArray(QR_MATRIX_SIZE) }
-
-    stampFinderWithSeparator(grid, reserved, topRow = 0, leftCol = 0)
-    stampFinderWithSeparator(grid, reserved, topRow = 0, leftCol = FINDER_FAR_ORIGIN)
-    stampFinderWithSeparator(grid, reserved, topRow = FINDER_FAR_ORIGIN, leftCol = 0)
-    stampTimingTracks(grid, reserved)
-    fillHashedDataModules(grid, reserved, payload)
-
-    return List(QR_MATRIX_SIZE) { row -> List(QR_MATRIX_SIZE) { col -> grid[row][col] } }
-}
-
-private fun stampFinderWithSeparator(
-    grid: Array<BooleanArray>,
-    reserved: Array<BooleanArray>,
-    topRow: Int,
-    leftCol: Int,
-) {
-    for (dr in -1..FINDER_SIZE) {
-        for (dc in -1..FINDER_SIZE) {
-            val r = topRow + dr
-            val c = leftCol + dc
-            if (r !in 0 until QR_MATRIX_SIZE || c !in 0 until QR_MATRIX_SIZE) continue
-            reserved[r][c] = true
-            val insideFinder = dr in 0 until FINDER_SIZE && dc in 0 until FINDER_SIZE
-            grid[r][c] = insideFinder && isFinderModuleDark(dr, dc)
-        }
-    }
-}
-
-private fun isFinderModuleDark(
-    dr: Int,
-    dc: Int,
-): Boolean {
-    val onOuterRing = dr == 0 || dr == FINDER_SIZE - 1 || dc == 0 || dc == FINDER_SIZE - 1
-    val inInnerCore = dr in FINDER_INNER_START..FINDER_INNER_END && dc in FINDER_INNER_START..FINDER_INNER_END
-    return onOuterRing || inInnerCore
-}
-
-private fun stampTimingTracks(
-    grid: Array<BooleanArray>,
-    reserved: Array<BooleanArray>,
-) {
-    for (idx in SEPARATOR_INDEX + 1 until FAR_SEPARATOR_INDEX) {
-        val dark = idx % 2 == 0
-        grid[TIMING_LINE_INDEX][idx] = dark
-        reserved[TIMING_LINE_INDEX][idx] = true
-        grid[idx][TIMING_LINE_INDEX] = dark
-        reserved[idx][TIMING_LINE_INDEX] = true
-    }
-}
-
-private fun fillHashedDataModules(
-    grid: Array<BooleanArray>,
-    reserved: Array<BooleanArray>,
-    payload: String,
-) {
-    var seed = FNV_OFFSET_BASIS
-    payload.forEach { ch ->
-        seed = (seed xor ch.code.toLong()) * FNV_PRIME
-    }
-    if (seed == 0L) seed = FNV_PRIME
-
-    for (row in 0 until QR_MATRIX_SIZE) {
-        for (col in 0 until QR_MATRIX_SIZE) {
-            if (!reserved[row][col]) {
-                seed = seed xor (seed shl XORSHIFT_A)
-                seed = seed xor (seed ushr XORSHIFT_B)
-                seed = seed xor (seed shl XORSHIFT_C)
-                grid[row][col] = (seed and 1L) == 1L
-            }
-        }
-    }
-}
+fun generateQrMatrix(payload: String): List<List<Boolean>> = QrCodeEncoder.encode(payload)
 
 /**
  * Stateless deterministic pure-Compose Canvas QR code UI atom rendered from a [QrCodeAtom] contract.
@@ -227,15 +146,24 @@ private fun UiQrMatrixFrame(
                     .size(sizeDp.dp)
                     .semantics { contentDescription = description },
         ) {
-            val cellSize = size.minDimension / QR_MATRIX_SIZE
+            val moduleCount = matrix.size
+            if (moduleCount <= 0) return@Canvas
+            val totalModules = moduleCount + QR_QUIET_ZONE_MODULES * 2
+            val cellSize = size.minDimension / totalModules
+            val quietOffset = QR_QUIET_ZONE_MODULES * cellSize
             val moduleDrawSize = ceil(cellSize + MODULE_SEAM_OVERLAP_PX)
-            for (row in 0 until QR_MATRIX_SIZE) {
+            drawRect(color = DesignPalette.White, size = size)
+            for (row in 0 until moduleCount) {
                 val rowCells = matrix[row]
-                for (col in 0 until QR_MATRIX_SIZE) {
+                for (col in 0 until rowCells.size) {
                     if (rowCells[col]) {
                         drawRect(
                             color = DesignPalette.Slate950,
-                            topLeft = Offset(x = col * cellSize, y = row * cellSize),
+                            topLeft =
+                                Offset(
+                                    x = quietOffset + col * cellSize,
+                                    y = quietOffset + row * cellSize,
+                                ),
                             size = Size(width = moduleDrawSize, height = moduleDrawSize),
                         )
                     }

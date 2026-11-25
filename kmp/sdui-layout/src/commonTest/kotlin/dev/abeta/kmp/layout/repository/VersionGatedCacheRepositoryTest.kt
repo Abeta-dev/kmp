@@ -7,6 +7,7 @@ import dev.abeta.kmp.core.error.NotFoundError
 import dev.abeta.kmp.core.error.OfflineError
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.storage.InMemoryKeyValueStore
+import dev.abeta.kmp.core.storage.KeyValueStore
 import dev.abeta.kmp.core.time.MutableClock
 import dev.abeta.kmp.network.client.HttpClientFactory
 import dev.abeta.kmp.network.client.KtorHttpTransport
@@ -223,6 +224,224 @@ class VersionGatedCacheRepositoryTest {
             val err = assertIs<NotFoundError>(assertIs<AppResult.Failure>(missingRepo.fetchManifest()).error)
             assertEquals("manifest missing", err.message)
         }
+
+    @Test
+    fun preservesHttpAndContentEtagsSendsClientVersionAndHandlesManifest304() =
+        runTest {
+            var manifestCalls = 0
+            val seenScreenHeaders = mutableListOf<Pair<String?, String?>>()
+            val seenManifestHeaders = mutableListOf<Pair<String?, String?>>()
+            val transport =
+                createTransport(
+                    createDualEtagMockEngine(
+                        onManifest = { ifNoneMatch, clientVer ->
+                            manifestCalls++
+                            seenManifestHeaders += (ifNoneMatch to clientVer)
+                        },
+                        onScreen = { ifNoneMatch, clientVer ->
+                            seenScreenHeaders += (ifNoneMatch to clientVer)
+                        },
+                    ),
+                )
+            val clock = MutableClock(1_000L)
+            val repo =
+                CachedScreenRepository(
+                    remote = RemoteScreenRepository(httpClient = transport, appVersion = "client-2.1.0"),
+                    store = InMemoryKeyValueStore(),
+                    clock = clock,
+                    policy = ScreenCachePolicy.VERSION_GATED,
+                    appVersion = "client-2.1.0",
+                    manifestRepository =
+                        RemoteScreenManifestRepository(httpClient = transport, appVersion = "client-2.1.0"),
+                    manifestTtlMillis = 10_000L,
+                )
+
+            val firstPage = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("home")).value
+            assertEquals("Dual ETag Home", firstPage.title)
+            assertEquals(listOf<Pair<String?, String?>>(null to "client-2.1.0"), seenScreenHeaders)
+
+            // Manifest expires -> 304 Not Modified -> matches contentEtag & serverAppVersion.
+            clock.advanceByMillis(15_000L)
+            val secondPage = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("home")).value
+            assertEquals("Dual ETag Home", secondPage.title)
+            assertEquals(2, manifestCalls)
+            assertEquals(1, seenScreenHeaders.size)
+            assertEquals(
+                listOf<Pair<String?, String?>>(
+                    null to "client-2.1.0",
+                    "\"manifest-http-1\"" to "client-2.1.0",
+                ),
+                seenManifestHeaders,
+            )
+
+            // Revalidate must send HTTP ETag in If-None-Match rather than discarding it for page.etag.
+            assertIs<AppResult.Success<PageResponse>>(repo.revalidate("home"))
+            assertEquals("\"http-etag-1\"", seenScreenHeaders.last().first)
+        }
+
+    @Test
+    fun versionGatedBustsOnSchemaVersionAndLegacyNullVersionShortCircuitsOfflineAndSurvivesStorageFailure() =
+        runTest {
+            val clock = MutableClock(1_000L)
+            val store = InMemoryKeyValueStore()
+            var schemaVersion = "1.0"
+            var manifestOffline = false
+            var screenCalls = 0
+            val remote =
+                conditionalRemote { screenId, _ ->
+                    screenCalls++
+                    modifiedResult(screenId, title = "Home #$screenCalls", pageVersion = "v1", etag = "\"e1\"")
+                }
+            val manifestRepo =
+                ScreenManifestRepository {
+                    if (manifestOffline) {
+                        AppResult.Failure(OfflineError("No connection"))
+                    } else {
+                        AppResult.Success(
+                            ScreenManifestResponse(
+                                appVersion = "srv-1",
+                                sduiSchemaVersion = schemaVersion,
+                                screens = mapOf("home" to ScreenVersionMeta(version = "v1", etag = "\"e1\"")),
+                            ),
+                        )
+                    }
+                }
+
+            val legacyRepo = versionGatedRepo(remote, store, clock, null, manifestRepo)
+            val legacyHome = assertIs<AppResult.Success<PageResponse>>(legacyRepo.fetchScreen("home")).value
+            assertEquals("Home #1", legacyHome.title)
+
+            val versionedRepo = versionGatedRepo(remote, store, clock, "client-1.0.0", manifestRepo)
+            assertEquals(
+                "Home #2",
+                assertIs<AppResult.Success<PageResponse>>(versionedRepo.fetchScreen("home")).value.title,
+            )
+
+            schemaVersion = "2.0"
+            clock.advanceByMillis(15_000L)
+            assertEquals(
+                "Home #3",
+                assertIs<AppResult.Success<PageResponse>>(versionedRepo.fetchScreen("home")).value.title,
+            )
+
+            manifestOffline = true
+            clock.advanceByMillis(15_000L)
+            val cachedOffline = assertIs<AppResult.Success<PageResponse>>(versionedRepo.fetchScreen("home")).value
+            assertEquals("Home #3", cachedOffline.title)
+            assertEquals(3, screenCalls)
+
+            val resilientRepo =
+                CachedScreenRepository(
+                    remote = remote,
+                    store = failingWriteStore(),
+                    clock = clock,
+                    policy = ScreenCachePolicy.NETWORK_FIRST,
+                )
+            val recovered = assertIs<AppResult.Success<PageResponse>>(resilientRepo.fetchScreen("home")).value
+            assertEquals("Home #4", recovered.title)
+        }
+
+    private fun versionGatedRepo(
+        remote: ConditionalScreenRepository,
+        store: KeyValueStore,
+        clock: MutableClock,
+        appVersion: String?,
+        manifestRepo: ScreenManifestRepository,
+    ): CachedScreenRepository =
+        CachedScreenRepository(
+            remote = remote,
+            store = store,
+            clock = clock,
+            policy = ScreenCachePolicy.VERSION_GATED,
+            appVersion = appVersion,
+            manifestRepository = manifestRepo,
+            manifestTtlMillis = 10_000L,
+        )
+
+    private fun failingWriteStore(): KeyValueStore =
+        object : KeyValueStore by InMemoryKeyValueStore() {
+            override fun putString(
+                key: String,
+                value: String,
+            ) {
+                error("Disk full")
+            }
+        }
+
+    private fun createDualEtagMockEngine(
+        onManifest: (String?, String?) -> Unit,
+        onScreen: (String?, String?) -> Unit,
+    ): MockEngine =
+        MockEngine { request ->
+            val ifNoneMatch = request.headers[HttpHeaders.IfNoneMatch]
+            val clientVer = request.headers["X-Client-App-Version"]
+            when (request.url.encodedPath) {
+                RemoteScreenManifestRepository.DEFAULT_MANIFEST_PATH -> {
+                    onManifest(ifNoneMatch, clientVer)
+                    if (ifNoneMatch == "\"manifest-http-1\"") {
+                        respond(
+                            content = "",
+                            status = HttpStatusCode.NotModified,
+                            headers = headersOf(HttpHeaders.ETag, "\"manifest-http-1\""),
+                        )
+                    } else {
+                        respond(
+                            content = DUAL_ETAG_MANIFEST_JSON,
+                            status = HttpStatusCode.OK,
+                            headers =
+                                headersOf(
+                                    HttpHeaders.ContentType to listOf(ContentType.Application.Json.toString()),
+                                    HttpHeaders.ETag to listOf("\"manifest-http-1\""),
+                                ),
+                        )
+                    }
+                }
+
+                "/api/v1/screens/home" -> {
+                    onScreen(ifNoneMatch, clientVer)
+                    respond(
+                        content = DUAL_ETAG_SCREEN_JSON,
+                        status = HttpStatusCode.OK,
+                        headers =
+                            headersOf(
+                                HttpHeaders.ContentType to listOf(ContentType.Application.Json.toString()),
+                                HttpHeaders.ETag to listOf("\"http-etag-1\""),
+                            ),
+                    )
+                }
+
+                else -> {
+                    respond(content = "Not Found", status = HttpStatusCode.NotFound)
+                }
+            }
+        }
+
+    private companion object {
+        private val DUAL_ETAG_MANIFEST_JSON =
+            """
+            {
+              "success": true,
+              "data": {
+                "app_version": "server-9.9.9",
+                "sdui_schema_version": "1.1",
+                "screens": { "home": { "version": "v1", "etag": "\"content-etag-1\"" } }
+              }
+            }
+            """.trimIndent()
+
+        private val DUAL_ETAG_SCREEN_JSON =
+            """
+            {
+              "success": true,
+              "data": {
+                "page_id": "home",
+                "title": "Dual ETag Home",
+                "page_version": "v1",
+                "etag": "\"content-etag-1\""
+              }
+            }
+            """.trimIndent()
+    }
 
     private fun repoWithVersion(
         remote: ConditionalScreenRepository,

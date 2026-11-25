@@ -64,10 +64,12 @@ private fun ArchitectureLayersCard() {
     val spacing = ThemeTokens.spacing
     val layers =
         listOf(
-            "Layer 0 · Foundation" to "core, state, analytics — zero UI dependencies, offline queue, session lifecycle",
+            "Layer 0 · Foundation" to
+                "core, state, analytics, database — zero UI dependencies, Room 3 SQLite, offline queue",
             "Layer 1 · Design & Contracts" to "design-tokens, sdui-contracts, ui-atoms — stateless atoms & tokens",
             "Layer 2 · Capabilities" to "action-engine, network — OCP action handlers, OkHttp HTTP/2 + Brotli",
-            "Layer 3 · Orchestration" to "sdui-layout, storybook, sample-app — SDUI engine & live catalogs",
+            "Layer 3 · Orchestration" to
+                "sdui-layout, watch-companion, storybook, sample-app — SDUI engine, wearables & live catalogs",
         )
     UiSurfaceCard(modifier = Modifier.fillMaxWidth()) {
         UiText(

@@ -215,7 +215,50 @@ class SpatialAndCustomSlotComposeTest {
         assertEquals(2.5f, clampGraphZoom(4.0f, minZoom = 0.5f, maxZoom = 2.5f))
         assertEquals(1.25f, clampGraphZoom(1.25f, minZoom = 0.5f, maxZoom = 2.5f))
         assertEquals(0.5f, clampGraphZoom(1.0f, minZoom = 0.5f, maxZoom = 0.2f))
+
+        // Pivoting zoom around viewport center keeps the world point under the pivot fixed.
+        val zoomedPan =
+            computeZoomedPan(
+                currentPanPx = Offset(10f, 20f),
+                pivotPx = Offset(200f, 100f),
+                oldZoom = 1.0f,
+                newZoom = 2.0f,
+            )
+        assertEquals(Offset(-180f, -60f), zoomedPan)
     }
+
+    @Test
+    fun customSlotEnforcesMaxNestingDepthGuardAgainstDeepFallbackRecursion() =
+        runComposeUiTest {
+            var nested: SnippetEnvelope =
+                snippetEnvelope(
+                    "deep_leaf",
+                    SnippetTypes.CARD,
+                    CardSnippetData(title = TextAtom(text = "Should Be Clipped")),
+                )
+            repeat(MAX_SNIPPET_NESTING_DEPTH + 2) { level ->
+                nested =
+                    snippetEnvelope(
+                        "deep_slot_$level",
+                        SnippetTypes.CUSTOM_SLOT,
+                        CustomSlotSnippetData(
+                            slotId = "slot_$level",
+                            slotType = "missing_slot_$level",
+                            fallback = nested,
+                        ),
+                    )
+            }
+            setContent {
+                SpatialPageHost(
+                    page = PageResponse(pageId = "depth_guard", snippets = listOf(nested)),
+                    customSlotRegistry = CustomSlotRegistry.Empty,
+                    onAction = {},
+                )
+            }
+
+            waitForIdle()
+            onNodeWithText("Should Be Clipped").assertDoesNotExist()
+        }
 
     @Test
     fun platformBridgeBundleDefaultsWireVoiceAndDesktopPortsCleanly() {

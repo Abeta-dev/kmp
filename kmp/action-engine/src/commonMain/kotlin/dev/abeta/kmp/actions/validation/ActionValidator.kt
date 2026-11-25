@@ -66,11 +66,13 @@ class DefaultActionValidator(
     }
 
     private companion object {
+        private const val MAX_REGEX_PATTERN_LENGTH = 256
+
         private val builtInRules: Map<String, ActionValidationRule> =
             mapOf(
                 "required" to
                     ActionValidationRule { rule, _, context ->
-                        val actual = resolveFieldValue(rule.fieldId, context)
+                        val actual = resolveFieldValue(rule.fieldId, context, trim = true)
                         if (actual.isEmpty()) {
                             validationFailure(rule)
                         } else {
@@ -79,9 +81,9 @@ class DefaultActionValidator(
                     },
                 "min_length" to
                     ActionValidationRule { rule, _, context ->
-                        val minLen = rule.value?.toIntOrNull()
-                        val actual = resolveFieldValue(rule.fieldId, context)
-                        if (minLen != null && actual.length < minLen) {
+                        val minLen = rule.value?.trim()?.toIntOrNull()
+                        val actual = resolveFieldValue(rule.fieldId, context, trim = true)
+                        if (minLen == null || minLen < 0 || actual.length < minLen) {
                             validationFailure(rule)
                         } else {
                             AppResult.Success(Unit)
@@ -89,9 +91,9 @@ class DefaultActionValidator(
                     },
                 "max_length" to
                     ActionValidationRule { rule, _, context ->
-                        val maxLen = rule.value?.toIntOrNull()
-                        val actual = resolveFieldValue(rule.fieldId, context)
-                        if (maxLen != null && actual.length > maxLen) {
+                        val maxLen = rule.value?.trim()?.toIntOrNull()
+                        val actual = resolveFieldValue(rule.fieldId, context, trim = false)
+                        if (maxLen == null || maxLen < 0 || actual.length > maxLen) {
                             validationFailure(rule)
                         } else {
                             AppResult.Success(Unit)
@@ -102,10 +104,12 @@ class DefaultActionValidator(
                         val pattern = rule.value
                         if (pattern.isNullOrEmpty()) {
                             AppResult.Success(Unit)
+                        } else if (pattern.length > MAX_REGEX_PATTERN_LENGTH) {
+                            validationFailure(rule)
                         } else {
-                            val actual = resolveFieldValue(rule.fieldId, context)
+                            val actual = resolveFieldValue(rule.fieldId, context, trim = true)
                             val matched =
-                                runCatching { Regex(pattern).containsMatchIn(actual) }
+                                runCatching { Regex(pattern).matches(actual) }
                                     .getOrDefault(false)
                             if (matched) {
                                 AppResult.Success(Unit)
@@ -117,7 +121,7 @@ class DefaultActionValidator(
                 "equals" to
                     ActionValidationRule { rule, _, context ->
                         val expected = rule.value
-                        val actual = resolveFieldValue(rule.fieldId, context)
+                        val actual = resolveFieldValue(rule.fieldId, context, trim = false)
                         if (expected != null && actual != expected) {
                             validationFailure(rule)
                         } else {
@@ -129,16 +133,20 @@ class DefaultActionValidator(
         private fun resolveFieldValue(
             fieldId: String,
             context: ActionContext,
+            trim: Boolean,
         ): String {
             val stateElement = context.sessionState[fieldId]
-            if (stateElement != null && stateElement !is JsonNull) {
-                return when (stateElement) {
-                    is JsonPrimitive -> stateElement.contentOrNull?.trim().orEmpty()
-                    is JsonArray -> if (stateElement.isEmpty()) "" else stateElement.toString()
-                    is JsonObject -> if (stateElement.isEmpty()) "" else stateElement.toString()
+            val raw =
+                if (stateElement != null && stateElement !is JsonNull) {
+                    when (stateElement) {
+                        is JsonPrimitive -> stateElement.contentOrNull.orEmpty()
+                        is JsonArray -> if (stateElement.isEmpty()) "" else stateElement.toString()
+                        is JsonObject -> if (stateElement.isEmpty()) "" else stateElement.toString()
+                    }
+                } else {
+                    context.metadata[fieldId].orEmpty()
                 }
-            }
-            return context.metadata[fieldId]?.trim().orEmpty()
+            return if (trim) raw.trim() else raw
         }
 
         private fun validationFailure(rule: ValidationRuleContract): AppResult.Failure =

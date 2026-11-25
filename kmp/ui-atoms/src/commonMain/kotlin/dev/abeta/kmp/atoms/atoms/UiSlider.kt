@@ -21,10 +21,10 @@ import dev.abeta.kmp.contracts.SliderAtom
 import dev.abeta.kmp.tokens.ColorTokens
 import dev.abeta.kmp.tokens.ThemeTokens
 import kotlin.math.abs
-import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
-private const val TENTHS_MULTIPLIER = 10f
-private const val TENTHS_DIVISOR = 10
+private const val TENTHS_MULTIPLIER = 10.0
+private const val TENTHS_DIVISOR = 10L
 
 /**
  * Pure multiplatform helper formatting a slider numeric [value] with optional [unitLabel].
@@ -33,14 +33,15 @@ fun formatSliderValue(
     value: Float,
     unitLabel: String? = null,
 ): String {
-    val scaledTenths = (value * TENTHS_MULTIPLIER).roundToInt()
+    val safeValue = if (value.isFinite()) value else 0f
+    val scaledTenths = (safeValue.toDouble() * TENTHS_MULTIPLIER).roundToLong()
     val whole = scaledTenths / TENTHS_DIVISOR
     val frac = abs(scaledTenths % TENTHS_DIVISOR)
     val numeric =
-        if (frac == 0) {
+        if (frac == 0L) {
             whole.toString()
         } else {
-            val sign = if (scaledTenths < 0 && whole == 0) "-" else ""
+            val sign = if (scaledTenths < 0L && whole == 0L) "-" else ""
             "$sign$whole.$frac"
         }
     val unit = unitLabel?.trim()?.takeIf { it.isNotEmpty() }
@@ -54,8 +55,9 @@ fun resolveSliderRange(
     minValue: Float,
     maxValue: Float,
 ): ClosedFloatingPointRange<Float> {
-    val safeMax = if (maxValue > minValue) maxValue else minValue + 1f
-    return minValue..safeMax
+    val safeMin = if (minValue.isFinite()) minValue else 0f
+    val safeMax = if (maxValue.isFinite() && maxValue > safeMin) maxValue else safeMin + 1f
+    return safeMin..safeMax
 }
 
 /**
@@ -75,7 +77,9 @@ fun UiSlider(
     val sizing = ThemeTokens.sizing
 
     val valueRange = resolveSliderRange(atom.minValue, atom.maxValue)
-    val currentValue = (valueOverride ?: atom.value).coerceIn(valueRange.start, valueRange.endInclusive)
+    val rawValue = valueOverride ?: atom.value
+    val safeCurrent = if (rawValue.isFinite()) rawValue else valueRange.start
+    val currentValue = safeCurrent.coerceIn(valueRange.start, valueRange.endInclusive)
     val formattedValue = formatSliderValue(currentValue, atom.unitLabel)
     val description = atom.label?.takeIf { it.isNotBlank() } ?: formattedValue
 
@@ -95,6 +99,8 @@ fun UiSlider(
             value = currentValue,
             onValueChange = { updated ->
                 onValueChange(updated)
+            },
+            onValueChangeFinished = {
                 atom.onChange?.let(onAction)
             },
             modifier =

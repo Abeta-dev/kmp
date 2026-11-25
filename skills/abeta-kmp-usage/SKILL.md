@@ -32,7 +32,7 @@ Use this skill when onboarding to `abeta-dev/kmp`, consuming `io.github.abeta-de
 
 ## 2. Consuming via Gradle BOM & Version Catalog (Zero Auth Required)
 
-Stable releases across all **11 publishable KMP library modules** (plus `bom` and `dependencies` = 13 Maven artifacts) publish to **Maven Central** (`mavenCentral()`), and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for Maven Central, Cloudsmith, Apple SwiftPM (`https://github.com/Abeta-dev/kmp-spm`, `from: "0.3.0"`), and Go `proxy.golang.org` (`github.com/abeta-dev/kmp/bff@v0.5.0`) setup, and `docs/local-database-room3.md` for Room 3 local SQLite persistence.
+Stable releases across all **11 publishable KMP library modules** (plus `bom` and `dependencies` = 13 Maven Central artifacts) publish to **Maven Central** (`mavenCentral()`), and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for Maven Central, Cloudsmith, 4-product Apple SwiftPM (`https://github.com/Abeta-dev/kmp-spm`, `from: "0.7.0"`), and Go `proxy.golang.org` (`github.com/abeta-dev/kmp/bff@v0.9.0`) setup, and `docs/local-database-room3.md` for Room 3 local SQLite persistence (schema v2 w/ `MIGRATION_1_2`).
 
 In your consumer project's `settings.gradle.kts`:
 ```kotlin
@@ -45,7 +45,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abeta") {
-            from("io.github.abeta-dev:dependencies:0.3.0")
+            from("io.github.abeta-dev:dependencies:0.7.0")
         }
     }
 }
@@ -54,7 +54,7 @@ dependencyResolutionManagement {
 In your module's `build.gradle.kts`:
 ```kotlin
 dependencies {
-    implementation(platform("io.github.abeta-dev:bom:0.3.0"))
+    implementation(platform("io.github.abeta-dev:bom:0.7.0"))
     // Pick only the layers you need (versions aligned by the BOM; Kotlin imports remain dev.abeta.kmp.*):
     implementation("io.github.abeta-dev:core")
     implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB

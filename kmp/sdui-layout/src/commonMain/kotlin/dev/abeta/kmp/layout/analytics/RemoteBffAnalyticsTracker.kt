@@ -252,8 +252,7 @@ class RemoteBffAnalyticsTracker(
             AnalyticsCategory.SCREEN -> CATEGORY_PAGE_OPEN
             AnalyticsCategory.IMPRESSION -> CATEGORY_IMPRESSION
             AnalyticsCategory.ACTION -> CATEGORY_INTERACTION
-            AnalyticsCategory.LIFECYCLE -> CATEGORY_LIFECYCLE
-            AnalyticsCategory.SYSTEM, AnalyticsCategory.ERROR -> CATEGORY_CUSTOM
+            AnalyticsCategory.LIFECYCLE, AnalyticsCategory.SYSTEM, AnalyticsCategory.ERROR -> CATEGORY_CUSTOM
         }
 
     companion object {
@@ -264,7 +263,6 @@ class RemoteBffAnalyticsTracker(
         private const val CATEGORY_PAGE_OPEN = "page_open"
         private const val CATEGORY_IMPRESSION = "impression"
         private const val CATEGORY_INTERACTION = "interaction"
-        private const val CATEGORY_LIFECYCLE = "lifecycle"
         private const val CATEGORY_CUSTOM = "custom"
     }
 }

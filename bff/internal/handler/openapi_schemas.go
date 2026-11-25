@@ -139,6 +139,7 @@ func openAPIComponentSchemas() map[string]any {
 		}),
 		"ScreenManifestResponse": objSchema([]string{"app_version", "screens"}, map[string]any{
 			"app_version":           p.str,
+			"sdui_schema_version":   p.str,
 			"screens":               map[string]any{"type": "object", "additionalProperties": refSchema("ScreenVersionMeta")},
 			"generated_at_epoch_ms": p.int,
 		}),

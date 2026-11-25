@@ -96,7 +96,7 @@ internal fun AdaptiveReadyViewport(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter,
     ) {
-        Box(modifier = Modifier.fillMaxSize().widthIn(max = plan.maxWidth)) {
+        Box(modifier = Modifier.widthIn(max = plan.maxWidth).fillMaxSize()) {
             if (plan.isSplitPaneActive) {
                 SplitPaneBody(
                     state = state,
@@ -183,7 +183,7 @@ private fun FloatingBottomOverlayColumn(
         verticalArrangement = Arrangement.spacedBy(spacing.space8),
     ) {
         state.activeToast?.let { toast ->
-            LaunchedEffect(toast) {
+            LaunchedEffect(state.toastSequence, toast) {
                 delay(toast.durationMs.coerceAtLeast(MIN_TOAST_DURATION_MS))
                 onDismissToast()
             }

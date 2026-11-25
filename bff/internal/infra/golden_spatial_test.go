@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/abeta-dev/kmp/bff/internal/usecase"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/atoms"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
@@ -42,7 +41,7 @@ func canonicalSpatialCustomAndGraphScreen(t *testing.T) snippets.PageResponse {
 		WithLeadingIcon(atoms.NewIcon("sparkles", 20, theming.ColorBrandPrimary)).
 		WithTrailingTag(atoms.NewTag("SPATIAL", theming.ColorInfoContainer)).
 		WithLayout(cardLayout).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "spatial_demo_header",
 			"surface":    "spatial-custom-and-graph-demo",
 		}).
@@ -81,7 +80,7 @@ func canonicalSpatialCustomAndGraphScreen(t *testing.T) snippets.PageResponse {
 				})),
 				Tracking: &atoms.TrackingMeta{
 					EventName: "graph_node_clicked",
-					Properties: map[string]any{
+					Properties: map[string]string{
 						"node_id": "node_bff",
 						"layer":   "bff",
 					},
@@ -109,7 +108,7 @@ func canonicalSpatialCustomAndGraphScreen(t *testing.T) snippets.PageResponse {
 				})),
 				Tracking: &atoms.TrackingMeta{
 					EventName: "graph_node_moved",
-					Properties: map[string]any{
+					Properties: map[string]string{
 						"node_id": "node_contracts",
 						"layer":   "layer_1",
 					},
@@ -188,7 +187,7 @@ func canonicalSpatialCustomAndGraphScreen(t *testing.T) snippets.PageResponse {
 	})
 	graphEnv.Tracking = &atoms.TrackingMeta{
 		EventName: "snippet_impression",
-		Properties: map[string]any{
+		Properties: map[string]string{
 			"snippet_id": "spatial_topology_graph",
 			"surface":    "spatial-custom-and-graph-demo",
 		},
@@ -211,7 +210,7 @@ func canonicalSpatialCustomAndGraphScreen(t *testing.T) snippets.PageResponse {
 			})),
 		)).
 		WithLayout(cardLayout).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "spatial_live_map_fallback",
 			"surface":    "spatial-custom-and-graph-demo",
 		}).
@@ -245,7 +244,7 @@ func canonicalSpatialCustomAndGraphScreen(t *testing.T) snippets.PageResponse {
 	})
 	slotEnv.Tracking = &atoms.TrackingMeta{
 		EventName: "snippet_impression",
-		Properties: map[string]any{
+		Properties: map[string]string{
 			"snippet_id": "spatial_live_map_slot",
 			"surface":    "spatial-custom-and-graph-demo",
 		},
@@ -262,9 +261,9 @@ func canonicalSpatialCustomAndGraphScreen(t *testing.T) snippets.PageResponse {
 			LayoutMode: snippets.LayoutModeCentered,
 			MaxWidthDp: atoms.IntPtr(1120),
 		}).
-		WithAppVersion(usecase.DefaultAppVersion).
+		WithAppVersion("0.8.0").
 		AddSnippets(header, graphEnv, slotEnv).
-		WithTracking("page_loaded", map[string]any{
+		WithTracking("page_loaded", map[string]string{
 			"page_id": "spatial-custom-and-graph-demo",
 			"version": "v1",
 		}).

@@ -20,8 +20,10 @@ internal class PlatformBridgeOutcomeExecutor(
     suspend fun executeIfBridgeOutcome(outcome: ActionOutcome): Boolean =
         when (outcome) {
             is ActionOutcome.ClipboardCopyRequested -> {
-                bridges.clipboardPort.copy(text = outcome.text, label = outcome.label)
-                clipboardListener(outcome)
+                when (val result = bridges.clipboardPort.copy(text = outcome.text, label = outcome.label)) {
+                    is AppResult.Success -> clipboardListener(outcome)
+                    is AppResult.Failure -> showToast(result.error.message, "error")
+                }
                 true
             }
 

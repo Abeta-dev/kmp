@@ -5,18 +5,20 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 
-private const val CENTS_SCALE = 2
-
 /** Formats minor currency units using JVM [NumberFormat] and the host default [Locale]. */
 actual fun formatCurrencyCents(
     amountCents: Long,
     currencyCode: String,
 ): String {
+    val normalizedCode = currencyCode.uppercase()
+    val digits = currencyMinorUnitDigits(normalizedCode)
     val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
     runCatching {
-        formatter.currency = Currency.getInstance(currencyCode.uppercase())
+        formatter.currency = Currency.getInstance(normalizedCode)
     }
-    return formatter.format(BigDecimal.valueOf(amountCents, CENTS_SCALE))
+    formatter.minimumFractionDigits = digits
+    formatter.maximumFractionDigits = digits
+    return formatter.format(BigDecimal.valueOf(amountCents, digits))
 }
 
 /** Returns the active JVM BCP-47 locale tag. */

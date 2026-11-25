@@ -1,6 +1,8 @@
 package snippets_test
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
@@ -317,7 +319,7 @@ func TestEnsureComponentIDs_ComprehensiveAndDeterministic(t *testing.T) {
 	if slotData.Fallback.SnippetID != "page.snippet_15_fallback" || slotData.Fallback.SnippetParentID != "page.snippet_15" {
 		t.Fatalf("unexpected custom_slot fallback identity: %+v", slotData.Fallback)
 	}
-	if slotData.OnEvent["marker_tap"].ID != "page.page.snippet_15.event_marker_tap" {
+	if slotData.OnEvent["marker_tap"].ID != "page.snippet_15.event_marker_tap" {
 		t.Fatalf("unexpected custom_slot on_event action ID: %q", slotData.OnEvent["marker_tap"].ID)
 	}
 	fbCard, err := snippets.DecodeSnippetData[snippets.CardSnippetData](*slotData.Fallback)
@@ -345,5 +347,264 @@ func TestEnsureComponentIDs_ComprehensiveAndDeterministic(t *testing.T) {
 	afterCompData, _ := snippets.DecodeSnippetData[snippets.ComposedBlockSnippetData](page.Snippets[10])
 	if afterCompData.Root.NodeID != beforeRootID {
 		t.Fatalf("EnsureComponentIDs not idempotent: %q vs %q", afterCompData.Root.NodeID, beforeRootID)
+	}
+
+	// Verify zero double-prefixing ("page.page.") anywhere in the serialized JSON
+	typedRaw, err := json.Marshal(page)
+	if err != nil {
+		t.Fatalf("marshal typed ensured page: %v", err)
+	}
+	if strings.Contains(string(typedRaw), "page.page.") {
+		t.Fatalf("detected double-prefixed component ID in ensured page JSON")
+	}
+}
+
+func TestEnsureComponentIDs_MapBackedAndPointerDataParity(t *testing.T) {
+	anonAct := func() actions.ActionTrigger {
+		return actions.NewShowToastAction("", actions.ShowToastPayload{Message: "ok"}).
+			WithSecondaryActions(actions.NewTrackEventAction("", actions.TrackEventPayload{EventName: "sec"}))
+	}
+	anonActPtr := func() *actions.ActionTrigger {
+		a := anonAct()
+		return &a
+	}
+	anonBtn := func(label string) atoms.ButtonAtom {
+		ic := atoms.NewIcon("bolt", 16, theming.ColorBrandPrimary)
+		ic.OnClick = anonActPtr()
+		b := atoms.NewButton("", label, "primary", anonActPtr())
+		b.LeadingIcon = &ic
+		b.TrailingIcon = &ic
+		return b
+	}
+	anonImg := func(url string) atoms.ImageAtom {
+		return atoms.ImageAtom{URL: url, OnClick: anonActPtr()}
+	}
+	anonIcon := func() atoms.IconAtom {
+		ic := atoms.NewIcon("star", 18, theming.ColorBrandPrimary)
+		ic.OnClick = anonActPtr()
+		return ic
+	}
+	anonAvatar := func() atoms.AvatarAtom {
+		av := atoms.NewAvatar("AB", 32, theming.ColorBrandContainer, theming.ColorTextBrand)
+		av.OnClick = anonActPtr()
+		return av
+	}
+	anonCountdown := func() atoms.CountdownAtom {
+		cd := atoms.NewCountdown("cd_1", 60, "Ends")
+		cd.OnExpire = anonActPtr()
+		return cd
+	}
+	title := atoms.NewText("Title", theming.TypographyTitleSmall, theming.ColorTextPrimary)
+	title.OnClick = anonActPtr()
+	stepper := atoms.NewStepper("qty_1", "ADD", 0, anonActPtr(), anonActPtr())
+	sw := atoms.NewSwitch("sw_1", "Leave at door", true, anonActPtr())
+	cb := atoms.NewCheckbox("cb_1", "No bell", false, anonActPtr())
+	sl := atoms.NewSlider("sl_1", "Tip", 2, 0, 10, anonActPtr())
+	rg := atoms.NewRadioGroup("rg_1", "Size", "500g", atoms.OptionItem{ID: "500g", Label: "500g"})
+	rg.OnChange = anonActPtr()
+	sel := atoms.NewSelect("sel_1", "Slot", "Pick", "now", atoms.OptionItem{ID: "now", Label: "Now"})
+	sel.OnChange = anonActPtr()
+	otp := atoms.NewOtpInput("otp_1", "PIN", 4, anonActPtr())
+	ch := atoms.NewChip("ch_1", "Organic", true, anonActPtr())
+	ch.OnRemove = anonActPtr()
+	seg := atoms.NewSegmentedControl("seg_1", "a", atoms.OptionItem{ID: "a", Label: "A"})
+	seg.OnChange = anonActPtr()
+	rt := atoms.NewRating("rt_1", 4.9, 5)
+	rt.OnRate = anonActPtr()
+	ab := atoms.NewAlertBanner("ab_1", "Offer", "Save 15%", atoms.VariantSuccess)
+	ab.OnAction = anonActPtr()
+	ab.OnDismiss = anonActPtr()
+	st := atoms.NewStatTile("st_1", "ETA", "8m")
+	st.OnClick = anonActPtr()
+	kv := atoms.NewKeyValueRow("kv_1", "Total", "$10")
+	kv.OnClick = anonActPtr()
+	qr := atoms.NewQrCode("qr_1", "abeta://1", "Pass", 120)
+	qr.OnClick = anonActPtr()
+	mp := atoms.NewMediaPager("", []atoms.ImageAtom{anonImg("https://cdn.abeta.dev/1.png")}, 140)
+	mp.OnPageClick = anonActPtr()
+
+	crd := snippets.NewCardSnippet("", title).
+		WithMedia(anonImg("https://cdn.abeta.dev/c.png")).
+		WithAvatar(anonAvatar()).
+		WithPrimaryButton(anonBtn("CardP")).
+		WithSecondaryButton(anonBtn("CardS")).
+		WithOnClick(anonAct()).
+		Build()
+	row := snippets.NewActionRowSnippet("", title).
+		WithLeadingIcon(anonIcon()).
+		WithTrailingIcon(anonIcon()).
+		WithOnClick(anonAct()).
+		Build()
+	met := snippets.NewMetricCardSnippet("", title, title).
+		WithIcon(anonIcon()).
+		WithOnClick(anonAct()).
+		Build()
+	prod := snippets.NewProductCardSnippet("", "sku1", title, title, 399, stepper).
+		WithImage(anonImg("https://cdn.abeta.dev/p.png")).
+		WithOnClick(anonAct()).
+		Build()
+	cardImg := anonImg("https://cdn.abeta.dev/s.png")
+	chipIc := anonIcon()
+	mqIc := anonIcon()
+	trIc := anonIcon()
+	slotFb := snippets.NewCardSnippet("", title).WithPrimaryButton(anonBtn("Open")).Build()
+	graphTitle := title
+	graphSub := title
+
+	// Build a page covering all 23 snippet types with omitted IDs
+	origPage := snippets.NewPage("parity-page", "Parity").
+		AddSnippets(
+			snippets.NewHeaderSnippet("", title).WithLeadingIcon(anonIcon()).WithAvatar(anonAvatar()).WithTrailingAction(anonBtn("Hdr")).Build(),
+			snippets.NewBannerSnippet("", title).WithIcon(anonIcon()).WithImage(anonImg("https://cdn.abeta.dev/b.png")).WithCTA(anonBtn("Bnr")).WithOnClick(anonAct()).Build(),
+			snippets.NewFormSnippet("", "f1", anonBtn("Submit")).WithCancelButton(anonBtn("Cancel")).AddSwitch(sw).AddCheckbox(cb).AddSlider(sl).Build(),
+			snippets.NewEmptyStateSnippet("", title).WithIcon(anonIcon()).WithImage(anonImg("https://cdn.abeta.dev/e.png")).WithActionButton(anonBtn("Retry")).Build(),
+			snippets.NewDividerSnippet("", atoms.DividerAtom{}).Build(),
+			snippets.NewSpacerSnippet("", atoms.SpacerAtom{}).Build(),
+			snippets.NewSwipeDeckSnippet("", "d1", snippets.SwipeCardItem{
+				CardID: "c1", Title: title, Image: &cardImg,
+				OnLike: anonActPtr(), OnNope: anonActPtr(), OnSuperLike: anonActPtr(), OnClick: anonActPtr(),
+			}).WithOnLike(anonAct()).WithOnNope(anonAct()).WithOnSuperLike(anonAct()).WithOnUndo(anonAct()).Build(),
+			snippets.NewSearchBarSnippet("", "s1", "Search").WithLeadingIcon(anonIcon()).WithTrailingIcon(anonIcon()).WithOnSubmit(anonAct()).WithOnClear(anonAct()).WithOnTrailingClick(anonAct()).Build(),
+			snippets.NewChipGroupSnippet("", "cg1", snippets.FilterChipItem{ID: "c1", Label: "Fresh", Icon: &chipIc, OnClick: anonActPtr()}).Build(),
+			snippets.NewNudgeBarSnippet("", "n1", title).WithIcon(anonIcon()).WithCountdown(anonCountdown()).WithCTA(anonBtn("Add")).WithOnDismiss(anonAct()).WithOnClick(anonAct()).Build(),
+			snippets.NewMarqueeStripSnippet("", "m1", snippets.MarqueeItem{ID: "mi1", Text: "Deal", Icon: &mqIc, OnClick: anonActPtr()}).Build(),
+			snippets.NewOrderTrackerSnippet("", "ot1", "#1", title, snippets.OrderTrackerStep{ID: "s1", Label: "Packed", Icon: &trIc}).WithEtaCountdown(anonCountdown()).WithPrimaryAction(anonBtn("Call")).WithSecondaryAction(anonBtn("Help")).Build(),
+			snippets.NewComposedBlockSnippet("explicit_blk", "blk1", snippets.VStack(
+				8,
+				snippets.ButtonNode(anonBtn("CBtn")).WithOnClick(anonAct()),
+				snippets.ImageNode(anonImg("https://cdn.abeta.dev/ci.png")),
+				snippets.MediaPagerNode(mp),
+				snippets.TextNode(title),
+				snippets.IconNode(anonIcon()),
+				snippets.AvatarNode(anonAvatar()),
+				snippets.StepperNode(stepper),
+				snippets.CountdownNode(anonCountdown()),
+				snippets.SwitchNode(sw),
+				snippets.CheckboxNode(cb),
+				snippets.SliderNode(sl),
+				snippets.RadioGroupNode(rg),
+				snippets.SelectNode(sel),
+				snippets.OtpInputNode(otp),
+				snippets.ChipNode(ch),
+				snippets.SegmentedControlNode(seg),
+				snippets.RatingNode(rt),
+				snippets.AlertBannerNode(ab),
+				snippets.StatTileNode(st),
+				snippets.KeyValueRowNode(kv),
+				snippets.QrCodeNode(qr),
+			)).Build(),
+			snippets.NewCarouselSnippet("").AddItem(crd).Build(),
+			snippets.NewGridSnippet("", 2).AddItem(prod).Build(),
+			snippets.NewTabsSnippet("").AddTab(snippets.TabItemSpec{ID: "t0", Title: "Tab", Snippets: []snippets.SnippetEnvelope{row}}).Build(),
+			snippets.NewAccordionSnippet("", title).AddSnippet(met).Build(),
+			snippets.NewCustomSlotSnippet("", snippets.CustomSlotSnippetData{
+				SlotID: "slot_1", SlotType: "native_map",
+				OnEvent: map[string]actions.ActionTrigger{"marker_tap": anonAct()}, Fallback: &slotFb,
+			}),
+			snippets.NewGraphCanvasSnippet("", snippets.GraphCanvasSnippetData{
+				CanvasID: "canvas_1", Title: &graphTitle, Subtitle: &graphSub,
+				OnNodeMoved: anonActPtr(), OnCanvasTap: anonActPtr(),
+				Nodes: []snippets.GraphNodeSpec{{Label: "N0", X: 1, Y: 2, OnClick: anonActPtr(), OnDragEnd: anonActPtr()}},
+				Edges: []snippets.GraphEdgeSpec{{FromNodeID: "n0", ToNodeID: "n1", OnClick: anonActPtr()}},
+			}),
+		).
+		Build()
+
+	// Marshal BEFORE ensuring IDs, then unmarshal into map-backed PageResponse
+	rawBefore, err := json.Marshal(origPage)
+	if err != nil {
+		t.Fatalf("marshal origPage: %v", err)
+	}
+	var mapPage snippets.PageResponse
+	if err := json.Unmarshal(rawBefore, &mapPage); err != nil {
+		t.Fatalf("unmarshal mapPage: %v", err)
+	}
+
+	typedPage := origPage
+	snippets.EnsureComponentIDs(&typedPage)
+	snippets.EnsureComponentIDs(&mapPage)
+
+	typedETag, err := snippets.ComputePageETag(typedPage)
+	if err != nil {
+		t.Fatalf("ComputePageETag(typedPage): %v", err)
+	}
+	mapETag, err := snippets.ComputePageETag(mapPage)
+	if err != nil {
+		t.Fatalf("ComputePageETag(mapPage): %v", err)
+	}
+	if typedETag != mapETag {
+		t.Fatalf("expected identical ETag between typed and unmarshaled map-backed EnsureComponentIDs: %s vs %s", typedETag, mapETag)
+	}
+
+	// Verify pointer snippet data types (*T) are safely copied and ensured without mutating caller pointers
+	ptrHeader := &snippets.HeaderSnippetData{Title: title, TrailingAction: func() *atoms.ButtonAtom { b := anonBtn("Ptr"); return &b }()}
+	ptrBanner := &snippets.BannerSnippetData{Title: title, OnClick: anonActPtr()}
+	ptrMetric := &snippets.MetricCardSnippetData{Label: title, Value: title, OnClick: anonActPtr()}
+	ptrCard := &snippets.CardSnippetData{Title: title, OnClick: anonActPtr()}
+	ptrRow := &snippets.ActionRowSnippetData{Title: title, OnClick: anonActPtr()}
+	ptrForm := &snippets.FormSnippetData{FormID: "pf", SubmitButton: anonBtn("Go")}
+	ptrEmpty := &snippets.EmptyStateSnippetData{Title: title, ActionButton: func() *atoms.ButtonAtom { b := anonBtn("Try"); return &b }()}
+	ptrDiv := &snippets.DividerSnippetData{}
+	ptrSpc := &snippets.SpacerSnippetData{}
+	ptrCar := &snippets.CarouselSnippetData{Items: []snippets.SnippetEnvelope{crd}}
+	ptrGrid := &snippets.GridSnippetData{Columns: 2, Items: []snippets.SnippetEnvelope{prod}}
+	ptrTabs := &snippets.TabsSnippetData{Tabs: []snippets.TabItemSpec{{ID: "t", Title: "T", Snippets: []snippets.SnippetEnvelope{row}}}}
+	ptrAcc := &snippets.AccordionSnippetData{Title: title, Snippets: []snippets.SnippetEnvelope{met}}
+	ptrProd := &snippets.ProductCardSnippetData{ProductID: "p", Title: title, Price: title, Stepper: stepper}
+	ptrDeck := &snippets.SwipeDeckSnippetData{DeckID: "d", OnUndo: anonActPtr()}
+	ptrSearch := &snippets.SearchBarSnippetData{SearchID: "s", OnSubmit: anonActPtr()}
+	ptrChips := &snippets.ChipGroupSnippetData{GroupID: "g", Chips: []snippets.FilterChipItem{{ID: "c", Label: "C", OnClick: anonActPtr()}}}
+	ptrNudge := &snippets.NudgeBarSnippetData{NudgeID: "n", Title: title, OnClick: anonActPtr()}
+	ptrMarquee := &snippets.MarqueeStripSnippetData{StripID: "m", Items: []snippets.MarqueeItem{{ID: "i", Text: "I", OnClick: anonActPtr()}}}
+	ptrTracker := &snippets.OrderTrackerSnippetData{TrackerID: "tr", OrderCode: "#1", Headline: title, PrimaryAction: func() *atoms.ButtonAtom { b := anonBtn("P"); return &b }()}
+	ptrComposed := &snippets.ComposedBlockSnippetData{BlockID: "b", Root: snippets.ButtonNode(anonBtn("B"))}
+	ptrSlot := &snippets.CustomSlotSnippetData{SlotID: "sl", SlotType: "map", OnEvent: map[string]actions.ActionTrigger{"tap": anonAct()}}
+	ptrGraph := &snippets.GraphCanvasSnippetData{CanvasID: "gc", OnCanvasTap: anonActPtr()}
+
+	ptrPage := snippets.PageResponse{
+		PageID: "ptr-page",
+		Title:  "Pointer Data",
+		Snippets: []snippets.SnippetEnvelope{
+			{SnippetType: snippets.SnippetTypeHeader, Data: ptrHeader},
+			{SnippetType: snippets.SnippetTypeBanner, Data: ptrBanner},
+			{SnippetType: snippets.SnippetTypeMetricCard, Data: ptrMetric},
+			{SnippetType: snippets.SnippetTypeCard, Data: ptrCard},
+			{SnippetType: snippets.SnippetTypeActionRow, Data: ptrRow},
+			{SnippetType: snippets.SnippetTypeForm, Data: ptrForm},
+			{SnippetType: snippets.SnippetTypeEmptyState, Data: ptrEmpty},
+			{SnippetType: snippets.SnippetTypeDivider, Data: ptrDiv},
+			{SnippetType: snippets.SnippetTypeSpacer, Data: ptrSpc},
+			{SnippetType: snippets.SnippetTypeCarousel, Data: ptrCar},
+			{SnippetType: snippets.SnippetTypeGrid, Data: ptrGrid},
+			{SnippetType: snippets.SnippetTypeTabs, Data: ptrTabs},
+			{SnippetType: snippets.SnippetTypeAccordion, Data: ptrAcc},
+			{SnippetType: snippets.SnippetTypeProductCard, Data: ptrProd},
+			{SnippetType: snippets.SnippetTypeSwipeDeck, Data: ptrDeck},
+			{SnippetType: snippets.SnippetTypeSearchBar, Data: ptrSearch},
+			{SnippetType: snippets.SnippetTypeChipGroup, Data: ptrChips},
+			{SnippetType: snippets.SnippetTypeNudgeBar, Data: ptrNudge},
+			{SnippetType: snippets.SnippetTypeMarqueeStrip, Data: ptrMarquee},
+			{SnippetType: snippets.SnippetTypeOrderTracker, Data: ptrTracker},
+			{SnippetType: snippets.SnippetTypeComposedBlock, Data: ptrComposed},
+			{SnippetType: snippets.SnippetTypeCustomSlot, Data: ptrSlot},
+			{SnippetType: snippets.SnippetTypeGraphCanvas, Data: ptrGraph},
+		},
+	}
+
+	// Also verify DecodeSnippetData pointer fast-path before EnsureComponentIDs
+	if decoded, err := snippets.DecodeSnippetData[snippets.HeaderSnippetData](ptrPage.Snippets[0]); err != nil || decoded.Title.Text != "Title" {
+		t.Fatalf("DecodeSnippetData pointer fast-path failed: %+v, err=%v", decoded, err)
+	}
+
+	snippets.EnsureComponentIDs(&ptrPage)
+	if ptrHeader.TrailingAction.ID != "" {
+		t.Fatal("EnsureComponentIDs mutated caller's *HeaderSnippetData pointer")
+	}
+	ensuredHeader, err := snippets.DecodeSnippetData[snippets.HeaderSnippetData](ptrPage.Snippets[0])
+	if err != nil || ensuredHeader.TrailingAction.ID != "ptr-page.snippet_0.trailing_action" {
+		t.Fatalf("expected ensured pointer HeaderSnippetData ID, got %+v (err=%v)", ensuredHeader, err)
+	}
+	if _, err := snippets.ComputePageETag(ptrPage); err != nil {
+		t.Fatalf("ComputePageETag(ptrPage): %v", err)
 	}
 }

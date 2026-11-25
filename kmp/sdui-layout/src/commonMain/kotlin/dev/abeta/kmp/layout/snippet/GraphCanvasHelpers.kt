@@ -3,6 +3,7 @@ package dev.abeta.kmp.layout.snippet
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.GraphCanvasSnippetData
 import dev.abeta.kmp.contracts.GraphNodeSpec
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -142,6 +143,24 @@ internal fun clampGraphZoom(
 }
 
 /**
+ * Computes the updated viewport pan offset so that [pivotPx] stays fixed in viewport space when
+ * zoom transitions from [oldZoom] to [newZoom].
+ */
+internal fun computeZoomedPan(
+    currentPanPx: Offset,
+    pivotPx: Offset,
+    oldZoom: Float,
+    newZoom: Float,
+): Offset {
+    val validZooms = oldZoom > 0f && oldZoom.isFinite() && newZoom.isFinite()
+    if (!validZooms || oldZoom == newZoom) {
+        return currentPanPx
+    }
+    val ratio = newZoom / oldZoom
+    return pivotPx - (pivotPx - currentPanPx) * ratio
+}
+
+/**
  * Converts a world-space coordinate in dp to viewport pixel space under [zoom] and [panPx].
  */
 internal fun worldToViewportPx(
@@ -201,3 +220,38 @@ internal fun resolveNodeScreenCenters(
         val heightPx = (measured?.height?.toFloat() ?: (DEFAULT_GRAPH_NODE_HEIGHT_DP * density)) * zoom
         node.nodeId to Offset(topLeft.x + widthPx / 2f, topLeft.y + heightPx / 2f)
     }
+
+@Suppress("LongParameterList")
+internal fun applyViewportTransform(
+    model: GraphCanvasSnippetData,
+    currentZoom: Float,
+    currentPanPx: Offset,
+    centroid: Offset,
+    panDelta: Offset,
+    zoomFactor: Float,
+): Pair<Float, Offset> {
+    var nextPan = if (model.allowPan) currentPanPx + panDelta else currentPanPx
+    var nextZoom = currentZoom
+    val canZoom = model.allowZoom && zoomFactor.isFinite() && zoomFactor > 0f
+    if (canZoom && zoomFactor != 1f) {
+        val clamped = clampGraphZoom(currentZoom * zoomFactor, model.minZoom, model.maxZoom)
+        if (clamped != currentZoom) {
+            nextPan = computeZoomedPan(nextPan, centroid, currentZoom, clamped)
+            nextZoom = clamped
+        }
+    }
+    return nextZoom to nextPan
+}
+
+internal fun computeToolbarZoom(
+    model: GraphCanvasSnippetData,
+    currentZoom: Float,
+    currentPanPx: Offset,
+    viewportSize: IntSize,
+    stepDelta: Float,
+): Pair<Float, Offset> {
+    val newZoom = clampGraphZoom(currentZoom + stepDelta, model.minZoom, model.maxZoom)
+    if (newZoom == currentZoom) return currentZoom to currentPanPx
+    val pivot = Offset(viewportSize.width / 2f, viewportSize.height / 2f)
+    return newZoom to computeZoomedPan(currentPanPx, pivot, currentZoom, newZoom)
+}

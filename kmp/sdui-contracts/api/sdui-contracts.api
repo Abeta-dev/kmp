@@ -1097,8 +1097,8 @@ public final class dev/abeta/kmp/contracts/CornerRadiusSpec$Companion {
 
 public final class dev/abeta/kmp/contracts/CountdownAtom {
 	public static final field Companion Ldev/abeta/kmp/contracts/CountdownAtom$Companion;
-	public fun <init> (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;)V
-	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Long;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()I
 	public final fun component3 ()Ljava/lang/String;
@@ -1107,11 +1107,13 @@ public final class dev/abeta/kmp/contracts/CountdownAtom {
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Ldev/abeta/kmp/contracts/ActionRef;
 	public final fun component8 ()Ldev/abeta/kmp/contracts/MotionSpec;
-	public final fun copy (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;)Ldev/abeta/kmp/contracts/CountdownAtom;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/CountdownAtom;
+	public final fun component9 ()Ljava/lang/Long;
+	public final fun copy (Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Long;)Ldev/abeta/kmp/contracts/CountdownAtom;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/CountdownAtom;Ljava/lang/String;ILjava/lang/String;IZLjava/lang/String;Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/contracts/MotionSpec;Ljava/lang/Long;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/CountdownAtom;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCountdownId ()Ljava/lang/String;
 	public final fun getExpiredText ()Ljava/lang/String;
+	public final fun getExpiresAtEpochMs ()Ljava/lang/Long;
 	public final fun getLabel ()Ljava/lang/String;
 	public final fun getMotion ()Ldev/abeta/kmp/contracts/MotionSpec;
 	public final fun getOnExpire ()Ldev/abeta/kmp/contracts/ActionRef;
@@ -2816,17 +2818,19 @@ public final class dev/abeta/kmp/contracts/ScreenLayoutMode$Companion {
 
 public final class dev/abeta/kmp/contracts/ScreenManifestResponse {
 	public static final field Companion Ldev/abeta/kmp/contracts/ScreenManifestResponse$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/util/Map;
 	public final fun component3 ()Ljava/lang/Long;
-	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;)Ldev/abeta/kmp/contracts/ScreenManifestResponse;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/ScreenManifestResponse;Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/ScreenManifestResponse;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ljava/lang/String;)Ldev/abeta/kmp/contracts/ScreenManifestResponse;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/contracts/ScreenManifestResponse;Ljava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/contracts/ScreenManifestResponse;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAppVersion ()Ljava/lang/String;
 	public final fun getGeneratedAtEpochMs ()Ljava/lang/Long;
 	public final fun getScreens ()Ljava/util/Map;
+	public final fun getSduiSchemaVersion ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

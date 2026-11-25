@@ -11,27 +11,37 @@ private external fun jsIsNavigatorOnline(): Boolean
 
 @JsFun(
     "(onOnline, onOffline) => { try { if (typeof window !== 'undefined' && window.addEventListener) { " +
-        "window.addEventListener('online', onOnline); window.addEventListener('offline', onOffline); } } " +
-        "catch (e) {} }",
+        "window.addEventListener('online', onOnline); window.addEventListener('offline', onOffline); " +
+        "return () => { try { window.removeEventListener('online', onOnline); " +
+        "window.removeEventListener('offline', onOffline); } catch (e) {} }; } } catch (e) {} return null; }",
 )
 private external fun jsRegisterOnlineListeners(
     onOnline: () -> Unit,
     onOffline: () -> Unit,
-)
+): JsAny?
+
+@JsFun("(unregister) => { try { if (unregister) { unregister(); } } catch (e) {} }")
+private external fun jsUnregisterOnlineListeners(unregister: JsAny)
 
 private class WasmConnectivityMonitor : ConnectivityMonitor {
     private val _status = MutableStateFlow(currentBrowserStatus())
     override val status: StateFlow<ConnectivityStatus> = _status.asStateFlow()
-    private var started = false
+    private var unregisterHandle: JsAny? = null
 
     override fun start() {
         refresh()
-        if (started) return
-        started = true
-        jsRegisterOnlineListeners(
-            onOnline = { _status.value = ConnectivityStatus.ONLINE },
-            onOffline = { _status.value = ConnectivityStatus.OFFLINE },
-        )
+        if (unregisterHandle != null) return
+        unregisterHandle =
+            jsRegisterOnlineListeners(
+                onOnline = { _status.value = ConnectivityStatus.ONLINE },
+                onOffline = { _status.value = ConnectivityStatus.OFFLINE },
+            )
+    }
+
+    override fun stop() {
+        val handle = unregisterHandle ?: return
+        unregisterHandle = null
+        jsUnregisterOnlineListeners(handle)
     }
 
     override fun refresh() {

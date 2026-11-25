@@ -33,6 +33,7 @@ import dev.abeta.kmp.layout.engine.SduiLayoutViewModel
 import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.platform.asUiHapticCallback
 import dev.abeta.kmp.layout.repository.ScreenRepository
+import dev.abeta.kmp.layout.snippet.CustomSlotRegistry
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.tokens.DesignTheme
 import kotlinx.coroutines.CoroutineScope
@@ -50,23 +51,26 @@ private const val HTTP_OK = 200
  * Desktop, and Web entrypoints, with automatic offline preview fallback when [bffBaseUrl] is blank.
  */
 @Composable
-@Suppress("ktlint:standard:function-naming", "FunctionName")
+@Suppress("ktlint:standard:function-naming", "FunctionName", "LongParameterList")
 fun SduiHostedRoot(
     screenId: String = "home",
     bffBaseUrl: String? = null,
-    logger: AppLogger = KermitAppLogger(),
+    logger: AppLogger? = null,
     platformLabel: String = "KMP",
     isWatch: Boolean = false,
+    customSlotRegistry: CustomSlotRegistry = CustomSlotRegistry.Empty,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val effectiveLogger = logger ?: remember { KermitAppLogger() }
     val resolvedBaseUrl = bffBaseUrl?.trim()?.takeIf { it.isNotEmpty() }
     val holder =
-        remember(resolvedBaseUrl, logger, platformLabel) {
+        remember(resolvedBaseUrl, effectiveLogger, platformLabel, customSlotRegistry) {
             createHostedSduiHolder(
                 resolvedBaseUrl = resolvedBaseUrl,
                 coroutineScope = coroutineScope,
-                logger = logger,
+                logger = effectiveLogger,
                 platformLabel = platformLabel,
+                customSlotRegistry = customSlotRegistry,
             )
         }
 
@@ -79,7 +83,7 @@ fun SduiHostedRoot(
         holder.controller.observeConnectivity()
     }
     LaunchedEffect(holder.controller, screenId) {
-        holder.controller.loadScreen(screenId)
+        holder.loadRootScreen(screenId)
     }
 
     val capabilities = holder.platformBridges.capabilities
@@ -102,6 +106,7 @@ fun SduiHostedRoot(
                 isWatch = isWatch,
                 onHaptic = holder.platformBridges.hapticEngine.asUiHapticCallback(),
                 onNodeImpression = holder.controller::onNodeImpression,
+                customSlotRegistry = holder.customSlotRegistry,
             )
         }
     }
@@ -121,6 +126,7 @@ fun SduiHostedRoot(
     screenId: String? = null,
     isWatch: Boolean = false,
     onHaptic: ((UiHapticKind) -> Unit)? = null,
+    customSlotRegistry: CustomSlotRegistry = CustomSlotRegistry.Empty,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) {
@@ -153,6 +159,7 @@ fun SduiHostedRoot(
                 isWatch = isWatch,
                 onHaptic = onHaptic,
                 onNodeImpression = viewModel::onNodeImpression,
+                customSlotRegistry = customSlotRegistry,
             )
         }
     }
@@ -163,8 +170,10 @@ private fun createHostedSduiHolder(
     coroutineScope: CoroutineScope,
     logger: AppLogger,
     platformLabel: String,
+    customSlotRegistry: CustomSlotRegistry,
 ): HostedSduiHolder {
     var controllerRef: LayoutController? = null
+    val backStack = ArrayDeque<String>()
     val platformBridges = PlatformBridgeBundle.createPlatformDefault()
     val koinApp =
         koinApplication {
@@ -174,6 +183,7 @@ private fun createHostedSduiHolder(
                     scope = coroutineScope,
                     logger = logger,
                     platformBridges = platformBridges,
+                    customSlotRegistry = customSlotRegistry,
                     remoteScreenRepository =
                         if (resolvedBaseUrl == null) {
                             OfflineStarterScreenRepository(platformLabel = platformLabel)
@@ -187,14 +197,10 @@ private fun createHostedSduiHolder(
                             null
                         },
                     navigationListener = { nav ->
-                        val target =
-                            nav.route
-                                .trim()
-                                .removePrefix("/screens/")
-                                .removePrefix("/")
-                        if (target.isNotEmpty()) {
-                            controllerRef?.loadScreen(target)
-                        }
+                        navigateWithBackStack(backStack, nav.route, nav.clearBackStack, controllerRef)
+                    },
+                    backListener = { back ->
+                        popBackStackAndLoad(backStack, back.steps, controllerRef)
                     },
                 ),
             )
@@ -205,18 +211,55 @@ private fun createHostedSduiHolder(
         koinApp = koinApp,
         controller = controller,
         snippetRegistry = koinApp.koin.get(),
+        customSlotRegistry = koinApp.koin.get(),
         imageRenderer = koinApp.koin.get(),
         platformBridges = platformBridges,
+        backStack = backStack,
     )
+}
+
+private fun navigateWithBackStack(
+    backStack: ArrayDeque<String>,
+    rawRoute: String,
+    clearBackStack: Boolean,
+    controller: LayoutController?,
+) {
+    val target = rawRoute.trim().removePrefix("/screens/").removePrefix("/")
+    if (target.isEmpty()) return
+    if (clearBackStack) backStack.clear()
+    if (backStack.lastOrNull() != target) backStack.addLast(target)
+    controller?.loadScreen(target)
+}
+
+private fun popBackStackAndLoad(
+    backStack: ArrayDeque<String>,
+    steps: Int,
+    controller: LayoutController?,
+) {
+    if (backStack.size <= 1) return
+    repeat(steps.coerceAtLeast(1)) {
+        if (backStack.size > 1) backStack.removeLast()
+    }
+    backStack.lastOrNull()?.let { controller?.loadScreen(it) }
 }
 
 private class HostedSduiHolder(
     val koinApp: KoinApplication,
     val controller: LayoutController,
     val snippetRegistry: SnippetRegistry,
+    val customSlotRegistry: CustomSlotRegistry,
     val imageRenderer: UiImageRenderer,
     val platformBridges: PlatformBridgeBundle,
-)
+    private val backStack: ArrayDeque<String>,
+) {
+    fun loadRootScreen(screenId: String) {
+        val cleanId = screenId.trim().removePrefix("/screens/").removePrefix("/")
+        val target = cleanId.ifEmpty { screenId }
+        backStack.clear()
+        backStack.addLast(target)
+        controller.loadScreen(target)
+    }
+}
 
 private class OfflineStarterScreenRepository(
     private val platformLabel: String,

@@ -52,8 +52,8 @@ Seven distinct consumer, fintech, and B2B verticals (**Abeta Fresh**, **Abeta Bi
 ### Design Tokens & WCAG AA Contrast Specimen Board
 ![Storybook Design Tokens](assets/screenshots/storybook-design-tokens.png)
 
-### All 21 SDUI Snippets Gallery (Dark Mode)
-![Storybook All 21 Snippets Dark](assets/screenshots/storybook-snippets-dark.png)
+### All 23 SDUI Snippets Gallery (Dark Mode)
+![Storybook All 23 Snippets Dark](assets/screenshots/storybook-snippets-dark.png)
 
 ### Motion Presets & Abeta Fresh Quick-Commerce Sandbox
 ![Storybook Motion and Store](assets/screenshots/storybook-motion-store.png)
@@ -75,7 +75,7 @@ Seven distinct consumer, fintech, and B2B verticals (**Abeta Fresh**, **Abeta Bi
 # Export 7-in-1 Super-App Showcase screenshots (Phone & Desktop across Showcase verticals)
 (cd kmp && ./gradlew :sample-app:run --args="--capture-verticals=../docs/assets/screenshots")
 
-# Export Storybook screenshots (Tokens, Controls, 21 Snippets Dark, Motion/Store, Responsive/Bridges)
+# Export Storybook screenshots (Tokens, Controls, 23 Snippets Dark, Motion/Store, Responsive/Bridges)
 (cd kmp && ./gradlew :storybook:run --args="--capture-screenshots=../docs/assets/screenshots")
 
 # Optional: capture screenshots directly against a live Go BFF (bff/ or Abeta-dev/sdui-bff)

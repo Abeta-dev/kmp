@@ -33,16 +33,12 @@ object DeepLinkParser {
             } else {
                 val scheme = trimmed.substring(0, schemeIndex).lowercase()
                 val afterScheme = trimmed.substring(schemeIndex + 3)
-                val queryStart = afterScheme.indexOf('?')
+                val withoutFragment = afterScheme.substringBefore('#')
+                val queryStart = withoutFragment.indexOf('?')
                 val authorityAndPath =
-                    (if (queryStart >= 0) afterScheme.substring(0, queryStart) else afterScheme)
-                        .substringBefore('#')
+                    if (queryStart >= 0) withoutFragment.substring(0, queryStart) else withoutFragment
                 val query =
-                    if (queryStart >= 0) {
-                        afterScheme.substring(queryStart + 1).substringBefore('#')
-                    } else {
-                        ""
-                    }
+                    if (queryStart >= 0) withoutFragment.substring(queryStart + 1) else ""
                 val (host, pathSegments) = splitAuthorityAndPath(authorityAndPath)
                 resolveScreenId(scheme = scheme, host = host, pathSegments = pathSegments)?.let { screenId ->
                     DeepLinkTarget(
@@ -62,9 +58,21 @@ object DeepLinkParser {
         val authority =
             if (slashIndex >= 0) authorityAndPath.substring(0, slashIndex) else authorityAndPath
         val rawPath = if (slashIndex >= 0) authorityAndPath.substring(slashIndex + 1) else ""
-        val host = authority.takeIf { it.isNotBlank() }
+        val host = extractHost(authority)
         val segments = rawPath.split('/').filter { it.isNotBlank() }
         return host to segments
+    }
+
+    private fun extractHost(authority: String): String? {
+        val hostAndPort = authority.substringAfterLast('@')
+        val hostOnly =
+            if (hostAndPort.startsWith("[")) {
+                val closeBracket = hostAndPort.indexOf(']')
+                if (closeBracket > 0) hostAndPort.substring(0, closeBracket + 1) else hostAndPort
+            } else {
+                hostAndPort.substringBefore(':')
+            }
+        return hostOnly.takeIf { it.isNotBlank() }
     }
 
     private fun resolveScreenId(
@@ -80,11 +88,11 @@ object DeepLinkParser {
                 host.lowercase() !in ignoredRoutePrefixes
         return when {
             filteredSegments.isNotEmpty() -> {
-                urlDecode(filteredSegments.first())
+                percentDecode(filteredSegments.first(), plusAsSpace = false)
             }
 
             isCustomHostScreen -> {
-                urlDecode(host)
+                percentDecode(host, plusAsSpace = false)
             }
 
             else -> {
@@ -100,13 +108,13 @@ object DeepLinkParser {
             if (pair.isNotEmpty()) {
                 val eqIndex = pair.indexOf('=')
                 if (eqIndex > 0) {
-                    val key = urlDecode(pair.substring(0, eqIndex))
-                    val value = urlDecode(pair.substring(eqIndex + 1))
+                    val key = percentDecode(pair.substring(0, eqIndex), plusAsSpace = true)
+                    val value = percentDecode(pair.substring(eqIndex + 1), plusAsSpace = true)
                     if (key.isNotEmpty()) {
                         result[key] = value
                     }
                 } else {
-                    val key = urlDecode(pair)
+                    val key = percentDecode(pair, plusAsSpace = true)
                     if (key.isNotEmpty()) {
                         result[key] = ""
                     }
@@ -116,12 +124,15 @@ object DeepLinkParser {
         return result
     }
 
-    private fun urlDecode(value: String): String {
+    private fun percentDecode(
+        value: String,
+        plusAsSpace: Boolean,
+    ): String {
         val bytes = ArrayList<Byte>(value.length)
         var i = 0
         while (i < value.length) {
             val ch = value[i]
-            if (ch == '+') {
+            if (plusAsSpace && ch == '+') {
                 bytes.add(' '.code.toByte())
                 i += 1
             } else if (ch == '%' && i + HEX_PAIR_LEN < value.length) {

@@ -6,6 +6,8 @@ import dev.abeta.kmp.actions.handler.ActionOutcome
 import dev.abeta.kmp.actions.handler.BuiltInActionHandlers
 import dev.abeta.kmp.actions.handler.DefaultActionDispatcher
 import dev.abeta.kmp.actions.model.ActionTypes
+import dev.abeta.kmp.analytics.AnalyticsCategory
+import dev.abeta.kmp.analytics.AnalyticsEvent
 import dev.abeta.kmp.analytics.AnalyticsTracker
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.AnalyticsBatchRequest
@@ -238,6 +240,18 @@ class RemoteBffAnalyticsTrackerTest {
             val recovered = assertIs<AppResult.Success<Int>>(tracker.flush())
             assertEquals(1, recovered.value)
             assertTrue(tracker.queuedEvents.value.isEmpty())
+
+            // Lifecycle category must map to Go BFF's "custom" category cleanly.
+            tracker.track(
+                AnalyticsEvent(
+                    name = "app_backgrounded",
+                    category = AnalyticsCategory.LIFECYCLE,
+                ),
+            )
+            assertEquals(1, assertIs<AppResult.Success<Int>>(tracker.flush()).value)
+            val lifecycleBatch =
+                SduiJson.decodeFromString(AnalyticsBatchRequest.serializer(), transport.encodedBodies.last())
+            assertEquals("custom", lifecycleBatch.events.single().category)
         }
 
     @Test

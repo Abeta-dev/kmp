@@ -333,4 +333,6 @@ data class CountdownAtom(
     @SerialName("on_expire")
     val onExpire: ActionRef? = null,
     val motion: MotionSpec? = null,
+    @SerialName("expires_at_epoch_ms")
+    val expiresAtEpochMs: Long? = null,
 )

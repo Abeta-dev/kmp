@@ -30,11 +30,14 @@ import dev.abeta.kmp.contracts.MotionSpec
 import dev.abeta.kmp.tokens.ColorTokens
 import dev.abeta.kmp.tokens.ThemeTokens
 import kotlinx.coroutines.delay
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 private const val SECONDS_PER_MINUTE = 60
 private const val SECONDS_PER_HOUR = 3600
 private const val TIME_PAD_DIGITS = 2
 private const val TICK_INTERVAL_MS = 1000L
+private const val MIN_TICK_DELAY_MS = 50L
 private const val BRAND_BORDER_ALPHA = 0.30f
 
 private data class ResolvedCountdownColors(
@@ -75,6 +78,31 @@ fun isCountdownUrgent(
     remainingSeconds: Int,
     urgentThresholdSeconds: Int,
 ): Boolean = remainingSeconds > 0 && remainingSeconds <= urgentThresholdSeconds.coerceAtLeast(0)
+
+/**
+ * Pure helper computing whole remaining seconds anchored to [expiresAtEpochMs] relative to
+ * [nowEpochMs], falling back to [fallbackRemainingSeconds] when [expiresAtEpochMs] is `null`.
+ */
+fun resolveCountdownRemainingSeconds(
+    fallbackRemainingSeconds: Int,
+    expiresAtEpochMs: Long?,
+    nowEpochMs: Long,
+): Int =
+    if (expiresAtEpochMs == null) {
+        fallbackRemainingSeconds.coerceAtLeast(0)
+    } else {
+        val remainingMs = expiresAtEpochMs - nowEpochMs
+        if (remainingMs <= 0L) {
+            0
+        } else {
+            ((remainingMs + TICK_INTERVAL_MS - 1L) / TICK_INTERVAL_MS)
+                .coerceAtMost(Int.MAX_VALUE.toLong())
+                .toInt()
+        }
+    }
+
+@OptIn(ExperimentalTime::class)
+private fun currentSystemEpochMs(): Long = Clock.System.now().toEpochMilliseconds()
 
 /**
  * Live ticking countdown pill UI atom rendered from a [CountdownAtom] contract.
@@ -147,19 +175,40 @@ private fun rememberCountdownSeconds(
 ): Int {
     val currentOnAction by rememberUpdatedState(onAction)
     val currentOnExpire by rememberUpdatedState(atom.onExpire)
-    var remaining by remember(atom.countdownId, atom.remainingSeconds) {
-        mutableIntStateOf(atom.remainingSeconds.coerceAtLeast(0))
+    val initialRemaining =
+        remember(atom.countdownId, atom.remainingSeconds, atom.expiresAtEpochMs) {
+            resolveCountdownRemainingSeconds(
+                fallbackRemainingSeconds = atom.remainingSeconds,
+                expiresAtEpochMs = atom.expiresAtEpochMs,
+                nowEpochMs = currentSystemEpochMs(),
+            )
+        }
+    var remaining by remember(atom.countdownId, atom.remainingSeconds, atom.expiresAtEpochMs) {
+        mutableIntStateOf(initialRemaining)
     }
-    var expireDispatched by remember(atom.countdownId, atom.remainingSeconds) {
-        mutableStateOf(false)
+    var expireDispatched by remember(atom.countdownId, atom.remainingSeconds, atom.expiresAtEpochMs) {
+        mutableStateOf(initialRemaining <= 0)
     }
 
-    LaunchedEffect(atom.countdownId, atom.remainingSeconds) {
-        while (remaining > 0) {
-            delay(TICK_INTERVAL_MS)
-            remaining -= 1
+    LaunchedEffect(atom.countdownId, atom.remainingSeconds, atom.expiresAtEpochMs) {
+        if (expireDispatched) return@LaunchedEffect
+        val expiresAt = atom.expiresAtEpochMs
+        if (expiresAt != null) {
+            while (remaining > 0) {
+                val now = currentSystemEpochMs()
+                val next = resolveCountdownRemainingSeconds(atom.remainingSeconds, expiresAt, now)
+                remaining = next
+                if (next <= 0) break
+                val msUntilBoundary = ((expiresAt - now - 1L) % TICK_INTERVAL_MS) + 1L
+                delay(msUntilBoundary.coerceIn(MIN_TICK_DELAY_MS, TICK_INTERVAL_MS))
+            }
+        } else {
+            while (remaining > 0) {
+                delay(TICK_INTERVAL_MS)
+                remaining -= 1
+            }
         }
-        if (!expireDispatched) {
+        if (!expireDispatched && remaining <= 0) {
             expireDispatched = true
             currentOnExpire?.let(currentOnAction)
         }

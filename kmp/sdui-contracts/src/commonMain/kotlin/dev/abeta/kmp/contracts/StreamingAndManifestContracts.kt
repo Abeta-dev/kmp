@@ -27,6 +27,8 @@ data class ScreenManifestResponse(
     val screens: Map<String, ScreenVersionMeta> = emptyMap(),
     @SerialName("generated_at_epoch_ms")
     val generatedAtEpochMs: Long? = null,
+    @SerialName("sdui_schema_version")
+    val sduiSchemaVersion: String? = null,
 )
 
 /**

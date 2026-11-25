@@ -8,11 +8,11 @@ It provides offline-first structured storage across **Android, Wear OS, JVM Desk
 
 ## 1. Toolchain & Artifact Coordinates
 
-All versions are centralized in [`kmp/dependencyManagement/gradle/libs.versions.toml`](../kmp/dependencyManagement/gradle/libs.versions.toml) and aligned via `io.github.abeta-dev:bom:0.3.0`:
+All versions are centralized in [`kmp/dependencyManagement/gradle/libs.versions.toml`](../kmp/dependencyManagement/gradle/libs.versions.toml) and aligned via `io.github.abeta-dev:bom:0.7.0`:
 
 | Component | Maven Coordinate / Plugin | Version |
 | :--- | :--- | :--- |
-| **Abeta Database Module** | `io.github.abeta-dev:database` | `0.3.0` (aligned by `io.github.abeta-dev:bom:0.3.0`) |
+| **Abeta Database Module** | `io.github.abeta-dev:database` | `0.7.0` (aligned by `io.github.abeta-dev:bom:0.7.0`) |
 | **Room 3 Runtime** | `androidx.room3:room3-runtime` | `3.0.3` |
 | **Room 3 KSP Compiler** | `androidx.room3:room3-compiler` | `3.0.3` |
 | **Room 3 Gradle Plugin** | `androidx.room3` | `3.0.3` |
@@ -41,13 +41,15 @@ Every KMP target uses an explicit `SQLiteDriver` compiled or bundled for that OS
 
 `io.github.abeta-dev:database` exposes **`AbetaDatabase`** (the `@Database` Room 3 class using `@ConstructedBy(AbetaDatabaseConstructor::class)`) and **`AbetaLocalDatabase`** (the high-level facade wrapping DAOs, coroutine dispatchers, and lifecycle management).
 
-### Built-In Schema (`version = 1`)
+### Built-In Schema (`version = 2`, with `MIGRATION_1_2`)
 
-Exported schema snapshot: [`kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/1.json`](../kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/1.json).
+Exported schema snapshots:
+- [`kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/1.json`](../kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/1.json)
+- [`kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/2.json`](../kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/2.json)
 
 | Table Name | Primary Key & Columns | Indexed Columns | Typical Use in SDUI Apps |
 | :--- | :--- | :--- | :--- |
-| **`cached_screens`** | PK(`screenId`): `screenId`, `payloadJson`, `etag` (nullable), `cachedAtEpochMillis`, `expiresAtEpochMillis` (nullable) | `expiresAtEpochMillis` | Instant offline rendering, TTL pruning, and ETag revalidation (`304 Not Modified`) for cached SDUI `PageResponse` snapshots. |
+| **`cached_screens`** | PK(`screenId`): `screenId`, `payloadJson`, `etag` (nullable), `cachedAtEpochMillis`, `expiresAtEpochMillis` (nullable), `pageVersion` (nullable, added in v2), `appVersion` (nullable, added in v2) | `expiresAtEpochMillis` | Instant offline rendering, TTL pruning, version-gated caching, and ETag revalidation (`304 Not Modified`) for cached SDUI `PageResponse` snapshots. |
 | **`offline_mutations`** | PK(`id`): `id`, `mutationType`, `payloadJson`, `createdAtEpochMillis`, `retryCount`, `lastError` (nullable) | `createdAtEpochMillis`, `retryCount` | Durable FIFO queue of pending offline client actions/API mutations across process restarts until connectivity returns. |
 | **`key_value_records`** | Composite PK(`namespace`, `recordKey`): `namespace`, `recordKey`, `valueText`, `updatedAtEpochMillis`, `expiresAtEpochMillis` (nullable) | `expiresAtEpochMillis` | Namespaced structured key-value records with TTL expiration for preferences, feature flags, and lightweight reactive state. |
 
@@ -62,12 +64,16 @@ Unlike Android-only Room 2 (which used JVM reflection to instantiate generated `
         OfflineMutationEntity::class,
         KeyValueRecordEntity::class,
     ],
-    version = 1,
+    version = AbetaDatabase.SCHEMA_VERSION, // 2 (includes MIGRATION_1_2)
     exportSchema = true,
 )
 @ConstructedBy(AbetaDatabaseConstructor::class)
-public abstract class AbetaDatabase : RoomDatabase() {
+abstract class AbetaDatabase : RoomDatabase() {
     // DAOs for cached_screens, offline_mutations, and key_value_records
+    companion object {
+        const val SCHEMA_VERSION: Int = 2
+        val MIGRATION_1_2: Migration = /* ALTER TABLE cached_screens ADD COLUMN pageVersion/appVersion TEXT */
+    }
 }
 
 @Suppress("KotlinNoActualForExpect")
@@ -115,7 +121,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaLibs") {
-            from("io.github.abeta-dev:dependencies:0.3.0")
+            from("io.github.abeta-dev:dependencies:0.7.0")
         }
     }
 }
@@ -127,7 +133,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.3.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:database")
             // Optional SDUI & networking modules aligned by the same BOM:

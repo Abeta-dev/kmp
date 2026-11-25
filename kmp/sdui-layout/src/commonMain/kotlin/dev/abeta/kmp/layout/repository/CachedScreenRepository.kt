@@ -3,6 +3,7 @@ package dev.abeta.kmp.layout.repository
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.ScreenManifestResponse
 import dev.abeta.kmp.contracts.SduiJson
+import dev.abeta.kmp.core.error.OfflineError
 import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.resilience.SingleFlight
@@ -10,6 +11,7 @@ import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.storage.KeyValueStore
 import dev.abeta.kmp.core.time.Clock
 import dev.abeta.kmp.core.time.SystemClock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -148,19 +150,23 @@ class CachedScreenRepository(
     }
 
     private suspend fun executeRemoteRevalidation(cleanId: String): AppResult<PageResponse> {
-        val existingCached = readValidEntry(cleanId)
+        val activeManifest = manifestMutex.withLock { cachedManifest }?.response
+        val existingCached = readValidEntry(cleanId, activeManifest)
         val conditionalRemote = remote as? ConditionalScreenRepository
         return if (conditionalRemote != null) {
-            executeConditionalRevalidation(conditionalRemote, cleanId, existingCached)
+            executeConditionalRevalidation(conditionalRemote, cleanId, existingCached, activeManifest)
         } else {
             val result = remote.fetchScreen(cleanId)
             if (result is AppResult.Success) {
+                val page = result.value
                 writeEntry(
                     cleanId = cleanId,
-                    page = result.value,
-                    etag = result.value.etag,
-                    pageVersion = result.value.pageVersion,
-                    entryAppVersion = appVersion ?: result.value.appVersion,
+                    page = page,
+                    httpEtag = page.etag,
+                    contentEtag = page.etag,
+                    pageVersion = page.pageVersion,
+                    serverAppVersion = page.appVersion ?: activeManifest?.appVersion,
+                    sduiSchemaVersion = activeManifest?.sduiSchemaVersion,
                 )
             }
             result
@@ -171,14 +177,29 @@ class CachedScreenRepository(
         conditionalRemote: ConditionalScreenRepository,
         cleanId: String,
         existingCached: CachedScreenEntry?,
+        activeManifest: ScreenManifestResponse?,
     ): AppResult<PageResponse> {
         val validator =
             existingCached?.let { cached ->
-                cached.etag?.takeIf { it.isNotBlank() } ?: cached.page.etag?.takeIf { it.isNotBlank() }
+                cached.httpEtag?.takeIf { it.isNotBlank() }
+                    ?: cached.contentEtag?.takeIf { it.isNotBlank() }
+                    ?: cached.etag?.takeIf { it.isNotBlank() }
+                    ?: cached.page.etag?.takeIf { it.isNotBlank() }
             }
         return when (val result = conditionalRemote.fetchScreenConditional(cleanId, ifNoneMatch = validator)) {
-            is AppResult.Failure -> result
-            is AppResult.Success -> handleConditionalSuccess(conditionalRemote, cleanId, existingCached, result.value)
+            is AppResult.Failure -> {
+                result
+            }
+
+            is AppResult.Success -> {
+                handleConditionalSuccess(
+                    conditionalRemote = conditionalRemote,
+                    cleanId = cleanId,
+                    existingCached = existingCached,
+                    conditional = result.value,
+                    activeManifest = activeManifest,
+                )
+            }
         }
     }
 
@@ -187,41 +208,76 @@ class CachedScreenRepository(
         cleanId: String,
         existingCached: CachedScreenEntry?,
         conditional: ConditionalScreenFetchResult,
+        activeManifest: ScreenManifestResponse?,
     ): AppResult<PageResponse> =
         when (conditional) {
             is ConditionalScreenFetchResult.Modified -> {
-                val page = conditional.page
-                val resolvedEtag = conditional.etag?.takeIf { it.isNotBlank() } ?: page.etag
-                writeEntry(
-                    cleanId = cleanId,
-                    page = page,
-                    etag = resolvedEtag,
-                    pageVersion = page.pageVersion,
-                    entryAppVersion = appVersion ?: page.appVersion,
-                )
-                AppResult.Success(page)
+                persistModifiedResult(cleanId, conditional, activeManifest)
             }
 
             is ConditionalScreenFetchResult.NotModified -> {
                 if (existingCached != null) {
-                    val refreshedEtag = conditional.etag?.takeIf { it.isNotBlank() } ?: existingCached.etag
-                    writeEntry(
-                        cleanId = cleanId,
-                        page = existingCached.page,
-                        etag = refreshedEtag,
-                        pageVersion = existingCached.pageVersion ?: existingCached.page.pageVersion,
-                        entryAppVersion = appVersion ?: existingCached.appVersion ?: existingCached.page.appVersion,
-                    )
-                    AppResult.Success(existingCached.page)
+                    persistNotModifiedResult(cleanId, existingCached, conditional.etag, activeManifest)
                 } else {
-                    fetchUnconditionalFallback(conditionalRemote, cleanId)
+                    fetchUnconditionalFallback(conditionalRemote, cleanId, activeManifest)
                 }
             }
         }
 
+    private suspend fun persistModifiedResult(
+        cleanId: String,
+        modified: ConditionalScreenFetchResult.Modified,
+        activeManifest: ScreenManifestResponse?,
+    ): AppResult<PageResponse> {
+        val page = modified.page
+        val contentEtag = page.etag?.takeIf { it.isNotBlank() } ?: modified.etag?.takeIf { it.isNotBlank() }
+        val httpEtag =
+            modified.httpEtag?.takeIf { it.isNotBlank() }
+                ?: modified.etag?.takeIf { it.isNotBlank() }
+                ?: contentEtag
+        writeEntry(
+            cleanId = cleanId,
+            page = page,
+            httpEtag = httpEtag,
+            contentEtag = contentEtag,
+            pageVersion = page.pageVersion,
+            serverAppVersion = page.appVersion ?: activeManifest?.appVersion,
+            sduiSchemaVersion = activeManifest?.sduiSchemaVersion,
+        )
+        return AppResult.Success(page)
+    }
+
+    private suspend fun persistNotModifiedResult(
+        cleanId: String,
+        existingCached: CachedScreenEntry,
+        conditionalEtag: String?,
+        activeManifest: ScreenManifestResponse?,
+    ): AppResult<PageResponse> {
+        val refreshedHttpEtag =
+            conditionalEtag?.takeIf { it.isNotBlank() } ?: existingCached.httpEtag ?: existingCached.etag
+        val refreshedContentEtag =
+            existingCached.contentEtag?.takeIf { it.isNotBlank() }
+                ?: existingCached.page.etag?.takeIf { it.isNotBlank() }
+                ?: refreshedHttpEtag
+        writeEntry(
+            cleanId = cleanId,
+            page = existingCached.page,
+            httpEtag = refreshedHttpEtag,
+            contentEtag = refreshedContentEtag,
+            pageVersion = existingCached.pageVersion ?: existingCached.page.pageVersion,
+            serverAppVersion =
+                existingCached.serverAppVersion
+                    ?: existingCached.page.appVersion
+                    ?: activeManifest?.appVersion,
+            sduiSchemaVersion = activeManifest?.sduiSchemaVersion ?: existingCached.sduiSchemaVersion,
+        )
+        return AppResult.Success(existingCached.page)
+    }
+
     private suspend fun fetchUnconditionalFallback(
         conditionalRemote: ConditionalScreenRepository,
         cleanId: String,
+        activeManifest: ScreenManifestResponse?,
     ): AppResult<PageResponse> =
         when (val fallback = conditionalRemote.fetchScreenConditional(cleanId, ifNoneMatch = null)) {
             is AppResult.Failure -> {
@@ -231,15 +287,7 @@ class CachedScreenRepository(
             is AppResult.Success -> {
                 when (val value = fallback.value) {
                     is ConditionalScreenFetchResult.Modified -> {
-                        val page = value.page
-                        writeEntry(
-                            cleanId = cleanId,
-                            page = page,
-                            etag = value.etag?.takeIf { it.isNotBlank() } ?: page.etag,
-                            pageVersion = page.pageVersion,
-                            entryAppVersion = appVersion ?: page.appVersion,
-                        )
-                        AppResult.Success(page)
+                        persistModifiedResult(cleanId, value, activeManifest)
                     }
 
                     is ConditionalScreenFetchResult.NotModified -> {
@@ -300,8 +348,12 @@ class CachedScreenRepository(
     }
 
     private suspend fun fetchVersionGated(cleanId: String): AppResult<PageResponse> {
-        val cached = readValidEntry(cleanId)
-        val manifest = (getOrFetchManifest() as? AppResult.Success)?.value
+        val manifestResult = getOrFetchManifest()
+        val manifest = (manifestResult as? AppResult.Success)?.value
+        val cached = readValidEntry(cleanId, manifest)
+        if (manifestResult is AppResult.Failure && manifestResult.error is OfflineError && cached != null) {
+            return AppResult.Success(cached.page)
+        }
         val canServeDirectly = cached != null && manifest != null && matchesManifest(cached, manifest, cleanId)
         return if (canServeDirectly) {
             AppResult.Success(cached.page)
@@ -335,23 +387,40 @@ class CachedScreenRepository(
         manifest: ScreenManifestResponse,
         cleanId: String,
     ): Boolean {
-        val meta = manifest.screens[cleanId]
-        val manifestAppVersion = manifest.appVersion.takeIf { it.isNotBlank() }
-        val cachedAppVersion = cached.appVersion?.takeIf { it.isNotBlank() }
-        val appVersionMatches =
-            manifestAppVersion == null || cachedAppVersion == null || manifestAppVersion == cachedAppVersion
-        val metaVersion = meta?.version?.takeIf { it.isNotBlank() }
-        val metaEtag = meta?.etag?.takeIf { it.isNotBlank() }
-        val cachedVersion =
-            cached.pageVersion?.takeIf { it.isNotBlank() } ?: cached.page.pageVersion?.takeIf { it.isNotBlank() }
+        val meta = manifest.screens[cleanId] ?: return false
+        return matchesServerAndSchemaVersions(cached, manifest) && matchesScreenValidators(cached, meta)
+    }
+
+    private fun matchesServerAndSchemaVersions(
+        cached: CachedScreenEntry,
+        manifest: ScreenManifestResponse,
+    ): Boolean {
+        val manifestServerVersion = manifest.appVersion.takeIf { it.isNotBlank() }
+        val cachedServerVersion = cached.serverAppVersion.nonBlankOrNull() ?: cached.page.appVersion.nonBlankOrNull()
+        val serverMatches =
+            manifestServerVersion == null || cachedServerVersion == null || manifestServerVersion == cachedServerVersion
+        val manifestSchema = manifest.sduiSchemaVersion.nonBlankOrNull()
+        val schemaMatches = manifestSchema == null || cached.sduiSchemaVersion.nonBlankOrNull() == manifestSchema
+        return serverMatches && schemaMatches
+    }
+
+    private fun matchesScreenValidators(
+        cached: CachedScreenEntry,
+        meta: dev.abeta.kmp.contracts.ScreenVersionMeta,
+    ): Boolean {
+        val metaVersion = meta.version.nonBlankOrNull()
+        val metaEtag = meta.etag.nonBlankOrNull()
+        val cachedVersion = cached.pageVersion.nonBlankOrNull() ?: cached.page.pageVersion.nonBlankOrNull()
         val cachedEtag =
-            cached.etag?.takeIf { it.isNotBlank() } ?: cached.page.etag?.takeIf { it.isNotBlank() }
+            cached.contentEtag.nonBlankOrNull()
+                ?: cached.page.etag.nonBlankOrNull()
+                ?: cached.httpEtag.nonBlankOrNull()
+                ?: cached.etag.nonBlankOrNull()
         val versionComparable = metaVersion != null && cachedVersion != null
         val etagComparable = metaEtag != null && cachedEtag != null
-        val hasComparableValidator = versionComparable || etagComparable
         val versionMatches = !versionComparable || metaVersion == cachedVersion
         val etagMatches = !etagComparable || metaEtag == cachedEtag
-        return meta != null && appVersionMatches && hasComparableValidator && versionMatches && etagMatches
+        return (versionComparable || etagComparable) && versionMatches && etagMatches
     }
 
     private fun isFresh(entry: CachedScreenEntry): Boolean {
@@ -359,15 +428,28 @@ class CachedScreenRepository(
         return ageMillis < ttlMillis
     }
 
-    private fun isAppVersionMismatched(entry: CachedScreenEntry): Boolean {
-        val expected = appVersion?.takeIf { it.isNotBlank() }
-        val stored = entry.appVersion?.takeIf { it.isNotBlank() }
-        return expected != null && stored != null && stored != expected
+    private fun isAppVersionMismatched(
+        entry: CachedScreenEntry,
+        activeManifest: ScreenManifestResponse? = null,
+    ): Boolean {
+        val expectedClientVersion = appVersion.nonBlankOrNull()
+        val clientMismatched =
+            expectedClientVersion != null && entry.clientAppVersion.nonBlankOrNull() != expectedClientVersion
+        val manifestSchema = activeManifest?.sduiSchemaVersion.nonBlankOrNull()
+        val schemaMismatched =
+            manifestSchema != null && entry.sduiSchemaVersion.nonBlankOrNull() != manifestSchema
+        return clientMismatched || schemaMismatched
     }
 
-    private suspend fun readValidEntry(cleanId: String): CachedScreenEntry? {
+    private fun String?.nonBlankOrNull(): String? = this?.takeIf { it.isNotBlank() }
+
+    private suspend fun readValidEntry(
+        cleanId: String,
+        activeManifest: ScreenManifestResponse? = null,
+    ): CachedScreenEntry? {
         val entry = readEntry(cleanId) ?: return null
-        return if (isAppVersionMismatched(entry)) {
+        val manifest = activeManifest ?: manifestMutex.withLock { cachedManifest }?.response
+        return if (isAppVersionMismatched(entry, manifest)) {
             removeEntry(cleanId)
             null
         } else {
@@ -387,24 +469,40 @@ class CachedScreenRepository(
         }
     }
 
+    @Suppress("LongParameterList")
     private suspend fun writeEntry(
         cleanId: String,
         page: PageResponse,
-        etag: String? = page.etag,
+        httpEtag: String? = page.etag,
+        contentEtag: String? = page.etag,
         pageVersion: String? = page.pageVersion,
-        entryAppVersion: String? = appVersion ?: page.appVersion,
+        serverAppVersion: String? = page.appVersion,
+        sduiSchemaVersion: String? = null,
     ) {
+        val normalizedHttpEtag = httpEtag?.takeIf { it.isNotBlank() }
+        val normalizedContentEtag = contentEtag?.takeIf { it.isNotBlank() }
+        val normalizedClientVersion = appVersion?.takeIf { it.isNotBlank() }
+        val normalizedServerVersion = serverAppVersion?.takeIf { it.isNotBlank() }
         val entry =
             CachedScreenEntry(
                 cachedAtEpochMillis = clock.nowEpochMillis(),
                 page = page,
-                etag = etag?.takeIf { it.isNotBlank() },
+                etag = normalizedContentEtag ?: normalizedHttpEtag,
                 pageVersion = pageVersion?.takeIf { it.isNotBlank() },
-                appVersion = entryAppVersion?.takeIf { it.isNotBlank() },
+                appVersion = normalizedClientVersion ?: normalizedServerVersion,
+                httpEtag = normalizedHttpEtag,
+                contentEtag = normalizedContentEtag,
+                serverAppVersion = normalizedServerVersion,
+                clientAppVersion = normalizedClientVersion,
+                sduiSchemaVersion = sduiSchemaVersion?.takeIf { it.isNotBlank() },
             )
-        val encoded = json.encodeToString(CachedScreenEntry.serializer(), entry)
-        storeMutex.withLock {
-            store.putString(cacheKey(cleanId), encoded)
+        runCatching {
+            val encoded = json.encodeToString(CachedScreenEntry.serializer(), entry)
+            storeMutex.withLock {
+                store.putString(cacheKey(cleanId), encoded)
+            }
+        }.onFailure { throwable ->
+            if (throwable is CancellationException) throw throwable
         }
     }
 
@@ -424,6 +522,11 @@ class CachedScreenRepository(
         val etag: String? = null,
         val pageVersion: String? = null,
         val appVersion: String? = null,
+        val httpEtag: String? = null,
+        val contentEtag: String? = null,
+        val serverAppVersion: String? = null,
+        val clientAppVersion: String? = null,
+        val sduiSchemaVersion: String? = null,
     )
 
     companion object {

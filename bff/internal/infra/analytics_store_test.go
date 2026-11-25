@@ -115,4 +115,37 @@ func TestInMemoryAnalyticsStore_CountersRingBufferAndConcurrency(t *testing.T) {
 	if err != nil || finalSum.TotalEvents != 81 {
 		t.Fatalf("expected 81 total events after concurrent batches, got %+v, err=%v", finalSum, err)
 	}
+
+	// Dimension cardinality bounding (> 1000 unique keys aggregated under "_other")
+	capStore := infra.NewInMemoryAnalyticsStore(10)
+	for b := range 11 {
+		events := make([]analytics.Event, 0, 100)
+		for j := range 100 {
+			idx := b*100 + j
+			events = append(events, analytics.Event{
+				EventID:     fmt.Sprintf("cap_%d", idx),
+				EventName:   fmt.Sprintf("ev_%d", idx),
+				Category:    fmt.Sprintf("cat_%d", idx),
+				PageID:      fmt.Sprintf("page_%d", idx),
+				ComponentID: fmt.Sprintf("comp_%d", idx),
+			})
+		}
+		if _, err := capStore.RecordBatch(ctx, analytics.BatchRequest{Events: events}); err != nil {
+			t.Fatalf("bounded RecordBatch %d failed: %v", b, err)
+		}
+	}
+	capSum, err := capStore.GetSummary(ctx)
+	if err != nil {
+		t.Fatalf("bounded GetSummary failed: %v", err)
+	}
+	if capSum.TotalEvents != 1100 {
+		t.Fatalf("expected 1100 total events, got %d", capSum.TotalEvents)
+	}
+	if capSum.ByComponentID["_other"] != 100 || capSum.ByPageID["_other"] != 100 || capSum.ByEventName["_other"] != 100 || capSum.ByCategory["_other"] != 100 {
+		t.Fatalf("expected 100 overflow events aggregated under _other, got comp=%d page=%d ev=%d cat=%d",
+			capSum.ByComponentID["_other"], capSum.ByPageID["_other"], capSum.ByEventName["_other"], capSum.ByCategory["_other"])
+	}
+	if len(capSum.ByComponentID) != 1001 {
+		t.Fatalf("expected bounded 1000 keys + _other (1001), got %d", len(capSum.ByComponentID))
+	}
 }

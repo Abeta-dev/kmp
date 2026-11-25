@@ -45,6 +45,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 private const val HTTP_OK = 200
 
@@ -66,13 +67,16 @@ fun createWatchCompanionModule(
     sharePort: SharePort? = null,
     connectivityMonitor: ConnectivityMonitor? = null,
     certificatePins: Map<String, List<String>> = emptyMap(),
+    secureKeyValueStore: SecureKeyValueStore? = null,
 ): Module =
     module {
         single<Clock> { SystemClock() }
         single<AppLogger> { logger }
         single<CoroutineScope> { scope ?: CoroutineScope(SupervisorJob() + DefaultDispatcherProvider().default) }
         single<KeyValueStore> { keyValueStore ?: createPersistentKeyValueStore("abeta.watch.settings") }
-        single<SecureKeyValueStore> { createSecureKeyValueStore("dev.abeta.kmp.watch.secure") }
+        single<SecureKeyValueStore> {
+            secureKeyValueStore ?: createSecureKeyValueStore("dev.abeta.kmp.watch.secure")
+        }
         single<SessionStore> { PersistentSessionStore(backingStore = get()) }
         single<AnalyticsTracker> { LoggerAnalyticsTracker(logger = get(), clock = get()) }
         single<PlatformCapabilities> { currentPlatformCapabilities() }
@@ -87,9 +91,11 @@ fun createWatchCompanionModule(
                 json = SduiJson,
                 engine = httpEngine,
             )
-        }
+        } onClose { it?.close() }
         single<HttpTransport> { KtorHttpTransport(httpClient = get(), json = SduiJson, clock = get()) }
-        single<WatchPageSource> { pageSource ?: RemoteWatchPageSource(httpTransport = get()) }
+        single<WatchPageSource> {
+            pageSource ?: RemoteWatchPageSource(httpTransport = get(), cacheStore = get())
+        }
         single<ApiCallExecutor> { apiCallExecutor ?: WatchRemoteApiCallExecutor(httpTransport = get()) }
         single { WatchScreenMapper(json = SduiJson) }
         single<ActionDecoderRegistry> { BuiltInActionDecoders.createDefaultRegistry() }

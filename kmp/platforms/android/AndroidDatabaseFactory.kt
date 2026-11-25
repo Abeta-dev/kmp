@@ -18,8 +18,8 @@ import dev.abeta.kmp.database.AbetaLocalDatabase
  * inside a host Android Gradle app (`compileSdk >= 35`).
  *
  * Copy into your Android / Wear OS host application module alongside:
- * - `implementation(platform("dev.abeta.kmp:bom:<version>"))`
- * - `implementation("dev.abeta.kmp:database")`
+ * - `implementation(platform("io.github.abeta-dev:bom:<version>"))`
+ * - `implementation("io.github.abeta-dev:database")`
  * - `implementation("androidx.sqlite:sqlite-bundled:2.7.1")`
  */
 object AndroidDatabaseFactory {

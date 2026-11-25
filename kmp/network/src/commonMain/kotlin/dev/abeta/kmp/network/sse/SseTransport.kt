@@ -70,13 +70,21 @@ interface SseTransport {
  */
 class SseLineParser(
     initialLastEventId: String? = null,
+    private val maxEventDataBytes: Int = DEFAULT_MAX_EVENT_DATA_BYTES,
 ) {
+    init {
+        require(maxEventDataBytes > 0) { "maxEventDataBytes must be positive." }
+    }
+
     private var seenFirstLine: Boolean = false
     private var eventName: String? = null
     private val dataLines: MutableList<String> = mutableListOf()
+    private var bufferedDataBytes: Int = 0
     private var pendingRetryMillis: Long? = null
+    private var hasPendingEventId: Boolean = false
+    private var pendingEventId: String? = null
 
-    /** Most recently observed valid `id:` field value (persists across events per WHATWG spec). */
+    /** Most recently dispatched valid `id:` field value (persists across events per WHATWG spec). */
     var lastEventId: String? = initialLastEventId
         private set
 
@@ -144,12 +152,18 @@ class SseLineParser(
             }
 
             FIELD_DATA -> {
+                val lineBytes = fieldValue.encodeToByteArray().size + if (dataLines.isEmpty()) 0 else 1
+                check(bufferedDataBytes + lineBytes <= maxEventDataBytes) {
+                    "SSE event data payload exceeded maxEventDataBytes ($maxEventDataBytes)."
+                }
+                bufferedDataBytes += lineBytes
                 dataLines.add(fieldValue)
             }
 
             FIELD_ID -> {
                 if (NULL_CHAR !in fieldValue) {
-                    lastEventId = fieldValue.ifEmpty { null }
+                    hasPendingEventId = true
+                    pendingEventId = fieldValue.ifEmpty { null }
                 }
             }
 
@@ -169,10 +183,19 @@ class SseLineParser(
         pendingRetryMillis = null
 
         return if (dataLines.isEmpty()) {
+            hasPendingEventId = false
+            pendingEventId = null
+            bufferedDataBytes = 0
             null
         } else {
+            if (hasPendingEventId) {
+                lastEventId = pendingEventId
+                hasPendingEventId = false
+                pendingEventId = null
+            }
             val payload = dataLines.joinToString(separator = "\n")
             dataLines.clear()
+            bufferedDataBytes = 0
             SseEvent(
                 id = lastEventId,
                 event = resolvedEventName,
@@ -183,6 +206,7 @@ class SseLineParser(
     }
 
     companion object {
+        const val DEFAULT_MAX_EVENT_DATA_BYTES: Int = 1_048_576
         private const val UTF8_BOM: Char = '\uFEFF'
         private const val NULL_CHAR: Char = '\u0000'
         private const val FIELD_EVENT: String = "event"

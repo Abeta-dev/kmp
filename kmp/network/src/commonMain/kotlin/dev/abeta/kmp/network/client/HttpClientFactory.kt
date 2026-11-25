@@ -1,5 +1,6 @@
 package dev.abeta.kmp.network.client
 
+import dev.abeta.kmp.core.security.SensitiveDataRedactor
 import dev.abeta.kmp.network.config.NetworkConfig
 import dev.abeta.kmp.network.ports.AuthTokenProvider
 import dev.abeta.kmp.network.ports.HeaderProvider
@@ -20,9 +21,24 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.SIMPLE
-import io.ktor.client.request.header
+import io.ktor.client.request.HttpRequest
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
+
+private const val HTTP_SERVER_ERROR_START = 500
+private const val HTTP_SERVER_ERROR_END = 599
+private const val HEADER_CLIENT_APP_VERSION = "X-Client-App-Version"
+private const val HEADER_CSRF_TOKEN = "X-CSRF-Token"
+private const val HEADER_IDEMPOTENCY_KEY = "Idempotency-Key"
+private const val MIME_EVENT_STREAM = "text/event-stream"
 
 internal expect fun createPlatformHttpClient(
     config: NetworkConfig,
@@ -33,11 +49,53 @@ internal expect fun ContentEncodingConfig.installPlatformBrotli(quality: Float? 
 
 internal expect val platformHandlesEncodingNatively: Boolean
 
+private data class ParsedOrigin(
+    val protocol: String,
+    val host: String,
+    val port: Int,
+) {
+    fun matches(url: URLBuilder): Boolean {
+        val candidatePort = if (url.port == 0) url.protocol.defaultPort else url.port
+        return url.protocol.name.equals(protocol, ignoreCase = true) &&
+            url.host
+                .trim()
+                .trimEnd('.')
+                .lowercase() == host &&
+            candidatePort == port
+    }
+
+    fun matches(url: Url): Boolean {
+        val candidatePort = if (url.port == 0) url.protocol.defaultPort else url.port
+        return url.protocol.name.equals(protocol, ignoreCase = true) &&
+            url.host
+                .trim()
+                .trimEnd('.')
+                .lowercase() == host &&
+            candidatePort == port
+    }
+
+    companion object {
+        fun parse(baseUrl: String): ParsedOrigin {
+            val parsed = Url(baseUrl.trim())
+            val resolvedPort = if (parsed.port == 0) parsed.protocol.defaultPort else parsed.port
+            return ParsedOrigin(
+                protocol = parsed.protocol.name.lowercase(),
+                host =
+                    parsed.host
+                        .trim()
+                        .trimEnd('.')
+                        .lowercase(),
+                port = resolvedPort,
+            )
+        }
+    }
+}
+
 /**
  * Factory creating configured Ktor [HttpClient] instances from [NetworkConfig] and DIP ports.
  *
  * Configures HTTP/2 ALPN negotiation (OkHttp on JVM/Android, Darwin NSURLSession on Apple, browser on Wasm),
- * Brotli/gzip/deflate compression, timeouts, retries, dynamic headers, and bearer auth.
+ * Brotli/gzip/deflate compression, timeouts, idempotent retries, same-origin headers, and bearer auth.
  */
 object HttpClientFactory {
     /** Default lenient JSON configuration used when no custom [Json] instance is supplied. */
@@ -60,12 +118,13 @@ object HttpClientFactory {
         json: Json = defaultJson,
         engine: HttpClientEngine? = null,
     ): HttpClient {
+        val baseOrigin = ParsedOrigin.parse(config.baseUrl)
         val usingCustomEngine = engine != null
         val configureBlock: HttpClientConfig<*>.() -> Unit = {
             configureCorePlugins(config, json, forcePluginCompression = usingCustomEngine)
             configureRetry(config)
-            configureRequests(config, headerProvider)
-            configureAuth(authTokenProvider)
+            configureRequests(config, baseOrigin, headerProvider)
+            configureAuth(authTokenProvider, baseOrigin)
         }
 
         return if (engine != null) {
@@ -113,6 +172,7 @@ object HttpClientFactory {
             install(Logging) {
                 level = LogLevel.HEADERS
                 logger = Logger.SIMPLE
+                sanitizeHeader { name -> isSensitiveLogHeader(name) }
             }
         }
     }
@@ -122,13 +182,15 @@ object HttpClientFactory {
         install(HttpRequestRetry) {
             maxRetries = config.retry.maxRetries
             if (config.retry.retryOnServerErrors) {
-                retryOnServerErrors(maxRetries = config.retry.maxRetries)
+                retryIf(maxRetries = config.retry.maxRetries) { request, response ->
+                    isRetryEligibleRequest(request) &&
+                        response.status.value in HTTP_SERVER_ERROR_START..HTTP_SERVER_ERROR_END
+                }
             }
             if (config.retry.retryOnExceptions) {
-                retryOnException(
-                    maxRetries = config.retry.maxRetries,
-                    retryOnTimeout = true,
-                )
+                retryOnExceptionIf(maxRetries = config.retry.maxRetries) { request, cause ->
+                    cause !is CancellationException && isRetryEligibleBuilder(request)
+                }
             }
             exponentialDelay(
                 baseDelayMs = config.retry.initialDelayMillis,
@@ -139,46 +201,111 @@ object HttpClientFactory {
 
     private fun HttpClientConfig<*>.configureRequests(
         config: NetworkConfig,
+        baseOrigin: ParsedOrigin,
         headerProvider: HeaderProvider?,
     ) {
         defaultRequest {
             url(config.baseUrl)
-            config.defaultHeaders.forEach { (name, value) ->
-                header(name, value)
-            }
         }
 
-        if (headerProvider != null) {
-            install(dynamicHeadersPlugin(headerProvider))
+        val staticHeaders =
+            buildMap {
+                putAll(config.defaultHeaders)
+                val appVer = config.appVersion?.trim()
+                if (!appVer.isNullOrEmpty() && !containsHeaderIgnoreCase(HEADER_CLIENT_APP_VERSION)) {
+                    put(HEADER_CLIENT_APP_VERSION, appVer)
+                }
+            }
+
+        if (staticHeaders.isNotEmpty() || headerProvider != null) {
+            install(sameOriginHeadersPlugin(baseOrigin, staticHeaders, headerProvider))
         }
     }
 
-    private fun HttpClientConfig<*>.configureAuth(authTokenProvider: AuthTokenProvider?) {
+    private fun HttpClientConfig<*>.configureAuth(
+        authTokenProvider: AuthTokenProvider?,
+        baseOrigin: ParsedOrigin,
+    ) {
         if (authTokenProvider == null) return
+        val refreshedOverride = MutableStateFlow<Pair<String, String>?>(null)
         install(Auth) {
             bearer {
+                cacheTokens = false
+                sendWithoutRequest { request -> baseOrigin.matches(request.url) }
                 loadTokens {
-                    authTokenProvider.accessToken()?.let { token ->
-                        BearerTokens(accessToken = token, refreshToken = "")
-                    }
+                    val current = authTokenProvider.accessToken()
+                    val pending = refreshedOverride.value
+                    val resolved =
+                        if (current != null && pending != null && current == pending.first) {
+                            pending.second
+                        } else {
+                            if (pending != null) {
+                                refreshedOverride.value = null
+                            }
+                            current
+                        }
+                    resolved?.let { token -> BearerTokens(accessToken = token, refreshToken = "") }
                 }
                 refreshTokens {
-                    authTokenProvider.refreshToken()?.let { token ->
-                        BearerTokens(accessToken = token, refreshToken = "")
+                    if (!baseOrigin.matches(response.call.request.url)) {
+                        return@refreshTokens null
+                    }
+                    val refreshed = authTokenProvider.refreshToken()
+                    val priorToken = oldTokens?.accessToken
+                    if (refreshed != null) {
+                        refreshedOverride.value = priorToken?.let { it to refreshed }
+                        BearerTokens(accessToken = refreshed, refreshToken = "")
+                    } else {
+                        refreshedOverride.value = null
+                        null
                     }
                 }
             }
         }
     }
 
-    private fun dynamicHeadersPlugin(headerProvider: HeaderProvider) =
-        createClientPlugin("AbetaDynamicHeaders") {
-            onRequest { request, _ ->
-                headerProvider.headers().forEach { (name, value) ->
-                    if (!request.headers.contains(name)) {
-                        request.headers.append(name, value)
-                    }
+    private fun sameOriginHeadersPlugin(
+        baseOrigin: ParsedOrigin,
+        staticHeaders: Map<String, String>,
+        headerProvider: HeaderProvider?,
+    ) = createClientPlugin("AbetaSameOriginHeaders") {
+        onRequest { request, _ ->
+            if (!baseOrigin.matches(request.url)) return@onRequest
+            staticHeaders.forEach { (name, value) ->
+                if (!request.headers.containsIgnoreCase(name)) {
+                    request.headers.append(name, value)
+                }
+            }
+            headerProvider?.headers()?.forEach { (name, value) ->
+                if (!request.headers.containsIgnoreCase(name)) {
+                    request.headers.append(name, value)
                 }
             }
         }
+    }
+
+    private fun isSensitiveLogHeader(name: String): Boolean =
+        SensitiveDataRedactor.Default.isSensitiveKey(name) ||
+            name.equals(HttpHeaders.Cookie, ignoreCase = true) ||
+            name.equals(HttpHeaders.SetCookie, ignoreCase = true) ||
+            name.equals(HEADER_CSRF_TOKEN, ignoreCase = true) ||
+            name.equals(HttpHeaders.Authorization, ignoreCase = true)
+
+    private fun isRetryEligibleRequest(request: HttpRequest): Boolean {
+        val accept = request.headers[HttpHeaders.Accept].orEmpty()
+        if (accept.contains(MIME_EVENT_STREAM, ignoreCase = true)) return false
+        return isIdempotentMethod(request.method) || request.headers[HEADER_IDEMPOTENCY_KEY] != null
+    }
+
+    private fun isRetryEligibleBuilder(request: HttpRequestBuilder): Boolean {
+        val accept = request.headers[HttpHeaders.Accept].orEmpty()
+        if (accept.contains(MIME_EVENT_STREAM, ignoreCase = true)) return false
+        return isIdempotentMethod(request.method) || request.headers.containsIgnoreCase(HEADER_IDEMPOTENCY_KEY)
+    }
+
+    private fun isIdempotentMethod(method: HttpMethod): Boolean =
+        method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options
+
+    private fun HeadersBuilder.containsIgnoreCase(name: String): Boolean =
+        names().any { existing -> existing.equals(name, ignoreCase = true) }
 }

@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import dev.abeta.kmp.core.logging.AppLogger
 import dev.abeta.kmp.core.logging.KermitAppLogger
+import dev.abeta.kmp.layout.snippet.CustomSlotRegistry
 import dev.abeta.kmp.layout.ui.SduiHostedRoot
 
 private const val DEFAULT_WINDOW_WIDTH_DP = 1040
@@ -14,6 +15,7 @@ private const val DEFAULT_WINDOW_HEIGHT_DP = 820
  * Opens a native Cocoa macOS [Window] hosting [dev.abeta.kmp.layout.ui.SduiScreen] powered by
  * Koin orchestration and macOS [dev.abeta.kmp.layout.platform.PlatformBridgeBundle].
  */
+@Suppress("LongParameterList")
 fun launchMacOsSduiWindow(
     screenId: String = "home",
     bffBaseUrl: String? = null,
@@ -21,6 +23,7 @@ fun launchMacOsSduiWindow(
     widthDp: Int = DEFAULT_WINDOW_WIDTH_DP,
     heightDp: Int = DEFAULT_WINDOW_HEIGHT_DP,
     logger: AppLogger = KermitAppLogger(),
+    customSlotRegistry: CustomSlotRegistry = CustomSlotRegistry.Empty,
 ) {
     Window(
         title = title,
@@ -31,6 +34,7 @@ fun launchMacOsSduiWindow(
             bffBaseUrl = bffBaseUrl,
             logger = logger,
             platformLabel = "macOS",
+            customSlotRegistry = customSlotRegistry,
         )
     }
 }

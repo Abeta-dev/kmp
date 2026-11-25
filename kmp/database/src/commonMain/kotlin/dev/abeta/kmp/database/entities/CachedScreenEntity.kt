@@ -20,4 +20,6 @@ data class CachedScreenEntity(
     val etag: String? = null,
     val cachedAtEpochMillis: Long,
     val expiresAtEpochMillis: Long? = null,
+    val pageVersion: String? = null,
+    val appVersion: String? = null,
 )

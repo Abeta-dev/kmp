@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.atoms.atoms.UiButton
 import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
 import dev.abeta.kmp.atoms.atoms.UiTag
@@ -123,40 +124,25 @@ fun ResponsiveAndBridgesStory(onAction: (ActionRef) -> Unit) {
         CapabilitiesSnapshotCard(
             bridgeLog = bridgeLog,
             shakeSequence = shakeSequence,
-            onTriggerClipboardAndLink = {
+            onTriggerClipboardAndLink = { action ->
                 val parsed = DeepLinkParser.parse("abeta://store-home?promo=FRESH10")
                 val clipboard = createPlatformClipboardPort()
                 clipboard.copy(parsed?.rawUri ?: "", label = "DeepLink")
                 val echoed = clipboard.readText().getOrNull().orEmpty()
                 bridgeLog =
                     "DeepLink screen=${parsed?.screenId} promo=${parsed?.params?.get("promo")} · clipboard=$echoed"
-                onAction(
-                    ActionRef(
-                        type = "copy_to_clipboard",
-                        payload = buildJsonObject { put("text", parsed?.rawUri ?: "") },
-                    ),
-                )
+                onAction(action)
             },
-            onTriggerHaptic = {
+            onTriggerHaptic = { action ->
                 createPlatformHapticEngine().perform(HapticStyle.SUCCESS)
                 bridgeLog = "Triggered OS HapticStyle.SUCCESS on ${currentPlatformCapabilities().platform.name}"
-                onAction(
-                    ActionRef(
-                        type = "trigger_feedback",
-                        payload = buildJsonObject { put("effect", "haptic_tick") },
-                    ),
-                )
+                onAction(action)
             },
-            onTriggerShake = {
+            onTriggerShake = { action ->
                 shakeSequence += 1L
                 createPlatformHapticEngine().perform(HapticStyle.ERROR)
                 bridgeLog = "Triggered error shake #$shakeSequence"
-                onAction(
-                    ActionRef(
-                        type = "trigger_feedback",
-                        payload = buildJsonObject { put("effect", "shake_error") },
-                    ),
-                )
+                onAction(action)
             },
         )
 
@@ -189,6 +175,8 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
     val audioPreview = previewBundle.audioCapturePort as FakeAudioCapturePort
     val speechPreview = previewBundle.speechToTextPort as FakeSpeechToTextPort
     val desktopPreview = previewBundle.desktopSystemPort as RecordingDesktopSystemPort
+    val audioState by audioPreview.state.collectAsStateWithLifecycle()
+    val speechState by speechPreview.state.collectAsStateWithLifecycle()
     var voiceDesktopLog by remember {
         mutableStateOf(
             "AudioCapturePort, SpeechToTextPort & DesktopSystemPort wired in PlatformBridgeBundle.",
@@ -204,8 +192,8 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(spacing.space8),
                 verticalArrangement = Arrangement.spacedBy(spacing.space8),
             ) {
-                UiTag(TagAtom(label = "AudioCapturePort: ${audioPreview.state.value}", variant = TagVariant.BRAND))
-                UiTag(TagAtom(label = "SpeechToTextPort: ${speechPreview.state.value}", variant = TagVariant.INFO))
+                UiTag(TagAtom(label = "AudioCapturePort: $audioState", variant = TagVariant.BRAND))
+                UiTag(TagAtom(label = "SpeechToTextPort: $speechState", variant = TagVariant.INFO))
                 UiTag(
                     TagAtom(
                         label =
@@ -228,9 +216,14 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
                         ButtonAtom(
                             label = "Simulate Voice Capture",
                             size = ButtonSize.SMALL,
-                            onClick = ActionRef(id = "story_voice_capture", type = "track_event"),
+                            onClick =
+                                ActionRef(
+                                    id = "story_voice_capture",
+                                    type = "track_event",
+                                    payload = buildJsonObject { put("port", "AudioCapturePort") },
+                                ),
                         ),
-                    onAction = {
+                    onAction = { action ->
                         scope.launch {
                             audioPreview.startCapture(AudioCaptureConfig())
                             audioPreview.emitLevel(AudioLevelSample(normalizedAmplitude = 0.72f))
@@ -238,13 +231,7 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
                             voiceDesktopLog =
                                 "AudioCapturePort captured $bytes PCM bytes (16kHz mono, peak 0.72)."
                         }
-                        onAction(
-                            ActionRef(
-                                id = "story_voice_capture",
-                                type = "track_event",
-                                payload = buildJsonObject { put("port", "AudioCapturePort") },
-                            ),
-                        )
+                        onAction(action)
                     },
                 )
                 UiButton(
@@ -253,9 +240,14 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
                             label = "Simulate Speech Transcript",
                             variant = ButtonVariant.SECONDARY,
                             size = ButtonSize.SMALL,
-                            onClick = ActionRef(id = "story_speech_stt", type = "track_event"),
+                            onClick =
+                                ActionRef(
+                                    id = "story_speech_stt",
+                                    type = "track_event",
+                                    payload = buildJsonObject { put("port", "SpeechToTextPort") },
+                                ),
                         ),
-                    onAction = {
+                    onAction = { action ->
                         scope.launch {
                             speechPreview.startListening(localeTag = "en-US", partialResults = true)
                             speechPreview.emitTranscript(
@@ -270,13 +262,7 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
                             voiceDesktopLog =
                                 "SpeechToTextPort final transcript: \"${chunk?.text.orEmpty()}\" (96%)."
                         }
-                        onAction(
-                            ActionRef(
-                                id = "story_speech_stt",
-                                type = "track_event",
-                                payload = buildJsonObject { put("port", "SpeechToTextPort") },
-                            ),
-                        )
+                        onAction(action)
                     },
                 )
                 UiButton(
@@ -285,9 +271,14 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
                             label = "Update Desktop Tray & Badge",
                             variant = ButtonVariant.OUTLINE,
                             size = ButtonSize.SMALL,
-                            onClick = ActionRef(id = "story_desktop_tray", type = "track_event"),
+                            onClick =
+                                ActionRef(
+                                    id = "story_desktop_tray",
+                                    type = "track_event",
+                                    payload = buildJsonObject { put("port", "DesktopSystemPort") },
+                                ),
                         ),
-                    onAction = {
+                    onAction = { action ->
                         scope.launch {
                             desktopPreview.updateTrayState(
                                 DesktopTrayState(
@@ -303,13 +294,7 @@ private fun VoiceAndDesktopBridgesCard(onAction: (ActionRef) -> Unit) {
                                 "badge=${desktopPreview.badgeCounts.last()}, " +
                                 "settings=${desktopPreview.openedSettings.last()}."
                         }
-                        onAction(
-                            ActionRef(
-                                id = "story_desktop_tray",
-                                type = "track_event",
-                                payload = buildJsonObject { put("port", "DesktopSystemPort") },
-                            ),
-                        )
+                        onAction(action)
                     },
                 )
             }
@@ -356,9 +341,9 @@ private fun AdaptiveGridPreviewCard(
 private fun CapabilitiesSnapshotCard(
     bridgeLog: String,
     shakeSequence: Long,
-    onTriggerClipboardAndLink: () -> Unit,
-    onTriggerHaptic: () -> Unit,
-    onTriggerShake: () -> Unit,
+    onTriggerClipboardAndLink: (ActionRef) -> Unit,
+    onTriggerHaptic: (ActionRef) -> Unit,
+    onTriggerShake: (ActionRef) -> Unit,
 ) {
     val spacing = ThemeTokens.spacing
     val typography = ThemeTokens.typography
@@ -403,7 +388,7 @@ private fun CapabilitiesSnapshotCard(
                                     payload = buildJsonObject { put("text", "abeta://store-home?promo=FRESH10") },
                                 ),
                         ),
-                    onAction = { onTriggerClipboardAndLink() },
+                    onAction = onTriggerClipboardAndLink,
                 )
                 UiButton(
                     atom =
@@ -418,7 +403,7 @@ private fun CapabilitiesSnapshotCard(
                                     payload = buildJsonObject { put("effect", "haptic_tick") },
                                 ),
                         ),
-                    onAction = { onTriggerHaptic() },
+                    onAction = onTriggerHaptic,
                 )
                 UiButton(
                     atom =
@@ -433,7 +418,7 @@ private fun CapabilitiesSnapshotCard(
                                     payload = buildJsonObject { put("effect", "shake_error") },
                                 ),
                         ),
-                    onAction = { onTriggerShake() },
+                    onAction = onTriggerShake,
                 )
             }
         }

@@ -102,6 +102,21 @@ class KermitAppLogger(
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is KermitAppLogger) return false
+        return minLevel == other.minLevel &&
+            delegate.tag == other.delegate.tag &&
+            delegate.config.minSeverity == other.delegate.config.minSeverity
+    }
+
+    override fun hashCode(): Int {
+        var result = minLevel.hashCode()
+        result = HASH_MULTIPLIER * result + delegate.tag.hashCode()
+        result = HASH_MULTIPLIER * result + delegate.config.minSeverity.hashCode()
+        return result
+    }
+
     private fun LogLevel.toKermitSeverity(): Severity =
         when (this) {
             LogLevel.VERBOSE -> Severity.Verbose
@@ -110,6 +125,10 @@ class KermitAppLogger(
             LogLevel.WARN -> Severity.Warn
             LogLevel.ERROR -> Severity.Error
         }
+
+    private companion object {
+        const val HASH_MULTIPLIER = 31
+    }
 }
 
 /**

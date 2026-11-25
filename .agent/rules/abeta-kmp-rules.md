@@ -2,7 +2,7 @@
 
 1. Always consult [AGENTS.md](../../AGENTS.md) and load the matching skill under `skills/` plus the responsible module owner persona under `agents/owners/` before modifying code.
 2. Enforce the **Uncle Bob Dependency Rule** strictly:
-   - Layer 0 (`core`, `state`, `analytics`) has zero dependencies on Layers 1–3.
+   - Layer 0 (`core`, `state`, `analytics`, `database`) has zero dependencies on Layers 1–3.
    - Layer 1 (`design-tokens`, `sdui-contracts`, `ui-atoms`) NEVER imports `core`, `action-engine`, `network`, or `sdui-layout`.
    - Layer 2 (`action-engine`, `network`) NEVER imports `ui-atoms`, `sdui-layout`, `watch-companion`, or each other.
    - `watch-companion` stays 100% headless (zero Compose UI).

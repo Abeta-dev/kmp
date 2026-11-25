@@ -47,14 +47,14 @@ func buildFreshHeroMediaPager() snippets.SnippetEnvelope {
 			Padding:      atoms.SymmetricSpacing(theming.SpacingLG.Dp(), theming.SpacingXS.Dp()),
 			FillMaxWidth: atoms.BoolPtr(true),
 		}).
-		WithTracking("node_impression", map[string]any{
+		WithTracking("node_impression", map[string]string{
 			"component_id": "fresh_hero_pager_node",
 			"surface":      "fresh-home",
 		})
 
 	return snippets.NewComposedBlockSnippet("fresh_hero_media_block", "fresh_hero_media", root).
 		WithRecipeName("express_hero_media_pager").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "fresh_hero_media_block",
 			"surface":    "fresh-home",
 		}).
@@ -165,7 +165,7 @@ func buildFreshExpressProductGrid() snippets.SnippetEnvelope {
 
 	return snippets.NewComposedBlockSnippet("fresh_bestsellers_block", "fresh_bestsellers", root).
 		WithRecipeName("express_product_grid").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "fresh_bestsellers_block",
 			"surface":    "fresh-home",
 		}).
@@ -188,7 +188,7 @@ func buildFreshHomeScreen() snippets.PageResponse {
 			Route: "/screens/fresh-home",
 		})).
 		WithLayout(cardLayout()).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "fresh_sticky_search",
 			"sticky":     "true",
 		}).
@@ -297,7 +297,7 @@ func buildFreshHomeScreen() snippets.PageResponse {
 			NudgePrefix:                "Add $6.52 more for FREE express delivery",
 			UnlockedLabel:              "FREE express delivery unlocked!",
 		}).
-		WithTracking("page_loaded", map[string]any{"page_id": "fresh-home", "vertical": "abeta-fresh"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "fresh-home", "vertical": "abeta-fresh"}).
 		Build()
 
 	snippets.EnsureComponentIDs(&page)

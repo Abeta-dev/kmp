@@ -29,8 +29,9 @@ data class CompressionPolicy(
  * @property retry Retry policy applied to transient transport and server failures.
  * @property protocolMode Preferred HTTP protocol version negotiation policy.
  * @property compression Content encoding (`br`, `gzip`, `deflate`) preferences.
- * @property defaultHeaders Static headers attached to every outgoing request.
+ * @property defaultHeaders Static headers attached to every outgoing same-origin request.
  * @property certificatePins Optional map of hostname pattern to SHA-256 certificate pins (e.g. `"sha256/..."`).
+ * @property appVersion Optional client application version attached as `X-Client-App-Version` on same-origin requests.
  */
 data class NetworkConfig(
     val baseUrl: String,
@@ -41,9 +42,22 @@ data class NetworkConfig(
     val compression: CompressionPolicy = CompressionPolicy(),
     val defaultHeaders: Map<String, String> = emptyMap(),
     val certificatePins: Map<String, List<String>> = emptyMap(),
+    val appVersion: String? = null,
 ) {
     init {
         require(baseUrl.isNotBlank()) { "NetworkConfig.baseUrl must not be blank." }
+        certificatePins.forEach { (hostname, pins) ->
+            require(hostname.isNotBlank()) { "NetworkConfig.certificatePins hostname must not be blank." }
+            pins.forEach { pin ->
+                require(pin.trim().startsWith(SHA256_PIN_PREFIX)) {
+                    "Certificate pin for '$hostname' must start with '$SHA256_PIN_PREFIX' (got '$pin')."
+                }
+            }
+        }
+    }
+
+    private companion object {
+        const val SHA256_PIN_PREFIX = "sha256/"
     }
 }
 

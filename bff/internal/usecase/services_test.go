@@ -3,6 +3,7 @@ package usecase_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/abeta-dev/go-libs/apperror"
@@ -11,6 +12,23 @@ import (
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 )
+
+type stubManifestRepo struct {
+	stubScreenRepo
+	manifest snippets.ScreenManifestResponse
+	mErr     error
+	called   int
+}
+
+func (s *stubManifestRepo) BuildManifest(_ context.Context, appVersion string) (snippets.ScreenManifestResponse, error) {
+	s.called++
+	if s.mErr != nil {
+		return snippets.ScreenManifestResponse{}, s.mErr
+	}
+	m := s.manifest
+	m.AppVersion = appVersion
+	return m, nil
+}
 
 type stubScreenRepo struct {
 	screen snippets.PageResponse
@@ -125,13 +143,31 @@ func TestScreenService(t *testing.T) {
 	if _, err := badSvc.BuildManifest(ctx, ""); !apperror.Is(err, apperror.CodeInternal) {
 		t.Fatalf("expected internal error for unmarshalable screen in BuildManifest, got %v", err)
 	}
+
+	// Fast-path delegation when repo implements domain.ManifestProvider
+	mpRepo := &stubManifestRepo{
+		manifest: snippets.ScreenManifestResponse{
+			Screens: map[string]snippets.ScreenVersionMeta{
+				"home": {Version: "v1-fast", ETag: `"fast"`},
+			},
+		},
+	}
+	mpSvc := usecase.NewScreenService(mpRepo)
+	mpManifest, err := mpSvc.BuildManifest(ctx, "")
+	if err != nil || mpRepo.called != 1 || mpManifest.SduiSchemaVersion != snippets.DefaultSduiSchemaVersion || mpManifest.Screens["home"].ETag != `"fast"` {
+		t.Fatalf("expected ManifestProvider delegation, got %+v called=%d err=%v", mpManifest, mpRepo.called, err)
+	}
+	mpRepo.mErr = errors.New("manifest boom")
+	if _, err := mpSvc.BuildManifest(ctx, ""); err == nil {
+		t.Fatal("expected propagated ManifestProvider error")
+	}
 }
 
 func TestBuildStreamPatches(t *testing.T) {
 	if _, err := usecase.BuildStreamPatches("   "); !apperror.Is(err, apperror.CodeBadRequest) {
 		t.Fatalf("expected bad request for blank streamID, got %v", err)
 	}
-	for _, streamID := range []string{"ai-assistant", "order-live", "custom-feed"} {
+	for _, streamID := range []string{"ai-assistant", "order-live", "sync-status", "custom-feed"} {
 		patches, err := usecase.BuildStreamPatches(streamID)
 		if err != nil {
 			t.Fatalf("BuildStreamPatches(%q) error: %v", streamID, err)
@@ -219,6 +255,39 @@ func TestActionService(t *testing.T) {
 	})
 	if err != nil || res.Status != "executed" {
 		t.Fatalf("expected executed result, got %+v, err=%v", res, err)
+	}
+
+	// Hardened rules: equals, invalid min/max length, overlong regex, rule count cap
+	hardenedTrigger := actions.NewCallAPIAction("a2", actions.CallAPIPayload{
+		Endpoint: "/api/v1/actions/execute",
+		Method:   "POST",
+	}).WithValidations(
+		actions.ValidationRule{FieldID: "confirm", Rule: "equals", Value: "YES", Message: "must equal YES"},
+		actions.ValidationRule{FieldID: "bad_min", Rule: "min_length", Value: "NaN", Message: "invalid min"},
+		actions.ValidationRule{FieldID: "bad_max", Rule: "max_length", Value: "-1"},
+		actions.ValidationRule{FieldID: "long_re", Rule: "regex", Value: strings.Repeat("a", 300), Message: "pattern too long"},
+	)
+	hRes, hErr := svc.Execute(ctx, domain.ActionExecutionInput{
+		Trigger: hardenedTrigger,
+		FormValues: map[string]string{
+			"confirm": "NO",
+			"bad_min": "abc",
+			"bad_max": "abc",
+			"long_re": "aaa",
+		},
+	})
+	if !apperror.Is(hErr, apperror.CodeUnprocessable) || len(hRes.FieldErrors) != 4 {
+		t.Fatalf("expected 4 field errors from hardened rules, got %+v (err=%v)", hRes, hErr)
+	}
+
+	tooMany := make([]actions.ValidationRule, 65)
+	for i := range tooMany {
+		tooMany[i] = actions.ValidationRule{FieldID: "f", Rule: "required", Message: "req"}
+	}
+	if _, err := svc.Execute(ctx, domain.ActionExecutionInput{
+		Trigger: actions.NewCallAPIAction("a3", actions.CallAPIPayload{Endpoint: "/x", Method: "POST"}).WithValidations(tooMany...),
+	}); !apperror.Is(err, apperror.CodeBadRequest) {
+		t.Fatalf("expected CodeBadRequest when validation rules exceed cap, got %v", err)
 	}
 }
 

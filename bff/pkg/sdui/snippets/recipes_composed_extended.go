@@ -80,7 +80,7 @@ func (n ComposedNode) WithColumnsByWidth(spec ResponsiveColumnsSpec) ComposedNod
 }
 
 // WithTracking attaches impression/exposure tracking metadata to a ComposedNode.
-func (n ComposedNode) WithTracking(eventName string, props map[string]any) ComposedNode {
+func (n ComposedNode) WithTracking(eventName string, props map[string]string) ComposedNode {
 	n.Tracking = cloneTrackingMeta(&atoms.TrackingMeta{
 		EventName:  eventName,
 		Properties: props,
@@ -89,7 +89,7 @@ func (n ComposedNode) WithTracking(eventName string, props map[string]any) Compo
 }
 
 // WithClickTracking attaches click/interaction tracking metadata to a ComposedNode.
-func (n ComposedNode) WithClickTracking(eventName string, props map[string]any) ComposedNode {
+func (n ComposedNode) WithClickTracking(eventName string, props map[string]string) ComposedNode {
 	n.ClickTracking = cloneTrackingMeta(&atoms.TrackingMeta{
 		EventName:  eventName,
 		Properties: props,

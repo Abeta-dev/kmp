@@ -3,8 +3,6 @@
 kotlin = "2.4.21"
 compose-multiplatform = "1.12.2"
 compose-material3 = "1.12.0-alpha03"
-compose-lifecycle = "2.11.1"
-compose-navigation = "2.10.0"
 
 # Official Google AndroidX KMP
 androidx-lifecycle = "2.11.1"
@@ -50,9 +48,6 @@ kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotli
 # Compose Multiplatform & Official Google AndroidX KMP
 compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
 compose-ui-test = { group = "org.jetbrains.compose.ui", name = "ui-test", version.ref = "compose-multiplatform" }
-compose-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
-compose-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
-compose-navigation = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "compose-navigation" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
@@ -68,7 +63,6 @@ ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging" }
 ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth" }
 ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp" }
-ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio" }
 ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin" }
 ktor-client-js = { group = "io.ktor", name = "ktor-client-js" }
 ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock" }

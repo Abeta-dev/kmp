@@ -52,9 +52,16 @@ class DataStoreKeyValueStore(
                     val persisted = extractScopedEntries(preferences, keyPrefix)
                     snapshot.update { current ->
                         if (current.pendingWrites == 0) {
-                            current.copy(entries = persisted, hydrated = true)
+                            current.copy(
+                                entries = persisted,
+                                lastPersistedEntries = persisted,
+                                hydrated = true,
+                            )
                         } else {
-                            current.copy(hydrated = true)
+                            current.copy(
+                                lastPersistedEntries = persisted,
+                                hydrated = true,
+                            )
                         }
                     }
                 }
@@ -63,16 +70,42 @@ class DataStoreKeyValueStore(
         scope.launch {
             for (operation in writeQueue) {
                 val committed = commitWrite(operation)
+                val resynced =
+                    if (committed != null) {
+                        extractScopedEntries(committed, keyPrefix)
+                    } else {
+                        readCurrentPersistedEntries()
+                    }
                 snapshot.update { current ->
                     val remaining = (current.pendingWrites - 1).coerceAtLeast(0)
-                    if (remaining == 0 && committed != null) {
-                        current.copy(
-                            entries = extractScopedEntries(committed, keyPrefix),
-                            pendingWrites = 0,
-                            hydrated = true,
-                        )
-                    } else {
-                        current.copy(pendingWrites = remaining)
+                    when {
+                        remaining == 0 && resynced != null -> {
+                            current.copy(
+                                entries = resynced,
+                                lastPersistedEntries = resynced,
+                                pendingWrites = 0,
+                                hydrated = true,
+                            )
+                        }
+
+                        remaining == 0 -> {
+                            current.copy(
+                                entries = current.lastPersistedEntries,
+                                pendingWrites = 0,
+                                hydrated = true,
+                            )
+                        }
+
+                        resynced != null -> {
+                            current.copy(
+                                lastPersistedEntries = resynced,
+                                pendingWrites = remaining,
+                            )
+                        }
+
+                        else -> {
+                            current.copy(pendingWrites = remaining)
+                        }
                     }
                 }
             }
@@ -136,6 +169,7 @@ class DataStoreKeyValueStore(
         snapshot.first { state -> state.hydrated && state.pendingWrites == 0 }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun commitWrite(operation: WriteOperation): Preferences? =
         try {
             dataStore.edit { mutablePreferences ->
@@ -143,12 +177,23 @@ class DataStoreKeyValueStore(
             }
         } catch (cancelled: CancellationException) {
             throw cancelled
-        } catch (_: IOException) {
+        } catch (_: Throwable) {
+            null
+        }
+
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun readCurrentPersistedEntries(): Map<String, String>? =
+        try {
+            extractScopedEntries(dataStore.data.first(), keyPrefix)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Throwable) {
             null
         }
 
     private data class StoreSnapshot(
         val entries: Map<String, String> = emptyMap(),
+        val lastPersistedEntries: Map<String, String> = emptyMap(),
         val pendingWrites: Int = 0,
         val hydrated: Boolean = false,
     )

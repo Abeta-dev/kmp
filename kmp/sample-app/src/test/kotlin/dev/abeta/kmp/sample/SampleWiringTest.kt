@@ -3,9 +3,11 @@ package dev.abeta.kmp.sample
 import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.ActionRowSnippetData
+import dev.abeta.kmp.contracts.ChipGroupSnippetData
 import dev.abeta.kmp.contracts.ComposedBlockSnippetData
 import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.FormSnippetData
+import dev.abeta.kmp.contracts.GridSnippetData
 import dev.abeta.kmp.contracts.MarqueeStripSnippetData
 import dev.abeta.kmp.contracts.MetricCardSnippetData
 import dev.abeta.kmp.contracts.MotionLoopEffect
@@ -13,6 +15,7 @@ import dev.abeta.kmp.contracts.NudgeBarSnippetData
 import dev.abeta.kmp.contracts.OrderTrackerSnippetData
 import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SduiJson
+import dev.abeta.kmp.contracts.SearchBarSnippetData
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.security.BiometricResult
@@ -352,23 +355,68 @@ class SampleWiringTest {
         }
 
     @Test
-    fun offlineScreenRepositoryStripsQueryStringsGracefully() =
+    fun offlineScreenRepositoryFiltersItemsAndUpdatesSelectedChipForQueryParams() =
         runTest {
             val repo = OfflineScreenRepository()
-            val freshResult =
-                assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("fresh-home?q=avocados&filter=produce"))
-            assertEquals("fresh-home", freshResult.value.pageId)
+            val freshPage =
+                assertIs<AppResult.Success<PageResponse>>(
+                    repo.fetchScreen("fresh-home?q=avocados&filter=produce"),
+                ).value
+            assertEquals("fresh-home", freshPage.pageId)
+            assertEquals("avocados", decodeSearchQuery(freshPage))
+            assertEquals("produce", decodeSelectedChipId(freshPage))
+            val freshGrid =
+                SduiJson.decodeFromJsonElement(
+                    GridSnippetData.serializer(),
+                    freshPage.snippets
+                        .first { it.snippetType == SnippetTypes.GRID }
+                        .data,
+                )
+            assertEquals(listOf("prod_fresh_avocados"), freshGrid.items.map { it.snippetId })
 
-            val bitesResult =
-                assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("/screens/bites-home?filter=biryani"))
-            assertEquals("bites-home", bitesResult.value.pageId)
+            val bitesPage =
+                assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("/screens/bites-home?filter=biryani")).value
+            assertEquals("biryani", decodeSelectedChipId(bitesPage))
+            assertEquals(
+                listOf("rest_saffron"),
+                bitesPage.snippets
+                    .filter { it.snippetId.startsWith("rest_") }
+                    .map { it.snippetId },
+            )
 
-            val tradeResult = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("trade-home?q=cartons"))
-            assertEquals("trade-home", tradeResult.value.pageId)
+            val tradePage =
+                assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("trade-home?q=cartons")).value
+            assertEquals(
+                listOf("sup_apex"),
+                tradePage.snippets
+                    .filter { it.snippetId.startsWith("sup_") }
+                    .map { it.snippetId },
+            )
 
-            val payResult = assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("pay-home?filter=bills"))
-            assertEquals("pay-home", payResult.value.pageId)
+            val payPage =
+                assertIs<AppResult.Success<PageResponse>>(repo.fetchScreen("pay-home?filter=bills")).value
+            assertEquals("bills", decodeSelectedChipId(payPage))
         }
+
+    private fun decodeSearchQuery(page: PageResponse): String =
+        SduiJson
+            .decodeFromJsonElement(
+                SearchBarSnippetData.serializer(),
+                page.snippets
+                    .first { it.snippetType == SnippetTypes.SEARCH_BAR }
+                    .data,
+            ).query
+
+    private fun decodeSelectedChipId(page: PageResponse): String =
+        SduiJson
+            .decodeFromJsonElement(
+                ChipGroupSnippetData.serializer(),
+                page.snippets
+                    .first { it.snippetType == SnippetTypes.CHIP_GROUP }
+                    .data,
+            ).chips
+            .single { it.selected }
+            .id
 
     @Test
     fun wave6ExpressCommercePrimitivesPopulateFreshAndStoreHome() =

@@ -85,4 +85,42 @@ class JvmDesktopSystemPortTest {
         assertIs<JvmDesktopSystemPort>(port)
         assertEquals(!GraphicsEnvironment.isHeadless(), port.isSupported)
     }
+
+    @Test
+    fun linuxSettingsCommandsCoverAllSectionsAndIncludeXdgOpenFallback() {
+        OsSettingsSection.entries.forEach { section ->
+            val commands = resolveLinuxSettingsCommands(section)
+            assertTrue(commands.isNotEmpty(), "Expected Linux settings commands for $section")
+            assertTrue(commands.any { it.firstOrNull() == "xdg-open" })
+        }
+    }
+
+    @Test
+    fun trayStateFormattingReflectsStatusAndBadgeFallback() {
+        assertEquals(
+            "Abeta Sync",
+            formatDesktopTrayTooltip(DesktopTrayState(tooltip = "Abeta Sync", status = TrayStatusKind.IDLE)),
+        )
+        assertEquals(
+            "Abeta Sync [syncing]",
+            formatDesktopTrayTooltip(DesktopTrayState(tooltip = "Abeta Sync", status = TrayStatusKind.SYNCING)),
+        )
+        assertEquals(
+            "3",
+            resolveTrayTaskbarBadgeText(
+                DesktopTrayState(tooltip = "Abeta", status = TrayStatusKind.ERROR, badgeCount = 3),
+            ),
+        )
+        assertEquals(
+            "!",
+            resolveTrayTaskbarBadgeText(
+                DesktopTrayState(tooltip = "Abeta", status = TrayStatusKind.ERROR, badgeCount = 0),
+            ),
+        )
+        assertNull(
+            resolveTrayTaskbarBadgeText(
+                DesktopTrayState(tooltip = "Abeta", status = TrayStatusKind.IDLE, badgeCount = 0),
+            ),
+        )
+    }
 }

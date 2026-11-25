@@ -354,13 +354,62 @@ class ConditionalHttpAndCsrfTest {
                 transport.safePost<ScreenDto, MutationPayload>(
                     path = "/v1/orders",
                     body = MutationPayload("submit"),
-                    headers = mapOf("x-csrf-token" to "caller-stale"),
                 )
 
             val failure = assertIs<AppResult.Failure>(result)
             assertIs<ForbiddenError>(failure.error)
             assertEquals(2, attempts)
             assertEquals(1, refreshCalls)
-            assertEquals(listOf<String?>("caller-stale", "tok-2"), receivedTokens)
+            assertEquals(listOf<String?>("tok-1", "tok-2"), receivedTokens)
+        }
+
+    @Test
+    fun csrfSkips403RetryWhenCallerSuppliesExplicitHeaderOrRefreshReturnsSameToken() =
+        runTest {
+            var attempts = 0
+            var refreshCalls = 0
+            val engine =
+                MockEngine {
+                    attempts += 1
+                    respondError(HttpStatusCode.Forbidden, "Forbidden")
+                }
+
+            val sameTokenProvider =
+                object : CsrfTokenProvider {
+                    override suspend fun currentToken(): String = "same-tok"
+
+                    override suspend fun refreshToken(): String {
+                        refreshCalls += 1
+                        return "same-tok"
+                    }
+                }
+
+            val transport =
+                KtorHttpTransport(
+                    httpClient = HttpClientFactory.create(config = testConfig(), engine = engine),
+                    csrfTokenProvider = sameTokenProvider,
+                )
+
+            // Explicit caller CSRF override skips refresh and retry completely.
+            val overrideRes =
+                transport.safePost<ScreenDto, MutationPayload>(
+                    path = "/v1/orders",
+                    body = MutationPayload("submit"),
+                    headers = mapOf("x-csrf-token" to "caller-explicit"),
+                )
+            assertIs<ForbiddenError>(assertIs<AppResult.Failure>(overrideRes).error)
+            assertEquals(1, attempts)
+            assertEquals(0, refreshCalls)
+
+            // Provider returning identical token on refresh skips redundant second POST.
+            attempts = 0
+            val sameRes =
+                transport.safePost<ScreenDto, MutationPayload>(
+                    path = "/v1/orders",
+                    body = MutationPayload("submit"),
+                )
+            assertIs<ForbiddenError>(assertIs<AppResult.Failure>(sameRes).error)
+            assertEquals(1, attempts)
+            assertEquals(1, refreshCalls)
         }
 }

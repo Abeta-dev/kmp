@@ -31,6 +31,15 @@ class CompositeAnalyticsTracker(
         trackers.forEach { tracker -> tracker.identify(userId, traits) }
     }
 
+    internal fun notifyIdentifyWithoutDuplicateEvent(
+        userId: String,
+        traits: Map<String, String>,
+    ) {
+        trackers.forEach { tracker ->
+            propagateIdentifyWithoutDuplicateEvent(tracker = tracker, userId = userId, traits = traits)
+        }
+    }
+
     override fun reset() {
         trackers.forEach(AnalyticsTracker::reset)
     }

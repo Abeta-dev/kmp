@@ -7,9 +7,9 @@ description: Reference guide for the abeta-dev/kmp demo & explorer modules (samp
 
 Use this skill to explore, run, test, or adapt the repository's reference implementations across `kmp/sample-app`, `kmp/storybook`, `bff/`, and `kmp/platforms/`.
 
-## 1. End-to-End 7-Screen BFF <-> KMP Demo Mapping
+## 1. End-to-End Core & Built-In BFF <-> KMP Demo Mapping
 
-Every screen in `bff/internal/infra/` is mapped 1:1 to `kmp/sample-app` (`SampleContainer.DEFAULT_SCREENS`) and `kmp/storybook` (`LiveBffStory.BFF_SCREENS`):
+The 7 core screens below (plus `fresh-home` and the 4 **Abeta Pay** screens `pay-home`, `pay-transfer`, `pay-cards`, `pay-receipt` = **12 built-in screens** in `bff/internal/infra/screen_repo.go`) map directly to `kmp/sample-app` (`SampleContainer.DEFAULT_SCREENS`, which also includes the full 7-in-1 Super-App Showcase verticals) and `kmp/storybook` (`LiveBffStory.BFF_SCREENS`):
 
 | Screen ID | Go BFF Builder (`bff/internal/infra/`) | KMP Offline Reference (`kmp/sample-app/`) | Showcased Capabilities |
 | :--- | :--- | :--- | :--- |
@@ -37,7 +37,7 @@ Every screen in `bff/internal/infra/` is mapped 1:1 to `kmp/sample-app` (`Sample
 # 4. Storybook — Desktop JVM (20 interactive stories across LIVE_DEMOS, FOUNDATIONS, ATOMS, SNIPPETS, PLAYGROUND)
 (cd kmp && ./gradlew :storybook:run)
 
-# 5. Storybook — WasmJS Browser Web App (includes all 7 Live Super-App Demos playable zero-backend + 8 UI Atom stories covering all 30 atoms)
+# 5. Storybook — WasmJS Browser Web App (includes all 7 Live Super-App Demos playable zero-backend, All 23 Snippets, & 8 UI Atom stories covering all 31 atoms)
 (cd kmp && ./gradlew :storybook:wasmJsBrowserDevelopmentRun)
 
 # 6. Export fresh Retina PNG screenshots for Demo, Super-App Verticals, & Storybook -> docs/assets/screenshots/
@@ -51,9 +51,9 @@ Every screen in `bff/internal/infra/` is mapped 1:1 to `kmp/sample-app` (`Sample
 
 - **LIVE_DEMOS**: Live 7-in-1 Super-App Demos — **Abeta Fresh**, **Abeta Bites**, **Abeta Pulse**, **Abeta Mart**, **Abeta Spark**, **Abeta Trade**, **Abeta Pay** & **Watch** with zero-backend offline parity & `?story=&app=` URL deep links (`SuperAppDemosStory.kt`)
 - **FOUNDATIONS**: Introduction (`IntroductionStory.kt`), Design Tokens — Color Palette, WCAG Contrast, Typography & Theme Presets (`FoundationsStories.kt`)
-- **ATOMS (8 stories covering all 30 atoms)**: Button, Text & Tag, TextField, Icons/Progress/Media, Controls/Avatar/Skeleton (`AtomStories.kt`, `ControlsAndDataAtomsStory.kt`), Selection/Chips/OTP (`ExtendedAtomSelectionStory.kt`: `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`), Commerce/Pricing/QR (`ExtendedAtomCommerceStory.kt`: `UiPrice`, `UiRating`, `UiKeyValueRow`, `UiQrCode`, `UiStepper`), Badges/Alerts/Telemetry (`ExtendedAtomTelemetryStory.kt`: `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiCountdown`, `UiRollingCounter`)
-- **SNIPPETS**: All 21 Snippets Gallery (`SnippetsStory.kt`)
-- **PLAYGROUND**: Interactive Action Dispatcher Sandbox (`PlaygroundStory.kt`), Motion & Abeta Fresh Store (`MotionAndStoreStory.kt`), Live Go BFF Explorer with Built-in Demo + Remote BFF toggle across all 7 Super-App slugs (`LiveBffStory.kt`), Responsive Form Factors & OS Bridges (`ResponsiveAndBridgesStory.kt`), Discovery/Search/Swipe (`DiscoveryAndSearchStory.kt`), Animation & Nudges Lab (`AnimationNudgesStory.kt`), Atomic Snippet Crafter (`SnippetCrafterStory.kt`), End-to-End App Journeys (`EndToEndJourneysStory.kt`)
+- **ATOMS (8 stories covering all 31 atoms)**: Button, Text & Tag, TextField, Icons/Progress/Media (incl. `UiMediaPager`), Controls/Avatar/Skeleton (`AtomStories.kt`, `ControlsAndDataAtomsStory.kt`), Selection/Chips/OTP (`ExtendedAtomSelectionStory.kt`: `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`), Commerce/Pricing/QR (`ExtendedAtomCommerceStory.kt`: `UiPrice`, `UiRating`, `UiKeyValueRow`, ISO/IEC 18004 `UiQrCode`, `UiStepper`), Badges/Alerts/Telemetry (`ExtendedAtomTelemetryStory.kt`: `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiCountdown`, `UiRollingCounter`)
+- **SNIPPETS**: All 23 Snippets Gallery (`SnippetsStory.kt`, incl. `custom_slot` & `graph_canvas`)
+- **PLAYGROUND**: Interactive Action Dispatcher Sandbox (`PlaygroundStory.kt`), Motion & Abeta Fresh Store (`MotionAndStoreStory.kt`), Live Go BFF Explorer with Built-in Demo + Remote BFF toggle (`LiveBffStory.kt`), Responsive Form Factors & Voice/Desktop OS Bridges (`ResponsiveAndBridgesStory.kt`), Discovery/Search/Swipe (`DiscoveryAndSearchStory.kt`), Animation & Nudges Lab (`AnimationNudgesStory.kt`), Atomic Snippet Crafter (`SnippetCrafterStory.kt`), End-to-End App Journeys (`EndToEndJourneysStory.kt`)
 
 ## 4. Copying Reference Patterns Into Your App
 

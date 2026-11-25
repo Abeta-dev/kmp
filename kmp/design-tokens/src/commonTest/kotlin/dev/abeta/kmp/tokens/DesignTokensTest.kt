@@ -1,5 +1,7 @@
 package dev.abeta.kmp.tokens
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -69,6 +71,15 @@ class DesignTokensTest {
         assertEquals(DeviceFormFactor.TABLET, tablet.formFactor)
         assertEquals(WindowWidthClass.MEDIUM, tablet.widthClass)
         assertEquals(3, tablet.recommendedGridColumns)
+
+        val narrowNonWatch = resolveAdaptiveLayoutMetrics(widthDp = 240, heightDp = 640, isWatch = false)
+        assertEquals(DeviceFormFactor.PHONE, narrowNonWatch.formFactor)
+        assertEquals(WindowWidthClass.COMPACT, narrowNonWatch.widthClass)
+        assertEquals(2, narrowNonWatch.recommendedGridColumns)
+
+        assertEquals(390, resolveViewportDimensionDp(Dp.Unspecified, fallbackDp = 390))
+        assertEquals(844, resolveViewportDimensionDp(Dp.Infinity, fallbackDp = 844))
+        assertEquals(320, resolveViewportDimensionDp(320.dp, fallbackDp = 390))
 
         val desktop = resolveAdaptiveLayoutMetrics(widthDp = 1280, heightDp = 800)
         assertEquals(DeviceFormFactor.DESKTOP_WIDE, desktop.formFactor)

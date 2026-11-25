@@ -76,11 +76,11 @@ func (b *PageBuilder) WithAdaptiveLayout(spec AdaptivePageSpec) *PageBuilder {
 }
 
 // WithTracking attaches page-level TrackingMeta.
-func (b *PageBuilder) WithTracking(eventName string, properties map[string]any) *PageBuilder {
-	b.page.Tracking = &atoms.TrackingMeta{
+func (b *PageBuilder) WithTracking(eventName string, properties map[string]string) *PageBuilder {
+	b.page.Tracking = cloneTrackingMeta(&atoms.TrackingMeta{
 		EventName:  eventName,
 		Properties: properties,
-	}
+	})
 	return b
 }
 
@@ -168,8 +168,8 @@ func (b *HeaderSnippetBuilder) WithParentID(parentID string) *HeaderSnippetBuild
 	return b
 }
 
-func (b *HeaderSnippetBuilder) WithTracking(eventName string, props map[string]any) *HeaderSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *HeaderSnippetBuilder) WithTracking(eventName string, props map[string]string) *HeaderSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -238,8 +238,8 @@ func (b *EmptyStateSnippetBuilder) WithParentID(parentID string) *EmptyStateSnip
 	return b
 }
 
-func (b *EmptyStateSnippetBuilder) WithTracking(eventName string, props map[string]any) *EmptyStateSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *EmptyStateSnippetBuilder) WithTracking(eventName string, props map[string]string) *EmptyStateSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -298,8 +298,8 @@ func (b *DividerSnippetBuilder) WithParentID(parentID string) *DividerSnippetBui
 	return b
 }
 
-func (b *DividerSnippetBuilder) WithTracking(eventName string, props map[string]any) *DividerSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *DividerSnippetBuilder) WithTracking(eventName string, props map[string]string) *DividerSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -336,8 +336,8 @@ func (b *SpacerSnippetBuilder) WithParentID(parentID string) *SpacerSnippetBuild
 	return b
 }
 
-func (b *SpacerSnippetBuilder) WithTracking(eventName string, props map[string]any) *SpacerSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *SpacerSnippetBuilder) WithTracking(eventName string, props map[string]string) *SpacerSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 

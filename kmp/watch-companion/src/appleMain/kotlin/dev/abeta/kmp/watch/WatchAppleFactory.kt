@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.koin.core.KoinApplication
 import org.koin.dsl.koinApplication
 
@@ -23,12 +24,63 @@ class WatchCompanionHostHolder(
     val capabilities: PlatformCapabilities,
     private val hostScope: CoroutineScope,
 ) {
-    /** Releases the isolated Koin graph and cancels host coroutines. */
+    private val observationScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /**
+     * Collects [WatchCompanionController.uiState] on an internal coroutine scope and invokes
+     * [onChange] for every emitted [WatchUiState]. Returns a cancellation handle.
+     */
+    fun observeUiState(onChange: (WatchUiState) -> Unit): () -> Unit {
+        val job =
+            observationScope.launch {
+                controller.uiState.collect { state ->
+                    onChange(state)
+                }
+            }
+        return { job.cancel() }
+    }
+
+    /**
+     * Starts [WatchCompanionController.observeConnectivity] on a cancellable job
+     * and returns a cancellation handle.
+     */
+    fun startConnectivityObservation(): () -> Unit {
+        val job =
+            observationScope.launch {
+                controller.observeConnectivity()
+            }
+        return { job.cancel() }
+    }
+
+    /** Cancels observation scopes, cancels host coroutines, and releases the isolated Koin graph. */
     fun close() {
-        koinApp.close()
+        observationScope.cancel()
         hostScope.cancel()
+        koinApp.close()
     }
 }
+
+/**
+ * Swift-friendly 0-argument overload launching with built-in offline preview defaults
+ * (Kotlin/Native Objective-C export does not synthesize Swift default arguments).
+ */
+fun createAppleWatchCompanionHost(): WatchCompanionHostHolder =
+    createAppleWatchCompanionHost(
+        bffBaseUrl = null,
+        certificatePins = emptyMap(),
+        logger = KermitAppLogger(),
+    )
+
+/**
+ * Swift-friendly 1-argument overload accepting an optional [bffBaseUrl]
+ * (Kotlin/Native Objective-C export does not synthesize Swift default arguments).
+ */
+fun createAppleWatchCompanionHost(bffBaseUrl: String?): WatchCompanionHostHolder =
+    createAppleWatchCompanionHost(
+        bffBaseUrl = bffBaseUrl,
+        certificatePins = emptyMap(),
+        logger = KermitAppLogger(),
+    )
 
 /**
  * Creates a self-contained Apple Watch / Companion [WatchCompanionHostHolder] backed by Apple Darwin

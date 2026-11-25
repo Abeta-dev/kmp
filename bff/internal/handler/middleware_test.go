@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/abeta-dev/go-libs/ginmw"
 	"github.com/abeta-dev/kmp/bff/internal/domain"
@@ -18,6 +19,7 @@ import (
 	"github.com/abeta-dev/kmp/bff/internal/infra"
 	"github.com/abeta-dev/kmp/bff/internal/usecase"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/server"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 	"github.com/andybalholm/brotli"
 	"github.com/gin-gonic/gin"
@@ -192,7 +194,7 @@ func TestETagAndConditional304(t *testing.T) {
 		cfg.EnableETag = true
 	})
 
-	// Uncompressed GET returns strong ETag + Cache-Control: public, max-age=30
+	// Uncompressed GET returns strong ETag (matching page.ETag) + Cache-Control: private, no-cache + version headers
 	w1 := httptest.NewRecorder()
 	r.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/api/v1/screens/home", nil))
 	if w1.Code != http.StatusOK {
@@ -202,8 +204,11 @@ func TestETagAndConditional304(t *testing.T) {
 	if !strings.HasPrefix(etag, `"`) || !strings.HasSuffix(etag, `"`) {
 		t.Fatalf("expected strong quoted ETag, got %q", etag)
 	}
-	if w1.Header().Get("Cache-Control") != "public, max-age=30" {
-		t.Fatalf("expected Cache-Control public, max-age=30, got %q", w1.Header().Get("Cache-Control"))
+	if w1.Header().Get("Cache-Control") != server.DefaultCacheControl {
+		t.Fatalf("expected Cache-Control %q, got %q", server.DefaultCacheControl, w1.Header().Get("Cache-Control"))
+	}
+	if w1.Header().Get("X-App-Version") != usecase.DefaultAppVersion || !strings.HasPrefix(w1.Header().Get("X-Page-Version"), "v1-") {
+		t.Fatalf("expected X-App-Version and X-Page-Version headers, got app=%q page=%q", w1.Header().Get("X-App-Version"), w1.Header().Get("X-Page-Version"))
 	}
 	if w1.Header().Get("Pragma") != "" {
 		t.Fatalf("expected Pragma deleted on cacheable response, got %q", w1.Header().Get("Pragma"))
@@ -218,7 +223,7 @@ func TestETagAndConditional304(t *testing.T) {
 		if w304.Code != http.StatusNotModified || w304.Body.Len() != 0 {
 			t.Fatalf("If-None-Match=%q expected 304 empty body, got %d len=%d", inm, w304.Code, w304.Body.Len())
 		}
-		if w304.Header().Get("ETag") != etag || w304.Header().Get("Cache-Control") != "public, max-age=30" {
+		if w304.Header().Get("ETag") != etag || w304.Header().Get("Cache-Control") != server.DefaultCacheControl {
 			t.Fatalf("304 missing cache headers: ETag=%q Cache-Control=%q", w304.Header().Get("ETag"), w304.Header().Get("Cache-Control"))
 		}
 	}
@@ -232,13 +237,16 @@ func TestETagAndConditional304(t *testing.T) {
 		t.Fatalf("expected 200 on ETag mismatch, got %d", wMiss.Code)
 	}
 
-	// Compressed GET /api/v1/catalog/tokens emits weak ETag and 304 omits Content-Encoding
+	// Compressed GET /api/v1/catalog/tokens emits public, no-cache (when unauthenticated) + weak ETag, and 304 omits Content-Encoding
 	wBr := httptest.NewRecorder()
 	reqBr := httptest.NewRequest(http.MethodGet, "/api/v1/catalog/tokens", nil)
 	reqBr.Header.Set("Accept-Encoding", "br")
 	r.ServeHTTP(wBr, reqBr)
 	if wBr.Code != http.StatusOK || wBr.Header().Get("Content-Encoding") != "br" {
 		t.Fatalf("expected 200 br on catalog/tokens, got %d enc=%q", wBr.Code, wBr.Header().Get("Content-Encoding"))
+	}
+	if wBr.Header().Get("Cache-Control") != "public, no-cache" {
+		t.Fatalf("expected public, no-cache on unauthenticated catalog/tokens, got %q", wBr.Header().Get("Cache-Control"))
 	}
 	weakETag := wBr.Header().Get("ETag")
 	if !strings.HasPrefix(weakETag, `W/"`) {
@@ -288,8 +296,8 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 	r := buildRouterWithOptions(func(cfg *handler.RouterConfig) {
 		cfg.RequireAuth = true
 		cfg.JWTSecret = "test-secret-for-openapi-check-32b"
+		cfg.AppVersion = "0.9.0"
 	})
-	t.Cleanup(func() { _ = ginmw.SetJWTSecret("") })
 
 	// /openapi.json accessible without auth and contains OpenAPI 3.1 + all routes & new schemas
 	w := httptest.NewRecorder()
@@ -312,8 +320,8 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &spec); err != nil {
 		t.Fatalf("unmarshal /openapi.json: %v", err)
 	}
-	if spec.OpenAPI != "3.1.0" {
-		t.Fatalf("expected openapi 3.1.0, got %q", spec.OpenAPI)
+	if spec.OpenAPI != "3.1.0" || spec.Info["version"] != "0.9.0" {
+		t.Fatalf("expected openapi 3.1.0 and info.version 0.9.0, got %q / %v", spec.OpenAPI, spec.Info["version"])
 	}
 	for _, route := range []string{
 		"/healthz",
@@ -321,6 +329,7 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		"/metrics",
 		"/openapi.json",
 		"/docs",
+		"/api/v1/manifest",
 		"/api/v1/screens",
 		"/api/v1/screens/manifest",
 		"/api/v1/screens/{screenId}",
@@ -337,6 +346,17 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		}
 	}
 	rawSpec := w.Body.String()
+	if !strings.Contains(rawSpec, `"sdui_schema_version"`) {
+		t.Errorf("openapi.json missing sdui_schema_version schema property")
+	}
+
+	// Verify unauthenticated router omits "security" (never "security": null)
+	rPublic := buildRouterWithOptions(nil)
+	wPubSpec := httptest.NewRecorder()
+	rPublic.ServeHTTP(wPubSpec, httptest.NewRequest(http.MethodGet, "/openapi.json", nil))
+	if strings.Contains(wPubSpec.Body.String(), `"security":null`) || strings.Contains(wPubSpec.Body.String(), `"security": null`) {
+		t.Fatalf("openapi.json must omit security when RequireAuth=false, got security:null")
+	}
 	for _, screenID := range []string{"home", "fresh-home", "store-home", "catalog", "profile", "form-demo", "containers", "watch-status", "pay-home", "pay-transfer", "pay-cards", "pay-receipt"} {
 		if !strings.Contains(rawSpec, `"`+screenID+`"`) {
 			t.Errorf("openapi.json missing screen documentation for %q", screenID)
@@ -452,8 +472,8 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 		t.Fatalf("unexpected Content-Type for /docs: %q", wDocs.Header().Get("Content-Type"))
 	}
 	body := wDocs.Body.String()
-	if !strings.Contains(body, "/openapi.json") || !strings.Contains(body, "@scalar/api-reference") {
-		t.Fatalf("unexpected /docs HTML body: %s", body)
+	if !strings.Contains(body, "/openapi.json") || !strings.Contains(body, "@scalar/api-reference@1.25.0") {
+		t.Fatalf("unexpected /docs HTML body (expected pinned Scalar 1.25.0): %s", body)
 	}
 	if !strings.Contains(wDocs.Header().Get("Content-Security-Policy"), "cdn.jsdelivr.net") {
 		t.Fatalf("expected /docs CSP to allow Scalar CDN, got %q", wDocs.Header().Get("Content-Security-Policy"))
@@ -483,6 +503,17 @@ func TestRateLimitMiddleware(t *testing.T) {
 	if w429.Code != http.StatusTooManyRequests {
 		t.Fatalf("expected 429 Too Many Requests on 201st request, got %d", w429.Code)
 	}
+
+	// Operational endpoints (/healthz, /readyz, /metrics) must NEVER be rate-limited
+	for _, opsPath := range []string{"/healthz", "/readyz", "/metrics"} {
+		wOps := httptest.NewRecorder()
+		reqOps := httptest.NewRequest(http.MethodGet, opsPath, nil)
+		reqOps.RemoteAddr = "198.51.100.42:54321"
+		r.ServeHTTP(wOps, reqOps)
+		if wOps.Code != http.StatusOK {
+			t.Fatalf("expected %s to bypass rate limiter even after IP saturated, got %d", opsPath, wOps.Code)
+		}
+	}
 }
 
 func TestAuthMiddleware_JWT(t *testing.T) {
@@ -491,13 +522,12 @@ func TestAuthMiddleware_JWT(t *testing.T) {
 		cfg.RequireAuth = true
 		cfg.JWTSecret = secret
 	})
-	t.Cleanup(func() { _ = ginmw.SetJWTSecret("") })
 
-	// 1. Missing Authorization -> 401
+	// 1. Missing Authorization -> 401 Envelope
 	wNoAuth := httptest.NewRecorder()
 	r.ServeHTTP(wNoAuth, httptest.NewRequest(http.MethodGet, "/api/v1/screens/home", nil))
-	if wNoAuth.Code != http.StatusUnauthorized {
-		t.Fatalf("expected 401 without token, got %d", wNoAuth.Code)
+	if wNoAuth.Code != http.StatusUnauthorized || !strings.Contains(wNoAuth.Body.String(), `"UNAUTHORIZED"`) {
+		t.Fatalf("expected 401 envelope without token, got %d %s", wNoAuth.Code, wNoAuth.Body.String())
 	}
 
 	// 2. Invalid token -> 401
@@ -509,13 +539,13 @@ func TestAuthMiddleware_JWT(t *testing.T) {
 		t.Fatalf("expected 401 with invalid token, got %d", wBadAuth.Code)
 	}
 
-	// 3. Valid JWT minted via go-libs ginmw.GenerateToken -> 200
-	token, err := ginmw.GenerateToken(&ginmw.Claims{
+	// 3. Valid JWT minted via per-router server.GenerateHS256Token -> 200
+	token, err := server.GenerateHS256Token([]byte(secret), &ginmw.Claims{
 		Email: "architect@abeta.dev",
 		Roles: []string{"user"},
-	}, 15)
+	}, 15*time.Minute)
 	if err != nil {
-		t.Fatalf("GenerateToken failed: %v", err)
+		t.Fatalf("GenerateHS256Token failed: %v", err)
 	}
 	wOK := httptest.NewRecorder()
 	reqOK := httptest.NewRequest(http.MethodGet, "/api/v1/screens/containers", nil)
@@ -532,7 +562,7 @@ func TestAuthMiddleware_JWT(t *testing.T) {
 		t.Fatalf("expected /healthz 200 even with RequireAuth=true, got %d", wHealth.Code)
 	}
 
-	// 5. RequireAuth with empty secret fails closed (401)
+	// 5. RequireAuth with empty secret fails closed (401) without mutating router 1's secret
 	rEmptySecret := buildRouterWithOptions(func(cfg *handler.RouterConfig) {
 		cfg.RequireAuth = true
 		cfg.JWTSecret = ""
@@ -543,6 +573,15 @@ func TestAuthMiddleware_JWT(t *testing.T) {
 	rEmptySecret.ServeHTTP(wFailClosed, reqFailClosed)
 	if wFailClosed.Code != http.StatusUnauthorized {
 		t.Fatalf("expected fail-closed 401 with empty secret, got %d", wFailClosed.Code)
+	}
+
+	// Original router r MUST still validate its token cleanly (zero global secret mutation!)
+	wStillOK := httptest.NewRecorder()
+	reqStillOK := httptest.NewRequest(http.MethodGet, "/api/v1/screens/home", nil)
+	reqStillOK.Header.Set("Authorization", "Bearer "+token)
+	r.ServeHTTP(wStillOK, reqStillOK)
+	if wStillOK.Code != http.StatusOK {
+		t.Fatalf("router r secret was clobbered by rEmptySecret, got %d", wStillOK.Code)
 	}
 }
 

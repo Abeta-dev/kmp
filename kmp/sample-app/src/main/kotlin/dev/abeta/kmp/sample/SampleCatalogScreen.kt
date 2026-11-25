@@ -202,7 +202,7 @@ private fun SampleScreens.buildCatalogHeaderSnippet(): SnippetEnvelope =
                         ),
                     trailingTag =
                         TagAtom(
-                            label = "9 SNIPPETS",
+                            label = "23 SNIPPETS",
                             bgColor = ColorTokenRef(token = "brand.container"),
                         ),
                     layout =
@@ -252,7 +252,8 @@ private fun SampleScreens.buildCatalogAtomsCardSnippet(
                     title = text("Atomic Primitives", "title.medium"),
                     description =
                         text(
-                            "Text, Icon, Tag, Button, Image, TextField, Divider, Spacer, and Progress.",
+                            "31 stateless UI atoms across Text, Icon, Tag, Button, Inputs, Commerce, " +
+                                "Telemetry & MediaPager.",
                             "body.medium",
                             "text.secondary",
                         ),

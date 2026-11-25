@@ -1,16 +1,20 @@
 package dev.abeta.kmp.state.sync
 
+import dev.abeta.kmp.core.error.OfflineError
+import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.identity.RandomUuidGenerator
 import dev.abeta.kmp.core.identity.UuidGenerator
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.storage.KeyValueStore
 import dev.abeta.kmp.core.time.Clock
 import dev.abeta.kmp.core.time.SystemClock
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -61,6 +65,7 @@ class OfflineMutationQueue(
     private val json: Json = DefaultSyncJson,
 ) {
     private val mutex = Mutex()
+    private val flushMutex = Mutex()
     private val _queue = MutableStateFlow(loadPersisted())
     private val _status = MutableStateFlow(OfflineQueueStatus(pendingCount = _queue.value.size))
 
@@ -108,51 +113,146 @@ class OfflineMutationQueue(
     /**
      * Attempts to flush every pending mutation sequentially through [handler].
      *
-     * Successful items are dequeued; failures increment `retryCount` and are evicted once
-     * `retryCount >= maxRetries`.
+     * Releases the queue state mutex around [handler] I/O so concurrent enqueues remain unblocked,
+     * immediately dequeues and persists each succeeded item to prevent duplicate replay on mid-flush
+     * cancellation, stops without consuming retries on [OfflineError], and drops non-retryable
+     * [ValidationError] items immediately.
      */
     suspend fun flush(handler: suspend (QueuedMutation) -> AppResult<Unit>): FlushReport =
-        mutex.withLock {
-            val snapshot = _queue.value
+        flushMutex.withLock {
+            val snapshot =
+                mutex.withLock {
+                    val current = _queue.value
+                    if (current.isNotEmpty()) {
+                        _status.value = _status.value.copy(isFlushing = true)
+                    }
+                    current
+                }
             if (snapshot.isEmpty()) {
                 return@withLock FlushReport(succeeded = 0, retainedForRetry = 0, droppedDeadLetters = 0)
             }
-            _status.value = _status.value.copy(isFlushing = true)
 
-            val remaining = mutableListOf<QueuedMutation>()
             var succeeded = 0
+            var retainedForRetry = 0
             var deadLetters = 0
 
-            for (item in snapshot) {
-                when (handler(item)) {
-                    is AppResult.Success -> {
-                        succeeded++
-                    }
-
-                    is AppResult.Failure -> {
-                        val updatedRetry = item.retryCount + 1
-                        if (updatedRetry >= maxRetries) {
-                            deadLetters++
-                        } else {
-                            remaining.add(item.copy(retryCount = updatedRetry))
+            try {
+                for (index in snapshot.indices) {
+                    val item = snapshot[index]
+                    when (val outcome = processMutationResult(item, handler(item))) {
+                        MutationFlushStep.Succeeded -> {
+                            succeeded++
                         }
+
+                        MutationFlushStep.StoppedOffline -> {
+                            retainedForRetry += snapshot.size - index
+                            break
+                        }
+
+                        MutationFlushStep.DroppedDeadLetter -> {
+                            deadLetters++
+                        }
+
+                        MutationFlushStep.RetainedForRetry -> {
+                            retainedForRetry++
+                        }
+                    }
+                }
+            } finally {
+                withContext(NonCancellable) {
+                    mutex.withLock {
+                        _status.value =
+                            _status.value.copy(
+                                pendingCount = _queue.value.size,
+                                isFlushing = false,
+                                lastFlushedEpochMillis = clock.nowEpochMillis(),
+                            )
                     }
                 }
             }
 
-            persistAndEmit(
-                updated = remaining,
-                isFlushing = false,
-                lastFlushed = clock.nowEpochMillis(),
-                droppedIncrement = deadLetters,
-            )
-
             FlushReport(
                 succeeded = succeeded,
-                retainedForRetry = remaining.size,
+                retainedForRetry = retainedForRetry,
                 droppedDeadLetters = deadLetters,
             )
         }
+
+    private suspend fun processMutationResult(
+        item: QueuedMutation,
+        result: AppResult<Unit>,
+    ): MutationFlushStep =
+        when (result) {
+            is AppResult.Success -> {
+                removeProcessedItemNonCancellable(item)
+                MutationFlushStep.Succeeded
+            }
+
+            is AppResult.Failure -> {
+                when (result.error) {
+                    is OfflineError -> {
+                        MutationFlushStep.StoppedOffline
+                    }
+
+                    is ValidationError -> {
+                        removeProcessedItemNonCancellable(item, droppedIncrement = 1)
+                        MutationFlushStep.DroppedDeadLetter
+                    }
+
+                    else -> {
+                        val updatedRetry = item.retryCount + 1
+                        if (updatedRetry >= maxRetries) {
+                            removeProcessedItemNonCancellable(item, droppedIncrement = 1)
+                            MutationFlushStep.DroppedDeadLetter
+                        } else {
+                            updateRetryCountNonCancellable(item, updatedRetry)
+                            MutationFlushStep.RetainedForRetry
+                        }
+                    }
+                }
+            }
+        }
+
+    private enum class MutationFlushStep {
+        Succeeded,
+        StoppedOffline,
+        DroppedDeadLetter,
+        RetainedForRetry,
+    }
+
+    private suspend fun removeProcessedItemNonCancellable(
+        item: QueuedMutation,
+        droppedIncrement: Int = 0,
+    ) {
+        withContext(NonCancellable) {
+            mutex.withLock {
+                val updated =
+                    _queue.value.filterNot { existing ->
+                        existing.id == item.id && existing.createdAtEpochMillis == item.createdAtEpochMillis
+                    }
+                persistAndEmit(updated = updated, droppedIncrement = droppedIncrement)
+            }
+        }
+    }
+
+    private suspend fun updateRetryCountNonCancellable(
+        item: QueuedMutation,
+        updatedRetry: Int,
+    ) {
+        withContext(NonCancellable) {
+            mutex.withLock {
+                val updated =
+                    _queue.value.map { existing ->
+                        if (existing.id == item.id && existing.createdAtEpochMillis == item.createdAtEpochMillis) {
+                            existing.copy(retryCount = updatedRetry)
+                        } else {
+                            existing
+                        }
+                    }
+                persistAndEmit(updated = updated)
+            }
+        }
+    }
 
     private fun persistAndEmit(
         updated: List<QueuedMutation>,

@@ -41,6 +41,19 @@ interface KeyValueRecordDao {
         key: String,
     ): Flow<String?>
 
+    /** Emits reactive updates to the full [KeyValueRecordEntity] for [namespace] and [key], or `null` if absent. */
+    @Query(
+        """
+        SELECT * FROM key_value_records
+        WHERE namespace = :namespace AND recordKey = :key
+        LIMIT 1
+        """,
+    )
+    fun observeRecord(
+        namespace: String,
+        key: String,
+    ): Flow<KeyValueRecordEntity?>
+
     /** Lists all stored keys in [namespace], ordered lexicographically. */
     @Query(
         """
@@ -50,6 +63,20 @@ interface KeyValueRecordDao {
         """,
     )
     suspend fun listKeys(namespace: String): List<String>
+
+    /** Lists all non-expired keys in [namespace] relative to [nowEpochMillis], ordered lexicographically. */
+    @Query(
+        """
+        SELECT recordKey FROM key_value_records
+        WHERE namespace = :namespace
+            AND (expiresAtEpochMillis IS NULL OR expiresAtEpochMillis > :nowEpochMillis)
+        ORDER BY recordKey ASC
+        """,
+    )
+    suspend fun listFreshKeys(
+        namespace: String,
+        nowEpochMillis: Long,
+    ): List<String>
 
     /** Deletes a single key in [namespace] and returns the affected row count. */
     @Query(

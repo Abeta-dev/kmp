@@ -91,10 +91,11 @@ func TestStreamingAndManifest_WireFormatAndHelpers(t *testing.T) {
 		t.Fatalf("unexpected round-tripped page: %+v", decodedPage)
 	}
 
-	// Manifest round-trip
+	// Manifest round-trip including sdui_schema_version
 	ts := snippets.Int64Ptr(1_764_000_000_000)
 	manifest := snippets.ScreenManifestResponse{
-		AppVersion: "0.7.0",
+		AppVersion:        "0.9.0",
+		SduiSchemaVersion: snippets.DefaultSduiSchemaVersion,
 		Screens: map[string]snippets.ScreenVersionMeta{
 			"home": {Version: version, ETag: etag1, UpdatedAtEpochMs: ts},
 		},
@@ -108,8 +109,39 @@ func TestStreamingAndManifest_WireFormatAndHelpers(t *testing.T) {
 	if err := json.Unmarshal(rawManifest, &decodedManifest); err != nil {
 		t.Fatalf("unmarshal manifest: %v", err)
 	}
-	if decodedManifest.AppVersion != "0.7.0" || decodedManifest.Screens["home"].ETag != etag1 || *decodedManifest.GeneratedAtEpochMs != *ts {
+	if decodedManifest.AppVersion != "0.9.0" || decodedManifest.SduiSchemaVersion != "1.0" || decodedManifest.Screens["home"].ETag != etag1 || *decodedManifest.GeneratedAtEpochMs != *ts {
 		t.Fatalf("unexpected round-tripped manifest: %+v", decodedManifest)
+	}
+
+	// Precision check: int64 > 2^53 must NOT lose precision in ComputePageETag
+	bigA := snippets.PageResponse{
+		PageID: "big-int",
+		Title:  "Big",
+		Snippets: []snippets.SnippetEnvelope{{
+			SnippetID:   "s1",
+			SnippetType: "custom",
+			Data:        map[string]any{"id": int64(9007199254740992)},
+		}},
+	}
+	bigB := snippets.PageResponse{
+		PageID: "big-int",
+		Title:  "Big",
+		Snippets: []snippets.SnippetEnvelope{{
+			SnippetID:   "s1",
+			SnippetType: "custom",
+			Data:        map[string]any{"id": int64(9007199254740993)},
+		}},
+	}
+	etagBigA, err := snippets.ComputePageETag(bigA)
+	if err != nil {
+		t.Fatalf("ComputePageETag(bigA): %v", err)
+	}
+	etagBigB, err := snippets.ComputePageETag(bigB)
+	if err != nil {
+		t.Fatalf("ComputePageETag(bigB): %v", err)
+	}
+	if etagBigA == etagBigB {
+		t.Fatalf("ComputePageETag lost int64 precision (> 2^53): both hashed to %s", etagBigA)
 	}
 
 	// All 6 SnippetDeltaPatch builders + defensive copies + WithDone

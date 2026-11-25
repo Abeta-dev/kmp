@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -34,6 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.atoms.atoms.UiIcon
 import dev.abeta.kmp.atoms.atoms.UiTag
@@ -118,6 +122,9 @@ internal class CarouselSnippetRenderer(
         onFormValueChange: (String, String) -> Unit,
         onAction: (ActionRef) -> Unit,
     ) {
+        val depth = LocalSnippetDepth.current
+        if (depth >= MAX_SNIPPET_NESTING_DEPTH) return
+
         val spacing = ThemeTokens.spacing
         val registry = LocalSnippetRegistry.current ?: registryProvider()
         val widthClass = ThemeTokens.adaptiveMetrics.widthClass
@@ -128,6 +135,7 @@ internal class CarouselSnippetRenderer(
                 widthClass = widthClass,
             ).dp
         val itemSpacing = (model.spacingDp ?: DEFAULT_CAROUSEL_SPACING_DP).coerceAtLeast(0).dp
+        val itemKeys = remember(model.items) { buildUniqueSnippetKeys(model.items) }
 
         Column(
             modifier = Modifier.fillMaxWidth().applyLayoutConfig(model.layout),
@@ -142,10 +150,13 @@ internal class CarouselSnippetRenderer(
             ) {
                 itemsIndexed(
                     items = model.items,
-                    key = { _, child -> child.snippetId },
+                    key = { index, _ -> itemKeys[index] },
                 ) { index, child ->
                     Box(modifier = Modifier.width(itemWidth)) {
-                        CompositionLocalProvider(LocalMotionStaggerIndex provides index) {
+                        CompositionLocalProvider(
+                            LocalMotionStaggerIndex provides index,
+                            LocalSnippetDepth provides depth + 1,
+                        ) {
                             registry.Render(
                                 envelope = child,
                                 formValues = formValues,
@@ -178,6 +189,9 @@ internal class GridSnippetRenderer(
         onFormValueChange: (String, String) -> Unit,
         onAction: (ActionRef) -> Unit,
     ) {
+        val depth = LocalSnippetDepth.current
+        if (depth >= MAX_SNIPPET_NESTING_DEPTH) return
+
         val registry = LocalSnippetRegistry.current ?: registryProvider()
         val columns =
             resolveResponsiveColumns(
@@ -204,6 +218,7 @@ internal class GridSnippetRenderer(
                         Box(modifier = Modifier.weight(1f)) {
                             CompositionLocalProvider(
                                 LocalMotionStaggerIndex provides (rowIndex * columns + colIndex),
+                                LocalSnippetDepth provides depth + 1,
                             ) {
                                 registry.Render(
                                     envelope = child,
@@ -241,7 +256,8 @@ internal class TabsSnippetRenderer(
         onFormValueChange: (String, String) -> Unit,
         onAction: (ActionRef) -> Unit,
     ) {
-        if (model.tabs.isEmpty()) return
+        val depth = LocalSnippetDepth.current
+        if (depth >= MAX_SNIPPET_NESTING_DEPTH || model.tabs.isEmpty()) return
 
         val spacing = ThemeTokens.spacing
         val motion = ThemeTokens.motion
@@ -263,30 +279,40 @@ internal class TabsSnippetRenderer(
                 onAction = onAction,
             )
 
-            if (motion.reducedMotion) {
-                TabsBodyContent(
-                    snippets = model.tabs[activeIndex].snippets,
-                    registry = registry,
-                    formValues = formValues,
-                    onFormValueChange = onFormValueChange,
-                    onAction = onAction,
-                )
-            } else {
-                AnimatedContent(
-                    targetState = activeIndex,
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(motion.fastMs)) togetherWith
-                            fadeOut(animationSpec = tween(motion.fastMs))
-                    },
-                    label = "sdui_tabs_transition",
-                ) { targetIndex ->
+            CompositionLocalProvider(LocalSnippetDepth provides depth + 1) {
+                if (motion.reducedMotion) {
                     TabsBodyContent(
-                        snippets = model.tabs[targetIndex].snippets,
+                        snippets =
+                            model.tabs
+                                .getOrNull(activeIndex)
+                                ?.snippets
+                                .orEmpty(),
                         registry = registry,
                         formValues = formValues,
                         onFormValueChange = onFormValueChange,
                         onAction = onAction,
                     )
+                } else {
+                    AnimatedContent(
+                        targetState = activeIndex,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(motion.fastMs)) togetherWith
+                                fadeOut(animationSpec = tween(motion.fastMs))
+                        },
+                        label = "sdui_tabs_transition",
+                    ) { targetIndex ->
+                        TabsBodyContent(
+                            snippets =
+                                model.tabs
+                                    .getOrNull(targetIndex)
+                                    ?.snippets
+                                    .orEmpty(),
+                            registry = registry,
+                            formValues = formValues,
+                            onFormValueChange = onFormValueChange,
+                            onAction = onAction,
+                        )
+                    }
                 }
             }
         }
@@ -412,6 +438,9 @@ internal class AccordionSnippetRenderer(
         onFormValueChange: (String, String) -> Unit,
         onAction: (ActionRef) -> Unit,
     ) {
+        val depth = LocalSnippetDepth.current
+        if (depth >= MAX_SNIPPET_NESTING_DEPTH) return
+
         val spacing = ThemeTokens.spacing
         val reducedMotion = ThemeTokens.motion.reducedMotion
         val registry = LocalSnippetRegistry.current ?: registryProvider()
@@ -430,25 +459,27 @@ internal class AccordionSnippetRenderer(
                 onAction = onAction,
             )
 
-            if (reducedMotion) {
-                if (expanded) {
-                    AccordionSnippetsBody(
-                        snippets = model.snippets,
-                        registry = registry,
-                        formValues = formValues,
-                        onFormValueChange = onFormValueChange,
-                        onAction = onAction,
-                    )
-                }
-            } else {
-                AnimatedVisibility(visible = expanded) {
-                    AccordionSnippetsBody(
-                        snippets = model.snippets,
-                        registry = registry,
-                        formValues = formValues,
-                        onFormValueChange = onFormValueChange,
-                        onAction = onAction,
-                    )
+            CompositionLocalProvider(LocalSnippetDepth provides depth + 1) {
+                if (reducedMotion) {
+                    if (expanded) {
+                        AccordionSnippetsBody(
+                            snippets = model.snippets,
+                            registry = registry,
+                            formValues = formValues,
+                            onFormValueChange = onFormValueChange,
+                            onAction = onAction,
+                        )
+                    }
+                } else {
+                    AnimatedVisibility(visible = expanded) {
+                        AccordionSnippetsBody(
+                            snippets = model.snippets,
+                            registry = registry,
+                            formValues = formValues,
+                            onFormValueChange = onFormValueChange,
+                            onAction = onAction,
+                        )
+                    }
                 }
             }
         }
@@ -463,6 +494,7 @@ internal class AccordionSnippetRenderer(
         onAction: (ActionRef) -> Unit,
     ) {
         val spacing = ThemeTokens.spacing
+        val sizing = ThemeTokens.sizing
         val motion = ThemeTokens.motion
         val chevronDegreesState =
             animateFloatAsState(
@@ -474,7 +506,9 @@ internal class AccordionSnippetRenderer(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onToggle),
+                    .heightIn(min = sizing.minTouchTarget)
+                    .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" }
+                    .clickable(role = Role.Button, onClick = onToggle),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.space12),
         ) {

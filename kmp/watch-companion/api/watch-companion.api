@@ -1,6 +1,6 @@
 public final class dev/abeta/kmp/watch/RemoteWatchPageSource : dev/abeta/kmp/watch/WatchPageSource {
-	public fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;)V
-	public synthetic fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Ldev/abeta/kmp/core/storage/KeyValueStore;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Ldev/abeta/kmp/core/storage/KeyValueStore;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun fetchPage (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -66,8 +66,8 @@ public final class dev/abeta/kmp/watch/WatchGlancePage {
 }
 
 public final class dev/abeta/kmp/watch/WatchKoinModuleKt {
-	public static final fun createWatchCompanionModule (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/watch/WatchPageSource;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ljava/util/Map;)Lorg/koin/core/module/Module;
-	public static synthetic fun createWatchCompanionModule$default (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/watch/WatchPageSource;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ljava/util/Map;ILjava/lang/Object;)Lorg/koin/core/module/Module;
+	public static final fun createWatchCompanionModule (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/watch/WatchPageSource;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ljava/util/Map;Ldev/abeta/kmp/core/security/SecureKeyValueStore;)Lorg/koin/core/module/Module;
+	public static synthetic fun createWatchCompanionModule$default (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/watch/WatchPageSource;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/platform/HapticEngine;Ldev/abeta/kmp/core/platform/ExternalLauncherPort;Ldev/abeta/kmp/core/platform/SharePort;Ldev/abeta/kmp/core/platform/ConnectivityMonitor;Ljava/util/Map;Ldev/abeta/kmp/core/security/SecureKeyValueStore;ILjava/lang/Object;)Lorg/koin/core/module/Module;
 	public static final fun offlineWatchStarterApiExecutor ()Ldev/abeta/kmp/actions/handler/ApiCallExecutor;
 }
 

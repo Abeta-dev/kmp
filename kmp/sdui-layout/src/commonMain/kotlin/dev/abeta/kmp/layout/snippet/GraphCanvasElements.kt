@@ -269,11 +269,19 @@ private fun rememberGraphNodeModifier(
     val latestOnDragDelta by rememberUpdatedState(onDragDeltaDp)
     val latestOnDragFinished by rememberUpdatedState(onDragFinished)
     val latestOnAction by rememberUpdatedState(onAction)
+    val latestZoom by rememberUpdatedState(zoom)
 
     return Modifier
         .offset { IntOffset(screenTopLeft.x.roundToInt(), screenTopLeft.y.roundToInt()) }
         .onSizeChanged(onMeasured)
-        .graphicsLayer {
+        .applyNodeDragGesture(
+            nodeId = node.nodeId,
+            canDrag = canDrag,
+            density = density,
+            zoomProvider = { latestZoom },
+            onDragDeltaDp = { latestOnDragDelta(it) },
+            onDragFinished = { latestOnDragFinished() },
+        ).graphicsLayer {
             scaleX = zoom
             scaleY = zoom
             transformOrigin = TransformOrigin(0f, 0f)
@@ -282,13 +290,7 @@ private fun rememberGraphNodeModifier(
         .background(bgColor, shape)
         .border(ThemeTokens.strokeWidth.thin, borderColor, shape)
         .applyNodeClickAction(node = node, haptic = haptic, onAction = { latestOnAction(it) })
-        .applyNodeDragGesture(
-            nodeId = node.nodeId,
-            canDrag = canDrag,
-            density = density,
-            onDragDeltaDp = { latestOnDragDelta(it) },
-            onDragFinished = { latestOnDragFinished() },
-        ).padding(spacing.space8)
+        .padding(spacing.space8)
         .testTag("graph_node_${node.nodeId}")
 }
 
@@ -310,18 +312,24 @@ private fun Modifier.applyNodeClickAction(
     }
 }
 
+@Suppress("LongParameterList")
 private fun Modifier.applyNodeDragGesture(
     nodeId: String,
     canDrag: Boolean,
     density: Float,
+    zoomProvider: () -> Float,
     onDragDeltaDp: (Offset) -> Unit,
     onDragFinished: () -> Unit,
 ): Modifier {
     if (!canDrag) return this
     return pointerInput(nodeId, density) {
-        detectDragGestures(onDragEnd = onDragFinished) { change, dragAmount ->
+        detectDragGestures(
+            onDragEnd = onDragFinished,
+            onDragCancel = onDragFinished,
+        ) { change, dragAmount ->
             change.consume()
-            onDragDeltaDp(Offset(dragAmount.x / density, dragAmount.y / density))
+            val scale = density * zoomProvider().coerceAtLeast(MIN_POSITIVE_GRAPH_ZOOM)
+            onDragDeltaDp(Offset(dragAmount.x / scale, dragAmount.y / scale))
         }
     }
 }

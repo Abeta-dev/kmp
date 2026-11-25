@@ -58,10 +58,13 @@ class StreamingAndManifestContractsTest {
                         "store-home" to ScreenVersionMeta(version = "v1-abcdef012345"),
                     ),
                 generatedAtEpochMs = 1_764_000_010_000L,
+                sduiSchemaVersion = "1.0",
             )
 
         val encoded = SduiJson.encodeToString(manifest)
-        for (key in listOf("app_version", "screens", "updated_at_epoch_ms", "generated_at_epoch_ms")) {
+        val expectedKeys =
+            listOf("app_version", "screens", "updated_at_epoch_ms", "generated_at_epoch_ms", "sdui_schema_version")
+        for (key in expectedKeys) {
             assertTrue(encoded.contains("\"$key\""), "Missing wire key \"$key\" in $encoded")
         }
         assertEquals(manifest, SduiJson.decodeFromString<ScreenManifestResponse>(encoded))
@@ -70,6 +73,21 @@ class StreamingAndManifestContractsTest {
         assertEquals("0.7.0", minimalManifest.appVersion)
         assertTrue(minimalManifest.screens.isEmpty())
         assertNull(minimalManifest.generatedAtEpochMs)
+        assertNull(minimalManifest.sduiSchemaVersion)
+
+        val countdownWithExpiry =
+            CountdownAtom(
+                countdownId = "deal_1",
+                remainingSeconds = 90,
+                expiresAtEpochMs = 1_764_000_090_000L,
+            )
+        val encodedCountdown = SduiJson.encodeToString(countdownWithExpiry)
+        assertTrue(encodedCountdown.contains("\"expires_at_epoch_ms\":1764000090000"))
+        assertEquals(countdownWithExpiry, SduiJson.decodeFromString<CountdownAtom>(encodedCountdown))
+
+        val legacyCountdown =
+            SduiJson.decodeFromString<CountdownAtom>("""{"countdown_id":"legacy","remaining_seconds":30}""")
+        assertNull(legacyCountdown.expiresAtEpochMs)
 
         val minimalMeta = SduiJson.decodeFromString<ScreenVersionMeta>("""{"version":"v1-abc"}""")
         assertEquals("v1-abc", minimalMeta.version)

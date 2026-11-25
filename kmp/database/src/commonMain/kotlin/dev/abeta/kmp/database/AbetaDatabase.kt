@@ -4,6 +4,9 @@ import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
+import androidx.room3.migration.Migration
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
 import dev.abeta.kmp.database.dao.CachedScreenDao
 import dev.abeta.kmp.database.dao.KeyValueRecordDao
 import dev.abeta.kmp.database.dao.OfflineMutationDao
@@ -39,7 +42,16 @@ abstract class AbetaDatabase : RoomDatabase() {
 
     companion object {
         /** Current exported Room 3 schema version. */
-        const val SCHEMA_VERSION: Int = 1
+        const val SCHEMA_VERSION: Int = 2
+
+        /** Schema migration from v1 to v2 adding `pageVersion` and `appVersion` to `cached_screens`. */
+        val MIGRATION_1_2: Migration =
+            object : Migration(1, 2) {
+                override suspend fun migrate(connection: SQLiteConnection) {
+                    connection.execSQL("ALTER TABLE cached_screens ADD COLUMN pageVersion TEXT")
+                    connection.execSQL("ALTER TABLE cached_screens ADD COLUMN appVersion TEXT")
+                }
+            }
     }
 }
 

@@ -8,12 +8,12 @@ alwaysApply: true
 Canonical architecture contract: `AGENTS.md`. Module code owners: `agents/owners/*.md`. Domain skills: `skills/*/SKILL.md`.
 
 1. **Strict Layering (Uncle Bob Dependency Rule)**:
-   - Layer 0: `core`, `state`, `analytics` (zero deps on Layers 1–3).
+   - Layer 0: `core`, `state`, `analytics`, `database` (zero deps on Layers 1–3).
    - Layer 1: `design-tokens`, `sdui-contracts`, `ui-atoms` (ZERO deps on `core`, `action-engine`, `network`, or `sdui-layout`).
    - Layer 2: `action-engine`, `network` (ZERO deps on UI, `sdui-layout`, `watch-companion`, or each other).
    - Layer 3: `sdui-layout`, `watch-companion` (headless, zero Compose UI), `storybook`, `sample-app`, `platforms/`.
    - Go BFF: `internal/handler -> internal/usecase -> internal/domain <- internal/infra`.
 2. **SOLID, Clean Code & KISS**: Keep files modular (`<= 750 LOC` ceiling for prod files), avoid duplicated logic, use OCP registries (`ActionRegistry`, `SnippetRegistry`), and inject dependencies via constructors/Koin.
-3. **BOM, Catalog & ABI**: Never hardcode dependency versions in module `build.gradle.kts`; register all publishable modules in `internal.versions.toml`, `kmp-bom`, `build.gradle.kts`, `settings.gradle.kts`, and keep `api/*.api` updated via `./gradlew apiDump`.
-4. **Zero Leaks**: Use `abeta-dev` / `dev.abeta.kmp` exclusively; never commit machine-specific paths.
+3. **BOM, Catalog & ABI**: Never hardcode dependency versions in module `build.gradle.kts`; register all **11** publishable modules in `internal.versions.toml`, `kmp-bom`, `build.gradle.kts`, `settings.gradle.kts`, and keep `api/*.api` updated via `./gradlew apiDump`.
+4. **Zero Leaks**: Use `io.github.abeta-dev` (Maven) / `dev.abeta.kmp` (Kotlin packages) / `github.com/abeta-dev/kmp` (Go) exclusively; never commit machine-specific paths.
 5. **Verify Before Done**: Run `./scripts/check_brand_hygiene.sh`, `./scripts/check_architecture_and_owners.sh`, and `./scripts/verify_all.sh`.

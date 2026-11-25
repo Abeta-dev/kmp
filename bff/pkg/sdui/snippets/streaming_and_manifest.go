@@ -1,11 +1,15 @@
 package snippets
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"strings"
 )
+
+// DefaultSduiSchemaVersion is the canonical SDUI wire schema version advertised in manifests.
+const DefaultSduiSchemaVersion = "1.0"
 
 // ScreenVersionMeta holds deterministic version and cache validation metadata for one SDUI screen.
 type ScreenVersionMeta struct {
@@ -17,6 +21,7 @@ type ScreenVersionMeta struct {
 // ScreenManifestResponse maps registered screen IDs to their version metadata for cache gating.
 type ScreenManifestResponse struct {
 	AppVersion         string                       `json:"app_version"`
+	SduiSchemaVersion  string                       `json:"sdui_schema_version,omitempty"`
 	Screens            map[string]ScreenVersionMeta `json:"screens"`
 	GeneratedAtEpochMs *int64                       `json:"generated_at_epoch_ms,omitempty"`
 }
@@ -149,7 +154,9 @@ func ComputePageETag(page PageResponse) (string, error) {
 		return "", fmt.Errorf("snippets: compute page etag for %q: %w", page.PageID, err)
 	}
 	var normalized any
-	if err := json.Unmarshal(raw, &normalized); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	if err := dec.Decode(&normalized); err != nil {
 		return "", fmt.Errorf("snippets: canonicalize page etag for %q: %w", page.PageID, err)
 	}
 	canonicalBytes, err := json.Marshal(normalized)

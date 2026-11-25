@@ -81,9 +81,15 @@ func ensureSnippetEnvelope(env SnippetEnvelope, pageID, path string) SnippetEnve
 	if strings.TrimSpace(env.SnippetID) == "" {
 		env.SnippetID = pageID + ".snippet_" + path
 	}
-	scope := pageID + "." + env.SnippetID
+	scope := env.SnippetID
+	if !strings.HasPrefix(scope, pageID+".") {
+		scope = pageID + "." + scope
+	}
+	env.Data = derefSnippetData(env.Data)
 
 	switch d := env.Data.(type) {
+	case map[string]any:
+		env.Data = ensureMapSnippetData(d, env.SnippetType, pageID, scope, path)
 	case HeaderSnippetData:
 		d.LeadingIcon = ensureIconPtr(d.LeadingIcon, scope+".leading_icon")
 		d.Avatar = ensureAvatarPtr(d.Avatar, scope+".avatar")
@@ -298,7 +304,10 @@ func ensureSnippetEnvelope(env SnippetEnvelope, pageID, path string) SnippetEnve
 				if strings.TrimSpace(n.NodeID) == "" {
 					n.NodeID = fmt.Sprintf("%s.node_%d", scope, i)
 				}
-				nScope := scope + "." + n.NodeID
+				nScope := n.NodeID
+				if !strings.HasPrefix(nScope, scope+".") {
+					nScope = scope + "." + nScope
+				}
 				n.OnClick = ensureActionPtr(n.OnClick, nScope+".click")
 				n.OnDragEnd = ensureActionPtr(n.OnDragEnd, nScope+".drag_end")
 				nodes[i] = n
@@ -311,7 +320,10 @@ func ensureSnippetEnvelope(env SnippetEnvelope, pageID, path string) SnippetEnve
 				if strings.TrimSpace(e.EdgeID) == "" {
 					e.EdgeID = fmt.Sprintf("%s.edge_%d", scope, i)
 				}
-				eScope := scope + "." + e.EdgeID
+				eScope := e.EdgeID
+				if !strings.HasPrefix(eScope, scope+".") {
+					eScope = scope + "." + eScope
+				}
 				e.OnClick = ensureActionPtr(e.OnClick, eScope+".click")
 				edges[i] = e
 			}

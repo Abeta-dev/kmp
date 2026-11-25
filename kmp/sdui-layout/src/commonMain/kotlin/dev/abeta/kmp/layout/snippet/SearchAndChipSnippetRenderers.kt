@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -73,7 +73,7 @@ private const val CHIP_MIN_HEIGHT_DP = 36
 private const val CHIP_ICON_SIZE_DP = 16
 private const val SELECTED_BADGE_BG_ALPHA = 0.22f
 private const val CLEAR_GLYPH = "×"
-private val URL_ENCODED_PAYLOAD_KEYS = setOf("route", "endpoint")
+private val URL_ENCODED_PAYLOAD_KEYS = setOf("route", "endpoint", "url", "fallback_route")
 
 internal fun resolveQueryPlaceholders(
     action: ActionRef,
@@ -178,7 +178,7 @@ internal class SearchBarSnippetRenderer(
             val clearAction = model.onClear
             if (clearAction != null) {
                 onAction(clearAction)
-            } else if (model.query.isNotEmpty()) {
+            } else if (currentQuery.isNotEmpty()) {
                 model.onSubmit?.let { onAction(resolveQueryPlaceholders(it, "")) }
             }
         }
@@ -271,23 +271,31 @@ internal class SearchBarSnippetRenderer(
         onClick: () -> Unit,
     ) {
         val colors = ThemeTokens.colors
+        val sizing = ThemeTokens.sizing
         Box(
             modifier =
                 Modifier
-                    .defaultMinSize(minWidth = CLEAR_BUTTON_SIZE_DP.dp, minHeight = CLEAR_BUTTON_SIZE_DP.dp)
-                    .clip(CircleShape)
-                    .background(colors.surface.secondary, CircleShape)
+                    .defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
                     .clickable(role = Role.Button, onClick = onClick)
                     .semantics { contentDescription = "Clear search" }
                     .testTag("search_clear_$searchId"),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = CLEAR_GLYPH,
-                style = ThemeTokens.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.text.secondary,
-            )
+            Box(
+                modifier =
+                    Modifier
+                        .defaultMinSize(minWidth = CLEAR_BUTTON_SIZE_DP.dp, minHeight = CLEAR_BUTTON_SIZE_DP.dp)
+                        .clip(CircleShape)
+                        .background(colors.surface.secondary, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = CLEAR_GLYPH,
+                    style = ThemeTokens.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.text.secondary,
+                )
+            }
         }
     }
 
@@ -317,6 +325,23 @@ internal class SearchBarSnippetRenderer(
     }
 }
 
+private fun buildUniqueChipKeys(chips: List<FilterChipItem>): List<String> {
+    val used = HashSet<String>(chips.size)
+    return chips.mapIndexed { index, chip ->
+        if (used.add(chip.id)) {
+            chip.id
+        } else {
+            var suffix = index
+            var candidate = "${chip.id}#$suffix"
+            while (!used.add(candidate)) {
+                suffix += 1
+                candidate = "${chip.id}#$suffix"
+            }
+            candidate
+        }
+    }
+}
+
 internal class ChipGroupSnippetRenderer(
     json: Json,
 ) : SnippetRenderer<ChipGroupSnippetData> {
@@ -336,18 +361,20 @@ internal class ChipGroupSnippetRenderer(
     ) {
         val spacing = ThemeTokens.spacing
         val haptic = LocalUiHapticFeedback.current
-        val serverSelectedIds =
-            remember(model.chips) {
-                model.chips
-                    .filter { it.selected }
-                    .map { it.id }
-                    .toSet()
-            }
+        val formKey = "chip_${model.groupId}"
+        val formValue = formValues[formKey]
         val serverSelectionSignature =
             remember(envelope.snippetId, model.chips) { model.chips.joinToString(",") { "${it.id}:${it.selected}" } }
-        var localSelectedIds by remember(serverSelectionSignature) { mutableStateOf<Set<String>?>(null) }
-        val effectiveSelectedIds = localSelectedIds ?: serverSelectedIds
-        val formKey = "chip_${model.groupId}"
+        val baseSelectedIds =
+            rememberChipBaseSelection(
+                snippetId = envelope.snippetId,
+                chips = model.chips,
+                serverSelectionSignature = serverSelectionSignature,
+                formValue = formValue,
+            )
+        var localSelectedIds by remember(serverSelectionSignature, formValue) { mutableStateOf<Set<String>?>(null) }
+        val effectiveSelectedIds = localSelectedIds ?: baseSelectedIds
+        val chipKeys = remember(model.chips) { buildUniqueChipKeys(model.chips) }
 
         Column(
             modifier = Modifier.fillMaxWidth().applyLayoutConfig(model.layout).testTag("chip_group_${model.groupId}"),
@@ -355,7 +382,7 @@ internal class ChipGroupSnippetRenderer(
         ) {
             model.title?.let { title -> UiText(atom = title, onAction = onAction) }
             LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.space8)) {
-                items(items = model.chips, key = { chip -> chip.id }) { chip ->
+                itemsIndexed(items = model.chips, key = { index, _ -> chipKeys[index] }) { _, chip ->
                     val isSelected = chip.id in effectiveSelectedIds
                     FilterChipPill(
                         chip = chip,
@@ -377,6 +404,46 @@ internal class ChipGroupSnippetRenderer(
                 }
             }
         }
+    }
+
+    @Composable
+    private fun rememberChipBaseSelection(
+        snippetId: String,
+        chips: List<FilterChipItem>,
+        serverSelectionSignature: String,
+        formValue: String?,
+    ): Set<String> {
+        val validChipIds = remember(chips) { chips.mapTo(HashSet(chips.size)) { it.id } }
+        val serverSelectedIds =
+            remember(chips) {
+                chips
+                    .filter { it.selected }
+                    .map { it.id }
+                    .toSet()
+            }
+        val formSelectedIds =
+            remember(formValue, validChipIds) {
+                formValue?.let { raw ->
+                    raw
+                        .split(',')
+                        .asSequence()
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() && it in validChipIds }
+                        .toSet()
+                }
+            }
+        var lastServerSig by remember(snippetId) { mutableStateOf(serverSelectionSignature) }
+        var lastFormValue by remember(snippetId) { mutableStateOf(formValue) }
+        var preferServer by remember(snippetId) { mutableStateOf(formValue == null) }
+        if (serverSelectionSignature != lastServerSig) {
+            lastServerSig = serverSelectionSignature
+            preferServer = true
+        }
+        if (formValue != lastFormValue) {
+            lastFormValue = formValue
+            preferServer = formValue == null
+        }
+        return if (preferServer) serverSelectedIds else (formSelectedIds ?: serverSelectedIds)
     }
 
     @Composable

@@ -3,6 +3,7 @@ package infra_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -245,6 +246,81 @@ func TestDefaultActionExecutor_ErrorsAndBatchEdges(t *testing.T) {
 	}
 	if _, err := exec.Execute(ctx, domain.ActionExecutionInput{Trigger: deep}); !apperror.Is(err, apperror.CodeBadRequest) {
 		t.Fatalf("expected CodeBadRequest when batch depth exceeded, got %v", err)
+	}
+
+	// Unsafe URL schemes rejected; mailto and tel accepted
+	for _, badURL := range []string{"javascript:alert(1)", "file:///etc/passwd", "data:text/html,hi", "https://", "mailto:", "/relative/path"} {
+		if _, err := exec.Execute(ctx, domain.ActionExecutionInput{
+			Trigger: actions.NewOpenURLAction("bad_url", actions.OpenURLPayload{URL: badURL}),
+		}); !apperror.Is(err, apperror.CodeBadRequest) {
+			t.Errorf("expected CodeBadRequest for unsafe URL %q, got %v", badURL, err)
+		}
+	}
+	for _, okURL := range []string{"mailto:support@abeta.dev", "tel:+15551234567", "http://abeta.dev"} {
+		if _, err := exec.Execute(ctx, domain.ActionExecutionInput{
+			Trigger: actions.NewOpenURLAction("ok_url", actions.OpenURLPayload{URL: okURL}),
+		}); err != nil {
+			t.Errorf("expected valid URL %q to succeed, got %v", okURL, err)
+		}
+	}
+
+	// Non-POST CallAPI on express/pay endpoints must NOT emit confirmation follow-ups
+	getOrderRes, err := exec.Execute(ctx, domain.ActionExecutionInput{
+		Trigger: actions.NewCallAPIAction("get_order", actions.CallAPIPayload{
+			Endpoint: "/api/v1/orders/express",
+			Method:   "GET",
+		}),
+	})
+	if err != nil || len(getOrderRes.FollowUpActions) != 0 {
+		t.Fatalf("expected zero confirmation follow-ups for GET /orders/express, got %+v (err=%v)", getOrderRes, err)
+	}
+
+	// Batch child with empty ID/type rejected when StopOnError=true
+	if _, err := exec.Execute(ctx, domain.ActionExecutionInput{
+		Trigger: actions.NewBatchAction("bat_bad_child", actions.BatchPayload{
+			Actions:     []actions.ActionTrigger{{ID: "", Type: actions.ActionShowToast}},
+			StopOnError: true,
+		}),
+	}); !apperror.Is(err, apperror.CodeBadRequest) {
+		t.Fatalf("expected CodeBadRequest for invalid batch child, got %v", err)
+	}
+
+	// Total batch budget > 50 rejected even when StopOnError=false
+	manyChildren := make([]actions.ActionTrigger, 55)
+	for i := range manyChildren {
+		manyChildren[i] = actions.NewTrackEventAction(fmt.Sprintf("ev_%d", i), actions.TrackEventPayload{EventName: "ping"})
+	}
+	if _, err := exec.Execute(ctx, domain.ActionExecutionInput{
+		Trigger: actions.NewBatchAction("bat_budget", actions.BatchPayload{
+			Actions:     manyChildren,
+			StopOnError: false,
+		}),
+	}); !apperror.Is(err, apperror.CodeBadRequest) {
+		t.Fatalf("expected CodeBadRequest when batch action budget exceeded, got %v", err)
+	}
+
+	// Bounded state (<= 512 keys) and defensive value cloning
+	boundedExec := infra.NewDefaultActionExecutor()
+	srcMap := map[string]any{"nested": []any{"a", "b"}, "tags": []string{"t1"}}
+	if _, err := boundedExec.Execute(ctx, domain.ActionExecutionInput{
+		Trigger: actions.NewSaveStateAction("save_map", actions.SaveStatePayload{Key: "obj", Value: srcMap}),
+	}); err != nil {
+		t.Fatalf("save_map failed: %v", err)
+	}
+	srcMap["nested"].([]any)[0] = "mutated"
+	gotObj, ok := boundedExec.GetState("obj")
+	if !ok || gotObj.(map[string]any)["nested"].([]any)[0] != "a" {
+		t.Fatalf("expected cloned state value protected from caller mutation, got %#v", gotObj)
+	}
+	for i := range 520 {
+		if _, err := boundedExec.Execute(ctx, domain.ActionExecutionInput{
+			Trigger: actions.NewSaveStateAction("save_i", actions.SaveStatePayload{Key: fmt.Sprintf("k_%d", i), Value: i}),
+		}); err != nil {
+			t.Fatalf("save k_%d failed: %v", i, err)
+		}
+	}
+	if _, stillExists := boundedExec.GetState("obj"); stillExists {
+		t.Fatal("expected oldest key evicted once executor state exceeds 512 keys")
 	}
 }
 

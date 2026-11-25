@@ -27,8 +27,7 @@ on:
         default: false
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -38,6 +37,8 @@ jobs:
   plan-and-verify:
     name: Verify & Plan Release Channels
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       release_kind: ${{ steps.plan.outputs.release_kind }}
       release_tag: ${{ steps.plan.outputs.release_tag }}
@@ -168,6 +169,8 @@ jobs:
       needs.plan-and-verify.outputs.release_kind == 'kmp' &&
       needs.plan-and-verify.outputs.publish_target != 'maven-central'
     runs-on: macos-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -202,11 +205,21 @@ jobs:
             --repo "${GITHUB_REPOSITORY}" \
             --out-dir dist/xcframeworks
 
-      - name: Verify generated SwiftPM Package.swift manifest
+      - name: Verify generated SwiftPM Package.swift manifest & typecheck SwiftUI wrappers
         env:
           RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
         run: |
-          ./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag "${RELEASE_TAG}"
+          set -euo pipefail
+          SDUI_SIM_DIR="$(find kmp/sdui-layout/build/XCFrameworks/release/AbetaSduiKit.xcframework -maxdepth 1 -type d -name 'ios-*-simulator' | head -n 1)"
+          WATCH_SIM_DIR="$(find kmp/watch-companion/build/XCFrameworks/release/AbetaWatchKit.xcframework -maxdepth 1 -type d -name 'watchos-*-simulator' | head -n 1)"
+          if [[ -z "${SDUI_SIM_DIR}" || -z "${WATCH_SIM_DIR}" ]]; then
+            echo "ERROR: Could not locate simulator slices inside assembled release XCFrameworks." >&2
+            exit 1
+          fi
+          ./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift \
+            --expected-tag "${RELEASE_TAG}" \
+            --sdui-framework "${SDUI_SIM_DIR}" \
+            --watch-framework "${WATCH_SIM_DIR}"
 
       - name: Upload XCFramework & SwiftPM release artifacts
         uses: actions/upload-artifact@v4
@@ -241,6 +254,9 @@ jobs:
           vars.ENABLE_GITHUB_PACKAGES_MIRROR == 'true'))
       )
     runs-on: macos-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -341,16 +357,20 @@ jobs:
 
   github-release:
     name: Create GitHub Release & Warm Go Proxy
-    needs: [plan-and-verify, publish-apple-xcframeworks]
+    needs: [plan-and-verify, publish-apple-xcframeworks, publish-maven]
     if: >
       always() &&
       needs.plan-and-verify.result == 'success' &&
       (needs.publish-apple-xcframeworks.result == 'success' ||
        needs.publish-apple-xcframeworks.result == 'skipped') &&
+      (needs.publish-maven.result == 'success' ||
+       needs.publish-maven.result == 'skipped') &&
       needs.plan-and-verify.outputs.publish_target != 'maven-central' &&
       (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch') &&
       inputs.skip_release_upload != true
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -385,6 +405,17 @@ jobs:
               --title "Abeta KMP Kit ${RELEASE_TAG}" \
               --generate-notes
           fi
+
+      - name: Warn if SwiftPM mirror sync token is not configured
+        if: >
+          needs.plan-and-verify.outputs.release_kind == 'kmp' &&
+          startsWith(github.ref, 'refs/tags/v') &&
+          needs.plan-and-verify.outputs.spm_mirror_configured != 'true'
+        env:
+          SPM_REPO: ${{ vars.SPM_REPO || 'Abeta-dev/kmp-spm' }}
+          RELEASE_TAG: ${{ needs.plan-and-verify.outputs.release_tag }}
+        run: |
+          echo "::warning::SPM_REPO_TOKEN secret is not configured; skipping automated SwiftPM mirror sync to ${SPM_REPO} for ${RELEASE_TAG}. See docs/publishing-and-hosting.md."
 
       - name: Publish Go BFF GitHub Release & warm proxy.golang.org
         if: needs.plan-and-verify.outputs.release_kind == 'bff'

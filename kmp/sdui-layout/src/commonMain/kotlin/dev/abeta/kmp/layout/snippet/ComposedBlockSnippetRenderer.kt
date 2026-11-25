@@ -120,7 +120,7 @@ private fun RenderComposedNode(
             .let { base ->
                 val id = node.nodeId?.takeIf { it.isNotBlank() }
                 if (id != null) base.testTag("composed_node_$id") else base
-            }.applyMotionSpec(motion = node.motion, motionKey = node.nodeId ?: "${node.kind}_$depth")
+            }.applyMotionSpec(motion = node.motion, motionKey = nodeKey)
 
     if (node.kind == ComposedNodeKind.CARD) {
         RenderCardNode(node, depth, nodePath, context, taggedModifier)
@@ -272,7 +272,8 @@ private fun RenderColumnNode(
         horizontalAlignment = resolveComposedHorizontalAlignment(node.horizontalAlignment, node.alignment),
     ) {
         node.children.forEachIndexed { idx, child ->
-            val childMod = child.weight?.takeIf { it > 0f }?.let { Modifier.weight(it) } ?: Modifier
+            val resolvedWeight = (child.weight ?: child.spacer?.weight)?.takeIf { it.isFinite() && it > 0f }
+            val childMod = resolvedWeight?.let { Modifier.weight(it) } ?: Modifier
             RenderComposedNode(child, depth + 1, "$nodePath/$idx", context, childMod)
         }
     }
@@ -294,7 +295,8 @@ private fun RenderRowNode(
         verticalAlignment = resolveComposedVerticalAlignment(node.verticalAlignment),
     ) {
         node.children.forEachIndexed { idx, child ->
-            val childMod = child.weight?.takeIf { it > 0f }?.let { Modifier.weight(it) } ?: Modifier
+            val resolvedWeight = (child.weight ?: child.spacer?.weight)?.takeIf { it.isFinite() && it > 0f }
+            val childMod = resolvedWeight?.let { Modifier.weight(it) } ?: Modifier
             RenderComposedNode(child, depth + 1, "$nodePath/$idx", context, childMod)
         }
     }

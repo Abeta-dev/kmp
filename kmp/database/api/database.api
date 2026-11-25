@@ -8,6 +8,7 @@ public abstract class dev/abeta/kmp/database/AbetaDatabase : androidx/room3/Room
 }
 
 public final class dev/abeta/kmp/database/AbetaDatabase$Companion {
+	public final fun getMIGRATION_1_2 ()Landroidx/room3/migration/Migration;
 }
 
 public final class dev/abeta/kmp/database/AbetaDatabaseConfig {
@@ -61,8 +62,8 @@ public final class dev/abeta/kmp/database/AbetaLocalDatabase {
 	public final fun pendingMutations (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun purgeDeadLetters (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun purgeDeadLetters$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun putScreenCache (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun putScreenCache$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun putScreenCache (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun putScreenCache$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun putValue (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun putValue$default (Ldev/abeta/kmp/database/AbetaLocalDatabase;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun removeValue (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -94,6 +95,7 @@ public final class dev/abeta/kmp/database/DatabaseFactory_jvmKt {
 public abstract interface class dev/abeta/kmp/database/dao/CachedScreenDao {
 	public abstract fun clearAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun count (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun countFresh (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteById (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteExpired (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getById (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -106,8 +108,10 @@ public abstract interface class dev/abeta/kmp/database/dao/KeyValueRecordDao {
 	public abstract fun deleteExpired (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteNamespace (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun listFreshKeys (Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun listKeys (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun observe (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun observeRecord (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun upsert (Ldev/abeta/kmp/database/entities/KeyValueRecordEntity;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -129,19 +133,23 @@ public final class dev/abeta/kmp/database/dao/OfflineMutationDao$DefaultImpls {
 }
 
 public final class dev/abeta/kmp/database/entities/CachedScreenEntity {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()J
 	public final fun component5 ()Ljava/lang/Long;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;)Ldev/abeta/kmp/database/entities/CachedScreenEntity;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/database/entities/CachedScreenEntity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Object;)Ldev/abeta/kmp/database/entities/CachedScreenEntity;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/database/entities/CachedScreenEntity;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/database/entities/CachedScreenEntity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/database/entities/CachedScreenEntity;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAppVersion ()Ljava/lang/String;
 	public final fun getCachedAtEpochMillis ()J
 	public final fun getEtag ()Ljava/lang/String;
 	public final fun getExpiresAtEpochMillis ()Ljava/lang/Long;
+	public final fun getPageVersion ()Ljava/lang/String;
 	public final fun getPayloadJson ()Ljava/lang/String;
 	public final fun getScreenId ()Ljava/lang/String;
 	public fun hashCode ()I

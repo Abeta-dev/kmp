@@ -15,7 +15,7 @@ Use this skill whenever configuring, extending, debugging, or executing CI/CD pi
 | [bff-ci.yml](../../.github/workflows/bff-ci.yml) | PR / push (`bff/**`, `scripts/**`) | Go 1.26.0 `gofmt`, `go vet ./...`, `go test -race -coverprofile=coverage.out ./...` |
 | [quality-security.yml](../../.github/workflows/quality-security.yml) | PR / push | Brand & machine-path hygiene (`check_brand_hygiene.sh`), Architecture & Code Owner gate (`check_architecture_and_owners.sh`), SHA-256-verified open-source `gitleaks` CLI secret scan (`.gitleaks.toml`), Spotless & Detekt |
 | [module-owner-architecture-review.yml](../../.github/workflows/module-owner-architecture-review.yml) | PR / manual dispatch | Deterministic Uncle Bob Dependency Rule, BOM/Catalog/ABI parity, 1:1 KMP<->BFF wire parity, per-module Code Owner PR review comment, Spotless/Detekt/`apiCheck`/Go `arch_test`, and optional multi-model AI diff review (Claude / Gemini / OpenAI) |
-| [release.yml](../../.github/workflows/release.yml) | Tags `v*`, `bff/v*` or `workflow_dispatch` | Full KMP + Go verification -> `macos-latest` publish all **13 Gradle modules** (**11 KMP libs** incl. `:database` + `:kmp-bom` + `:dependencyManagement`) to **Maven Central (Sonatype Central Portal)**, **Cloudsmith Open Source**, optional custom Maven mirror, plus Release Apple XCFrameworks (`AbetaSduiKit`, `AbetaWatchKit`) + verified SwiftPM `Package.swift` (`verify_spm_package.sh`) + `SHA256SUMS.txt` -> GitHub Release, SwiftPM mirror (`Abeta-dev/kmp-spm` via `SPM_REPO_TOKEN`), & `proxy.golang.org` warmup |
+| [release.yml](../../.github/workflows/release.yml) | Tags `v*`, `bff/v*` or `workflow_dispatch` | Full KMP + Go verification -> `macos-latest` publish all **13 Gradle modules** (**11 KMP libs** incl. `:database` + `:kmp-bom` + `:dependencyManagement`) to **Maven Central (Sonatype Central Portal)** (requires repo variable `vars.ENABLE_MAVEN_CENTRAL=true`), **Cloudsmith Open Source**, optional custom Maven mirror, plus 4-product Apple SwiftPM (`AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI`) + generated `Package.swift` (`package_xcframeworks.sh` & `verify_spm_package.sh`) + `SHA256SUMS.txt` -> GitHub Release, SwiftPM mirror (`Abeta-dev/kmp-spm` via `SPM_REPO_TOKEN`), & `proxy.golang.org` warmup |
 | [snapshot-publish.yml](../../.github/workflows/snapshot-publish.yml) | Push (`main` `kmp/**`) or `workflow_dispatch` | Publishes multiplatform `*-SNAPSHOT` builds to **Cloudsmith Open Source** on `macos-latest` automatically whenever `CLOUDSMITH_API_KEY` is configured |
 | [wiki-sync.yml](../../.github/workflows/wiki-sync.yml) | Push (`wiki/**`) | Mirrors `wiki/*.md` to the GitHub repository wiki |
 
@@ -34,7 +34,7 @@ Every module in `abeta-dev/kmp` has a dedicated Code Owner persona in `agents/ow
 What `check_architecture_and_owners.sh` enforces automatically:
 1. **Uncle Bob Dependency Rule**: validates `projects.*` dependencies in every `kmp/*/build.gradle.kts`, Layer 0 `database` isolation (depends only on `core`, zero Compose/Ktor), Layer 1 import isolation (`design-tokens`, `sdui-contracts`, `ui-atoms`), headless `watch-companion` (zero Compose UI), and pure Go `bff/internal/domain`.
 2. **Gradle BOM, Catalog & ABI**: zero hardcoded dependency versions in module `build.gradle.kts`, all **11 publishable modules** (including `database`) registered in `internal.versions.toml`, `kmp-bom`, `build.gradle.kts`, `settings.gradle.kts`, and `kmp/<mod>/api/<mod>.api`.
-3. **1:1 KMP <-> Go BFF Wire Parity**: asserts exact set equality across all **18 `ActionTypes`** and **21 `SnippetTypes`**.
+3. **1:1 KMP <-> Go BFF Wire Parity**: asserts exact set equality across all **18 `ActionTypes`** and **23 `SnippetTypes`**.
 4. **Module Owner Coverage**: confirms all **17 owner agents** (including `database-owner.md`) exist in `agents/owners/` with valid metadata and matching `.github/CODEOWNERS` paths.
 5. **SOLID / KISS File-Size Guardrail**: flags production `.kt`/`.go` files exceeding `750 LOC`.
 
@@ -66,19 +66,19 @@ What `check_architecture_and_owners.sh` enforces automatically:
   -Dorg.gradle.jvmargs="-Xmx6g -Dfile.encoding=UTF-8" \
   -Dkotlin.daemon.jvm.options="-Xmx6g")
 
-# 5. Package Apple XCFrameworks + verify SwiftPM Package.swift locally
-./scripts/package_xcframeworks.sh --tag v0.3.0 --out-dir dist/xcframeworks
-./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.3.0
+# 5. Package 4-product Apple XCFrameworks/SwiftUI + verify generated SwiftPM Package.swift locally
+./scripts/package_xcframeworks.sh --tag v0.7.0 --out-dir dist/xcframeworks
+./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.7.0
 
 # 6. Verify all 13 Maven artifacts locally (zero credentials required)
 (cd kmp && ./gradlew publishToMavenLocal -Pabeta.kmpLocalBuild=false --no-daemon)
 
-# 7. Cut SemVer releases (triggers .github/workflows/release.yml — see docs/publishing-and-hosting.md)
-git tag -a v0.3.0 -m "Release v0.3.0"
-git push origin v0.3.0
+# 7. Cut SemVer releases (triggers .github/workflows/release.yml — ensure vars.ENABLE_MAVEN_CENTRAL=true; see docs/publishing-and-hosting.md)
+git tag -a v0.7.0 -m "Release v0.7.0"
+git push origin v0.7.0
 # For Go BFF module proxy (proxy.golang.org):
-git tag -a bff/v0.5.0 -m "Release Go BFF v0.5.0"
-git push origin bff/v0.5.0
+git tag -a bff/v0.9.0 -m "Release Go BFF v0.9.0"
+git push origin bff/v0.9.0
 ```
 
 ## 5. CI Troubleshooting Notes

@@ -83,7 +83,7 @@ func canonicalNudgesAndComposedScreen() snippets.PageResponse {
 			Enter:         atoms.MotionTransitionSlideDown,
 			DurationToken: atoms.MotionDurationFast,
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "demo_nudge_bar",
 			"nudge_id":   "free_delivery_nudge",
 		}).
@@ -127,7 +127,7 @@ func canonicalNudgesAndComposedScreen() snippets.PageResponse {
 			DurationToken: atoms.MotionDurationFast,
 			LoopEffect:    atoms.MotionLoopMarquee,
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "demo_marquee_strip",
 			"strip_id":   "fresh_live_ticker",
 		}).
@@ -211,7 +211,7 @@ func canonicalNudgesAndComposedScreen() snippets.PageResponse {
 			Enter:         atoms.MotionTransitionSlideUp,
 			DurationToken: atoms.MotionDurationNormal,
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "demo_order_tracker",
 			"order_code": "#AF-4092",
 		}).
@@ -303,7 +303,7 @@ func canonicalNudgesAndComposedScreen() snippets.PageResponse {
 			loyaltyStampSnippet,
 			liveEtaPromoSnippet,
 		).
-		WithTracking("page_loaded", map[string]any{
+		WithTracking("page_loaded", map[string]string{
 			"page_id": "nudges-and-composed-demo",
 			"version": "v1",
 		}).

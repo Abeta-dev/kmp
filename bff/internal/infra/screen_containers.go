@@ -229,6 +229,6 @@ func buildContainersScreen() snippets.PageResponse {
 				WithLayout(cardLayout()).
 				Build(),
 		).
-		WithTracking("page_loaded", map[string]any{"page_id": "containers"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "containers"}).
 		Build()
 }

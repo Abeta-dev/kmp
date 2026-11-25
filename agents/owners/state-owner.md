@@ -24,7 +24,7 @@ verification_command: "(cd kmp && ./gradlew :state:spotlessCheck :state:detekt :
 - **Paths**: `kmp/state/**`
 - **Maven Coordinate**: `io.github.abeta-dev:state` (Kotlin package `dev.abeta.kmp.state`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
-- **Core Responsibilities**: `SessionStore` / `PersistentSessionStore` / `SessionLifecycleManager`, reactive schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, and `OfflineMutationQueue`.
+- **Core Responsibilities**: Thread-safe `SessionStore` / `PersistentSessionStore` / `SessionLifecycleManager`, `DataStoreKeyValueStore` (`androidx.datastore:datastore-preferences-core:1.3.0`), `createDiskKeyValueStore`, reactive schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, and `OfflineMutationQueue`.
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Strict Layer 0 Boundary**: May ONLY depend on `projects.core`. NEVER host design tokens, Compose UI, SDUI DTOs, or HTTP clients here.

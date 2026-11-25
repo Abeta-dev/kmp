@@ -62,8 +62,12 @@ private fun extractCertificateDerAt(
     val derData = cert?.let { SecCertificateCopyData(it) } ?: return null
     return try {
         val ptr = CFDataGetBytePtr(derData)
-        val len = CFDataGetLength(derData).toInt()
-        if (ptr != null && len > 0) ptr.reinterpret<ByteVar>().readBytes(len) else null
+        val lenLong = CFDataGetLength(derData).toLong()
+        if (ptr != null && lenLong > 0L && lenLong <= Int.MAX_VALUE.toLong()) {
+            ptr.reinterpret<ByteVar>().readBytes(lenLong.toInt())
+        } else {
+            null
+        }
     } finally {
         CFRelease(derData)
     }

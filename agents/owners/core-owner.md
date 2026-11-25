@@ -22,7 +22,7 @@ verification_command: "(cd kmp && ./gradlew :core:spotlessCheck :core:detekt :co
 - **Paths**: `kmp/core/**`
 - **Maven Coordinate**: `io.github.abeta-dev:core` (Kotlin package `dev.abeta.kmp.core`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
-- **Core Responsibilities**: `AppResult`, `AppError`, `DispatcherProvider`, `Clock`, `AppLogger`, `KeyValueStore`, `UuidGenerator`, resilience guards (`BackoffPolicy`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`), `SensitiveDataRedactor`, `FieldValidators`, OS Bridges & Ports (`PlatformInfo`, `PlatformCapabilities`, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore`, `BiometricAuthenticator`).
+- **Core Responsibilities**: `AppResult`, `AppError`, `DispatcherProvider`, `Clock`, `AppLogger`, `KeyValueStore`, `UuidGenerator`, resilience guards (`BackoffPolicy`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`), `SensitiveDataRedactor`, `FieldValidators`, OS, Voice & Desktop Bridges/Ports (`PlatformInfo`, `PlatformCapabilities`, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `AudioCapturePort`, `SpeechToTextPort`, `DesktopSystemPort`, `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore`, `BiometricAuthenticator`).
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Zero Inward/Upward Dependencies**: `kmp/core/build.gradle.kts` MUST NOT depend on any other `:kmp` module, Compose UI, Ktor, or Koin.

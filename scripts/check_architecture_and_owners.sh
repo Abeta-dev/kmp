@@ -193,6 +193,24 @@ for go_file in glob.glob(os.path.join(root, "bff/internal/domain/**/*.go"), recu
             rel = os.path.relpath(go_file, root)
             violations.append(f"[GoCleanArch] {rel} imports forbidden package {bad}")
 
+# Go pkg/sdui/cache pure-Go check (zero Gin or net/http imports)
+cache_go_files = [
+    f for f in glob.glob(os.path.join(root, "bff/pkg/sdui/cache/**/*.go"), recursive=True)
+    if not f.endswith("_test.go")
+]
+if not cache_go_files:
+    violations.append("[GoCleanArch] Expected pure-Go source files under bff/pkg/sdui/cache/")
+for go_file in cache_go_files:
+    with open(go_file, "r", encoding="utf-8") as fh:
+        text = fh.read()
+    imported_pkgs = set(re.findall(r'"([^"]+)"', "\n".join(
+        re.findall(r'import\s*\((.*?)\)', text, re.S) + re.findall(r'import\s+(?:[A-Za-z0-9_.]+\s+)?("[^"]+")', text)
+    )))
+    for imp in sorted(imported_pkgs):
+        if imp == "net/http" or imp.startswith("net/http/") or imp == "github.com/gin-gonic/gin" or imp.startswith("github.com/gin-gonic/gin/"):
+            rel = os.path.relpath(go_file, root)
+            violations.append(f"[GoPureCache] {rel} imports forbidden HTTP/Gin package `{imp}`")
+
 # ---------------------------------------------------------------------------
 # 2. Gradle BOM, Version Catalog, settings.gradle.kts & ABI .api Registration
 # ---------------------------------------------------------------------------
@@ -212,28 +230,63 @@ for mod in PUBLISHABLE_LIBS:
     if not os.path.isfile(api_file):
         violations.append(f"[ABI] Missing Binary Compatibility Validator descriptor: kmp/{mod}/api/{mod}.api")
 
-# Ensure all 11 publishable libraries are referenced in kmp-bom
+# Ensure kmp-bom constrains the exact set of 11 publishable libraries + dependencies catalog
+catalog_kmp_aliases = {
+    alias: artifact
+    for alias, artifact in re.findall(
+        r'^kmp-([A-Za-z0-9_]+)\s*=\s*\{\s*group\s*=\s*"io\.github\.abeta-dev"\s*,\s*name\s*=\s*"([^"]+)"',
+        internal_toml,
+        re.M,
+    )
+}
 bom_entries = re.findall(r"api\(internal\.kmp\.([A-Za-z0-9_]+)\)", bom_text)
-if len(bom_entries) < len(PUBLISHABLE_LIBS):
+if len(bom_entries) != len(set(bom_entries)):
+    dupes = sorted({e for e in bom_entries if bom_entries.count(e) > 1})
+    violations.append(f"[BOM] kmp/kmp-bom/build.gradle.kts declares duplicate constraints: {dupes}")
+
+unknown_bom_aliases = sorted(set(bom_entries) - set(catalog_kmp_aliases))
+if unknown_bom_aliases:
     violations.append(
-        f"[BOM] kmp/kmp-bom/build.gradle.kts declares {len(bom_entries)} kmp modules; expected >= {len(PUBLISHABLE_LIBS)}"
+        f"[BOM] kmp/kmp-bom/build.gradle.kts references aliases missing from internal.versions.toml: {unknown_bom_aliases}"
+    )
+
+bom_artifacts = {catalog_kmp_aliases[e] for e in bom_entries if e in catalog_kmp_aliases}
+expected_bom_artifacts = set(PUBLISHABLE_LIBS) | {"dependencies"}
+if bom_artifacts != expected_bom_artifacts:
+    missing_bom = sorted(expected_bom_artifacts - bom_artifacts)
+    extra_bom = sorted(bom_artifacts - expected_bom_artifacts)
+    violations.append(
+        f"[BOM] Exact module set mismatch in kmp/kmp-bom/build.gradle.kts! Missing={missing_bom}, Extra={extra_bom}"
     )
 
 # ---------------------------------------------------------------------------
-# 3. 1:1 KMP <-> Go BFF Wire Protocol Parity (ActionTypes & SnippetTypes)
+# 3. 1:1 KMP <-> Go BFF Wire Protocol Parity & Renderer Registration
 # ---------------------------------------------------------------------------
-def extract_kotlin_const_strings(rel_path: str, object_name: str) -> set[str]:
+def extract_kotlin_const_map(rel_path: str, object_name: str) -> dict[str, str]:
     text = read_text(rel_path)
     match = re.search(rf"object\s+{object_name}\s*\{{(.*?)\}}", text, re.S)
     if not match:
         violations.append(f"[WireParity] Could not locate `object {object_name}` in {rel_path}")
+        return {}
+    return dict(re.findall(r'const\s+val\s+([A-Z0-9_]+)\s*=\s*"([^"]+)"', match.group(1)))
+
+
+def extract_kotlin_const_strings(rel_path: str, object_name: str) -> set[str]:
+    return set(extract_kotlin_const_map(rel_path, object_name).values())
+
+
+def extract_kotlin_enum_serial_names(rel_path: str, enum_name: str) -> set[str]:
+    text = read_text(rel_path)
+    match = re.search(rf"enum\s+class\s+{enum_name}\s*\{{(.*?)\}}", text, re.S)
+    if not match:
+        violations.append(f"[WireParity] Could not locate `enum class {enum_name}` in {rel_path}")
         return set()
-    return set(re.findall(r'const\s+val\s+[A-Z0-9_]+\s*=\s*"([^"]+)"', match.group(1)))
+    return set(re.findall(r'@SerialName\s*\(\s*"([^"]+)"\s*\)', match.group(1)))
 
 
 def extract_go_const_strings(rel_path: str, prefix: str) -> set[str]:
     text = read_text(rel_path)
-    return set(re.findall(rf"{prefix}[A-Za-z0-9_]+\s+(?:[A-Za-z0-9_]+\s+)?=\s+\"([^\"]+)\"", text))
+    return set(re.findall(rf"\b{prefix}[A-Za-z0-9_]+\s+(?:[A-Za-z0-9_]+\s+)?=\s+\"([^\"]+)\"", text))
 
 
 kmp_actions = extract_kotlin_const_strings(
@@ -246,14 +299,96 @@ if kmp_actions != go_actions:
         f"[WireParity] ActionTypes mismatch! KMP-only={sorted(kmp_actions - go_actions)}, Go-only={sorted(go_actions - kmp_actions)}"
     )
 
-kmp_snippets = extract_kotlin_const_strings(
+kmp_snippet_const_map = extract_kotlin_const_map(
     "kmp/sdui-contracts/src/commonMain/kotlin/dev/abeta/kmp/contracts/SnippetContracts.kt",
     "SnippetTypes",
 )
+kmp_snippets = set(kmp_snippet_const_map.values())
 go_snippets = extract_go_const_strings("bff/pkg/sdui/snippets/snippets.go", "SnippetType")
 if kmp_snippets != go_snippets:
     violations.append(
         f"[WireParity] SnippetTypes mismatch! KMP-only={sorted(kmp_snippets - go_snippets)}, Go-only={sorted(go_snippets - kmp_snippets)}"
+    )
+
+# MotionLoopEffect parity (8 values)
+kmp_motion_loops = extract_kotlin_enum_serial_names(
+    "kmp/sdui-contracts/src/commonMain/kotlin/dev/abeta/kmp/contracts/AtomEnums.kt",
+    "MotionLoopEffect",
+)
+go_motion_loops = extract_go_const_strings("bff/pkg/sdui/atoms/atoms.go", "MotionLoop")
+if not kmp_motion_loops or kmp_motion_loops != go_motion_loops:
+    violations.append(
+        f"[WireParity] MotionLoopEffect mismatch! KMP-only={sorted(kmp_motion_loops - go_motion_loops)}, Go-only={sorted(go_motion_loops - kmp_motion_loops)}"
+    )
+
+# SnippetDeltaOp parity (6 values)
+kmp_delta_ops = extract_kotlin_enum_serial_names(
+    "kmp/sdui-contracts/src/commonMain/kotlin/dev/abeta/kmp/contracts/StreamingAndManifestContracts.kt",
+    "SnippetDeltaOp",
+)
+go_delta_ops = extract_go_const_strings("bff/pkg/sdui/snippets/streaming_and_manifest.go", "DeltaOp")
+if not kmp_delta_ops or kmp_delta_ops != go_delta_ops:
+    violations.append(
+        f"[WireParity] SnippetDeltaOp mismatch! KMP-only={sorted(kmp_delta_ops - go_delta_ops)}, Go-only={sorted(go_delta_ops - kmp_delta_ops)}"
+    )
+
+# ComposedNodeKind parity (36 values)
+kmp_composed_kinds = extract_kotlin_enum_serial_names(
+    "kmp/sdui-contracts/src/commonMain/kotlin/dev/abeta/kmp/contracts/NudgeAndComposedContracts.kt",
+    "ComposedNodeKind",
+)
+go_composed_kinds = extract_go_const_strings(
+    "bff/pkg/sdui/snippets/nudge_and_composed_snippets.go",
+    "ComposedNode",
+)
+if not kmp_composed_kinds or kmp_composed_kinds != go_composed_kinds:
+    violations.append(
+        f"[WireParity] ComposedNodeKind mismatch! KMP-only={sorted(kmp_composed_kinds - go_composed_kinds)}, Go-only={sorted(go_composed_kinds - kmp_composed_kinds)}"
+    )
+
+# BuiltInSnippetModule registers every single SnippetTypes constant
+renderer_class_to_type: dict[str, str] = {}
+snippet_src_dir = os.path.join(root, "kmp/sdui-layout/src/commonMain/kotlin/dev/abeta/kmp/layout/snippet")
+for kt_file in glob.glob(os.path.join(snippet_src_dir, "*.kt")):
+    text = open(kt_file, "r", encoding="utf-8").read()
+    class_matches = list(re.finditer(r"\bclass\s+([A-Za-z0-9_]+)\b", text))
+    for idx, cm in enumerate(class_matches):
+        cls_name = cm.group(1)
+        start = cm.end()
+        end = class_matches[idx + 1].start() if idx + 1 < len(class_matches) else len(text)
+        body = text[start:end]
+        const_m = re.search(r"override\s+val\s+snippetType\s*:\s*String\s*=\s*SnippetTypes\.([A-Z0-9_]+)", body)
+        if const_m:
+            const_name = const_m.group(1)
+            if const_name in kmp_snippet_const_map:
+                renderer_class_to_type[cls_name] = kmp_snippet_const_map[const_name]
+        else:
+            lit_m = re.search(r'override\s+val\s+snippetType\s*:\s*String\s*=\s*"([^"]+)"', body)
+            if lit_m:
+                renderer_class_to_type[cls_name] = lit_m.group(1)
+
+builtin_module_text = read_text(
+    "kmp/sdui-layout/src/commonMain/kotlin/dev/abeta/kmp/layout/snippet/BuiltInSnippetModule.kt"
+)
+registered_classes = re.findall(r"register\s*\(\s*([A-Za-z0-9_]+)\s*\(", builtin_module_text)
+registered_snippet_types: set[str] = set()
+unresolved_renderers: list[str] = []
+for cls_name in registered_classes:
+    stype = renderer_class_to_type.get(cls_name)
+    if stype is None:
+        unresolved_renderers.append(cls_name)
+    else:
+        registered_snippet_types.add(stype)
+
+if unresolved_renderers:
+    violations.append(
+        f"[SnippetRegistry] BuiltInSnippetModule registers renderers with unresolved snippetType: {sorted(unresolved_renderers)}"
+    )
+if registered_snippet_types != kmp_snippets:
+    missing_reg = sorted(kmp_snippets - registered_snippet_types)
+    extra_reg = sorted(registered_snippet_types - kmp_snippets)
+    violations.append(
+        f"[SnippetRegistry] BuiltInSnippetModule registration mismatch vs SnippetTypes! Missing={missing_reg}, Extra={extra_reg}"
     )
 
 # ---------------------------------------------------------------------------
@@ -323,9 +458,12 @@ for pat in ("kmp/**/src/**/*.kt", "bff/**/*.go"):
 report_lines = [
     "## Abeta KMP Kit — Module Code Owner & Architecture Gate Report",
     "",
-    f"- **Publishable KMP Modules Verified**: {len(PUBLISHABLE_LIBS)} (`io.github.abeta-dev:*`)",
+    f"- **Publishable KMP Modules Verified**: {len(PUBLISHABLE_LIBS)} (`io.github.abeta-dev:*`, exact BOM set={len(bom_artifacts)})",
     f"- **Wire Parity (`ActionTypes`)**: {len(kmp_actions)} KMP / {len(go_actions)} Go BFF",
-    f"- **Wire Parity (`SnippetTypes`)**: {len(kmp_snippets)} KMP / {len(go_snippets)} Go BFF",
+    f"- **Wire Parity (`SnippetTypes` / `BuiltInSnippetModule`)**: {len(kmp_snippets)} KMP / {len(go_snippets)} Go BFF / {len(registered_snippet_types)} registered",
+    f"- **Wire Parity (`MotionLoopEffect`)**: {len(kmp_motion_loops)} KMP / {len(go_motion_loops)} Go BFF",
+    f"- **Wire Parity (`SnippetDeltaOp`)**: {len(kmp_delta_ops)} KMP / {len(go_delta_ops)} Go BFF",
+    f"- **Wire Parity (`ComposedNodeKind`)**: {len(kmp_composed_kinds)} KMP / {len(go_composed_kinds)} Go BFF",
     f"- **Module Code Owner Agents Verified**: {len(seen_owners)} (`agents/owners/*` + `.github/CODEOWNERS`)",
     f"- **Hard Violations**: {len(violations)}",
     f"- **SOLID/KISS Advisories**: {len(warnings)}",

@@ -1,10 +1,16 @@
 package dev.abeta.kmp.analytics
 
 import dev.abeta.kmp.core.error.NetworkError
+import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.identity.SequentialUuidGenerator
+import dev.abeta.kmp.core.logging.RecordingAppLogger
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.storage.InMemoryKeyValueStore
 import dev.abeta.kmp.core.time.MutableClock
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -120,4 +126,124 @@ class AnalyticsSuiteTest {
             assertEquals(listOf(2, 1), sentBatches.map { it.size })
             assertTrue(rehydrated.queuedEvents.value.isEmpty())
         }
+
+    @Test
+    fun `buffered tracker preserves concurrent events during flush and drops 4xx batches`() =
+        runTest {
+            val kv = InMemoryKeyValueStore()
+            val clock = MutableClock(1_000L)
+            val firstBatchInFlight = CompletableDeferred<Unit>()
+            val releaseFirstBatch = CompletableDeferred<Unit>()
+            val delivered = mutableListOf<String>()
+            var batchIndex = 0
+
+            val tracker =
+                BufferedAnalyticsTracker(
+                    sink =
+                        AnalyticsBatchSink { events ->
+                            batchIndex++
+                            when (batchIndex) {
+                                1 -> {
+                                    firstBatchInFlight.complete(Unit)
+                                    releaseFirstBatch.await()
+                                    delivered.addAll(events.map { it.name })
+                                    AppResult.Success(Unit)
+                                }
+
+                                2 -> {
+                                    AppResult.Failure(ValidationError(field = "batch", message = "bad payload"))
+                                }
+
+                                else -> {
+                                    delivered.addAll(events.map { it.name })
+                                    AppResult.Success(Unit)
+                                }
+                            }
+                        },
+                    backingStore = kv,
+                    clock = clock,
+                    batchSize = 1,
+                )
+
+            tracker.track(AnalyticsEvent(name = "first"))
+            tracker.track(AnalyticsEvent(name = "bad_second"))
+
+            val flushDeferred = async(start = CoroutineStart.UNDISPATCHED) { tracker.flush() }
+            firstBatchInFlight.await()
+
+            tracker.track(AnalyticsEvent(name = "third_concurrent"))
+            releaseFirstBatch.complete(Unit)
+
+            val result = flushDeferred.await()
+            assertEquals(AppResult.Success(2), result)
+            assertEquals(listOf("first", "third_concurrent"), delivered)
+            assertTrue(tracker.queuedEvents.value.isEmpty())
+        }
+
+    @Test
+    fun `buffered tracker periodic flush survives unexpected sink errors`() =
+        runTest {
+            val clock = MutableClock(1_000L)
+            var periodicAttempts = 0
+            val resilientTracker =
+                BufferedAnalyticsTracker(
+                    sink =
+                        AnalyticsBatchSink {
+                            periodicAttempts++
+                            if (periodicAttempts == 1) {
+                                error("unexpected boom")
+                            }
+                            AppResult.Success(Unit)
+                        },
+                    backingStore = InMemoryKeyValueStore(),
+                    clock = clock,
+                    scope = backgroundScope,
+                    batchSize = 10,
+                    flushIntervalMillis = 50L,
+                )
+            resilientTracker.track(AnalyticsEvent(name = "periodic_ev"))
+            resilientTracker.startPeriodicFlush()
+            delay(130L)
+            resilientTracker.stopPeriodicFlush()
+            assertTrue(periodicAttempts >= 2)
+            assertTrue(resilientTracker.queuedEvents.value.isEmpty())
+        }
+
+    @Test
+    fun `dedup tracker caps entries and enriching tracker avoids duplicate user_identify`() {
+        val clock = MutableClock(10_000L)
+        val recorder = RecordingAnalyticsTracker()
+        val dedup =
+            DeduplicatingAnalyticsTracker(
+                delegate = recorder,
+                clock = clock,
+                cooldownMillis = 1_000L,
+                maxTrackedEntries = 2,
+            )
+
+        dedup.trackImpression(AnalyticsTrackingPayload("a"))
+        dedup.trackImpression(AnalyticsTrackingPayload("b"))
+        dedup.trackImpression(AnalyticsTrackingPayload("c")) // evicts "a" due to cap = 2
+        dedup.trackImpression(AnalyticsTrackingPayload("a")) // accepted again because "a" was evicted
+        assertEquals(4, recorder.impressions.size)
+
+        val buffered =
+            BufferedAnalyticsTracker(
+                sink = AnalyticsBatchSink { AppResult.Success(Unit) },
+                backingStore = InMemoryKeyValueStore(),
+                clock = clock,
+            )
+        val logger = RecordingAppLogger()
+        val loggerTracker = LoggerAnalyticsTracker(logger = logger, clock = clock)
+        val compositeEnriched =
+            EnrichingAnalyticsTracker(
+                delegate = SanitizingAnalyticsTracker(CompositeAnalyticsTracker(buffered, loggerTracker)),
+                clock = clock,
+                uuidGenerator = SequentialUuidGenerator(),
+            )
+
+        compositeEnriched.identify(userId = "u-55", traits = mapOf("role" to "buyer"))
+        assertEquals(1, buffered.queuedEvents.value.count { it.name == "user_identify" })
+        assertEquals(1, logger.entries.count { it.message.contains("event=user_identify") })
+    }
 }
