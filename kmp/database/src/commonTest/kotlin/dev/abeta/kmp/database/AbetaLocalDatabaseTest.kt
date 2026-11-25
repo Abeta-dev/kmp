@@ -64,10 +64,15 @@ class AbetaLocalDatabaseTest {
                 assertEquals(16_000L, updated.expiresAtEpochMillis)
                 assertEquals(2, localDb.screenCacheCount())
 
-                // Advance to exact expiration boundary -> stale for fresh lookup, then evicted
+                // Advance to exact expiration boundary -> stale for fresh lookup, count, and observe, then evicted
                 clock.setEpochMillis(16_000L)
                 assertNull(localDb.getFreshScreenCache("home"))
                 assertNotNull(localDb.getFreshScreenCache("profile"))
+                assertEquals(1, localDb.screenCacheCount())
+                localDb.observeScreenCache("home").test(timeout = 5.seconds) {
+                    assertNull(awaitItem())
+                    cancelAndIgnoreRemainingEvents()
+                }
 
                 val evicted = localDb.evictExpiredScreens()
                 assertEquals(1, evicted)
@@ -212,6 +217,12 @@ class AbetaLocalDatabaseTest {
                 clock.advanceByMillis(1_000L)
                 assertNull(localDb.getValue("session", "token"))
                 assertEquals("us-east", localDb.getValue("session", "region"))
+                // listKeys and observeValue must filter expired rows even before explicit eviction
+                assertEquals(listOf("region"), localDb.listKeys("session"))
+                localDb.observeValue("session", "token").test(timeout = 5.seconds) {
+                    assertNull(awaitItem())
+                    cancelAndIgnoreRemainingEvents()
+                }
                 assertEquals(1, localDb.evictExpiredValues())
                 assertEquals(listOf("region"), localDb.listKeys("session"))
 
@@ -267,6 +278,45 @@ class AbetaLocalDatabaseTest {
                 }
             } finally {
                 localDb.close()
+            }
+        }
+
+    @Test
+    fun screenCacheStoresVersionsClampsTtlOverflowAndRejectsRelativeTraversal() =
+        runTest {
+            val clock = MutableClock(Long.MAX_VALUE - 500L)
+            val localDb = openInMemory(clock = clock)
+            try {
+                val cached =
+                    localDb.putScreenCache(
+                        screenId = "home",
+                        payloadJson = """{"v":2}""",
+                        etag = "\"e2\"",
+                        ttlMillis = 10_000L,
+                        pageVersion = "v2.4",
+                        appVersion = "0.7.0",
+                    )
+                assertEquals(Long.MAX_VALUE, cached.expiresAtEpochMillis)
+                assertEquals("v2.4", cached.pageVersion)
+                assertEquals("0.7.0", cached.appVersion)
+
+                val loaded = localDb.getFreshScreenCache("home")
+                assertNotNull(loaded)
+                assertEquals("v2.4", loaded.pageVersion)
+                assertEquals("0.7.0", loaded.appVersion)
+                assertEquals(Long.MAX_VALUE, loaded.expiresAtEpochMillis)
+
+                localDb.putValue(namespace = "ttl", key = "max", value = "safe", ttlMillis = 10_000L)
+                assertEquals("safe", localDb.getValue("ttl", "max"))
+            } finally {
+                localDb.close()
+            }
+
+            assertFailsWith<IllegalArgumentException> {
+                requireSafeRelativeDatabaseName("../escape.db")
+            }
+            assertFailsWith<IllegalArgumentException> {
+                requireSafeRelativeDatabaseName("nested/../../escape.db")
             }
         }
 }

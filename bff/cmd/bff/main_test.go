@@ -21,7 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/abeta-dev/go-libs/ginmw"
+	"github.com/abeta-dev/kmp/bff/internal/usecase"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,6 +33,7 @@ func TestLoadConfigAndBuildServer(t *testing.T) {
 	t.Setenv("GIN_MODE", gin.TestMode)
 	t.Setenv("TOKEN_CATALOG_VERSION", "2.0.0")
 	t.Setenv("CORS_ALLOWED_ORIGINS", "https://a.abeta.dev, https://b.abeta.dev")
+	t.Setenv("TRUSTED_PROXIES", "127.0.0.1")
 	t.Setenv("HTTP_READ_TIMEOUT", "5s")
 	t.Setenv("HTTP_WRITE_TIMEOUT", "7s")
 	t.Setenv("HTTP_IDLE_TIMEOUT", "30s")
@@ -40,17 +42,16 @@ func TestLoadConfigAndBuildServer(t *testing.T) {
 	t.Setenv("ETAG_ENABLED", "true")
 	t.Setenv("RATE_LIMIT_ENABLED", "false")
 	t.Setenv("AUTH_REQUIRED", "false")
-	t.Setenv("JWT_SECRET", "unit-test-secret")
-	t.Cleanup(func() { _ = ginmw.SetJWTSecret("") })
+	t.Setenv("JWT_SECRET", "unit-test-secret-minimum-32-bytes!!")
 
 	cfg := loadConfig()
-	if cfg.ServiceName != "custom-bff" || cfg.AppVersion != "0.8.0" || cfg.Addr != ":9091" || cfg.CatalogVersion != "2.0.0" {
+	if cfg.ServiceName != "custom-bff" || cfg.AppVersion != usecase.DefaultAppVersion || cfg.Addr != ":9091" || cfg.CatalogVersion != "2.0.0" {
 		t.Fatalf("unexpected config: %+v", cfg)
 	}
-	if len(cfg.AllowedOrigins) != 2 || cfg.ReadTimeout != 5*time.Second || cfg.ShutdownTimeout != 3*time.Second {
+	if len(cfg.AllowedOrigins) != 2 || len(cfg.TrustedProxies) != 1 || cfg.ReadTimeout != 5*time.Second || cfg.ShutdownTimeout != 3*time.Second {
 		t.Fatalf("unexpected timeouts/origins: %+v", cfg)
 	}
-	if !cfg.CompressionEnabled || !cfg.ETagEnabled || cfg.RateLimitEnabled || cfg.RequireAuth || cfg.JWTSecret != "unit-test-secret" {
+	if !cfg.CompressionEnabled || !cfg.ETagEnabled || cfg.RateLimitEnabled || cfg.RequireAuth || cfg.JWTSecret != "unit-test-secret-minimum-32-bytes!!" {
 		t.Fatalf("unexpected feature toggles: %+v", cfg)
 	}
 	if err := validateConfig(cfg); err != nil {
@@ -59,7 +60,7 @@ func TestLoadConfigAndBuildServer(t *testing.T) {
 
 	log := slog.New(slog.NewJSONHandler(io.Discard, nil))
 	srv := buildServer(cfg, log)
-	if srv.Addr != ":9091" || srv.Handler == nil || srv.Protocols == nil {
+	if srv.Addr != ":9091" || srv.Handler == nil || srv.Protocols == nil || srv.TLSConfig == nil || srv.TLSConfig.MinVersion != tls.VersionTLS12 {
 		t.Fatalf("unexpected http.Server: %+v", srv)
 	}
 	if !srv.Protocols.HTTP1() || !srv.Protocols.HTTP2() || !srv.Protocols.UnencryptedHTTP2() {
@@ -71,20 +72,53 @@ func TestLoadConfigAndBuildServer(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200 from built server, got %d: %s", w.Code, w.Body.String())
 	}
-	if w.Header().Get("ETag") == "" || w.Header().Get("Cache-Control") != "public, max-age=30" {
-		t.Fatalf("expected ETag and Cache-Control by default, got headers=%v", w.Header())
+	if w.Header().Get("ETag") == "" || w.Header().Get("Cache-Control") != server.DefaultCacheControl {
+		t.Fatalf("expected ETag and %q Cache-Control by default, got headers=%v", server.DefaultCacheControl, w.Header())
 	}
 }
 
-func TestValidateConfig_Errors(t *testing.T) {
-	if err := validateConfig(appConfig{TLSCertFile: "cert.pem"}); err == nil {
-		t.Fatal("expected error when TLS_CERT_FILE set without TLS_KEY_FILE")
+func TestValidateConfig_ErrorsAndDefaults(t *testing.T) {
+	// Default CORS_ALLOWED_ORIGINS is fail-closed (empty)
+	t.Setenv("CORS_ALLOWED_ORIGINS", "")
+	defCfg := loadConfig()
+	if len(defCfg.AllowedOrigins) != 0 {
+		t.Fatalf("expected fail-closed empty AllowedOrigins by default, got %v", defCfg.AllowedOrigins)
 	}
-	if err := validateConfig(appConfig{TLSKeyFile: "key.pem"}); err == nil {
-		t.Fatal("expected error when TLS_KEY_FILE set without TLS_CERT_FILE")
+
+	// Short ReadTimeout clamps ReadHeaderTimeout <= ReadTimeout
+	if got := resolveReadHeaderTimeout(2 * time.Second); got != 2*time.Second {
+		t.Fatalf("expected ReadHeaderTimeout clamped to 2s, got %v", got)
 	}
-	if err := validateConfig(appConfig{RequireAuth: true, JWTSecret: "   "}); err == nil {
-		t.Fatal("expected error when AUTH_REQUIRED=true without JWT_SECRET")
+
+	// Warn branch when wildcard "*" paired with RequireAuth=true
+	log := slog.New(slog.NewJSONHandler(io.Discard, nil))
+	_ = buildServer(appConfig{
+		GinMode:        gin.TestMode,
+		AllowedOrigins: []string{"*"},
+		RequireAuth:    true,
+		JWTSecret:      strings.Repeat("k", 32),
+	}, log)
+
+	badCases := []struct {
+		name string
+		cfg  appConfig
+	}{
+		{"bad_gin_mode", appConfig{GinMode: "invalid"}},
+		{"bad_port_high", appConfig{Port: 70000}},
+		{"bad_port_neg", appConfig{Port: -1}},
+		{"neg_read_timeout", appConfig{ReadTimeout: -time.Second}},
+		{"neg_write_timeout", appConfig{WriteTimeout: -time.Second}},
+		{"neg_idle_timeout", appConfig{IdleTimeout: -time.Second}},
+		{"neg_shutdown_timeout", appConfig{ShutdownTimeout: -time.Second}},
+		{"tls_cert_only", appConfig{TLSCertFile: "cert.pem"}},
+		{"tls_key_only", appConfig{TLSKeyFile: "key.pem"}},
+		{"auth_empty_secret", appConfig{RequireAuth: true, JWTSecret: "   "}},
+		{"auth_short_secret", appConfig{RequireAuth: true, JWTSecret: "too-short-secret"}},
+	}
+	for _, tc := range badCases {
+		if err := validateConfig(tc.cfg); err == nil {
+			t.Errorf("validateConfig(%s) expected error, got nil", tc.name)
+		}
 	}
 
 	t.Setenv("GIN_MODE", gin.TestMode)

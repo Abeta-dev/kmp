@@ -1,6 +1,7 @@
 package dev.abeta.kmp.network
 
 import dev.abeta.kmp.core.result.AppResult
+import dev.abeta.kmp.network.client.BrotliContentEncoder
 import dev.abeta.kmp.network.client.HttpClientFactory
 import dev.abeta.kmp.network.client.KtorHttpTransport
 import dev.abeta.kmp.network.client.buildCertificatePinnerOrNull
@@ -15,7 +16,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readBuffer
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.readByteArray
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -148,4 +152,12 @@ class OkHttpBrotliJvmTest {
             )
         pinnedClient.close()
     }
+
+    @Test
+    fun `brotli decoder handles empty response channel lazily without throwing`() =
+        runTest {
+            val decodedChannel = BrotliContentEncoder.decode(ByteReadChannel.Empty, coroutineContext)
+            val bytes = decodedChannel.readBuffer().readByteArray()
+            assertEquals(0, bytes.size)
+        }
 }

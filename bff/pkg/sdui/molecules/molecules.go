@@ -175,12 +175,12 @@ func ExpressProductTile(spec ProductTileSpec) snippets.ComposedNode {
 			WithLayout(atoms.LayoutConfig{FillMaxWidth: atoms.BoolPtr(true)}),
 	).
 		WithNodeID(prefix).
-		WithTracking("node_impression", map[string]any{
+		WithTracking("node_impression", map[string]string{
 			"component_id": prefix,
 			"product_id":   spec.ProductID,
 			"molecule":     "express_product_tile",
 		}).
-		WithClickTracking("interaction_click", map[string]any{
+		WithClickTracking("interaction_click", map[string]string{
 			"component_id": prefix,
 			"product_id":   spec.ProductID,
 			"molecule":     "express_product_tile",
@@ -234,12 +234,12 @@ func CategoryGridSection(snippetID, blockID, title string, items []CategoryTileS
 				WithAlignment(snippets.ComposedAlignCenter, ""),
 		).
 			WithNodeID(prefix).
-			WithTracking("node_impression", map[string]any{
+			WithTracking("node_impression", map[string]string{
 				"component_id": prefix,
 				"category_id":  it.CategoryID,
 				"molecule":     "category_grid_tile",
 			}).
-			WithClickTracking("interaction_click", map[string]any{
+			WithClickTracking("interaction_click", map[string]string{
 				"component_id": prefix,
 				"category_id":  it.CategoryID,
 				"molecule":     "category_grid_tile",
@@ -270,14 +270,14 @@ func CategoryGridSection(snippetID, blockID, title string, items []CategoryTileS
 	root := snippets.VStack(theming.SpacingSM.Dp(), rootChildren...).
 		WithNodeID(blockID+"_root").
 		WithLayout(sectionBlockLayout()).
-		WithTracking("node_impression", map[string]any{
+		WithTracking("node_impression", map[string]string{
 			"component_id": blockID + "_root",
 			"molecule":     "category_grid_section",
 		})
 
 	return snippets.NewComposedBlockSnippet(snippetID, blockID, root).
 		WithRecipeName("express_category_grid").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": snippetID,
 			"molecule":   "category_grid_section",
 		}).
@@ -315,14 +315,14 @@ func ImpulseUpsellRail(snippetID, blockID, title string, items []ProductTileSpec
 	root := snippets.VStack(theming.SpacingSM.Dp(), header, rail).
 		WithNodeID(blockID+"_root").
 		WithLayout(sectionBlockLayout()).
-		WithTracking("node_impression", map[string]any{
+		WithTracking("node_impression", map[string]string{
 			"component_id": blockID + "_root",
 			"molecule":     "impulse_upsell_rail",
 		})
 
 	return snippets.NewComposedBlockSnippet(snippetID, blockID, root).
 		WithRecipeName("express_impulse_upsell_rail").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": snippetID,
 			"molecule":   "impulse_upsell_rail",
 		}).

@@ -25,14 +25,20 @@ private external fun jsIsLocalStorageAvailable(): Boolean
 )
 private external fun jsLocalStorageGet(key: String): String?
 
+private const val STORAGE_WRITE_OK = 0
+private const val STORAGE_WRITE_QUOTA_EXCEEDED = 1
+
 @JsFun(
-    "(key, value) => { try { window.localStorage.setItem(key, value); return true; } " +
-        "catch (e) { return false; } }",
+    "(key, value) => { try { window.localStorage.setItem(key, value); return 0; } " +
+        "catch (e) { const name = (e && e.name) ? String(e.name) : ''; " +
+        "const code = (e && typeof e.code === 'number') ? e.code : 0; " +
+        "if (name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED' || " +
+        "code === 22 || code === 1014) { return 1; } return 2; } }",
 )
-private external fun jsLocalStorageSet(
+private external fun jsLocalStorageSetStatus(
     key: String,
     value: String,
-): Boolean
+): Int
 
 @JsFun(
     "(key) => { try { window.localStorage.removeItem(key); return true; } catch (e) { return false; } }",
@@ -69,7 +75,7 @@ class WebStorageKeyValueStore(
         if (useFallbackOnly) {
             fallback.getString(key)
         } else {
-            jsLocalStorageGet(scopedKey(key))
+            fallback.getString(key) ?: jsLocalStorageGet(scopedKey(key))
         }
 
     override fun putString(
@@ -78,17 +84,30 @@ class WebStorageKeyValueStore(
     ) {
         if (useFallbackOnly) {
             fallback.putString(key, value)
-        } else if (!jsLocalStorageSet(scopedKey(key), value)) {
-            migrateToFallback()
-            fallback.putString(key, value)
+        } else {
+            when (jsLocalStorageSetStatus(scopedKey(key), value)) {
+                STORAGE_WRITE_OK -> {
+                    fallback.remove(key)
+                }
+
+                STORAGE_WRITE_QUOTA_EXCEEDED -> {
+                    // Spill only the oversized entry in-memory so normal keys keep using localStorage.
+                    jsLocalStorageRemove(scopedKey(key))
+                    fallback.putString(key, value)
+                }
+
+                else -> {
+                    migrateToFallback()
+                    fallback.putString(key, value)
+                }
+            }
         }
         changes.update { it + 1L }
     }
 
     override fun remove(key: String) {
-        if (useFallbackOnly) {
-            fallback.remove(key)
-        } else if (!jsLocalStorageRemove(scopedKey(key))) {
+        fallback.remove(key)
+        if (!useFallbackOnly && !jsLocalStorageRemove(scopedKey(key))) {
             migrateToFallback()
             fallback.remove(key)
         }
@@ -96,9 +115,8 @@ class WebStorageKeyValueStore(
     }
 
     override fun clear() {
-        if (useFallbackOnly) {
-            fallback.clear()
-        } else {
+        fallback.clear()
+        if (!useFallbackOnly) {
             val scopedKeys = collectScopedKeys()
             for (fullKey in scopedKeys) {
                 if (!jsLocalStorageRemove(fullKey)) {
@@ -123,6 +141,7 @@ class WebStorageKeyValueStore(
                 fallback.keys()
             } else {
                 buildSet {
+                    addAll(fallback.keys())
                     for (index in 0 until count) {
                         val fullKey = jsLocalStorageKey(index) ?: continue
                         if (fullKey.startsWith(prefix)) {

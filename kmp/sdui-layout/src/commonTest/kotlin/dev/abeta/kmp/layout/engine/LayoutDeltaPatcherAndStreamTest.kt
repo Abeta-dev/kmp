@@ -29,9 +29,12 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -140,6 +143,94 @@ class LayoutDeltaPatcherAndStreamTest {
         assertEquals("4", data["eta_minutes"]!!.jsonPrimitive.content)
         assertEquals("NEW", data["badge"]!!.jsonPrimitive.content)
         assertEquals("Alex", data["courier"]!!.jsonPrimitive.content)
+
+        // RFC 7396 merge patch removes keys set to JsonNull.
+        val afterRemoval =
+            applySnippetDeltaPatch(
+                updated,
+                SnippetDeltaPatch(
+                    op = SnippetDeltaOp.PATCH_SNIPPET_DATA,
+                    snippetId = "tracker_1",
+                    dataPatch = buildJsonObject { put("badge", JsonNull) },
+                ),
+            )
+        assertFalse("badge" in afterRemoval.snippets.single().data)
+    }
+
+    @Test
+    fun patchesRecurseIntoContainersSupportDescriptionFallbackAndArrayIndexPaths() {
+        val page = sampleNestedTabsPage()
+        val afterDescAppend =
+            applySnippetDeltaPatch(
+                page,
+                SnippetDeltaPatch(SnippetDeltaOp.APPEND_TEXT, "nested_card", textChunk = " update"),
+            )
+        val afterArrayAppend =
+            applySnippetDeltaPatch(
+                afterDescAppend,
+                SnippetDeltaPatch(SnippetDeltaOp.APPEND_TEXT, "nested_card", "items.0.label", " done"),
+            )
+        val tabSnippets =
+            afterArrayAppend.snippets
+                .single()
+                .data["tabs"]!!
+                .jsonArray[0]
+                .jsonObject["snippets"]!!
+                .jsonArray
+        val patchedCardData = tabSnippets[0].jsonObject["data"]!!.jsonObject
+        assertEquals("Initial update", patchedCardData["description"]!!.jsonObject["text"]!!.jsonPrimitive.content)
+        assertEquals(
+            "Step 1 done",
+            patchedCardData["items"]!!
+                .jsonArray[0]
+                .jsonObject["label"]!!
+                .jsonPrimitive.content,
+        )
+
+        val afterNestedRemove =
+            applySnippetDeltaPatch(
+                afterArrayAppend,
+                SnippetDeltaPatch(SnippetDeltaOp.REMOVE_SNIPPET, snippetId = "nested_card"),
+            )
+        val remainingSnippets =
+            afterNestedRemove.snippets
+                .single()
+                .data["tabs"]!!
+                .jsonArray[0]
+                .jsonObject["snippets"]!!
+                .jsonArray
+        assertTrue(remainingSnippets.isEmpty())
+    }
+
+    private fun sampleNestedTabsPage(): PageResponse {
+        val nestedCard =
+            SnippetEnvelope(
+                snippetId = "nested_card",
+                snippetType = SnippetTypes.CARD,
+                data =
+                    buildJsonObject {
+                        putJsonObject("description") { put("text", "Initial") }
+                        put("items", buildJsonArray { add(buildJsonObject { put("label", "Step 1") }) })
+                    },
+            )
+        val encodedCard = SduiJson.encodeToJsonElement(SnippetEnvelope.serializer(), nestedCard)
+        val tabEntry =
+            buildJsonObject {
+                put("id", "t1")
+                put("title", "Tab 1")
+                put("snippets", buildJsonArray { add(encodedCard) })
+            }
+        return PageResponse(
+            pageId = "nested_page",
+            snippets =
+                listOf(
+                    SnippetEnvelope(
+                        snippetId = "tabs_1",
+                        snippetType = SnippetTypes.TABS,
+                        data = buildJsonObject { put("tabs", buildJsonArray { add(tabEntry) }) },
+                    ),
+                ),
+        )
     }
 
     @Test

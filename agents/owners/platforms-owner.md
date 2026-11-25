@@ -19,7 +19,7 @@ verification_command: "./scripts/check_brand_hygiene.sh && ./scripts/check_archi
 
 ## Ownership Scope
 - **Paths**: `kmp/platforms/android/**`, `kmp/platforms/wearos/**`, `kmp/platforms/apple/**`, `kmp/platforms/web/**`, `kmp/platforms/README.md`
-- **Core Responsibilities**: Drop-in native host templates for Android Phone/Tablet/Foldable (`AndroidPlatformBridgeFactory.kt`, `AndroidDatabaseFactory.kt`, `AbetaAndroidHostActivity.kt`), Wear OS (`WearCompanionHostActivity.kt`), Apple iOS/iPadOS/watchOS (`AbetaAppleHosts.swift`, `Package.template.swift`), and Web COOP/COEP (`web/README.md`).
+- **Core Responsibilities**: Drop-in native host templates for Android Phone/Tablet/Foldable (`AndroidPlatformBridgeFactory.kt`, `AndroidDatabaseFactory.kt`, `AbetaAndroidHostActivity.kt`), Wear OS (`WearCompanionHostActivity.kt`, `WearSduiRenderer.kt`), Apple iOS/iPadOS/watchOS (`AbetaAppleHosts.swift` + importable SwiftPM source targets `Sources/AbetaSduiSwiftUI/` & `Sources/AbetaWatchSwiftUI/` powering 4-product `Abeta-dev/kmp-spm` `0.7.0`), and Web COOP/COEP (`web/README.md`).
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Native Platform Conformance (`/impeccable` `ios.md` & `android.md`)**:

@@ -93,7 +93,7 @@ jobs:
         run: |
           test -z "$(gofmt -l .)"
           go vet ./...
-          go test -race ./internal/domain/... ./internal/infra/...
+          go test -race ./...
 
   optional-ai-code-owner-review:
     name: Optional Multi-Model AI Code Owner Review (Claude / Gemini / OpenAI)
@@ -156,11 +156,14 @@ jobs:
                   review_text = "".join(b.get("text", "") for b in data.get("content", []))
           elif provider == "gemini" and os.environ.get("GEMINI_API_KEY"):
               model = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
-              url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={os.environ['GEMINI_API_KEY']}"
+              url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
               req = urllib.request.Request(
                   url,
                   data=json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode(),
-                  headers={"content-type": "application/json"},
+                  headers={
+                      "content-type": "application/json",
+                      "x-goog-api-key": os.environ["GEMINI_API_KEY"],
+                  },
               )
               with urllib.request.urlopen(req, timeout=60) as resp:
                   data = json.loads(resp.read().decode())

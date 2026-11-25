@@ -14,6 +14,7 @@ import dev.abeta.kmp.core.error.AppError
 import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.logging.AppLogger
 import dev.abeta.kmp.core.logging.NoOpAppLogger
+import dev.abeta.kmp.core.platform.ConnectivityMonitor
 import dev.abeta.kmp.core.platform.ConnectivityStatus
 import dev.abeta.kmp.core.platform.DeepLinkParser
 import dev.abeta.kmp.core.platform.HapticStyle
@@ -27,11 +28,16 @@ import dev.abeta.kmp.network.sse.SseTransport
 import dev.abeta.kmp.state.session.SessionStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
@@ -60,6 +66,7 @@ sealed interface LayoutUiState {
         val errorShakeSequence: Long = 0L,
         val errorShakeTargetId: String? = null,
         val isStreaming: Boolean = false,
+        val toastSequence: Long = 0L,
     ) : LayoutUiState
 
     /** Screen fetch failed with a typed [AppError]. */
@@ -73,7 +80,7 @@ sealed interface LayoutUiState {
  * Stateful SDUI screen orchestrator coordinating [ScreenRepository], [ActionDispatcher],
  * [SessionStore], [AnalyticsTracker], optional [OfflineActionCoordinator], and host [PlatformBridgeBundle].
  */
-@Suppress("LongParameterList", "TooManyFunctions")
+@Suppress("LongParameterList", "TooManyFunctions", "LargeClass")
 class LayoutController(
     private val screenRepository: ScreenRepository,
     private val actionDispatcher: ActionDispatcher,
@@ -103,8 +110,10 @@ class LayoutController(
 
     private val trackedImpressions = mutableSetOf<String>()
     private val trackedNodeImpressions = mutableSetOf<String>()
+    private val screenScopedJobs = MutableStateFlow<Set<Job>>(emptySet())
     private var activeScreenId: String? = null
     private var activeLoadJob: Job? = null
+    private var screenGeneration: Long = 0L
     private var pendingDeepLinkParams: Map<String, String> = emptyMap()
     private var pendingRestoredFormValues: Map<String, String> = emptyMap()
     private val streamController =
@@ -126,17 +135,26 @@ class LayoutController(
             clipboardListener = clipboardListener,
             showToast = { message, variant ->
                 updateReady {
-                    it.copy(activeToast = ActionOutcome.ToastRequested(message = message, variant = variant))
+                    it.withToast(ActionOutcome.ToastRequested(message = message, variant = variant))
                 }
             },
-            dispatchFollowUp = ::dispatchAndApply,
+            dispatchFollowUp = { followUp -> dispatchAndApply(followUp, screenGeneration) },
         )
 
     /** Loads the SDUI screen identified by [screenId], returning the launched [Job]. */
     fun loadScreen(
         screenId: String,
         showLoader: Boolean = true,
+    ): Job = loadScreenInternal(screenId = screenId, showLoader = showLoader, preserveJob = null)
+
+    private fun loadScreenInternal(
+        screenId: String,
+        showLoader: Boolean,
+        preserveJob: Job?,
     ): Job {
+        val generation = ++screenGeneration
+        activeLoadJob?.cancel()
+        cancelScreenScopedJobs(skipJob = preserveJob)
         stopStream()
         activeScreenId = screenId
         trackedImpressions.clear()
@@ -148,17 +166,41 @@ class LayoutController(
             scope.launch {
                 when (val result = screenRepository.fetchScreen(screenId)) {
                     is AppResult.Failure -> {
+                        if (generation != screenGeneration) return@launch
                         logger.warn(TAG, "Failed to load screen '$screenId': ${result.error.message}")
-                        _uiState.value = LayoutUiState.Error(error = result.error, screenId = screenId)
+                        handleLoadScreenFailure(
+                            screenId = screenId,
+                            error = result.error,
+                            showLoader = showLoader,
+                            generation = generation,
+                        )
                     }
 
                     is AppResult.Success -> {
-                        onPageLoaded(result.value)
+                        if (generation != screenGeneration) return@launch
+                        onPageLoaded(result.value, generation)
                     }
                 }
             }
         activeLoadJob = job
         return job
+    }
+
+    private fun handleLoadScreenFailure(
+        screenId: String,
+        error: AppError,
+        showLoader: Boolean,
+        generation: Long,
+    ) {
+        if (!showLoader && _uiState.value is LayoutUiState.Ready) {
+            updateReadyIfGeneration(generation) { current ->
+                current
+                    .copy(isRefreshing = false)
+                    .withToast(ActionOutcome.ToastRequested(message = error.message, variant = "error"))
+            }
+        } else if (generation == screenGeneration) {
+            _uiState.value = LayoutUiState.Error(error = error, screenId = screenId)
+        }
     }
 
     /** Retries loading the most recently requested screen, if any. */
@@ -177,7 +219,7 @@ class LayoutController(
      */
     suspend fun observeConnectivity() {
         val monitor = platformBridges.connectivityMonitor
-        monitor.start()
+        ConnectivityMonitorLifecycle.acquire(monitor)
         var previouslyOffline = monitor.status.value == ConnectivityStatus.OFFLINE
         updateReady { it.copy(isOffline = previouslyOffline) }
         try {
@@ -190,7 +232,9 @@ class LayoutController(
                 previouslyOffline = nowOffline
             }
         } finally {
-            monitor.stop()
+            withContext(NonCancellable) {
+                ConnectivityMonitorLifecycle.release(monitor)
+            }
         }
     }
 
@@ -217,30 +261,45 @@ class LayoutController(
 
     /** Dispatches the active page's cursor pagination `load_more_action`, if available. */
     fun loadMore(): Job? {
-        val ready = _uiState.value as? LayoutUiState.Ready
-        val loadMoreAction =
-            ready
-                ?.page
-                ?.pagination
-                ?.takeIf { it.hasMore && !ready.isLoadingMore }
-                ?.loadMoreAction
-        return loadMoreAction?.let { action ->
-            updateReady { it.copy(isLoadingMore = true) }
-            scope.launch {
-                try {
-                    dispatchAndApply(action)
-                } finally {
-                    updateReady { it.copy(isLoadingMore = false) }
-                }
+        val generation = screenGeneration
+        var actionToDispatch: ActionRef? = null
+        _uiState.update { current ->
+            actionToDispatch = null
+            val ready = current as? LayoutUiState.Ready
+            val candidate =
+                ready
+                    ?.page
+                    ?.pagination
+                    ?.takeIf { it.hasMore && !ready.isLoadingMore }
+                    ?.loadMoreAction
+            if (ready != null && candidate != null) {
+                actionToDispatch = candidate
+                ready.copy(isLoadingMore = true)
+            } else {
+                current
             }
         }
+        val action = actionToDispatch ?: return null
+        return trackScreenScopedJob(
+            scope.launch {
+                try {
+                    dispatchAndApply(action, generation)
+                } finally {
+                    updateReadyIfGeneration(generation) { it.copy(isLoadingMore = false) }
+                }
+            },
+        )
     }
 
     /** Flushes all queued offline API actions through [offlineCoordinator], if present. */
     fun flushOfflineActions(): Job? {
         val coordinator = offlineCoordinator ?: return null
         return scope.launch {
-            when (val result = coordinator.flushAll()) {
+            val result =
+                coordinator.flushAll(
+                    onFollowUpAction = { followUp -> dispatchAndApply(followUp, screenGeneration) },
+                )
+            when (result) {
                 is AppResult.Success -> {
                     val report = result.value
                     updateReady { current ->
@@ -368,25 +427,32 @@ class LayoutController(
         action: ActionRef,
         isPullRefresh: Boolean,
     ): Job {
+        val generation = screenGeneration
         if (isPullRefresh) {
-            updateReady { it.copy(isRefreshing = true) }
+            updateReadyIfGeneration(generation) { it.copy(isRefreshing = true) }
         }
-        return scope.launch {
-            try {
-                dispatchAndApply(action)
-                if (isPullRefresh) {
-                    activeLoadJob?.takeIf { it.isActive }?.join()
-                }
-            } finally {
-                if (isPullRefresh) {
-                    updateReady { it.copy(isRefreshing = false) }
+        val job =
+            scope.launch {
+                try {
+                    dispatchAndApply(action, generation)
+                    if (isPullRefresh) {
+                        activeLoadJob?.takeIf { it.isActive }?.join()
+                    }
+                } finally {
+                    if (isPullRefresh) {
+                        updateReady { it.copy(isRefreshing = false) }
+                    }
                 }
             }
-        }
+        return if (isPullRefresh) job else trackScreenScopedJob(job)
     }
 
-    private suspend fun dispatchAndApply(action: ActionRef) {
-        updateReady { current ->
+    private suspend fun dispatchAndApply(
+        action: ActionRef,
+        generation: Long,
+    ) {
+        if (generation != screenGeneration) return
+        updateReadyIfGeneration(generation) { current ->
             if (current.validationErrors.isNotEmpty()) current.copy(validationErrors = emptyMap()) else current
         }
         LayoutAnalyticsHelper
@@ -398,35 +464,51 @@ class LayoutController(
                 sessionState = sessionStore.state.value,
             )
         val results = actionDispatcher.dispatch(action, context)
+        if (generation != screenGeneration) return
         for (result in results) {
-            applyDispatchResult(result)
+            applyDispatchResult(result, generation)
         }
-        maybeEnqueueOfflineCalls(action, results)
+        maybeEnqueueOfflineCalls(action, results, generation)
     }
 
     private suspend fun maybeEnqueueOfflineCalls(
         action: ActionRef,
         results: List<AppResult<ActionOutcome>>,
+        generation: Long,
     ) {
         val coordinator = offlineCoordinator ?: return
-        val failure =
+        val transientFailures =
             results
                 .filterIsInstance<AppResult.Failure>()
-                .firstOrNull { LayoutStateReducer.isOfflineOrTransientNetworkError(it.error, HTTP_SERVER_ERROR_MIN) }
-        val payloads = if (failure != null) LayoutStateReducer.extractCallApiPayloads(action) else emptyList()
-        if (failure == null || payloads.isEmpty()) return
+                .filter { LayoutStateReducer.isOfflineOrTransientNetworkError(it.error, HTTP_SERVER_ERROR_MIN) }
+        val failedPayloads =
+            if (transientFailures.isEmpty()) {
+                emptyList()
+            } else {
+                OfflinePayloadSelector.selectFailedNonGetCallApiPayloads(
+                    action = action,
+                    results = results,
+                    transientFailureCount = transientFailures.size,
+                )
+            }
+        if (failedPayloads.isEmpty()) return
 
-        payloads.forEach { payload ->
-            coordinator.enqueueOfflineCall(payload = payload, reason = failure.error.message)
+        val primaryReason = transientFailures.first().error.message
+        failedPayloads.forEach { payload ->
+            coordinator.enqueueOfflineCall(payload = payload, reason = primaryReason)
         }
         val pendingCount = coordinator.status.value.pendingCount
-        val hasCustomErrorAction = payloads.any { it.onError != null }
-        updateReady { current ->
+        val hasCustomErrorAction = failedPayloads.any { it.onError != null }
+        updateReadyIfGeneration(generation) { current ->
             LayoutStateReducer.applyOfflineEnqueued(current, pendingCount, hasCustomErrorAction)
         }
     }
 
-    private suspend fun onPageLoaded(page: PageResponse) {
+    private suspend fun onPageLoaded(
+        page: PageResponse,
+        generation: Long,
+    ) {
+        if (generation != screenGeneration) return
         activeScreenId = page.pageId
         val deepLinkParams = pendingDeepLinkParams
         pendingDeepLinkParams = emptyMap()
@@ -443,6 +525,7 @@ class LayoutController(
                 ),
             )
         }
+        if (generation != screenGeneration) return
         _uiState.value =
             LayoutUiState.Ready(
                 page = page,
@@ -450,69 +533,135 @@ class LayoutController(
                 pendingOfflineActions = offlineCoordinator?.status?.value?.pendingCount ?: 0,
                 isOffline = platformBridges.connectivityMonitor.status.value == ConnectivityStatus.OFFLINE,
             )
-        if (page.pageActions.isNotEmpty()) {
-            val context =
-                LayoutStateReducer.buildActionContext(
-                    ready = _uiState.value as? LayoutUiState.Ready,
-                    sessionState = sessionStore.state.value,
-                )
-            for (pageAction in page.pageActions) {
-                val results = actionDispatcher.dispatch(pageAction, context)
+        dispatchPageActions(page, generation)
+        if (generation == screenGeneration) {
+            page.streamSpec?.let(streamController::observeFromSpec)
+        }
+    }
+
+    private suspend fun dispatchPageActions(
+        page: PageResponse,
+        generation: Long,
+    ) {
+        if (page.pageActions.isEmpty()) return
+        val context =
+            LayoutStateReducer.buildActionContext(
+                ready = _uiState.value as? LayoutUiState.Ready,
+                sessionState = sessionStore.state.value,
+            )
+        for (pageAction in page.pageActions) {
+            if (generation != screenGeneration) break
+            val results = actionDispatcher.dispatch(pageAction, context)
+            if (generation == screenGeneration) {
                 for (result in results) {
-                    applyDispatchResult(result)
+                    applyDispatchResult(result, generation)
                 }
             }
         }
-        page.streamSpec?.let(streamController::observeFromSpec)
     }
 
-    private suspend fun applyDispatchResult(result: AppResult<ActionOutcome>) {
+    private suspend fun applyDispatchResult(
+        result: AppResult<ActionOutcome>,
+        generation: Long,
+    ) {
         when (result) {
-            is AppResult.Failure -> applyFailure(result.error)
-            is AppResult.Success -> applyOutcome(result.value)
+            is AppResult.Failure -> applyFailure(result.error, generation)
+            is AppResult.Success -> applyOutcome(result.value, generation)
         }
     }
 
-    private fun applyFailure(error: AppError) {
+    private fun applyFailure(
+        error: AppError,
+        generation: Long,
+    ) {
         logger.warn(TAG, "Action dispatch failure (${error.code}): ${error.message}")
         if (error is ValidationError) {
             platformBridges.hapticEngine.perform(HapticStyle.ERROR)
         }
-        updateReady { current -> LayoutStateReducer.applyFailure(current, error) }
+        updateReadyIfGeneration(generation) { current -> LayoutStateReducer.applyFailure(current, error) }
     }
 
-    private suspend fun applyOutcome(outcome: ActionOutcome) {
+    private suspend fun applyOutcome(
+        outcome: ActionOutcome,
+        generation: Long,
+    ) {
         if (!bridgeOutcomeExecutor.executeIfBridgeOutcome(outcome)) {
-            applyStandardOutcome(outcome)
+            applyStandardOutcome(outcome, generation)
         }
     }
 
-    private suspend fun applyStandardOutcome(outcome: ActionOutcome) {
+    private suspend fun applyStandardOutcome(
+        outcome: ActionOutcome,
+        generation: Long,
+    ) {
         when (outcome) {
-            ActionOutcome.Handled -> Unit
-            is ActionOutcome.NavigationRequested -> navigationListener(outcome)
-            is ActionOutcome.BackRequested -> backListener(outcome)
-            is ActionOutcome.TrackingRequested -> trackOutcome(outcome)
-            is ActionOutcome.StateMutated -> applyStateMutation(outcome)
-            is ActionOutcome.OverlayRequested -> applyOverlayRequested(outcome)
-            is ActionOutcome.OverlayDismissed -> updateReady { LayoutStateReducer.applyOverlayDismissed(it, outcome) }
-            is ActionOutcome.ToastRequested -> updateReady { it.copy(activeToast = outcome) }
-            is ActionOutcome.RefreshRequested -> applyRefreshRequested(outcome)
-            is ActionOutcome.SnippetsUpdated -> applySnippetsUpdated(outcome)
-            is ActionOutcome.FeedbackTriggered -> applyFeedbackTriggered(outcome)
-            is ActionOutcome.ApiCallResult -> updateReady { LayoutStateReducer.applyApiCallFailure(it, outcome) }
-            else -> Unit
+            ActionOutcome.Handled -> {
+                // Already handled synchronously by the action handler.
+            }
+
+            is ActionOutcome.NavigationRequested -> {
+                stopStream()
+                navigationListener(outcome)
+            }
+
+            is ActionOutcome.BackRequested -> {
+                stopStream()
+                backListener(outcome)
+            }
+
+            is ActionOutcome.TrackingRequested -> {
+                trackOutcome(outcome)
+            }
+
+            is ActionOutcome.StateMutated -> {
+                applyStateMutation(outcome, generation)
+            }
+
+            is ActionOutcome.OverlayRequested -> {
+                applyOverlayRequested(outcome, generation)
+            }
+
+            is ActionOutcome.OverlayDismissed -> {
+                updateReadyIfGeneration(generation) { LayoutStateReducer.applyOverlayDismissed(it, outcome) }
+            }
+
+            is ActionOutcome.ToastRequested -> {
+                updateReadyIfGeneration(generation) { it.withToast(outcome) }
+            }
+
+            is ActionOutcome.RefreshRequested -> {
+                applyRefreshRequested(outcome)
+            }
+
+            is ActionOutcome.SnippetsUpdated -> {
+                applySnippetsUpdated(outcome, generation)
+            }
+
+            is ActionOutcome.FeedbackTriggered -> {
+                applyFeedbackTriggered(outcome, generation)
+            }
+
+            is ActionOutcome.ApiCallResult -> {
+                updateReadyIfGeneration(generation) { LayoutStateReducer.applyApiCallFailure(it, outcome) }
+            }
+
+            else -> {
+                // Platform bridge outcomes are handled by PlatformBridgeOutcomeExecutor.
+            }
         }
     }
 
-    private suspend fun applyOverlayRequested(outcome: ActionOutcome.OverlayRequested) {
+    private suspend fun applyOverlayRequested(
+        outcome: ActionOutcome.OverlayRequested,
+        generation: Long,
+    ) {
         val initialSheetValues =
             if (outcome.snippets.isNotEmpty()) {
                 LayoutFormSeeder.extractInitialFormValuesFromSnippets(outcome.snippets, sessionStore)
             } else {
                 emptyMap()
             }
-        updateReady { current ->
+        updateReadyIfGeneration(generation) { current ->
             current.copy(
                 activeOverlay = outcome,
                 formValues = initialSheetValues + current.formValues,
@@ -522,9 +671,10 @@ class LayoutController(
         if (remoteSheetId != null && outcome.snippets.isEmpty()) {
             when (val result = screenRepository.fetchScreen(remoteSheetId)) {
                 is AppResult.Success -> {
+                    if (generation != screenGeneration) return
                     val fetchedSnippets = result.value.snippets
                     val seeded = LayoutFormSeeder.extractInitialFormValuesFromSnippets(fetchedSnippets, sessionStore)
-                    updateReady { current ->
+                    updateReadyIfGeneration(generation) { current ->
                         val active = current.activeOverlay
                         if (active != null && active.dialogId == outcome.dialogId) {
                             current.copy(
@@ -546,16 +696,22 @@ class LayoutController(
 
     private fun currentPageId(): String? = (_uiState.value as? LayoutUiState.Ready)?.page?.pageId ?: activeScreenId
 
-    private fun applySnippetsUpdated(outcome: ActionOutcome.SnippetsUpdated) {
-        updateReady { current ->
+    private fun applySnippetsUpdated(
+        outcome: ActionOutcome.SnippetsUpdated,
+        generation: Long,
+    ) {
+        updateReadyIfGeneration(generation) { current ->
             val nextSnippets = SnippetListMutator.mutate(current.page.snippets, outcome)
             current.copy(page = current.page.copy(snippets = nextSnippets))
         }
     }
 
-    private fun applyFeedbackTriggered(outcome: ActionOutcome.FeedbackTriggered) {
+    private fun applyFeedbackTriggered(
+        outcome: ActionOutcome.FeedbackTriggered,
+        generation: Long,
+    ) {
         platformBridges.hapticEngine.perform(outcome.effect.toHapticStyle())
-        updateReady { current -> LayoutStateReducer.applyFeedback(current, outcome) }
+        updateReadyIfGeneration(generation) { current -> LayoutStateReducer.applyFeedback(current, outcome) }
     }
 
     private fun trackOutcome(outcome: ActionOutcome.TrackingRequested) {
@@ -568,15 +724,36 @@ class LayoutController(
         )
     }
 
-    private fun applyStateMutation(outcome: ActionOutcome.StateMutated) {
+    private fun applyStateMutation(
+        outcome: ActionOutcome.StateMutated,
+        generation: Long,
+    ) {
         sessionStore.putAll(outcome.savedEntries)
         sessionStore.remove(outcome.deletedKeys)
-        updateReady { current -> LayoutStateReducer.applyStateMutation(current, outcome) }
+        updateReadyIfGeneration(generation) { current -> LayoutStateReducer.applyStateMutation(current, outcome) }
     }
 
-    private fun applyRefreshRequested(outcome: ActionOutcome.RefreshRequested) {
+    private suspend fun applyRefreshRequested(outcome: ActionOutcome.RefreshRequested) {
         val targetPage = outcome.pageId ?: activeScreenId ?: return
-        loadScreen(screenId = targetPage, showLoader = outcome.showLoader)
+        loadScreenInternal(
+            screenId = targetPage,
+            showLoader = outcome.showLoader,
+            preserveJob = currentCoroutineContext()[Job],
+        )
+    }
+
+    private fun trackScreenScopedJob(job: Job): Job {
+        screenScopedJobs.update { it + job }
+        job.invokeOnCompletion { screenScopedJobs.update { current -> current - job } }
+        return job
+    }
+
+    private fun cancelScreenScopedJobs(skipJob: Job? = null) {
+        screenScopedJobs.value.forEach { job ->
+            if (job !== skipJob) {
+                job.cancel()
+            }
+        }
     }
 
     private inline fun updateReady(transform: (LayoutUiState.Ready) -> LayoutUiState.Ready) {
@@ -585,8 +762,58 @@ class LayoutController(
         }
     }
 
+    private inline fun updateReadyIfGeneration(
+        generation: Long,
+        transform: (LayoutUiState.Ready) -> LayoutUiState.Ready,
+    ) {
+        if (generation != screenGeneration) return
+        _uiState.update { current ->
+            if (current is LayoutUiState.Ready && generation == screenGeneration) transform(current) else current
+        }
+    }
+
     private companion object {
         const val TAG = "LayoutController"
         const val HTTP_SERVER_ERROR_MIN = 500
+    }
+}
+
+internal fun LayoutUiState.Ready.withToast(toast: ActionOutcome.ToastRequested): LayoutUiState.Ready =
+    copy(
+        activeToast = toast,
+        toastSequence = toastSequence + 1L,
+    )
+
+private object ConnectivityMonitorLifecycle {
+    private val mutex = Mutex()
+    private val activeObservers = mutableMapOf<ConnectivityMonitor, Int>()
+
+    suspend fun acquire(monitor: ConnectivityMonitor) {
+        val shouldStart =
+            mutex.withLock {
+                val nextCount = (activeObservers[monitor] ?: 0) + 1
+                activeObservers[monitor] = nextCount
+                nextCount == 1
+            }
+        if (shouldStart) {
+            monitor.start()
+        }
+    }
+
+    suspend fun release(monitor: ConnectivityMonitor) {
+        val shouldStop =
+            mutex.withLock {
+                val current = activeObservers[monitor] ?: 0
+                if (current <= 1) {
+                    activeObservers.remove(monitor)
+                    current == 1
+                } else {
+                    activeObservers[monitor] = current - 1
+                    false
+                }
+            }
+        if (shouldStop) {
+            monitor.stop()
+        }
     }
 }

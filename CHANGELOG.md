@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.7.0] / [bff/v0.9.0] - 2026-11-25
+
+### Added
+
+- **Exportable Go SDUI Server & Cache Packages (`bff/pkg/sdui/cache`, `bff/pkg/sdui/server` — `bff@v0.9.0`)**:
+  - Added pure transport-agnostic `pkg/sdui/cache` (`UpstreamCachedScreenRepository` with `singleflight` fetch coalescing, bounded LRU + TTL, prefix/tag/all invalidation, and O(1) `BuildManifest`).
+  - Added production-hardened `pkg/sdui/server`: fail-closed `CORSMiddleware` (empty allowlist blocks cross-origin by default, explicit wildcard subdomain matching), `ETagMiddleware` (`Cache-Control: private, no-cache` by default, honoring `page.ETag` plus `X-App-Version`/`X-Page-Version`/`X-Client-App-Version`), `sync.Pool`-backed `CompressionMiddleware` (Brotli `br` + `gzip` with streaming bypass for SSE & oversized payloads), per-router immutable-key `JWTAuthMiddleware` (HS256, fail-closed, never mutating global `ginmw` state), `HTTPUpstreamFetcher` (conditional `If-None-Match` / `304`), and `StreamProvider` for SSE delta streams.
+  - Added live routes `GET /api/v1/manifest` (alias alongside `GET /api/v1/screens/manifest`), `POST /api/v1/pay/transfer`, and `GET /api/v1/streams/:streamId` (`Last-Event-ID` cursor replay + `204 No Content` catch-up).
+  - Updated `bff/.env.example` and `cmd/bff` with fail-closed `CORS_ALLOWED_ORIGINS`, `TRUSTED_PROXIES`, minimum 32-char `JWT_SECRET` enforcement when `AUTH_REQUIRED=true`, and TLS 1.2+ enforcement.
+- **Real ISO/IEC 18004 QR Code Encoder (`ui-atoms`)**:
+  - Added pure-Kotlin `QrCodeEncoder.kt` supporting byte-mode QR Versions 1–10 (ECC Level M, Galois-field Reed-Solomon error correction, 8-mask penalty evaluation, finder/alignment/timing/format/version modules) powering `UiQrCode` across all KMP targets.
+- **Room 3 Schema v2 Migration (`database`)**:
+  - Bumped `AbetaDatabase.SCHEMA_VERSION` from `1` to `2`, added `pageVersion` and `appVersion` columns to `cached_screens`, exported `kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/2.json`, and shipped explicit `AbetaDatabase.MIGRATION_1_2` wired across JVM, Apple, and Android factories.
+- **Absolute Countdown Expiry & Schema Versioning (`sdui-contracts`, `ui-atoms`, `bff`)**:
+  - Added optional `expires_at_epoch_ms` (`expiresAtEpochMs`) to `CountdownAtom` (1:1 KMP/Go parity) so `UiCountdown` stays drift-free across recompositions, caching, and pause/resume, plus `sdui_schema_version` on `ScreenManifestResponse` and `NetworkConfig.appVersion` (`X-Client-App-Version` header on same-origin requests).
+
+### Security & Hardening
+
+- **Cross-Platform Secure Storage, Auth & Network Guards (`core`, `state`, `network`, `action-engine`, `analytics`, `sdui-layout`)**:
+  - Replaced JVM `Preferences`-backed secure store with `0600`/`0700` POSIX-restricted atomic file-backed AES-256-GCM storage (`SecureStorage.jvm.kt`) removing the 8 KB Preferences cap; synchronized Apple Keychain access with `NSLock` (`SecureStorage.apple.kt`); hardened `SensitiveDataMasker`, `DeepLinkParser`, and `ExternalLauncherPort` scheme allowlists.
+  - Enforced `sha256/` prefix validation on `NetworkConfig.certificatePins`, restricted default/auth/app-version headers to same-origin requests, hardened SSE reconnect & timeout handling in `KtorSseTransport`, and added bounded `DispatchBudget` (`DEFAULT_MAX_TOTAL_ACTIONS = 64`) & sequential state-mutation threading in `DefaultActionDispatcher`.
+  - Added multiplatform `StateLock` (`jvm`/`apple`/`wasmJs`) across `SessionStore`, `DataStoreKeyValueStore`, and `OfflineMutationQueue`, plus serialized persistence/flush safety in `BufferedAnalyticsTracker`.
+  - Hardened `CachedScreenRepository` & `RemoteWatchPageSource` version-gated `If-None-Match` (`304`) / `ETag` / `appVersion` / `sduiSchemaVersion` validation, `LayoutController` delta patching & resilience (`LayoutDeltaJsonHelpers.kt`), and `WatchScreenMapper` projection coverage.
+- **CI, Supply-Chain & Release Hardening**:
+  - Verified all **11** golden JSON parity fixtures (`bff/testdata/golden/`), enforced `vars.ENABLE_MAVEN_CENTRAL=true` gating and 4-product SwiftPM packaging (`AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI`) via `scripts/package_xcframeworks.sh`.
+
+### Fixed
+
+- **Apple SwiftUI SPM Compilation & Retain-Cycle Fixes (`kmp/platforms/apple/`)**:
+  - Guarded `AbetaWatchSwiftUI` with `#if canImport(SwiftUI) && os(watchOS)`, fixed Swift 6 concurrency isolation (`@unchecked Sendable` boxes, `nonisolated static func defaultResolveScreenId`), eliminated callback retain cycles via lock-protected `WatchObservationLifecycle` / `WatchCancelHandle` teardown, and ensured root `http`/`https` deep links return `nil` instead of the host domain.
+- **Android & Wear OS Native Host Bridges (`kmp/platforms/android/`, `kmp/platforms/wearos/`)**:
+  - Wired `WearCompanionHostActivity` with Android-native `AndroidSharedPreferencesKeyValueStore`, `AndroidKeyStoreSecureStore`, `AndroidConnectivityMonitor`, `AndroidExternalLauncher`, `AndroidSharePort`, and `WearHapticEngine` instead of falling back to JVM Desktop AWT/`Preferences`.
+  - Hardened `AndroidPlatformBridgeFactory` (`AndroidKeyStore` key invalidation recovery, `FilePickerPort` metadata resolution, `BiometricPrompt` cancellation handling, and `AndroidDatabaseFactory` `MIGRATION_1_2` registration).
+
+---
+
 ## [0.6.0] / [bff/v0.8.0] - 2026-11-25
 
 ### Added

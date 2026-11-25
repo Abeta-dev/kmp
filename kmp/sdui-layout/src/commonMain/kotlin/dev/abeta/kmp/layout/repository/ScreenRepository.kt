@@ -40,6 +40,7 @@ sealed interface ConditionalScreenFetchResult {
     data class Modified(
         val page: PageResponse,
         val etag: String? = null,
+        val httpEtag: String? = etag,
     ) : ConditionalScreenFetchResult
 
     /** Screen matched the client validator (`HTTP 304 Not Modified`). */
@@ -68,6 +69,7 @@ interface ConditionalScreenRepository : ScreenRepository {
 class RemoteScreenRepository(
     private val httpClient: HttpTransport,
     private val basePath: String = DEFAULT_BASE_PATH,
+    private val appVersion: String? = null,
 ) : ConditionalScreenRepository {
     override suspend fun fetchScreen(screenId: String): AppResult<PageResponse> =
         when (val result = fetchScreenConditional(screenId = screenId, ifNoneMatch = null)) {
@@ -112,6 +114,7 @@ class RemoteScreenRepository(
                 path = path,
                 deserializer = BffEnvelope.serializer(PageResponse.serializer()),
                 ifNoneMatch = ifNoneMatch,
+                headers = buildClientVersionHeaders(appVersion),
             )
         return when (result) {
             is AppResult.Failure -> result
@@ -142,17 +145,19 @@ class RemoteScreenRepository(
 
                     is AppResult.Success -> {
                         val page = unwrapped.value
+                        val contentEtag = page.etag?.takeIf { it.isNotBlank() }
                         val resolvedPage =
-                            if (page.etag.isNullOrBlank() && httpEtag != null) {
+                            if (contentEtag == null && httpEtag != null) {
                                 page.copy(etag = httpEtag)
                             } else {
                                 page
                             }
-                        val resolvedEtag = resolvedPage.etag?.takeIf { it.isNotBlank() } ?: httpEtag
+                        val resolvedContentEtag = contentEtag ?: httpEtag
                         AppResult.Success(
                             ConditionalScreenFetchResult.Modified(
                                 page = resolvedPage,
-                                etag = resolvedEtag,
+                                etag = resolvedContentEtag,
+                                httpEtag = httpEtag ?: resolvedContentEtag,
                             ),
                         )
                     }
@@ -184,6 +189,16 @@ class RemoteScreenRepository(
 
     companion object {
         const val DEFAULT_BASE_PATH: String = "/api/v1/screens"
+        const val HEADER_CLIENT_APP_VERSION: String = "X-Client-App-Version"
+    }
+}
+
+internal fun buildClientVersionHeaders(appVersion: String?): Map<String, String> {
+    val cleanVersion = appVersion?.trim()?.takeIf { it.isNotEmpty() }
+    return if (cleanVersion != null) {
+        mapOf(RemoteScreenRepository.HEADER_CLIENT_APP_VERSION to cleanVersion)
+    } else {
+        emptyMap()
     }
 }
 

@@ -14,6 +14,7 @@ import dev.abeta.kmp.core.error.isRetryable
 import dev.abeta.kmp.core.identity.RandomUuidGenerator
 import dev.abeta.kmp.core.identity.SequentialUuidGenerator
 import dev.abeta.kmp.core.logging.CompositeAppLogger
+import dev.abeta.kmp.core.logging.KermitAppLogger
 import dev.abeta.kmp.core.logging.LogLevel
 import dev.abeta.kmp.core.logging.RecordingAppLogger
 import dev.abeta.kmp.core.logging.RedactingAppLogger
@@ -40,10 +41,13 @@ import dev.abeta.kmp.core.time.ElapsedTimer
 import dev.abeta.kmp.core.time.MutableClock
 import dev.abeta.kmp.core.time.nowIsoUtc
 import dev.abeta.kmp.core.validation.FieldValidators
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -216,4 +220,84 @@ class CorePrimitivesTest {
             assertNotNull(FieldValidators.validatePhone(value = "123"))
             assertTrue(FieldValidators.isValidUrl("https://abeta.dev/docs"))
         }
+
+    @Test
+    fun `single flight leader cancellation does not cancel live waiters or poison-lock key`() =
+        runTest {
+            val singleFlight = SingleFlight<String, String>()
+            val leaderEntered = CompletableDeferred<Unit>()
+            val leaderCanFinish = CompletableDeferred<Unit>()
+
+            val leader =
+                async(start = CoroutineStart.UNDISPATCHED) {
+                    singleFlight.execute("profile") {
+                        leaderEntered.complete(Unit)
+                        leaderCanFinish.await()
+                        "from-leader"
+                    }
+                }
+            leaderEntered.await()
+
+            val waiter =
+                async(start = CoroutineStart.UNDISPATCHED) {
+                    singleFlight.execute("profile") {
+                        "from-waiter-retry"
+                    }
+                }
+            yield()
+
+            leader.cancel()
+            assertEquals("from-waiter-retry", waiter.await())
+
+            // Key must not be poison-locked for subsequent calls.
+            val subsequent = singleFlight.execute("profile") { "fresh-value" }
+            assertEquals("fresh-value", subsequent)
+        }
+
+    @Test
+    fun `sensitive data redactor tokenizes keys accurately and redacts json and auth schemes`() {
+        val redactor = SensitiveDataRedactor.Default
+
+        assertFalse(redactor.isSensitiveKey("shipping_fee"))
+        assertFalse(redactor.isSensitiveKey("shopping_cart"))
+        assertFalse(redactor.isSensitiveKey("company_name"))
+        assertFalse(redactor.isSensitiveKey("panel_id"))
+
+        assertTrue(redactor.isSensitiveKey("user_pin"))
+        assertTrue(redactor.isSensitiveKey("cardPan"))
+        assertTrue(redactor.isSensitiveKey("access_token"))
+        assertTrue(redactor.isSensitiveKey("password"))
+        assertTrue(redactor.isSensitiveKey("authorization"))
+        assertTrue(redactor.isSensitiveKey("X-Api-Key"))
+
+        val jsonText =
+            """{"token":"tok_123","secret":"sec_456","password":"pw_789","shipping_fee":"10"}"""
+        val redactedJson = redactor.redactText(jsonText)
+        assertFalse(redactedJson.contains("tok_123"))
+        assertFalse(redactedJson.contains("sec_456"))
+        assertFalse(redactedJson.contains("pw_789"))
+        assertTrue(redactedJson.contains(""""shipping_fee":"10""""))
+
+        val basicAuth = redactor.redactText("Authorization: Basic dXNlcjpwYXNz")
+        assertFalse(basicAuth.contains("dXNlcjpwYXNz"))
+        assertTrue(basicAuth.contains("[REDACTED]"))
+
+        val apiKeyHeader = redactor.redactText("Authorization: ApiKey sk_live_secret99")
+        assertFalse(apiKeyHeader.contains("sk_live_secret99"))
+        assertTrue(apiKeyHeader.contains("[REDACTED]"))
+
+        val standaloneApiKey = redactor.redactText("Using ApiKey raw_key_77 for call")
+        assertFalse(standaloneApiKey.contains("raw_key_77"))
+    }
+
+    @Test
+    fun `kermit app logger implements value-based equality and hashCode`() {
+        val a = KermitAppLogger(minLevel = LogLevel.INFO)
+        val b = KermitAppLogger(minLevel = LogLevel.INFO)
+        val c = KermitAppLogger(minLevel = LogLevel.ERROR)
+
+        assertEquals(a, b)
+        assertEquals(a.hashCode(), b.hashCode())
+        assertNotEquals(a, c)
+    }
 }

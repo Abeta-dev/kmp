@@ -11,7 +11,11 @@ import (
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
 )
 
-const defaultAnalyticsRingCapacity = 100
+const (
+	defaultAnalyticsRingCapacity = 100
+	maxAnalyticsDimensionKeys    = 1000
+	analyticsOverflowKey         = "_other"
+)
 
 // InMemoryAnalyticsStore is a concurrency-safe in-memory AnalyticsStore tracking
 // aggregated event counters and a bounded circular ring buffer of recent events.
@@ -63,15 +67,15 @@ func (s *InMemoryAnalyticsStore) RecordBatch(ctx context.Context, req analytics.
 		}
 		cloned := cloneAnalyticsEvent(ev)
 		s.totalEvents++
-		s.byEventName[cloned.EventName]++
+		incrementBoundedDimension(s.byEventName, cloned.EventName)
 		if cloned.Category != "" {
-			s.byCategory[cloned.Category]++
+			incrementBoundedDimension(s.byCategory, cloned.Category)
 		}
 		if cloned.PageID != "" {
-			s.byPageID[cloned.PageID]++
+			incrementBoundedDimension(s.byPageID, cloned.PageID)
 		}
 		if cloned.ComponentID != "" {
-			s.byComponentID[cloned.ComponentID]++
+			incrementBoundedDimension(s.byComponentID, cloned.ComponentID)
 		}
 
 		s.ring[s.head] = cloned
@@ -126,6 +130,18 @@ func cloneAnalyticsEvent(ev analytics.Event) analytics.Event {
 		ev.Properties = props
 	}
 	return ev
+}
+
+func incrementBoundedDimension(m map[string]int64, key string) {
+	if _, exists := m[key]; exists {
+		m[key]++
+		return
+	}
+	if len(m) >= maxAnalyticsDimensionKeys {
+		m[analyticsOverflowKey]++
+		return
+	}
+	m[key] = 1
 }
 
 func cloneCounterMap(src map[string]int64) map[string]int64 {

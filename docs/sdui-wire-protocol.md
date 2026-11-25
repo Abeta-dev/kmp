@@ -20,8 +20,9 @@ flowchart LR
     Page --> PullRefresh["pull_to_refresh: ActionRef"]
     Page --> PageActions["page_actions: List of ActionRef"]
     Page --> Tracking["TrackingContract"]
-    Snippets --> SnippetData["21 Canonical SnippetTypes (incl. composed_block w/ 29 ComposedNodeKinds)"]
-    SnippetData --> Atoms["28 Wire Atoms + LayoutConfig + MotionSpec (7 MotionLoopEffects)"]
+    Page --> Versioning["page_version, app_version, etag, stream_spec (6 SnippetDeltaOps)"]
+    Snippets --> SnippetData["23 Canonical SnippetTypes (incl. composed_block w/ 36 ComposedNodeKinds, custom_slot, graph_canvas)"]
+    SnippetData --> Atoms["29 Wire Atoms + LayoutConfig + MotionSpec (7 MotionLoopEffects)"]
     Atoms --> Tokens["ColorTokenRef / TypographyTokenRef"]
     Atoms --> ActionRef["ActionRef / ActionTrigger (18 Built-in ActionTypes)"]
     ActionRef --> Validations["validations: List of ValidationRuleContract"]
@@ -52,7 +53,7 @@ Returned inside `data` by `GET /api/v1/screens/:screenId`:
 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `page_id` | `string` | Yes | Stable screen identifier (core screens `"home"`, `"store-home"`, `"catalog"`, `"profile"`, `"form-demo"`, `"containers"`, `"watch-status"`, plus 7-in-1 Super-App Showcase screens `"fresh-home"`, `"bites-home"`, `"pulse-home"`, `"mart-home"`, `"spark-deck"`, `"trade-home"`, `"pay-home"` & sub-screens) |
+| `page_id` | `string` | Yes | Stable screen identifier (12 built-in BFF screens: `"home"`, `"catalog"`, `"containers"`, `"profile"`, `"form-demo"`, `"fresh-home"`, `"store-home"`, `"watch-status"`, `"pay-home"`, `"pay-transfer"`, `"pay-cards"`, `"pay-receipt"`, plus additional 7-in-1 Super-App vertical screens in `sample-app`, `storybook`, and `Abeta-dev/sdui-bff`) |
 | `title` | `string?` | No | Screen title |
 | `toolbar` | `ToolbarSpec?` | No | Top app bar (`title`, `subtitle`, `navigation_icon`, `trailing_actions`, `bg_color`, `layout`) |
 | `snippets` | `SnippetEnvelope[]` | No | Ordered list of screen snippets (defaults to `[]`) |
@@ -63,6 +64,10 @@ Returned inside `data` by `GET /api/v1/screens/:screenId`:
 | `pagination` | `PaginationSpec?` | No | Cursor pagination metadata (`next_cursor`, `has_more`, `load_more_action`) |
 | `pull_to_refresh` | `ActionRef?` | No | Optional action dispatched on pull-to-refresh (`PullToRefreshBox`) |
 | `adaptive_layout` | `AdaptivePageSpec?` | No | Server-driven responsive viewport rules (`layout_mode`, `max_width_dp`, `split_pane_enabled`, `secondary_snippet_ids`) |
+| `page_version` | `string?` | No | Deterministic SHA-256 content version used by `VERSION_GATED` caching & `/api/v1/screens/manifest` |
+| `app_version` | `string?` | No | Server `APP_VERSION` stamp for cache invalidation across app/server upgrades |
+| `etag` | `string?` | No | Optional page-level entity tag honored by `server.ETagMiddleware` & `CachedScreenRepository` |
+| `stream_spec` | `SseStreamSpec?` | No | Optional SSE delta stream configuration (`stream_id`, `endpoint`, `reconnect_policy`) delivering `SnippetDeltaPatch` updates across **6 `SnippetDeltaOp`s** (`append_text`, `patch_snippet_data`, `replace_snippet`, `insert_snippet`, `remove_snippet`, `update_page_meta`) |
 
 ### `AdaptivePageSpec` & Responsive Breakpoint Specs (`AdaptiveContracts.kt` / `pkg/sdui/snippets`)
 
@@ -95,7 +100,7 @@ Returned inside `data` by `GET /api/v1/screens/:screenId`:
 
 ---
 
-## 3. `SnippetEnvelope` & All 21 Canonical `SnippetTypes`
+## 3. `SnippetEnvelope` & All 23 Canonical `SnippetTypes`
 
 Every section in `PageResponse.snippets` is wrapped in `SnippetEnvelope`:
 
@@ -104,11 +109,12 @@ Every section in `PageResponse.snippets` is wrapped in `SnippetEnvelope`:
 | `snippet_id` | `string` | Yes | Unique instance ID within the page |
 | `snippet_parent_id` | `string?` | No | Optional parent container ID (e.g., inside `carousel`, `grid`, `tabs`, or `accordion`) |
 | `snippet_type` | `string` | Yes | Discriminator matching `SnippetTypes` |
+| `sticky` | `boolean` | No | Pins the snippet via `LazyColumn` `stickyHeader` (e.g., pinned search/filter bars) |
 | `data` | `JsonObject` | No | Typed snippet payload decoded by `SnippetRegistry` |
 | `tracking` | `TrackingContract?` | No | Impression analytics (`event_name`, `properties` — **string values only**) |
 | `motion` | `MotionSpec?` | No | Optional declarative enter/stagger/loop animation spec applied by `SnippetEntry` |
 
-### All 21 Canonical Snippet Types (`SnippetTypes`)
+### All 23 Canonical Snippet Types (`SnippetTypes`)
 
 | `snippet_type` | Kotlin Contract (`sdui-contracts`) | Purpose |
 | :--- | :--- | :--- |
@@ -132,7 +138,9 @@ Every section in `PageResponse.snippets` is wrapped in `SnippetEnvelope`:
 | `nudge_bar` | `NudgeBarSnippetData` | Urgency/contextual nudge bar with `nudge_id`, `title`, `subtitle`, `icon`, `badge`, `countdown`, `progress`, `cta`, `dismissible`, `pointer_edge` (`top`\|`bottom`), `on_dismiss`, `on_click`, `layout` |
 | `marquee_strip` | `MarqueeStripSnippetData` | Continuous horizontal ticker with `strip_id`, `items` (`MarqueeItem[]`), `velocity_dp_per_sec` (default `48`), `separator` (default `"•"`), `layout` |
 | `order_tracker` | `OrderTrackerSnippetData` | Animated multi-stage tracker with `tracker_id`, `order_code`, `headline`, `eta_countdown`, `eta_badge`, `rider_name`, `rider_caption`, `steps` (`OrderTrackerStep[]`), `primary_action`, `secondary_action`, `layout` |
-| `composed_block` | `ComposedBlockSnippetData` | **Atomic Snippet Molding Engine**: recursive server-molded `root` (`ComposedNode`, max depth 6) supporting **29 `ComposedNodeKind`s** (`column`, `row`, `box`, `card`, `flow_row`, `text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `rolling_counter`, `radio_group`, `select`, `otp_input`, `chip`, `segmented_control`, `rating`, `price`, `badge`, `alert_banner`, `stat_tile`, `key_value_row`, `qr_code`), `block_id`, `recipe_name`, `layout` |
+| `composed_block` | `ComposedBlockSnippetData` | **Atomic Snippet Molding Engine**: recursive server-molded `root` (`ComposedNode`, max depth 6) supporting **36 `ComposedNodeKind`s** (`column`, `row`, `box`, `card`, `flow_row`, `scroll_row`, `grid`, `text`, `button`, `tag`, `icon`, `image`, `avatar`, `progress`, `divider`, `spacer`, `stepper`, `countdown`, `rolling_counter`, `text_field`, `switch`, `checkbox`, `slider`, `media_pager`, `radio_group`, `select`, `otp_input`, `chip`, `segmented_control`, `rating`, `price`, `badge`, `alert_banner`, `stat_tile`, `key_value_row`, `qr_code`) with per-child `box_alignment`, `block_id`, `recipe_name`, `layout` |
+| `custom_slot` | `CustomSlotSnippetData` | Universal host extension bridge (`slot_id`, `slot_type`, `props`, optional `fallback` `SnippetEnvelope`) resolved via `CustomSlotRegistry` / `LocalCustomSlotRegistry` |
+| `graph_canvas` | `GraphCanvasSnippetData` | Interactive spatial node-edge canvas (`canvas_id`, `title`, `nodes` (`GraphNodeSpec[]`), `edges` (`GraphEdgeSpec[]` w/ `bezier`\|`straight`\|`dashed`), `viewport_height_dp`, `interactive`, `on_node_tap`, `on_node_move`, `layout`) |
 
 Unknown `snippet_type` entries are safely handled with an unknown-snippet fallback in `SnippetRegistry` without crashing the screen (`SduiJson` sets `ignoreUnknownKeys = true`).
 
@@ -187,7 +195,7 @@ Shared box layout configuration on atoms, snippets, `ToolbarSpec`, and `BottomBa
 
 ---
 
-## 6. All 28 Wire Atoms (`Atoms.kt`, `ExtendedAtoms.kt` & `pkg/sdui/atoms`)
+## 6. All 29 Wire Atoms (`Atoms.kt`, `ExtendedAtoms.kt` & `pkg/sdui/atoms`)
 
 | Atom | Key Fields | Action Triggers |
 | :--- | :--- | :--- |
@@ -206,7 +214,7 @@ Shared box layout configuration on atoms, snippets, `ToolbarSpec`, and `BottomBa
 | **`AvatarAtom`** | `id`, `url`, `initials`, `size_dp`, `bg_color`, `text_color`, `content_description`, `layout` | `on_click` (`ActionRef`) |
 | **`SkeletonAtom`** | `id`, `kind` (`SkeletonKind`: `text`\|`rectangle`\|`circle`), `width_dp`, `height_dp`, `layout` | None |
 | **`StepperAtom`** | `field_id`, `label`, `quantity`, `min_quantity` (default `0`), `max_quantity` (default `20`), `enabled`, `layout` | `on_increment`, `on_decrement` (`ActionRef`) |
-| **`CountdownAtom`** | `countdown_id`, `remaining_seconds`, `label`, `urgent_threshold_seconds` (default `60`), `show_hours`, `expired_text` (default `"00:00"`), `motion` (`MotionSpec?`) | `on_expire` (`ActionRef`) |
+| **`CountdownAtom`** | `countdown_id`, `remaining_seconds`, `expires_at_epoch_ms`, `label`, `urgent_threshold_seconds` (default `60`), `show_hours`, `expired_text` (default `"00:00"`), `motion` (`MotionSpec?`) | `on_expire` (`ActionRef`) |
 | **`RadioGroupAtom`** | `field_id`, `label`, `options` (`OptionItem[]`), `selected_id`, `enabled`, `layout` | `on_change` (`ActionRef`) |
 | **`SelectAtom`** | `field_id`, `label`, `placeholder`, `options` (`OptionItem[]`), `selected_id`, `helper_text`, `error_text`, `enabled`, `layout` | `on_change` (`ActionRef`) |
 | **`OtpInputAtom`** | `field_id`, `label`, `length` (default `6`), `initial_value`, `masked`, `helper_text`, `error_text`, `enabled`, `layout` | `on_complete` (`ActionRef`) |
@@ -219,8 +227,9 @@ Shared box layout configuration on atoms, snippets, `ToolbarSpec`, and `BottomBa
 | **`StatTileAtom`** | `id`, `label`, `value`, `delta_label`, `delta_positive`, `caption`, `icon`, `layout` | `on_click` (`ActionRef`) |
 | **`KeyValueRowAtom`** | `id`, `label`, `value`, `sublabel`, `value_color`, `emphasized`, `show_divider`, `layout` | `on_click` (`ActionRef`) |
 | **`QrCodeAtom`** | `id`, `payload`, `label`, `caption`, `size_dp` (default `160`), `layout` | `on_click` (`ActionRef`) |
+| **`MediaPagerAtom`** | `id`, `images` (`ImageAtom[]`), `aspect_ratio`, `height_dp`, `show_indicators`, `auto_advance_ms`, `layout` | `on_page_click` (`ActionRef`) |
 
-> Note: `kmp/ui-atoms` renders all **28 wire atoms** plus `UiSurfaceCard` and `UiRollingCounter`, giving **30 stateless Compose UI atoms** in total (plus `UiCelebrationOverlay`, `UiHapticFeedback.kt`, `MotionModifier.kt`, and `MotionLoopModifiers.kt`).
+> Note: `kmp/ui-atoms` renders all **29 wire atoms** plus `UiSurfaceCard` and `UiRollingCounter`, giving **31 stateless Compose UI atoms** in total (incl. real ISO/IEC 18004 `UiQrCode`, plus `UiCelebrationOverlay`, `UiHapticFeedback.kt`, `MotionModifier.kt`, and `MotionLoopModifiers.kt`).
 
 ---
 
@@ -289,7 +298,7 @@ In KMP (`sdui-contracts`) this contract is `ActionRef`; in Go (`pkg/sdui/actions
 
 ## Golden Schema Parity Fixtures
 
-Canonical `v1` wire fixtures (**8 fixtures**) live in `bff/testdata/golden/`:
+Canonical `v1` wire fixtures (**11 fixtures**) live in `bff/testdata/golden/`:
 
 - `bff/testdata/golden/home_screen.json`
 - `bff/testdata/golden/form_screen.json`
@@ -299,5 +308,8 @@ Canonical `v1` wire fixtures (**8 fixtures**) live in `bff/testdata/golden/`:
 - `bff/testdata/golden/interactive_screen.json`
 - `bff/testdata/golden/nudges_and_composed_screen.json`
 - `bff/testdata/golden/extended_atoms_screen.json`
+- `bff/testdata/golden/express_molecules_and_analytics_screen.json`
+- `bff/testdata/golden/streaming_and_versioned_screen.json`
+- `bff/testdata/golden/spatial_custom_and_graph_screen.json`
 
-Both `bff/internal/infra/golden_test.go` (plus `golden_nudges_test.go` and `golden_extended_atoms_test.go`) and `kmp/sdui-contracts/src/jvmTest/kotlin/dev/abeta/kmp/contracts/GoldenFixturesParityTest.kt` (plus `SduiScreenComposeTest`) validate against these exact files to guarantee zero drift between Go and Kotlin.
+Both `bff/internal/infra/golden*_test.go` and `kmp/sdui-contracts/src/jvmTest/kotlin/dev/abeta/kmp/contracts/GoldenFixturesParityTest.kt` (plus `SduiScreenComposeTest`) validate against these exact files to guarantee zero drift between Go and Kotlin.

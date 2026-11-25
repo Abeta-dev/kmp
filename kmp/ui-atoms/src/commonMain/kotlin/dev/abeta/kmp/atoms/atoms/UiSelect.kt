@@ -18,6 +18,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,13 +69,19 @@ fun UiSelect(
     val haptic = LocalUiHapticFeedback.current
 
     var expanded by remember(atom.fieldId) { mutableStateOf(false) }
+    LaunchedEffect(atom.enabled) {
+        if (!atom.enabled) {
+            expanded = false
+        }
+    }
+    val menuExpanded = expanded && atom.enabled
     val activeId = selectedIdOverride ?: atom.selectedId
     val selectedOption = atom.options.firstOrNull { it.id == activeId }
     val isError = !atom.errorText.isNullOrBlank()
     val supportingMessage = atom.errorText?.takeIf { it.isNotBlank() } ?: atom.helperText?.takeIf { it.isNotBlank() }
     val chevronRotationState =
         animateFloatAsState(
-            targetValue = if (expanded) CHEVRON_EXPANDED_DEGREES else CHEVRON_COLLAPSED_DEGREES,
+            targetValue = if (menuExpanded) CHEVRON_EXPANDED_DEGREES else CHEVRON_COLLAPSED_DEGREES,
             animationSpec = if (motion.reducedMotion) snap() else tween(durationMillis = motion.fastMs),
             label = "select_chevron_rotation",
         )
@@ -83,29 +90,31 @@ fun UiSelect(
         modifier = modifier.applyLayoutConfig(atom.layout),
         verticalArrangement = Arrangement.spacedBy(spacing.space4),
     ) {
-        UiSelectLabel(label = atom.label, enabled = atom.enabled, expanded = expanded, isError = isError)
+        UiSelectLabel(label = atom.label, enabled = atom.enabled, expanded = menuExpanded, isError = isError)
         Box(modifier = Modifier.fillMaxWidth()) {
             UiSelectTrigger(
                 atom = atom,
                 selectedOption = selectedOption,
-                expanded = expanded,
+                expanded = menuExpanded,
                 isError = isError,
                 chevronRotationState = chevronRotationState,
                 onClick = {
                     haptic(UiHapticKind.CLICK)
-                    expanded = !expanded
+                    expanded = !menuExpanded
                 },
             )
             UiSelectDropdown(
                 atom = atom,
                 activeId = activeId,
-                expanded = expanded,
+                expanded = menuExpanded,
                 onDismiss = { expanded = false },
                 onOptionSelected = { optionId ->
                     expanded = false
-                    haptic(UiHapticKind.CLICK)
-                    onSelect(optionId)
-                    atom.onChange?.let(onAction)
+                    if (optionId != activeId) {
+                        haptic(UiHapticKind.CLICK)
+                        onSelect(optionId)
+                        atom.onChange?.let(onAction)
+                    }
                 },
             )
         }

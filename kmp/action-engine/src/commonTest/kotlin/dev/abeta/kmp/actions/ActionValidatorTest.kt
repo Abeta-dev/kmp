@@ -149,4 +149,74 @@ class ActionValidatorTest {
             val outcome = assertIs<AppResult.Success<ActionOutcome>>(passingResults.single()).value
             assertIs<ActionOutcome.NavigationRequested>(outcome)
         }
+
+    @Test
+    fun validatorFailsClosedOnBadLengthAndUsesFullRegexMatch() =
+        runTest {
+            val badMinAction =
+                ActionRef(
+                    type = ActionTypes.NAVIGATE,
+                    payload = buildJsonObject { put("route", "/next") },
+                    validations = listOf(ValidationRuleContract("name", "min_length", "abc", "Invalid min")),
+                )
+            val adaCtx = ActionContext(sessionState = mapOf("name" to JsonPrimitive("Ada")))
+            val minFail = assertIs<AppResult.Failure>(dispatcher.dispatch(badMinAction, adaCtx).single())
+            assertIs<ValidationError>(minFail.error)
+
+            val badMaxAction =
+                ActionRef(
+                    type = ActionTypes.NAVIGATE,
+                    payload = buildJsonObject { put("route", "/next") },
+                    validations = listOf(ValidationRuleContract("name", "max_length", null, "Invalid max")),
+                )
+            val maxFail = assertIs<AppResult.Failure>(dispatcher.dispatch(badMaxAction, adaCtx).single())
+            assertIs<ValidationError>(maxFail.error)
+
+            val regexAction =
+                ActionRef(
+                    type = ActionTypes.NAVIGATE,
+                    payload = buildJsonObject { put("route", "/next") },
+                    validations = listOf(ValidationRuleContract("pin", "regex", "[0-9]{4}", "Must be 4 digits")),
+                )
+            val partialCtx = ActionContext(sessionState = mapOf("pin" to JsonPrimitive("abc1234xyz")))
+            val exactCtx = ActionContext(sessionState = mapOf("pin" to JsonPrimitive("1234")))
+            val partialFail = assertIs<AppResult.Failure>(dispatcher.dispatch(regexAction, partialCtx).single())
+            assertIs<ValidationError>(partialFail.error)
+            assertIs<AppResult.Success<ActionOutcome>>(dispatcher.dispatch(regexAction, exactCtx).single())
+
+            val longPattern = "a".repeat(257)
+            val hugeRegexAction =
+                ActionRef(
+                    type = ActionTypes.NAVIGATE,
+                    payload = buildJsonObject { put("route", "/next") },
+                    validations = listOf(ValidationRuleContract("pin", "regex", longPattern, "Pattern too long")),
+                )
+            val longCtx = ActionContext(sessionState = mapOf("pin" to JsonPrimitive(longPattern)))
+            val longFail = assertIs<AppResult.Failure>(dispatcher.dispatch(hugeRegexAction, longCtx).single())
+            assertIs<ValidationError>(longFail.error)
+        }
+
+    @Test
+    fun maxLengthAndEqualsDoNotTrimWhitespace() =
+        runTest {
+            val maxLenAction =
+                ActionRef(
+                    type = ActionTypes.NAVIGATE,
+                    payload = buildJsonObject { put("route", "/next") },
+                    validations = listOf(ValidationRuleContract("code", "max_length", "4", "Max 4")),
+                )
+            val paddedCtx = ActionContext(sessionState = mapOf("code" to JsonPrimitive("  abcd  ")))
+            val maxFail = assertIs<AppResult.Failure>(dispatcher.dispatch(maxLenAction, paddedCtx).single())
+            assertIs<ValidationError>(maxFail.error)
+
+            val equalsAction =
+                ActionRef(
+                    type = ActionTypes.NAVIGATE,
+                    payload = buildJsonObject { put("route", "/next") },
+                    validations = listOf(ValidationRuleContract("code", "equals", "IN", "Exact IN")),
+                )
+            val spacedInCtx = ActionContext(sessionState = mapOf("code" to JsonPrimitive(" IN ")))
+            val eqFail = assertIs<AppResult.Failure>(dispatcher.dispatch(equalsAction, spacedInCtx).single())
+            assertIs<ValidationError>(eqFail.error)
+        }
 }

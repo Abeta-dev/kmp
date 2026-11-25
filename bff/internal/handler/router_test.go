@@ -323,6 +323,38 @@ func TestActionExecuteEndpoint(t *testing.T) {
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400 for malformed POST /api/v1/pay/transfer, got %d", w.Code)
 	}
+
+	// Negative/zero/non-integer amount_cents rejected on POST /api/v1/pay/transfer
+	for _, badBody := range []string{`{"amount_cents":0}`, `{"amount_cents":-50}`, `{"amount_cents":12.5}`, `{"amount_cents":"100"}`} {
+		wAmt := httptest.NewRecorder()
+		reqAmt := httptest.NewRequest(http.MethodPost, "/api/v1/pay/transfer", strings.NewReader(badBody))
+		reqAmt.Header.Set("Content-Type", "application/json")
+		r.ServeHTTP(wAmt, reqAmt)
+		if wAmt.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400 for %s, got %d: %s", badBody, wAmt.Code, wAmt.Body.String())
+		}
+	}
+
+	// Nil body on required POST endpoints -> 400 BAD_REQUEST without leaking internal errors
+	for _, path := range []string{"/api/v1/actions/execute", "/api/v1/analytics/events"} {
+		wNil := httptest.NewRecorder()
+		reqNil := httptest.NewRequest(http.MethodPost, path, nil)
+		reqNil.Body = nil
+		r.ServeHTTP(wNil, reqNil)
+		if wNil.Code != http.StatusBadRequest {
+			t.Fatalf("expected 400 on nil body for %s, got %d", path, wNil.Code)
+		}
+	}
+
+	// Oversized JSON payload (> 2 MiB LimitBodyDefault) -> 413 Request Entity Too Large
+	oversized := `{"trigger":{"id":"big","type":"show_toast","payload":{"message":"` + strings.Repeat("A", 2*1024*1024+128) + `"}}}`
+	wBig := httptest.NewRecorder()
+	reqBig := httptest.NewRequest(http.MethodPost, "/api/v1/actions/execute", strings.NewReader(oversized))
+	reqBig.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(wBig, reqBig)
+	if wBig.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("expected 413 for oversized action payload, got %d: %s", wBig.Code, wBig.Body.String())
+	}
 }
 
 func TestCatalogTokensAndCORSAndPanicRecovery(t *testing.T) {
@@ -335,13 +367,25 @@ func TestCatalogTokensAndCORSAndPanicRecovery(t *testing.T) {
 		t.Fatalf("unexpected /api/v1/catalog/tokens response: %d %s", w.Code, w.Body.String())
 	}
 
-	// CORS preflight
+	// CORS preflight (allowed + fail-closed when AllowedOrigins is empty)
 	w = httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodOptions, "/api/v1/screens/home", nil)
 	req.Header.Set("Origin", "https://app.abeta.dev")
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusNoContent || w.Header().Get("Access-Control-Allow-Origin") != "https://app.abeta.dev" {
 		t.Fatalf("unexpected CORS response: %d headers=%v", w.Code, w.Header())
+	}
+
+	rClosed := handler.NewRouter(handler.RouterConfig{
+		Logger:         discardLogger(),
+		TrustedProxies: []string{"not-a-cidr"}, // falls back safely to nil
+	})
+	wClosed := httptest.NewRecorder()
+	reqClosed := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	reqClosed.Header.Set("Origin", "https://evil.example")
+	rClosed.ServeHTTP(wClosed, reqClosed)
+	if wClosed.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Fatalf("expected fail-closed CORS when AllowedOrigins empty, got %q", wClosed.Header().Get("Access-Control-Allow-Origin"))
 	}
 
 	// Panic recovery
@@ -366,6 +410,7 @@ func TestRouter_NilServicesAndFallbackErrors(t *testing.T) {
 		body   string
 	}{
 		{http.MethodGet, "/readyz", ""},
+		{http.MethodGet, "/api/v1/manifest", ""},
 		{http.MethodGet, "/api/v1/screens", ""},
 		{http.MethodGet, "/api/v1/screens/manifest", ""},
 		{http.MethodGet, "/api/v1/screens/home", ""},

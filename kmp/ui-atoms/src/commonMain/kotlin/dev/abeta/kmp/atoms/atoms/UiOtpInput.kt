@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -162,15 +164,25 @@ private fun UiOtpBasicField(
             Modifier
                 .testTag("otp_${atom.fieldId}")
                 .onFocusChanged { focusState -> isFocused = focusState.isFocused },
-        decorationBox = {
-            UiOtpCellsRow(
-                value = currentValue,
-                digitCount = digitCount,
-                masked = atom.masked,
-                enabled = atom.enabled,
-                focused = isFocused,
-                isError = isError,
-            )
+        decorationBox = { innerTextField ->
+            Box(contentAlignment = Alignment.CenterStart) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(1.dp)
+                            .alpha(0f),
+                ) {
+                    innerTextField()
+                }
+                UiOtpCellsRow(
+                    value = currentValue,
+                    digitCount = digitCount,
+                    masked = atom.masked,
+                    enabled = atom.enabled,
+                    focused = isFocused,
+                    isError = isError,
+                )
+            }
         },
     )
 }
@@ -196,7 +208,7 @@ private fun UiOtpCellsRow(
     ) {
         repeat(digitCount) { index ->
             val digitChar = value.getOrNull(index)
-            val isActive = enabled && (focused || value.length == index) && index == activeIndex
+            val isActive = enabled && focused && index == activeIndex
             UiOtpDigitCell(
                 glyph =
                     when {

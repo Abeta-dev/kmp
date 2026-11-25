@@ -1,20 +1,31 @@
 package dev.abeta.kmp.analytics
 
+import dev.abeta.kmp.core.error.AppError
+import dev.abeta.kmp.core.error.NetworkError
+import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.storage.KeyValueStore
 import dev.abeta.kmp.core.time.Clock
 import dev.abeta.kmp.core.time.SystemClock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
+
+private const val HTTP_CLIENT_ERROR_START = 400
+private const val HTTP_CLIENT_ERROR_END = 499
+private const val HTTP_REQUEST_TIMEOUT = 408
+private const val HTTP_TOO_MANY_REQUESTS = 429
 
 /**
  * Async sink receiving batched [AnalyticsEvent] payloads for network or file delivery.
@@ -41,14 +52,43 @@ class BufferedAnalyticsTracker(
     private val storageKey: String = DEFAULT_STORAGE_KEY,
     private val json: Json = DefaultAnalyticsJson,
 ) : AnalyticsTracker {
-    private val mutex = Mutex()
-    private val _queuedEvents = MutableStateFlow(loadPersisted())
+    private data class QueuedEntry(
+        val sequenceId: Long,
+        val event: AnalyticsEvent,
+    )
+
+    private data class QueueState(
+        val nextSequenceId: Long,
+        val entries: List<QueuedEntry>,
+    )
+
+    private val flushMutex = Mutex()
+    private val queueState: MutableStateFlow<QueueState>
+    private val _queuedEvents: MutableStateFlow<List<AnalyticsEvent>>
+    private val autoFlushScheduled = MutableStateFlow(false)
     private var periodicJob: Job? = null
+
+    init {
+        val loaded = loadPersisted()
+        val initialEntries =
+            loaded.mapIndexed { index, event ->
+                QueuedEntry(sequenceId = index.toLong() + 1L, event = event)
+            }
+        queueState =
+            MutableStateFlow(
+                QueueState(
+                    nextSequenceId = initialEntries.size.toLong(),
+                    entries = initialEntries,
+                ),
+            )
+        _queuedEvents = MutableStateFlow(loaded)
+    }
 
     /** Observable snapshot of buffered events waiting to be delivered. */
     val queuedEvents: StateFlow<List<AnalyticsEvent>> = _queuedEvents.asStateFlow()
 
     /** Starts background periodic flushing when a [CoroutineScope] was provided. */
+    @Suppress("TooGenericExceptionCaught")
     fun startPeriodicFlush() {
         val activeScope = scope ?: return
         if (periodicJob?.isActive == true || flushIntervalMillis <= 0L) return
@@ -56,7 +96,13 @@ class BufferedAnalyticsTracker(
             activeScope.launch {
                 while (isActive) {
                     delay(flushIntervalMillis)
-                    flush()
+                    try {
+                        flush()
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (_: Throwable) {
+                        // Keep periodic flushing alive across unexpected sink exceptions.
+                    }
                 }
             }
     }
@@ -89,50 +135,88 @@ class BufferedAnalyticsTracker(
     }
 
     /**
-     * Flushes buffered events in chunks up to [batchSize], halting and retaining remaining batches if
-     * the downstream [AnalyticsBatchSink] fails. Returns the count of delivered events.
+     * Flushes buffered events in chunks up to [batchSize], preserving any events enqueued while a
+     * batch is in flight, dropping non-retryable 4xx / [ValidationError] batches to prevent
+     * head-of-line blocking, and halting on retryable failures. Returns the count of delivered events.
      */
     suspend fun flush(): AppResult<Int> =
-        mutex.withLock {
-            val current = _queuedEvents.value.toMutableList()
-            if (current.isEmpty()) {
-                return@withLock AppResult.Success(0)
-            }
-
+        flushMutex.withLock {
             var delivered = 0
             val chunkSize = batchSize.coerceAtLeast(1)
-            while (current.isNotEmpty()) {
-                val batch = current.take(chunkSize)
-                when (val outcome = sink.sendBatch(batch)) {
+            while (true) {
+                val batchEntries = queueState.value.entries.take(chunkSize)
+                if (batchEntries.isEmpty()) {
+                    return@withLock AppResult.Success(delivered)
+                }
+                val batchEvents = batchEntries.map { it.event }
+                when (val outcome = sink.sendBatch(batchEvents)) {
                     is AppResult.Success -> {
-                        delivered += batch.size
-                        repeat(batch.size) { current.removeAt(0) }
-                        persist(current)
+                        delivered += batchEntries.size
+                        removeEntries(batchEntries)
                     }
 
                     is AppResult.Failure -> {
-                        persist(current)
-                        return@withLock AppResult.Failure(outcome.error)
+                        if (isNonRetryableBatchError(outcome.error)) {
+                            removeEntries(batchEntries)
+                        } else {
+                            return@withLock AppResult.Failure(outcome.error)
+                        }
                     }
                 }
             }
+            @Suppress("UNREACHABLE_CODE")
             AppResult.Success(delivered)
         }
 
     /** Discards all queued events from memory and persistent storage. */
     fun clearQueue() {
-        persist(emptyList())
+        queueState.update { current -> current.copy(entries = emptyList()) }
+        syncSnapshotAndStorage()
     }
 
     private fun enqueueInternal(event: AnalyticsEvent) {
-        val bounded = (_queuedEvents.value + event).takeLast(maxQueueSize.coerceAtLeast(1))
-        persist(bounded)
-        if (bounded.size >= batchSize) {
-            scope?.launch { flush() }
+        val capacity = maxQueueSize.coerceAtLeast(1)
+        val updated =
+            queueState.updateAndGet { current ->
+                val nextId = current.nextSequenceId + 1L
+                val bounded = (current.entries + QueuedEntry(nextId, event)).takeLast(capacity)
+                QueueState(nextSequenceId = nextId, entries = bounded)
+            }
+        syncSnapshotAndStorage()
+        if (updated.entries.size >= batchSize) {
+            scheduleCoalescedAutoFlush()
         }
     }
 
-    private fun persist(events: List<AnalyticsEvent>) {
+    @Suppress("TooGenericExceptionCaught")
+    private fun scheduleCoalescedAutoFlush() {
+        val activeScope = scope ?: return
+        if (!autoFlushScheduled.compareAndSet(expect = false, update = true)) {
+            return
+        }
+        activeScope.launch {
+            try {
+                flush()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Throwable) {
+                // Retryable events remain persisted for future flush attempts.
+            } finally {
+                autoFlushScheduled.value = false
+            }
+        }
+    }
+
+    private fun removeEntries(processed: List<QueuedEntry>) {
+        val processedIds = processed.map { it.sequenceId }.toHashSet()
+        queueState.update { current ->
+            current.copy(entries = current.entries.filterNot { it.sequenceId in processedIds })
+        }
+        syncSnapshotAndStorage()
+    }
+
+    private fun syncSnapshotAndStorage() {
+        val events = queueState.value.entries.map { it.event }
         _queuedEvents.value = events
         if (events.isEmpty()) {
             backingStore.remove(storageKey)
@@ -153,6 +237,25 @@ class BufferedAnalyticsTracker(
         const val DEFAULT_STORAGE_KEY: String = "abeta_analytics_offline_queue"
     }
 }
+
+private fun isNonRetryableBatchError(error: AppError): Boolean =
+    when (error) {
+        is ValidationError -> {
+            true
+        }
+
+        is NetworkError -> {
+            val status = error.statusCode
+            status != null &&
+                status in HTTP_CLIENT_ERROR_START..HTTP_CLIENT_ERROR_END &&
+                status != HTTP_REQUEST_TIMEOUT &&
+                status != HTTP_TOO_MANY_REQUESTS
+        }
+
+        else -> {
+            false
+        }
+    }
 
 private val DefaultAnalyticsJson: Json =
     Json {

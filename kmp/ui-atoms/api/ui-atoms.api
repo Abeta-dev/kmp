@@ -88,6 +88,7 @@ public final class dev/abeta/kmp/atoms/atoms/UiCountdownKt {
 	public static final fun formatCountdownSeconds (IZLjava/lang/String;)Ljava/lang/String;
 	public static synthetic fun formatCountdownSeconds$default (IZLjava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun isCountdownUrgent (II)Z
+	public static final fun resolveCountdownRemainingSeconds (ILjava/lang/Long;J)I
 }
 
 public final class dev/abeta/kmp/atoms/atoms/UiDividerKt {
@@ -142,6 +143,7 @@ public final class dev/abeta/kmp/atoms/atoms/UiProgressKt {
 
 public final class dev/abeta/kmp/atoms/atoms/UiQrCodeKt {
 	public static final field QR_MATRIX_SIZE I
+	public static final field QR_QUIET_ZONE_MODULES I
 	public static final fun UiQrCode (Ldev/abeta/kmp/contracts/QrCodeAtom;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
 	public static final fun generateQrMatrix (Ljava/lang/String;)Ljava/util/List;
 }

@@ -31,8 +31,8 @@ func (b *NudgeBarSnippetBuilder) WithParentID(parentID string) *NudgeBarSnippetB
 	return b
 }
 
-func (b *NudgeBarSnippetBuilder) WithTracking(eventName string, props map[string]any) *NudgeBarSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *NudgeBarSnippetBuilder) WithTracking(eventName string, props map[string]string) *NudgeBarSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -134,8 +134,8 @@ func (b *MarqueeStripSnippetBuilder) WithParentID(parentID string) *MarqueeStrip
 	return b
 }
 
-func (b *MarqueeStripSnippetBuilder) WithTracking(eventName string, props map[string]any) *MarqueeStripSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *MarqueeStripSnippetBuilder) WithTracking(eventName string, props map[string]string) *MarqueeStripSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -211,8 +211,8 @@ func (b *OrderTrackerSnippetBuilder) WithParentID(parentID string) *OrderTracker
 	return b
 }
 
-func (b *OrderTrackerSnippetBuilder) WithTracking(eventName string, props map[string]any) *OrderTrackerSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *OrderTrackerSnippetBuilder) WithTracking(eventName string, props map[string]string) *OrderTrackerSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -294,8 +294,8 @@ func (b *ComposedBlockSnippetBuilder) WithParentID(parentID string) *ComposedBlo
 	return b
 }
 
-func (b *ComposedBlockSnippetBuilder) WithTracking(eventName string, props map[string]any) *ComposedBlockSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *ComposedBlockSnippetBuilder) WithTracking(eventName string, props map[string]string) *ComposedBlockSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -341,7 +341,7 @@ func cloneTrackingMeta(meta *atoms.TrackingMeta) *atoms.TrackingMeta {
 	}
 	cp := *meta
 	if len(meta.Properties) > 0 {
-		props := make(map[string]any, len(meta.Properties))
+		props := make(map[string]string, len(meta.Properties))
 		for k, v := range meta.Properties {
 			props[k] = v
 		}

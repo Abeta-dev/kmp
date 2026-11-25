@@ -197,18 +197,18 @@ func DeliveryInstructionsCard(snippetID, blockID string, spec DeliveryInstructio
 		snippets.VStack(theming.SpacingMD.Dp(), children...).WithNodeID(blockID+"_col"),
 	).
 		WithNodeID(blockID+"_root").
-		WithTracking("node_impression", map[string]any{
+		WithTracking("node_impression", map[string]string{
 			"component_id": blockID + "_root",
 			"molecule":     "delivery_instructions_card",
 		}).
-		WithClickTracking("interaction_click", map[string]any{
+		WithClickTracking("interaction_click", map[string]string{
 			"component_id": blockID + "_root",
 			"molecule":     "delivery_instructions_card",
 		})
 
 	return snippets.NewComposedBlockSnippet(snippetID, blockID, root).
 		WithRecipeName("express_delivery_instructions").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": snippetID,
 			"molecule":   "delivery_instructions_card",
 		}).
@@ -377,14 +377,14 @@ func CouponApplyCard(snippetID, blockID string, spec CouponApplySpec) snippets.S
 		snippets.VStack(theming.SpacingMD.Dp(), children...).WithNodeID(blockID+"_col"),
 	).
 		WithNodeID(blockID+"_root").
-		WithTracking("node_impression", map[string]any{
+		WithTracking("node_impression", map[string]string{
 			"component_id": blockID + "_root",
 			"molecule":     "coupon_apply_card",
 		})
 
 	return snippets.NewComposedBlockSnippet(snippetID, blockID, root).
 		WithRecipeName("express_coupon_apply_card").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": snippetID,
 			"molecule":   "coupon_apply_card",
 		}).
@@ -451,14 +451,14 @@ func CheckoutBillSummary(snippetID, blockID string, spec CheckoutBillSpec) snipp
 		snippets.VStack(theming.SpacingSM.Dp(), children...).WithNodeID(blockID+"_col"),
 	).
 		WithNodeID(blockID+"_root").
-		WithTracking("node_impression", map[string]any{
+		WithTracking("node_impression", map[string]string{
 			"component_id": blockID + "_root",
 			"molecule":     "checkout_bill_summary",
 		})
 
 	return snippets.NewComposedBlockSnippet(snippetID, blockID, root).
 		WithRecipeName("express_checkout_bill_summary").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": snippetID,
 			"molecule":   "checkout_bill_summary",
 		}).

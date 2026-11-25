@@ -7,8 +7,10 @@ import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.error.UnauthorizedError
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.core.time.Clock
+import dev.abeta.kmp.core.time.MutableClock
 import dev.abeta.kmp.network.client.HttpClientFactory
 import dev.abeta.kmp.network.client.KtorHttpTransport
+import dev.abeta.kmp.network.client.parseHttpDateToEpochMillis
 import dev.abeta.kmp.network.client.safeDelete
 import dev.abeta.kmp.network.client.safeGet
 import dev.abeta.kmp.network.client.safePost
@@ -32,6 +34,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
@@ -387,4 +390,164 @@ class HttpTransportTest {
             assertNull(metrics.single().statusCode)
             assertFalse(metrics.single().isSuccess)
         }
+
+    @Test
+    fun sameOriginRestrictionPreventsAuthAndDefaultHeaderLeakageAndRespectsLogout() =
+        runTest {
+            val capturedByHost = mutableMapOf<String, Map<String, List<String>>>()
+            val engine =
+                MockEngine { request ->
+                    capturedByHost[request.url.host] = request.headers.entries().associate { (k, v) -> k to v }
+                    respond(
+                        content = """{"id":"u-1","name":"Ada"}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+
+            var currentToken: String? = "token-user-a"
+            val authProvider =
+                object : AuthTokenProvider {
+                    override suspend fun accessToken(): String? = currentToken
+
+                    override suspend fun refreshToken(): String? = null
+                }
+            val headerProvider =
+                object : HeaderProvider {
+                    override suspend fun headers(): Map<String, String> = mapOf("X-Session" to "s-1")
+                }
+            val config =
+                NetworkConfig(
+                    baseUrl = "https://api.abeta.dev",
+                    retry = RetryPolicy(maxRetries = 0),
+                    defaultHeaders = mapOf("X-Default" to "base-val"),
+                    appVersion = "0.7.0",
+                )
+            val transport =
+                KtorHttpTransport(
+                    httpClient =
+                        HttpClientFactory.create(
+                            config = config,
+                            authTokenProvider = authProvider,
+                            headerProvider = headerProvider,
+                            engine = engine,
+                        ),
+                )
+
+            // Same-origin call gets Bearer, defaultHeaders, appVersion, dynamic headers; override does not duplicate.
+            assertIs<AppResult.Success<UserDto>>(
+                transport.safeGet<UserDto>("/v1/me", headers = mapOf("X-Default" to "override-val")),
+            )
+            val sameOriginHeaders = capturedByHost["api.abeta.dev"]!!
+            assertEquals(listOf("Bearer token-user-a"), sameOriginHeaders[HttpHeaders.Authorization])
+            assertEquals(listOf("0.7.0"), sameOriginHeaders["X-Client-App-Version"])
+            assertEquals(listOf("s-1"), sameOriginHeaders["X-Session"])
+            assertEquals(listOf("override-val"), sameOriginHeaders["X-Default"])
+
+            // Cross-origin absolute URL must NOT receive Bearer, defaultHeaders, appVersion, or dynamic headers.
+            assertIs<AppResult.Success<UserDto>>(transport.safeGet<UserDto>("https://third-party.example.com/public"))
+            val foreignHeaders = capturedByHost["third-party.example.com"]!!
+            assertNull(foreignHeaders[HttpHeaders.Authorization])
+            assertNull(foreignHeaders["X-Default"])
+            assertNull(foreignHeaders["X-Client-App-Version"])
+            assertNull(foreignHeaders["X-Session"])
+
+            // Logout clears token immediately because cacheTokens = false.
+            currentToken = null
+            assertIs<AppResult.Success<UserDto>>(transport.safeGet<UserDto>("/v1/public"))
+            assertNull(capturedByHost["api.abeta.dev"]!![HttpHeaders.Authorization])
+        }
+
+    @Test
+    fun retryPolicyRetriesOnlyIdempotentOrIdempotencyKeyRequests() =
+        runTest {
+            val counts = mutableMapOf<String, Int>()
+            val jsonHeaders = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            val engine =
+                MockEngine { request ->
+                    val path = request.url.encodedPath
+                    val n = (counts[path] ?: 0) + 1
+                    counts[path] = n
+                    if ((path == "/v1/get" || path == "/v1/post-idem") && n > 1) {
+                        respond("""{"id":"$n","name":"ok"}""", HttpStatusCode.OK, jsonHeaders)
+                    } else {
+                        respondError(HttpStatusCode.ServiceUnavailable, "unavailable")
+                    }
+                }
+            val config =
+                NetworkConfig(
+                    baseUrl = "https://api.abeta.dev",
+                    retry = RetryPolicy(maxRetries = 2, initialDelayMillis = 1L, maxDelayMillis = 5L),
+                )
+            val transport = KtorHttpTransport(httpClient = HttpClientFactory.create(config = config, engine = engine))
+
+            assertIs<AppResult.Success<UserDto>>(transport.safeGet<UserDto>("/v1/get"))
+            assertEquals(2, counts["/v1/get"])
+
+            assertIs<AppResult.Failure>(
+                transport.safePost<UserDto, CreateUserRequest>("/v1/post-plain", CreateUserRequest("A")),
+            )
+            assertEquals(1, counts["/v1/post-plain"])
+
+            assertIs<AppResult.Success<UserDto>>(
+                transport.safePost<UserDto, CreateUserRequest>(
+                    path = "/v1/post-idem",
+                    body = CreateUserRequest("B"),
+                    headers = mapOf("Idempotency-Key" to "key-123"),
+                ),
+            )
+            assertEquals(2, counts["/v1/post-idem"])
+
+            assertIs<AppResult.Failure>(
+                transport.safeGet<UserDto>("/v1/sse-check", headers = mapOf(HttpHeaders.Accept to "text/event-stream")),
+            )
+            assertEquals(1, counts["/v1/sse-check"])
+        }
+
+    @Test
+    fun retryAfterHeaderParsesRfc9110HttpDate() =
+        runTest {
+            val targetEpoch = parseHttpDateToEpochMillis("Wed, 21 Oct 2015 07:28:00 GMT")!!
+            assertEquals(1_445_412_480_000L, targetEpoch)
+
+            val engine =
+                MockEngine {
+                    respond(
+                        content = "Slow down",
+                        status = HttpStatusCode.TooManyRequests,
+                        headers = headersOf(HttpHeaders.RetryAfter, "Wed, 21 Oct 2015 07:28:00 GMT"),
+                    )
+                }
+            val config =
+                NetworkConfig(
+                    baseUrl = "https://api.abeta.dev",
+                    retry = RetryPolicy(maxRetries = 0),
+                )
+            val clock = MutableClock(initialEpochMillis = targetEpoch - 15_000L)
+            val transport =
+                KtorHttpTransport(
+                    httpClient = HttpClientFactory.create(config = config, engine = engine),
+                    clock = clock,
+                )
+
+            val rateLimited = assertIs<AppResult.Failure>(transport.safeGet<UserDto>("/v1/rate-date"))
+            val rateErr = assertIs<RateLimitError>(rateLimited.error)
+            assertEquals(15_000L, rateErr.retryAfterMillis)
+        }
+
+    @Test
+    fun networkConfigRejectsInvalidCertificatePinsFailClosed() {
+        assertFailsWith<IllegalArgumentException> {
+            NetworkConfig(
+                baseUrl = "https://api.abeta.dev",
+                certificatePins = mapOf("   " to listOf("sha256/AAAA=")),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            NetworkConfig(
+                baseUrl = "https://api.abeta.dev",
+                certificatePins = mapOf("api.abeta.dev" to listOf("md5/invalid")),
+            )
+        }
+    }
 }

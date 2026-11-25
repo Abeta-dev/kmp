@@ -25,6 +25,8 @@ kotlin {
         target.binaries.framework {
             baseName = "AbetaWatchKit"
             isStatic = true
+            export(projects.sduiContracts)
+            export(projects.core)
             watchXcf.add(this)
         }
     }

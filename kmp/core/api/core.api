@@ -395,11 +395,14 @@ public final class dev/abeta/kmp/core/logging/CompositeAppLogger : dev/abeta/kmp
 }
 
 public final class dev/abeta/kmp/core/logging/KermitAppLogger : dev/abeta/kmp/core/logging/AppLogger {
+	public static final field HASH_MULTIPLIER I
 	public fun <init> ()V
 	public fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;Lco/touchlab/kermit/Logger;)V
 	public synthetic fun <init> (Ldev/abeta/kmp/core/logging/LogLevel;Lco/touchlab/kermit/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun equals (Ljava/lang/Object;)Z
 	public fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun hashCode ()I
 	public fun info (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
 	public fun log (Ldev/abeta/kmp/core/logging/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
 	public fun verbose (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V

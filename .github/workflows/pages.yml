@@ -10,6 +10,8 @@ on:
       - "kmp/sdui-contracts/**"
       - "kmp/sdui-layout/**"
       - "kmp/core/**"
+      - "kmp/state/**"
+      - "kmp/analytics/**"
       - "kmp/database/**"
       - "kmp/action-engine/**"
       - "kmp/network/**"
@@ -64,6 +66,8 @@ jobs:
           cd kmp
           ./gradlew \
             :core:dokkaGenerateHtml \
+            :state:dokkaGenerateHtml \
+            :analytics:dokkaGenerateHtml \
             :database:dokkaGenerateHtml \
             :design-tokens:dokkaGenerateHtml \
             :sdui-contracts:dokkaGenerateHtml \
@@ -72,7 +76,7 @@ jobs:
             :network:dokkaGenerateHtml \
             :sdui-layout:dokkaGenerateHtml \
             :watch-companion:dokkaGenerateHtml \
-            --no-daemon --continue || true
+            --no-daemon
 
       - name: Assemble GitHub Pages site bundle
         run: |
@@ -88,6 +92,8 @@ jobs:
 
           MODULES=(
             core
+            state
+            analytics
             database
             design-tokens
             sdui-contracts
@@ -104,19 +110,8 @@ jobs:
               cp -R "kmp/${mod}/build/dokka/html/." "site/api/${mod}/"
               echo "Copied Dokka HTML for :${mod}"
             else
-              echo "::warning::Dokka HTML missing for :${mod}; generating fallback redirect page."
-              printf '%s\n' \
-                '<!DOCTYPE html>' \
-                '<html lang="en">' \
-                '<head>' \
-                '  <meta charset="UTF-8">' \
-                "  <meta http-equiv=\"refresh\" content=\"0; url=https://github.com/Abeta-dev/kmp/tree/main/kmp/${mod}\">" \
-                "  <title>Abeta KMP Kit — :${mod} API Reference</title>" \
-                '</head>' \
-                '<body>' \
-                "  <p>Redirecting to <a href=\"https://github.com/Abeta-dev/kmp/tree/main/kmp/${mod}\">kmp/${mod} on GitHub</a>.</p>" \
-                '</body>' \
-                '</html>' > "site/api/${mod}/index.html"
+              echo "::error::Dokka HTML missing for :${mod} at kmp/${mod}/build/dokka/html" >&2
+              exit 1
             fi
           done
 

@@ -21,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.contracts.MotionDurationToken
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.contracts.MotionSpec
@@ -30,11 +32,11 @@ import dev.abeta.kmp.tokens.ThemeTokens
 import kotlinx.coroutines.delay
 
 private const val MAX_STAGGER_DELAY_MS = 600
-private const val SLIDE_DISTANCE_PX = 36f
+private val SLIDE_DISTANCE_DP = 16.dp
 private const val SCALE_INITIAL = 0.90f
 private const val SPRING_SCALE_INITIAL = 0.84f
 private const val SHAKE_STEP_MS = 45
-private val SHAKE_OFFSETS_PX = listOf(-16f, 16f, -11f, 11f, -6f, 6f, 0f)
+private val SHAKE_OFFSETS_DP = listOf((-8).dp, 8.dp, (-5.5f).dp, 5.5f.dp, (-3).dp, 3.dp, 0.dp)
 private const val ONE = 1f
 private const val ZERO = 0f
 
@@ -192,12 +194,14 @@ fun Modifier.applyMotionSpec(
     val enterProgressState = rememberEnterProgressState(spec, delayMs, durationMs, motionKey)
     val loopState = rememberLoopTransformState(spec.loopEffect)
     val glowColor = ThemeTokens.colors.brand.primary
+    val slideDistancePx = with(LocalDensity.current) { SLIDE_DISTANCE_DP.toPx() }
 
     return this
         .applyMotionGraphicsLayer(
             enter = spec.enter,
             progressState = enterProgressState,
             loop = loopState,
+            slideDistancePx = slideDistancePx,
         ).applyLoopOverlays(
             loopEffect = spec.loopEffect,
             shimmerPhase = loopState.shimmerPhase,
@@ -267,10 +271,11 @@ private fun resolveEnterScale(
 private fun resolveEnterTranslationY(
     enter: MotionTransition,
     progress: Float,
+    slideDistancePx: Float,
 ): Float =
     when (enter) {
-        MotionTransition.SLIDE_UP -> (ONE - progress) * SLIDE_DISTANCE_PX
-        MotionTransition.SLIDE_DOWN -> -(ONE - progress) * SLIDE_DISTANCE_PX
+        MotionTransition.SLIDE_UP -> (ONE - progress) * slideDistancePx
+        MotionTransition.SLIDE_DOWN -> -(ONE - progress) * slideDistancePx
         else -> ZERO
     }
 
@@ -278,6 +283,7 @@ private fun Modifier.applyMotionGraphicsLayer(
     enter: MotionTransition,
     progressState: State<Float>?,
     loop: LoopTransformState,
+    slideDistancePx: Float,
 ): Modifier {
     if (progressState == null && !loop.hasGraphicsLayerState()) return this
 
@@ -288,14 +294,16 @@ private fun Modifier.applyMotionGraphicsLayer(
         scaleY = combinedScale
         rotationZ = loop.rotationZ?.value ?: ZERO
         translationX = loop.translationX?.value ?: ZERO
-        translationY = resolveEnterTranslationY(enter, progress) + (loop.translationY?.value ?: ZERO)
+        translationY = resolveEnterTranslationY(enter, progress, slideDistancePx) + (loop.translationY?.value ?: ZERO)
         alpha = (progress * (loop.alpha?.value ?: ONE)).coerceIn(ZERO, ONE)
     }
 }
 
 /**
- * Triggers a short horizontal error-shake animation whenever [shakeSequence] increments above `0`,
- * collapsing to zero displacement when [ThemeTokens.motion.reducedMotion] is active.
+ * Triggers a short horizontal error-shake animation whenever [shakeSequence] increments above the
+ * sequence observed at initial composition, collapsing to zero displacement when
+ * [ThemeTokens.motion.reducedMotion] is active or when a recycled item enters composition after a
+ * prior shake.
  */
 @Composable
 fun Modifier.shakeOnError(
@@ -303,13 +311,19 @@ fun Modifier.shakeOnError(
     enabled: Boolean = true,
 ): Modifier {
     val motion = ThemeTokens.motion
-    if (!enabled || motion.reducedMotion || shakeSequence <= 0L) {
+    val initialSequence = remember { shakeSequence }
+    if (!enabled || motion.reducedMotion || shakeSequence <= initialSequence) {
         return this
     }
+    val density = LocalDensity.current
+    val shakeOffsetsPx =
+        remember(density) {
+            with(density) { SHAKE_OFFSETS_DP.map { it.toPx() } }
+        }
     val offsetX = remember { Animatable(ZERO) }
     LaunchedEffect(shakeSequence) {
         offsetX.snapTo(ZERO)
-        SHAKE_OFFSETS_PX.forEach { target ->
+        shakeOffsetsPx.forEach { target ->
             offsetX.animateTo(
                 targetValue = target,
                 animationSpec = tween(durationMillis = SHAKE_STEP_MS, easing = LinearEasing),

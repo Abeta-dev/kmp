@@ -19,6 +19,7 @@ import dev.abeta.kmp.core.result.runCatchingResult
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 
 internal fun registerNavigationAndNetworkHandlers(
     builder: ActionRegistry.Builder,
@@ -118,31 +119,53 @@ class DefaultActionDispatcher(
     private val actionRegistry: ActionRegistry,
     private val validator: ActionValidator = DefaultActionValidator(),
     private val maxDepth: Int = DEFAULT_MAX_DEPTH,
+    private val maxTotalActions: Int = DEFAULT_MAX_TOTAL_ACTIONS,
 ) : ActionDispatcher {
     init {
         require(maxDepth >= 1) { "maxDepth must be >= 1." }
+        require(maxTotalActions >= 1) { "maxTotalActions must be >= 1." }
     }
 
     override suspend fun dispatch(
         action: ActionRef,
         context: ActionContext,
-    ): List<AppResult<ActionOutcome>> = dispatchInternal(action, context, depth = 0)
+    ): List<AppResult<ActionOutcome>> =
+        dispatchInternal(
+            action = action,
+            context = context,
+            depth = 0,
+            budget = DispatchBudget(maxTotalActions),
+        )
 
     private suspend fun dispatchInternal(
         action: ActionRef,
         context: ActionContext,
         depth: Int,
+        budget: DispatchBudget,
     ): List<AppResult<ActionOutcome>> {
         val validationFailure =
-            if (depth > maxDepth) {
-                AppResult.Failure(
-                    ValidationError(
-                        field = "depth",
-                        message = "Max action dispatch depth ($maxDepth) exceeded for '${action.type}'.",
-                    ),
-                )
-            } else {
-                validator.validate(action, context) as? AppResult.Failure
+            when {
+                depth > maxDepth -> {
+                    AppResult.Failure(
+                        ValidationError(
+                            field = "depth",
+                            message = "Max action dispatch depth ($maxDepth) exceeded for '${action.type}'.",
+                        ),
+                    )
+                }
+
+                !budget.tryConsume() -> {
+                    AppResult.Failure(
+                        ValidationError(
+                            field = "actions",
+                            message = "Max total action executions ($maxTotalActions) exceeded for '${action.type}'.",
+                        ),
+                    )
+                }
+
+                else -> {
+                    validator.validate(action, context) as? AppResult.Failure
+                }
             }
 
         return if (validationFailure != null) {
@@ -150,7 +173,7 @@ class DefaultActionDispatcher(
         } else {
             when (val decodeResult = decoderRegistry.decode(action.type, action.payload)) {
                 is AppResult.Failure -> listOf(decodeResult)
-                is AppResult.Success -> executeDecoded(action, decodeResult.value, context, depth)
+                is AppResult.Success -> executeDecoded(action, decodeResult.value, context, depth, budget)
             }
         }
     }
@@ -160,15 +183,16 @@ class DefaultActionDispatcher(
         decoded: ActionPayload,
         context: ActionContext,
         depth: Int,
+        budget: DispatchBudget,
     ): List<AppResult<ActionOutcome>> {
         val handler = actionRegistry.handlerFor(decoded::class)
         return when {
             handler != null -> {
-                executeRegisteredHandler(action, decoded, handler, context, depth)
+                executeRegisteredHandler(action, decoded, handler, context, depth, budget)
             }
 
             decoded is BatchPayload -> {
-                dispatchBatch(action, decoded, context, depth)
+                dispatchBatch(action, decoded, context, depth, budget)
             }
 
             else -> {
@@ -190,25 +214,34 @@ class DefaultActionDispatcher(
         handler: ActionHandler<ActionPayload>,
         context: ActionContext,
         depth: Int,
+        budget: DispatchBudget,
     ): List<AppResult<ActionOutcome>> {
         val executionResult = executeSafely(handler, decoded, context)
         if (executionResult is AppResult.Failure) {
             return if (decoded is CallApiPayload && decoded.onError != null) {
-                listOf(executionResult) + dispatchInternal(decoded.onError, context, depth + 1)
+                listOf(executionResult) + dispatchInternal(decoded.onError, context, depth + 1, budget)
             } else {
                 listOf(executionResult)
             }
         }
 
         val outcome = (executionResult as AppResult.Success).value
+        var currentContext = applyStateMutation(context, outcome)
         val results = mutableListOf<AppResult<ActionOutcome>>(executionResult)
         if (outcome is ActionOutcome.ApiCallResult) {
             for (followUp in outcome.followUpActions) {
-                results.addAll(dispatchInternal(followUp, context, depth + 1))
+                val followUpResults = dispatchInternal(followUp, currentContext, depth + 1, budget)
+                results.addAll(followUpResults)
+                currentContext = applyStateMutations(currentContext, followUpResults)
             }
         }
-        for (secondary in action.secondaryActions) {
-            results.addAll(dispatchInternal(secondary, context, depth + 1))
+        val shouldRunSecondary = outcome !is ActionOutcome.ApiCallResult || outcome.isSuccess
+        if (shouldRunSecondary) {
+            for (secondary in action.secondaryActions) {
+                val secondaryResults = dispatchInternal(secondary, currentContext, depth + 1, budget)
+                results.addAll(secondaryResults)
+                currentContext = applyStateMutations(currentContext, secondaryResults)
+            }
         }
         return results.toList()
     }
@@ -218,23 +251,27 @@ class DefaultActionDispatcher(
         batch: BatchPayload,
         context: ActionContext,
         depth: Int,
+        budget: DispatchBudget,
     ): List<AppResult<ActionOutcome>> {
         val results = mutableListOf<AppResult<ActionOutcome>>()
+        var currentContext = context
         var stoppedOnError = false
 
         if (batch.parallel && !batch.stopOnError) {
             val parallelResults =
                 coroutineScope {
                     batch.actions
-                        .map { child -> async { dispatchInternal(child, context, depth + 1) } }
+                        .map { child -> async { dispatchInternal(child, context, depth + 1, budget) } }
                         .awaitAll()
                         .flatten()
                 }
             results.addAll(parallelResults)
+            currentContext = applyStateMutations(currentContext, parallelResults)
         } else {
             for (child in batch.actions) {
-                val childResults = dispatchInternal(child, context, depth + 1)
+                val childResults = dispatchInternal(child, currentContext, depth + 1, budget)
                 results.addAll(childResults)
+                currentContext = applyStateMutations(currentContext, childResults)
                 if (batch.stopOnError && childResults.any { it is AppResult.Failure }) {
                     stoppedOnError = true
                     break
@@ -244,10 +281,36 @@ class DefaultActionDispatcher(
 
         if (!stoppedOnError) {
             for (secondary in action.secondaryActions) {
-                results.addAll(dispatchInternal(secondary, context, depth + 1))
+                val secondaryResults = dispatchInternal(secondary, currentContext, depth + 1, budget)
+                results.addAll(secondaryResults)
+                currentContext = applyStateMutations(currentContext, secondaryResults)
             }
         }
         return results.toList()
+    }
+
+    private fun applyStateMutations(
+        context: ActionContext,
+        results: List<AppResult<ActionOutcome>>,
+    ): ActionContext {
+        var updated = context
+        for (result in results) {
+            if (result is AppResult.Success) {
+                updated = applyStateMutation(updated, result.value)
+            }
+        }
+        return updated
+    }
+
+    private fun applyStateMutation(
+        context: ActionContext,
+        outcome: ActionOutcome,
+    ): ActionContext {
+        if (outcome !is ActionOutcome.StateMutated) return context
+        val nextState = context.sessionState.toMutableMap()
+        outcome.deletedKeys.forEach { key -> nextState.remove(key) }
+        nextState.putAll(outcome.savedEntries)
+        return context.copy(sessionState = nextState)
     }
 
     private suspend fun executeSafely(
@@ -260,7 +323,22 @@ class DefaultActionDispatcher(
             is AppResult.Failure -> wrapped
         }
 
+    private class DispatchBudget(
+        private val limit: Int,
+    ) {
+        private val executedCount = MutableStateFlow(0)
+
+        fun tryConsume(): Boolean {
+            while (true) {
+                val current = executedCount.value
+                if (current >= limit) return false
+                if (executedCount.compareAndSet(current, current + 1)) return true
+            }
+        }
+    }
+
     companion object {
         const val DEFAULT_MAX_DEPTH: Int = 16
+        const val DEFAULT_MAX_TOTAL_ACTIONS: Int = 64
     }
 }

@@ -36,6 +36,7 @@ kotlin {
                 enabled = false
             }
         }
+        // Required by Compose Multiplatform (CMP-4906) when compose-ui-test is present.
         binaries.executable()
     }
 

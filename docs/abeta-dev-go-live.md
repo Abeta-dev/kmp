@@ -19,14 +19,14 @@ Everything required for Maven Central signing and upload is already configured i
 
 ---
 
-## 2. Publish `io.github.abeta-dev:bom:0.3.0` + All 11 KMP Libraries (1 Click)
+## 2. Publish `io.github.abeta-dev:bom:0.7.0` + All 11 KMP Libraries (1 Click)
 
 1. In `Abeta-dev/kmp` -> **Settings -> Secrets and variables -> Actions -> Variables**, add:
-   - `ENABLE_MAVEN_CENTRAL` = `true` (enables automatic Maven Central publishing on all future `v*` tags)
+   - `ENABLE_MAVEN_CENTRAL` = `true` (mandatory gate in `release.yml` enabling automatic Maven Central publishing on all future `v*` tags)
 2. Go to **Actions -> Release -> Run workflow**:
    - `publish_target`: **`maven-central`**
-   - `version_override`: **`0.3.0`**
-3. Click **Run workflow**. Within ~12 minutes, `io.github.abeta-dev:bom:0.3.0`, `io.github.abeta-dev:dependencies:0.3.0`, and all 11 KMP libraries (`core`, `state`, `analytics`, `database`, `design-tokens`, `sdui-contracts`, `ui-atoms`, `action-engine`, `network`, `sdui-layout`, `watch-companion` — 13 Maven artifacts total) will be live on `mavenCentral()`.
+   - `version_override`: **`0.7.0`**
+3. Click **Run workflow**. Within ~12 minutes, `io.github.abeta-dev:bom:0.7.0`, `io.github.abeta-dev:dependencies:0.7.0`, and all 11 KMP libraries (`core`, `state`, `analytics`, `database`, `design-tokens`, `sdui-contracts`, `ui-atoms`, `action-engine`, `network`, `sdui-layout`, `watch-companion` — 13 Maven Central artifacts total) will be live on `mavenCentral()`.
 
 ---
 
@@ -35,5 +35,5 @@ Everything required for Maven Central signing and upload is already configured i
 | Subdomain | Target | Setup |
 | :--- | :--- | :--- |
 | `docs.abeta.dev` (or `kmp.abeta.dev`) | GitHub Pages Portal, WasmJS Storybook & Dokka | Add `CNAME` -> `abeta-dev.github.io` and set Custom Domain in `Abeta-dev/kmp` -> Settings -> Pages |
-| `studio.abeta.dev` | `Abeta-dev/layout-engine` (`/studio` + `/llms.txt`) | Deploy via `render.yaml` (or Docker `ghcr.io/abeta-dev/layout-engine:0.3.0`) and bind custom domain |
-| `api.abeta.dev` | `Abeta-dev/sdui-bff` (7 vertical apps + `/docs` + `/llms.txt`) | Deploy via `render.yaml` (or Docker `ghcr.io/abeta-dev/sdui-bff:0.3.0`, `LAYOUT_ENGINE_URL=https://studio.abeta.dev`) and bind custom domain |
+| `studio.abeta.dev` | `Abeta-dev/layout-engine` (`/studio` + `/llms.txt`) | Deploy via `render.yaml` (or Docker `ghcr.io/abeta-dev/layout-engine:0.4.0`) and bind custom domain |
+| `api.abeta.dev` | `Abeta-dev/sdui-bff` (7 vertical apps + `/docs` + `/llms.txt`) | Deploy via `render.yaml` (or Docker `ghcr.io/abeta-dev/sdui-bff:0.4.0`, `LAYOUT_ENGINE_URL=https://studio.abeta.dev`) and bind custom domain |

@@ -47,7 +47,11 @@ internal class LayoutStreamController(
                             lastEventId = lastEventId,
                             reconnectPolicy = reconnectPolicy,
                         ).transformWhile<AppResult<SseEvent>, Unit> { result ->
-                            processEventResult(result, cleanPath)
+                            if (generation != activeGen) {
+                                false
+                            } else {
+                                processEventResult(result, cleanPath, activeGen)
+                            }
                         }.collect()
                 } finally {
                     if (generation == activeGen) {
@@ -56,7 +60,9 @@ internal class LayoutStreamController(
                     }
                 }
             }
-        activeJob = job
+        if (generation == activeGen && job.isActive) {
+            activeJob = job
+        }
         return job
     }
 
@@ -79,20 +85,25 @@ internal class LayoutStreamController(
     private fun processEventResult(
         result: AppResult<SseEvent>,
         path: String,
+        activeGen: Long,
     ): Boolean =
         when (result) {
             is AppResult.Failure -> {
                 logger.warn(TAG, "SSE stream error on '$path': ${result.error.message}")
-                true
+                generation == activeGen
             }
 
             is AppResult.Success -> {
-                val patch = decodePatchOrNull(result.value, path)
-                if (patch != null) {
-                    onPatch(patch)
-                    !patch.done
+                if (generation != activeGen) {
+                    false
                 } else {
-                    true
+                    val patch = decodePatchOrNull(result.value, path)
+                    if (patch != null) {
+                        onPatch(patch)
+                        !patch.done && generation == activeGen
+                    } else {
+                        true
+                    }
                 }
             }
         }

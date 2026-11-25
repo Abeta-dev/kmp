@@ -1,14 +1,17 @@
 // Package handler implements the Gin HTTP transport layer for the SDUI BFF,
-// wired with github.com/abeta-dev/go-libs/ginmw observability and security middlewares.
+// wired with github.com/abeta-dev/go-libs/ginmw and pkg/sdui/server middlewares.
 package handler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,6 +23,7 @@ import (
 	"github.com/abeta-dev/kmp/bff/internal/usecase"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
 	"github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,12 +33,17 @@ type RouterConfig struct {
 	AppVersion        string
 	Logger            *slog.Logger
 	AllowedOrigins    []string
+	AllowCredentials  bool
+	TrustedProxies    []string
+	CacheControl      string
 	Metrics           *ginmw.MetricsTracker
 	HealthService     *health.Service
 	ScreenService     *usecase.ScreenService
 	ActionService     *usecase.ActionService
 	CatalogService    *usecase.CatalogService
 	AnalyticsService  *usecase.AnalyticsService
+	StreamProvider    server.StreamProvider
+	ShutdownContext   context.Context
 	EnableCompression bool
 	EnableETag        bool
 	EnableRateLimit   bool
@@ -42,7 +51,7 @@ type RouterConfig struct {
 	JWTSecret         string
 }
 
-// NewRouter builds a Gin Engine configured with go-libs/ginmw middlewares and SDUI routes.
+// NewRouter builds a Gin Engine configured with go-libs/ginmw and pkg/sdui/server middlewares.
 func NewRouter(cfg RouterConfig) *gin.Engine {
 	serviceName := cfg.ServiceName
 	if serviceName == "" {
@@ -52,11 +61,6 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	log := cfg.Logger
 	if log == nil {
 		log = logger.Default()
-	}
-
-	origins := cfg.AllowedOrigins
-	if len(origins) == 0 {
-		origins = []string{"*"}
 	}
 
 	metricsTracker := cfg.Metrics
@@ -80,19 +84,25 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 
 	engine := gin.New()
+	if err := engine.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+		log.Error("invalid trusted proxies configured; falling back to none", slog.Any("error", err))
+		_ = engine.SetTrustedProxies(nil)
+	}
+
 	engine.Use(
 		ginmw.RequestID(),
 		ginmw.Recovery(ginmw.WithRecoveryLogger(log)),
 		ginmw.Telemetry(serviceName),
 		ginmw.Logger(ginmw.WithLogger(log)),
 		ginmw.SecurityHeaders(serviceName),
-		ginmw.CORS(origins),
+		server.CORSMiddleware(server.CORSConfig{
+			AllowedOrigins:   cfg.AllowedOrigins,
+			AllowCredentials: cfg.AllowCredentials,
+		}),
 		ginmw.REDMetrics(metricsTracker),
+		guardNilRequestBody(),
 		ginmw.LimitBodyDefault(),
 	)
-	if cfg.EnableRateLimit {
-		engine.Use(ginmw.GlobalRateLimit())
-	}
 	if cfg.EnableCompression {
 		engine.Use(CompressionMiddleware())
 	}
@@ -108,42 +118,57 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 	}
 
 	h := &bffHandler{
+		log:                log,
 		screens:            cfg.ScreenService,
 		actions:            cfg.ActionService,
 		catalog:            cfg.CatalogService,
 		analytics:          cfg.AnalyticsService,
+		streamProvider:     cfg.StreamProvider,
+		shutdownCtx:        cfg.ShutdownContext,
 		appVersion:         appVersion,
 		appVersionOverride: appVersionOverride,
+		requireAuth:        cfg.RequireAuth,
 	}
 
 	engine.GET("/healthz", gin.WrapF(health.LivenessHandler))
 	engine.GET("/readyz", gin.WrapF(healthSvc.Handler))
 	engine.GET("/metrics", ginmw.MetricsEndpoint(metricsTracker))
-	registerOpenAPIRoutes(engine, serviceName, cfg.RequireAuth)
+	registerOpenAPIRoutes(engine, serviceName, appVersion, cfg.RequireAuth)
 
+	etagMW := server.ETagMiddleware(server.ETagConfig{
+		CacheControl: cfg.CacheControl,
+		RequireAuth:  cfg.RequireAuth,
+		AppVersion:   appVersion,
+	})
 	withETag := func(handler gin.HandlerFunc) []gin.HandlerFunc {
 		if cfg.EnableETag {
-			return []gin.HandlerFunc{ETagMiddleware(), handler}
+			return []gin.HandlerFunc{etagMW, handler}
 		}
 		return []gin.HandlerFunc{handler}
 	}
 
 	v1 := engine.Group("/api/v1")
+	if cfg.EnableRateLimit {
+		v1.Use(ginmw.GlobalRateLimit())
+	}
 	if cfg.RequireAuth {
-		if err := ginmw.SetJWTSecret(cfg.JWTSecret); err != nil {
-			log.Error("invalid JWT secret configured for auth middleware", slog.Any("error", err))
-		}
-		v1.Use(ginmw.AuthMiddleware())
+		v1.Use(server.JWTAuthMiddleware([]byte(cfg.JWTSecret)))
 	}
 	{
+		v1.GET("/manifest", withETag(h.getScreenManifest)...)
+		v1.HEAD("/manifest", withETag(h.getScreenManifest)...)
 		v1.GET("/screens", withETag(h.listScreens)...)
+		v1.HEAD("/screens", withETag(h.listScreens)...)
 		v1.GET("/screens/manifest", withETag(h.getScreenManifest)...)
+		v1.HEAD("/screens/manifest", withETag(h.getScreenManifest)...)
 		v1.GET("/screens/:screenId", withETag(h.getScreen)...)
+		v1.HEAD("/screens/:screenId", withETag(h.getScreen)...)
 		v1.GET("/streams/:streamId", h.streamDeltas)
 		v1.POST("/actions/execute", h.executeAction)
 		v1.POST("/orders/express", h.placeExpressOrder)
 		v1.POST("/pay/transfer", h.executePayTransfer)
 		v1.GET("/catalog/tokens", withETag(h.getTokenCatalog)...)
+		v1.HEAD("/catalog/tokens", withETag(h.getTokenCatalog)...)
 		v1.POST("/analytics/events", h.ingestAnalyticsEvents)
 		v1.GET("/analytics/summary", h.getAnalyticsSummary)
 	}
@@ -152,12 +177,16 @@ func NewRouter(cfg RouterConfig) *gin.Engine {
 }
 
 type bffHandler struct {
+	log                *slog.Logger
 	screens            *usecase.ScreenService
 	actions            *usecase.ActionService
 	catalog            *usecase.CatalogService
 	analytics          *usecase.AnalyticsService
+	streamProvider     server.StreamProvider
+	shutdownCtx        context.Context
 	appVersion         string
 	appVersionOverride string
+	requireAuth        bool
 }
 
 func (h *bffHandler) listScreens(c *gin.Context) {
@@ -183,6 +212,9 @@ func (h *bffHandler) getScreenManifest(c *gin.Context) {
 		respondDomainError(c, err)
 		return
 	}
+	if manifest.AppVersion != "" {
+		c.Header("X-App-Version", manifest.AppVersion)
+	}
 	ginmw.RespondSuccess(c, manifest)
 }
 
@@ -199,6 +231,15 @@ func (h *bffHandler) getScreen(c *gin.Context) {
 	if h.appVersionOverride != "" {
 		page.AppVersion = h.appVersionOverride
 	}
+	if page.ETag != "" {
+		c.Header("ETag", page.ETag)
+	}
+	if page.AppVersion != "" {
+		c.Header("X-App-Version", page.AppVersion)
+	}
+	if page.PageVersion != "" {
+		c.Header("X-Page-Version", page.PageVersion)
+	}
 	ginmw.RespondSuccess(c, page)
 }
 
@@ -207,26 +248,9 @@ func (h *bffHandler) executeAction(c *gin.Context) {
 		respondDomainError(c, apperror.Internal("action service unavailable"))
 		return
 	}
-	rawBody, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		ginmw.RespondErrorWithDetail(
-			c,
-			http.StatusBadRequest,
-			string(apperror.CodeBadRequest),
-			"invalid action execution payload",
-			err.Error(),
-		)
-		return
-	}
 	var input domain.ActionExecutionInput
-	if err := json.Unmarshal(rawBody, &input); err != nil {
-		ginmw.RespondErrorWithDetail(
-			c,
-			http.StatusBadRequest,
-			string(apperror.CodeBadRequest),
-			"invalid action execution payload",
-			err.Error(),
-		)
+	rawBody, handled := readJSONBody(c, &input, false, "invalid action execution payload")
+	if handled {
 		return
 	}
 	if input.Trigger.Type == "" {
@@ -259,17 +283,8 @@ func (h *bffHandler) placeExpressOrder(c *gin.Context) {
 		return
 	}
 	var body map[string]any
-	if c.Request.Body != nil && c.Request.ContentLength != 0 {
-		if err := c.ShouldBindJSON(&body); err != nil && !errors.Is(err, io.EOF) {
-			ginmw.RespondErrorWithDetail(
-				c,
-				http.StatusBadRequest,
-				string(apperror.CodeBadRequest),
-				"invalid express order payload",
-				err.Error(),
-			)
-			return
-		}
+	if _, handled := readJSONBody(c, &body, true, "invalid express order payload"); handled {
+		return
 	}
 	result, err := h.actions.Execute(c.Request.Context(), domain.ActionExecutionInput{
 		Trigger: actions.NewCallAPIAction("place_express_order", actions.CallAPIPayload{
@@ -292,14 +307,16 @@ func (h *bffHandler) executePayTransfer(c *gin.Context) {
 		return
 	}
 	var body map[string]any
-	if c.Request.Body != nil && c.Request.ContentLength != 0 {
-		if err := c.ShouldBindJSON(&body); err != nil && !errors.Is(err, io.EOF) {
-			ginmw.RespondErrorWithDetail(
+	if _, handled := readJSONBody(c, &body, true, "invalid pay transfer payload"); handled {
+		return
+	}
+	if rawAmount, present := body["amount_cents"]; present {
+		if !isPositiveIntAmount(rawAmount) {
+			ginmw.RespondError(
 				c,
 				http.StatusBadRequest,
 				string(apperror.CodeBadRequest),
-				"invalid pay transfer payload",
-				err.Error(),
+				"amount_cents must be a positive integer",
 			)
 			return
 		}
@@ -329,6 +346,9 @@ func (h *bffHandler) getTokenCatalog(c *gin.Context) {
 		respondDomainError(c, err)
 		return
 	}
+	if !h.requireAuth {
+		c.Header("Cache-Control", "public, no-cache")
+	}
 	ginmw.RespondSuccess(c, catalog)
 }
 
@@ -338,14 +358,7 @@ func (h *bffHandler) ingestAnalyticsEvents(c *gin.Context) {
 		return
 	}
 	var req analytics.BatchRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ginmw.RespondErrorWithDetail(
-			c,
-			http.StatusBadRequest,
-			string(apperror.CodeBadRequest),
-			"invalid analytics batch payload",
-			err.Error(),
-		)
+	if _, handled := readJSONBody(c, &req, false, "invalid analytics batch payload"); handled {
 		return
 	}
 	res, err := h.analytics.IngestBatch(c.Request.Context(), req)
@@ -367,6 +380,75 @@ func (h *bffHandler) getAnalyticsSummary(c *gin.Context) {
 		return
 	}
 	ginmw.RespondSuccess(c, summary)
+}
+
+func guardNilRequestBody() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request != nil && c.Request.Body == nil {
+			c.Request.Body = http.NoBody
+		}
+		c.Next()
+	}
+}
+
+func readJSONBody(c *gin.Context, dst any, allowEmpty bool, badReqMsg string) ([]byte, bool) {
+	if c.Request == nil || c.Request.Body == nil {
+		if allowEmpty {
+			return nil, false
+		}
+		ginmw.RespondError(c, http.StatusBadRequest, string(apperror.CodeBadRequest), badReqMsg)
+		return nil, true
+	}
+
+	raw, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			ginmw.RespondError(
+				c,
+				http.StatusRequestEntityTooLarge,
+				"PAYLOAD_TOO_LARGE",
+				"request body exceeds maximum allowed size",
+			)
+			return nil, true
+		}
+		ginmw.RespondError(c, http.StatusBadRequest, string(apperror.CodeBadRequest), badReqMsg)
+		return nil, true
+	}
+
+	if len(bytes.TrimSpace(raw)) == 0 {
+		if allowEmpty {
+			return raw, false
+		}
+		ginmw.RespondError(c, http.StatusBadRequest, string(apperror.CodeBadRequest), badReqMsg)
+		return nil, true
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	if err := dec.Decode(dst); err != nil {
+		ginmw.RespondError(c, http.StatusBadRequest, string(apperror.CodeBadRequest), badReqMsg)
+		return nil, true
+	}
+	return raw, false
+}
+
+func isPositiveIntAmount(raw any) bool {
+	switch v := raw.(type) {
+	case json.Number:
+		if n, err := strconv.ParseInt(v.String(), 10, 64); err == nil {
+			return n > 0
+		}
+		return false
+	case float64:
+		return !math.IsNaN(v) && !math.IsInf(v, 0) && v > 0 && math.Trunc(v) == v
+	case int64:
+		return v > 0
+	case int:
+		return v > 0
+	default:
+		return false
+	}
 }
 
 func respondDomainError(c *gin.Context, err error) {

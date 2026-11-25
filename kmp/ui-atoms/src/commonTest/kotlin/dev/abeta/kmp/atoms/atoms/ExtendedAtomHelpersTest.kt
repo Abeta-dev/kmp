@@ -44,17 +44,21 @@ class ExtendedAtomHelpersTest {
 
     @Test
     fun qrMatrixGeneratorIsDeterministicAndIncludesThreeFinderPatterns() {
+        val shortMatrix = generateQrMatrix("abeta://4091")
+        assertEquals(QR_MATRIX_SIZE, shortMatrix.size)
+
         val matrixA = generateQrMatrix("abeta://order/4091")
         val matrixB = generateQrMatrix("abeta://order/4091")
         val matrixDifferent = generateQrMatrix("abeta://order/9999")
 
-        assertEquals(QR_MATRIX_SIZE, matrixA.size)
-        matrixA.forEach { row -> assertEquals(QR_MATRIX_SIZE, row.size) }
+        val size = matrixA.size
+        assertTrue(size >= QR_MATRIX_SIZE)
+        matrixA.forEach { row -> assertEquals(size, row.size) }
         assertEquals(matrixA, matrixB)
         assertNotEquals(matrixA, matrixDifferent)
 
         // Top-left, top-right, and bottom-left 7x7 finder corners and 3x3 centers
-        val finderOrigins = listOf(0 to 0, 0 to 14, 14 to 0)
+        val finderOrigins = listOf(0 to 0, 0 to (size - 7), (size - 7) to 0)
         finderOrigins.forEach { (r0, c0) ->
             assertTrue(matrixA[r0][c0], "Outer finder corner ($r0,$c0) should be dark")
             assertTrue(matrixA[r0 + 6][c0 + 6], "Outer finder far corner should be dark")

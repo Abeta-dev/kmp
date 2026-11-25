@@ -44,6 +44,17 @@ class SanitizingAnalyticsTracker(
         )
     }
 
+    internal fun notifyIdentifyWithoutDuplicateEvent(
+        userId: String,
+        traits: Map<String, String>,
+    ) {
+        propagateIdentifyWithoutDuplicateEvent(
+            tracker = delegate,
+            userId = userId,
+            traits = redactor.redactMap(traits),
+        )
+    }
+
     override fun reset() {
         delegate.reset()
     }
@@ -57,6 +68,7 @@ class DeduplicatingAnalyticsTracker(
     private val delegate: AnalyticsTracker,
     private val clock: Clock = SystemClock(),
     private val cooldownMillis: Long = DEFAULT_IMPRESSION_COOLDOWN_MILLIS,
+    private val maxTrackedEntries: Int = DEFAULT_MAX_TRACKED_ENTRIES,
 ) : AnalyticsTracker {
     private val seenImpressions = MutableStateFlow<Map<String, Long>>(emptyMap())
 
@@ -67,13 +79,26 @@ class DeduplicatingAnalyticsTracker(
     override fun trackImpression(payload: AnalyticsTrackingPayload) {
         val fingerprint = buildFingerprint(payload)
         val now = clock.nowEpochMillis()
+        val capacity = maxTrackedEntries.coerceAtLeast(1)
         var accepted = false
         seenImpressions.update { current ->
             val lastSeen = current[fingerprint]
             if (lastSeen == null || (now - lastSeen) >= cooldownMillis) {
                 accepted = true
-                current + (fingerprint to now)
+                val next = LinkedHashMap<String, Long>(current.size + 1)
+                current.forEach { (key, seenAt) ->
+                    if ((now - seenAt) < cooldownMillis) {
+                        next[key] = seenAt
+                    }
+                }
+                next[fingerprint] = now
+                while (next.size > capacity) {
+                    val oldestKey = next.keys.firstOrNull() ?: break
+                    next.remove(oldestKey)
+                }
+                next
             } else {
+                accepted = false
                 current
             }
         }
@@ -96,6 +121,13 @@ class DeduplicatingAnalyticsTracker(
         delegate.identify(userId, traits)
     }
 
+    internal fun notifyIdentifyWithoutDuplicateEvent(
+        userId: String,
+        traits: Map<String, String>,
+    ) {
+        propagateIdentifyWithoutDuplicateEvent(tracker = delegate, userId = userId, traits = traits)
+    }
+
     override fun reset() {
         seenImpressions.value = emptyMap()
         delegate.reset()
@@ -116,6 +148,7 @@ class DeduplicatingAnalyticsTracker(
 
     companion object {
         const val DEFAULT_IMPRESSION_COOLDOWN_MILLIS: Long = 30_000L
+        const val DEFAULT_MAX_TRACKED_ENTRIES: Int = 4_096
     }
 }
 
@@ -205,12 +238,42 @@ class EnrichingAnalyticsTracker(
                 userId = userId,
             ),
         )
-        delegate.identify(userId, traits)
+        propagateIdentifyWithoutDuplicateEvent(tracker = delegate, userId = userId, traits = traits)
     }
 
     override fun reset() {
         identityState.update { current -> current.copy(userId = null, traits = emptyMap()) }
         currentScreen.value = null
         delegate.reset()
+    }
+}
+
+internal fun propagateIdentifyWithoutDuplicateEvent(
+    tracker: AnalyticsTracker,
+    userId: String,
+    traits: Map<String, String>,
+) {
+    when (tracker) {
+        is BufferedAnalyticsTracker,
+        is LoggerAnalyticsTracker,
+        -> {
+            Unit
+        }
+
+        is SanitizingAnalyticsTracker -> {
+            tracker.notifyIdentifyWithoutDuplicateEvent(userId, traits)
+        }
+
+        is DeduplicatingAnalyticsTracker -> {
+            tracker.notifyIdentifyWithoutDuplicateEvent(userId, traits)
+        }
+
+        is CompositeAnalyticsTracker -> {
+            tracker.notifyIdentifyWithoutDuplicateEvent(userId, traits)
+        }
+
+        else -> {
+            tracker.identify(userId, traits)
+        }
     }
 }

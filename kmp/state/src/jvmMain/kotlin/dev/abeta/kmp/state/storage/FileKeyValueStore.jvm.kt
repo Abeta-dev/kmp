@@ -12,11 +12,14 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
 import java.security.MessageDigest
 
 private const val INDEX_FILE_NAME = "index.json"
@@ -71,18 +74,21 @@ class FileKeyValueStore(
             val entryPath = storeDir.resolve(fileName)
             atomicWriteBytes(storeDir, entryPath, value.toByteArray(Charsets.UTF_8))
             val isNewKey = !index.containsKey(key)
-            index[key] = fileName
             if (isNewKey || !Files.isRegularFile(indexFile)) {
-                persistIndexLocked()
+                val nextIndex = index.toMutableMap().apply { put(key, fileName) }
+                persistIndexLocked(nextIndex)
             }
+            index[key] = fileName
             entriesFlow.update { current -> current + (key to value) }
         }
     }
 
     override fun remove(key: String) {
         synchronized(lock) {
-            val fileName = index.remove(key) ?: return
-            persistIndexLocked()
+            val fileName = index[key] ?: return
+            val nextIndex = index.toMutableMap().apply { remove(key) }
+            persistIndexLocked(nextIndex)
+            index.remove(key)
             deleteEntryFileBestEffort(fileName)
             entriesFlow.update { current -> current - key }
         }
@@ -91,10 +97,10 @@ class FileKeyValueStore(
     override fun clear() {
         synchronized(lock) {
             val previousFiles = index.values.toList()
-            index.clear()
             if (Files.exists(indexFile)) {
-                persistIndexLocked()
+                persistIndexLocked(emptyMap())
             }
+            index.clear()
             previousFiles.forEach(::deleteEntryFileBestEffort)
             entriesFlow.value = emptyMap()
         }
@@ -130,8 +136,8 @@ class FileKeyValueStore(
         return LoadedStore(index = validIndex, entries = validEntries)
     }
 
-    private fun persistIndexLocked() {
-        val serialized = json.encodeToString<Map<String, String>>(index)
+    private fun persistIndexLocked(nextIndex: Map<String, String>) {
+        val serialized = json.encodeToString<Map<String, String>>(nextIndex)
         atomicWriteBytes(storeDir, indexFile, serialized.toByteArray(Charsets.UTF_8))
     }
 
@@ -184,7 +190,13 @@ private fun atomicWriteBytes(
     Files.createDirectories(storeDir)
     val tempFile = Files.createTempFile(storeDir, TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX)
     try {
-        Files.write(tempFile, bytes)
+        FileChannel.open(tempFile, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).use { channel ->
+            val buffer = ByteBuffer.wrap(bytes)
+            while (buffer.hasRemaining()) {
+                channel.write(buffer)
+            }
+            channel.force(true)
+        }
         moveAtomically(tempFile, target)
     } finally {
         Files.deleteIfExists(tempFile)

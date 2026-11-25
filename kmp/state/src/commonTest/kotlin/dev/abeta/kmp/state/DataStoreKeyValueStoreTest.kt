@@ -193,6 +193,34 @@ class DataStoreKeyValueStoreTest {
             backing.awaitSync()
             assertEquals("7", dataStore.data.first()[stringPreferencesKey("retries")])
         }
+
+    @Test
+    fun `writer catches non-IOException failures without hanging awaitSync and resyncs snapshot`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val storage = InMemoryPreferencesStorage(initial = preferencesOf(stringPreferencesKey("persisted") to "ok"))
+            val dataStore =
+                PreferenceDataStoreFactory.create(
+                    storage = storage,
+                    scope = backgroundScope,
+                )
+            val store = DataStoreKeyValueStore(dataStore = dataStore, scope = backgroundScope)
+            store.awaitSync()
+            assertEquals("ok", store.getString("persisted"))
+
+            storage.failNextWrite = IllegalStateException("simulated non-IO failure")
+            store.putString("failed_key", "optimistic")
+            store.awaitSync()
+
+            // Optimistic failed write must be resynced back to true persisted state.
+            assertNull(store.getString("failed_key"))
+            assertEquals("ok", store.getString("persisted"))
+
+            // Writer coroutine must remain alive for subsequent writes.
+            store.putString("recovered_key", "saved")
+            store.awaitSync()
+            assertEquals("saved", store.getString("recovered_key"))
+            assertEquals("saved", dataStore.data.first()[stringPreferencesKey("recovered_key")])
+        }
 }
 
 private class InMemoryPreferencesStorage(
@@ -201,6 +229,7 @@ private class InMemoryPreferencesStorage(
     private val mutex = Mutex()
     private var current: Preferences = initial
     private val coordinator = InMemoryCoordinator()
+    var failNextWrite: Throwable? = null
 
     override fun createConnection(): StorageConnection<Preferences> =
         object : StorageConnection<Preferences> {
@@ -219,6 +248,11 @@ private class InMemoryPreferencesStorage(
 
             override suspend fun writeScope(block: suspend WriteScope<Preferences>.() -> Unit) {
                 mutex.withLock {
+                    val failure = failNextWrite
+                    if (failure != null) {
+                        failNextWrite = null
+                        throw failure
+                    }
                     val scope =
                         object : WriteScope<Preferences> {
                             override suspend fun readData(): Preferences = current

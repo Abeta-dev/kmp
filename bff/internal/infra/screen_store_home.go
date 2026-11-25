@@ -108,7 +108,7 @@ func buildStoreCategoryTabGrid(tabID, gridID string, products []freshProductSpec
 			Padding:      atoms.SymmetricSpacing(theming.SpacingSM.Dp(), theming.SpacingSM.Dp()),
 			FillMaxWidth: atoms.BoolPtr(true),
 		}).
-		WithTracking("category_grid_viewed", map[string]any{"tab_id": tabID}).
+		WithTracking("category_grid_viewed", map[string]string{"tab_id": tabID}).
 		Build()
 }
 
@@ -540,6 +540,6 @@ func buildStoreHomeScreen() snippets.PageResponse {
 				DurationToken: atoms.MotionDurationNormal,
 			},
 		}).
-		WithTracking("page_loaded", map[string]any{"page_id": "store-home"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "store-home"}).
 		Build()
 }

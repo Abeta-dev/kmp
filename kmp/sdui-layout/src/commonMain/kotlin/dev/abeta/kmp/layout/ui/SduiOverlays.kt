@@ -20,6 +20,7 @@ import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,23 +60,25 @@ internal fun OverlayHost(
     onAction: (ActionRef) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    when (overlay.presentation) {
-        OverlayPresentation.DIALOG -> {
-            OverlayDialog(
-                overlay = overlay,
-                snippetContext = snippetContext,
-                onAction = onAction,
-                onDismiss = onDismiss,
-            )
-        }
+    key(overlay.dialogId) {
+        when (overlay.presentation) {
+            OverlayPresentation.DIALOG -> {
+                OverlayDialog(
+                    overlay = overlay,
+                    snippetContext = snippetContext,
+                    onAction = onAction,
+                    onDismiss = onDismiss,
+                )
+            }
 
-        OverlayPresentation.BOTTOM_SHEET -> {
-            OverlayBottomSheet(
-                overlay = overlay,
-                snippetContext = snippetContext,
-                onAction = onAction,
-                onDismiss = onDismiss,
-            )
+            OverlayPresentation.BOTTOM_SHEET -> {
+                OverlayBottomSheet(
+                    overlay = overlay,
+                    snippetContext = snippetContext,
+                    onAction = onAction,
+                    onDismiss = onDismiss,
+                )
+            }
         }
     }
 }
@@ -219,7 +222,9 @@ private fun OverlayBottomSheetActions(
     onDismiss: () -> Unit,
 ) {
     val showActionRow =
-        overlay.snippets.isEmpty() || overlay.positiveAction != null || overlay.negativeAction != null
+        (overlay.snippets.isEmpty() && overlay.dismissible) ||
+            overlay.positiveAction != null ||
+            overlay.negativeAction != null
     if (!showActionRow) return
     val spacing = ThemeTokens.spacing
     Row(
@@ -294,7 +299,7 @@ private fun OverlayPositiveAction(
                 ),
             onAction = onAction,
         )
-    } else {
+    } else if (overlay.dismissible) {
         TextButton(onClick = onDismiss) {
             Text(text = "OK", style = typography.labelLarge)
         }

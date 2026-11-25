@@ -8,6 +8,8 @@ import dev.abeta.kmp.database.entities.CachedScreenEntity
 import dev.abeta.kmp.database.entities.KeyValueRecordEntity
 import dev.abeta.kmp.database.entities.OfflineMutationEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 /**
  * High-level local storage facade wrapping [AbetaDatabase] and deterministic [Clock] semantics.
@@ -23,14 +25,16 @@ class AbetaLocalDatabase(
     private val uuidGenerator: UuidGenerator = RandomUuidGenerator(),
 ) {
     /**
-     * Upserts a serialized screen payload for [screenId], optionally attaching an HTTP [etag] and
-     * relative [ttlMillis] expiration window computed from [clock].
+     * Upserts a serialized screen payload for [screenId], optionally attaching an HTTP [etag],
+     * relative [ttlMillis] expiration window computed from [clock], [pageVersion], and [appVersion].
      */
     suspend fun putScreenCache(
         screenId: String,
         payloadJson: String,
         etag: String? = null,
         ttlMillis: Long? = null,
+        pageVersion: String? = null,
+        appVersion: String? = null,
     ): CachedScreenEntity {
         require(screenId.isNotBlank()) { "screenId must not be blank." }
         if (ttlMillis != null) {
@@ -43,7 +47,9 @@ class AbetaLocalDatabase(
                 payloadJson = payloadJson,
                 etag = etag,
                 cachedAtEpochMillis = now,
-                expiresAtEpochMillis = ttlMillis?.let { now + it },
+                expiresAtEpochMillis = computeExpiresAtEpochMillis(now, ttlMillis),
+                pageVersion = pageVersion,
+                appVersion = appVersion,
             )
         database.cachedScreenDao().upsert(entity)
         return entity
@@ -55,15 +61,19 @@ class AbetaLocalDatabase(
     suspend fun getFreshScreenCache(screenId: String): CachedScreenEntity? {
         val now = clock.nowEpochMillis()
         return database.cachedScreenDao().getById(screenId)?.takeUnless { cached ->
-            cached.expiresAtEpochMillis != null && cached.expiresAtEpochMillis <= now
+            isExpired(cached.expiresAtEpochMillis, now)
         }
     }
 
-    /** Emits reactive updates whenever the cached screen row for [screenId] changes. */
-    fun observeScreenCache(screenId: String): Flow<CachedScreenEntity?> {
-        val dao = database.cachedScreenDao()
-        return dao.observeById(screenId)
-    }
+    /** Emits reactive updates whenever the cached screen row for [screenId] changes, filtering expired rows. */
+    fun observeScreenCache(screenId: String): Flow<CachedScreenEntity?> =
+        database
+            .cachedScreenDao()
+            .observeById(screenId)
+            .map { cached ->
+                val now = clock.nowEpochMillis()
+                cached?.takeUnless { isExpired(it.expiresAtEpochMillis, now) }
+            }.distinctUntilChanged()
 
     /** Deletes a single cached screen by [screenId] and returns the removed row count. */
     suspend fun deleteScreenCache(screenId: String): Int = database.cachedScreenDao().deleteById(screenId)
@@ -76,8 +86,8 @@ class AbetaLocalDatabase(
         database.cachedScreenDao().clearAll()
     }
 
-    /** Returns the total number of rows currently stored in the screen cache table. */
-    suspend fun screenCacheCount(): Int = database.cachedScreenDao().count()
+    /** Returns the number of non-expired rows currently stored in the screen cache table. */
+    suspend fun screenCacheCount(): Int = database.cachedScreenDao().countFresh(clock.nowEpochMillis())
 
     /**
      * Enqueues an offline mutation into the durable FIFO outbox, trimming oldest entries if
@@ -162,7 +172,7 @@ class AbetaLocalDatabase(
                 recordKey = key,
                 valueText = value,
                 updatedAtEpochMillis = now,
-                expiresAtEpochMillis = ttlMillis?.let { now + it },
+                expiresAtEpochMillis = computeExpiresAtEpochMillis(now, ttlMillis),
             ),
         )
     }
@@ -176,19 +186,26 @@ class AbetaLocalDatabase(
         return database
             .keyValueRecordDao()
             .get(namespace = namespace, key = key)
-            ?.takeUnless { record ->
-                record.expiresAtEpochMillis != null && record.expiresAtEpochMillis <= now
-            }?.valueText
+            ?.takeUnless { record -> isExpired(record.expiresAtEpochMillis, now) }
+            ?.valueText
     }
 
-    /** Emits reactive value updates for `(namespace, key)`, or `null` when absent. */
+    /** Emits reactive value updates for `(namespace, key)`, or `null` when absent or expired. */
     fun observeValue(
         namespace: String,
         key: String,
-    ): Flow<String?> = database.keyValueRecordDao().observe(namespace = namespace, key = key)
+    ): Flow<String?> =
+        database
+            .keyValueRecordDao()
+            .observeRecord(namespace = namespace, key = key)
+            .map { record ->
+                val now = clock.nowEpochMillis()
+                record?.takeUnless { isExpired(it.expiresAtEpochMillis, now) }?.valueText
+            }.distinctUntilChanged()
 
-    /** Lists all stored keys in [namespace], ordered lexicographically. */
-    suspend fun listKeys(namespace: String): List<String> = database.keyValueRecordDao().listKeys(namespace)
+    /** Lists all non-expired stored keys in [namespace], ordered lexicographically. */
+    suspend fun listKeys(namespace: String): List<String> =
+        database.keyValueRecordDao().listFreshKeys(namespace = namespace, nowEpochMillis = clock.nowEpochMillis())
 
     /** Removes a single entry for `(namespace, key)` and returns the deleted row count. */
     suspend fun removeValue(
@@ -206,6 +223,23 @@ class AbetaLocalDatabase(
     fun close() {
         database.close()
     }
+
+    private fun computeExpiresAtEpochMillis(
+        nowEpochMillis: Long,
+        ttlMillis: Long?,
+    ): Long? {
+        if (ttlMillis == null) return null
+        return if (nowEpochMillis > 0L && ttlMillis > Long.MAX_VALUE - nowEpochMillis) {
+            Long.MAX_VALUE
+        } else {
+            nowEpochMillis + ttlMillis
+        }
+    }
+
+    private fun isExpired(
+        expiresAtEpochMillis: Long?,
+        nowEpochMillis: Long,
+    ): Boolean = expiresAtEpochMillis != null && expiresAtEpochMillis <= nowEpochMillis
 
     companion object {
         /** Default maximum number of pending mutations retained in SQLite. */

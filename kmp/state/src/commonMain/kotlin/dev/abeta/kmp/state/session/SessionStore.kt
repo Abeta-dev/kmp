@@ -87,6 +87,7 @@ class PersistentSessionStore(
     private val storageKey: String = DEFAULT_STORAGE_KEY,
     private val json: Json = DefaultSessionJson,
 ) : SessionStore {
+    private val lock = createStateLock()
     private val _state = MutableStateFlow(loadInitial())
 
     override val state: StateFlow<Map<String, JsonElement>> = _state.asStateFlow()
@@ -111,14 +112,18 @@ class PersistentSessionStore(
     }
 
     override fun clear() {
-        _state.value = emptyMap()
-        backingStore.remove(storageKey)
+        lock.withLock {
+            _state.value = emptyMap()
+            backingStore.remove(storageKey)
+        }
     }
 
     private fun updateAndPersist(transform: (Map<String, JsonElement>) -> Map<String, JsonElement>) {
-        val next = transform(_state.value)
-        _state.value = next
-        backingStore.putString(storageKey, json.encodeToString(next))
+        lock.withLock {
+            val next = transform(_state.value)
+            _state.value = next
+            backingStore.putString(storageKey, json.encodeToString(next))
+        }
     }
 
     private fun loadInitial(): Map<String, JsonElement> {
@@ -182,8 +187,10 @@ class SessionLifecycleManager(
     private val storageKey: String = DEFAULT_METADATA_KEY,
     private val json: Json = DefaultSessionJson,
 ) {
-    private val _metadata = MutableStateFlow(loadOrInitialize())
-    private val _authState = MutableStateFlow(toAuthState(_metadata.value, expired = false))
+    private val lock = createStateLock()
+    private val initial = loadOrInitialize()
+    private val _metadata = MutableStateFlow(initial.metadata)
+    private val _authState = MutableStateFlow(initial.authState)
 
     /** Observable session metadata including [SessionMetadata.sessionId] and [SessionMetadata.anonymousId]. */
     val metadata: StateFlow<SessionMetadata> = _metadata.asStateFlow()
@@ -191,24 +198,71 @@ class SessionLifecycleManager(
     /** Observable authentication state transition stream. */
     val authState: StateFlow<AuthSessionState> = _authState.asStateFlow()
 
-    /** Records activity and automatically rotates the session ID if [idleTimeoutMillis] has elapsed. */
-    fun touch(): SessionMetadata {
-        val now = clock.nowEpochMillis()
-        val current = _metadata.value
-        val expired = (now - current.lastActiveEpochMillis) >= idleTimeoutMillis
-        val updated =
-            if (expired) {
-                current.copy(
-                    sessionId = uuidGenerator.nextId(),
-                    startedAtEpochMillis = now,
-                    lastActiveEpochMillis = now,
-                )
-            } else {
-                current.copy(lastActiveEpochMillis = now)
+    /**
+     * Records activity and automatically rotates the session ID if [idleTimeoutMillis] has elapsed.
+     * When an authenticated session exceeds [idleTimeoutMillis], credentials are cleared and [authState]
+     * transitions to [AuthSessionState.Expired]; an already-expired state is preserved until [signIn] or [signOut].
+     */
+    fun touch(): SessionMetadata =
+        lock.withLock {
+            val now = clock.nowEpochMillis()
+            val current = _metadata.value
+            val currentAuth = _authState.value
+            val expired = (now - current.lastActiveEpochMillis) >= idleTimeoutMillis
+            when {
+                expired && current.userId != null -> {
+                    val rotated =
+                        current.copy(
+                            sessionId = uuidGenerator.nextId(),
+                            userId = null,
+                            displayName = null,
+                            roles = emptySet(),
+                            attributes = emptyMap(),
+                            startedAtEpochMillis = now,
+                            lastActiveEpochMillis = now,
+                        )
+                    commitLocked(
+                        updated = rotated,
+                        nextAuthState =
+                            AuthSessionState.Expired(
+                                previousUserId = current.userId,
+                                anonymousId = rotated.anonymousId,
+                            ),
+                    )
+                    rotated
+                }
+
+                currentAuth is AuthSessionState.Expired -> {
+                    val updated =
+                        if (expired) {
+                            current.copy(
+                                sessionId = uuidGenerator.nextId(),
+                                startedAtEpochMillis = now,
+                                lastActiveEpochMillis = now,
+                            )
+                        } else {
+                            current.copy(lastActiveEpochMillis = now)
+                        }
+                    commitLocked(updated = updated, nextAuthState = currentAuth)
+                    updated
+                }
+
+                else -> {
+                    val updated =
+                        if (expired) {
+                            current.copy(
+                                sessionId = uuidGenerator.nextId(),
+                                startedAtEpochMillis = now,
+                                lastActiveEpochMillis = now,
+                            )
+                        } else {
+                            current.copy(lastActiveEpochMillis = now)
+                        }
+                    commitLocked(updated = updated, nextAuthState = toAuthState(updated, expired = false))
+                    updated
+                }
             }
-        commit(updated, isExpired = false)
-        return updated
-    }
+        }
 
     /** Transitions the active session into [AuthSessionState.Authenticated] for [userId]. */
     fun signIn(
@@ -216,69 +270,78 @@ class SessionLifecycleManager(
         displayName: String? = null,
         roles: Set<String> = emptySet(),
         attributes: Map<String, String> = emptyMap(),
-    ): SessionMetadata {
-        val now = clock.nowEpochMillis()
-        val updated =
-            _metadata.value.copy(
-                sessionId = uuidGenerator.nextId(),
-                userId = userId,
-                displayName = displayName,
-                roles = roles,
-                attributes = attributes,
-                startedAtEpochMillis = now,
-                lastActiveEpochMillis = now,
-            )
-        commit(updated, isExpired = false)
-        return updated
-    }
+    ): SessionMetadata =
+        lock.withLock {
+            val now = clock.nowEpochMillis()
+            val updated =
+                _metadata.value.copy(
+                    sessionId = uuidGenerator.nextId(),
+                    userId = userId,
+                    displayName = displayName,
+                    roles = roles,
+                    attributes = attributes,
+                    startedAtEpochMillis = now,
+                    lastActiveEpochMillis = now,
+                )
+            commitLocked(updated = updated, nextAuthState = toAuthState(updated, expired = false))
+            updated
+        }
 
     /** Clears authenticated user claims while preserving the anonymous identifier and starting a fresh session. */
-    fun signOut(): SessionMetadata {
-        val now = clock.nowEpochMillis()
-        val updated =
-            _metadata.value.copy(
-                sessionId = uuidGenerator.nextId(),
-                userId = null,
-                displayName = null,
-                roles = emptySet(),
-                attributes = emptyMap(),
-                startedAtEpochMillis = now,
-                lastActiveEpochMillis = now,
-            )
-        commit(updated, isExpired = false)
-        return updated
-    }
+    fun signOut(): SessionMetadata =
+        lock.withLock {
+            val now = clock.nowEpochMillis()
+            val updated =
+                _metadata.value.copy(
+                    sessionId = uuidGenerator.nextId(),
+                    userId = null,
+                    displayName = null,
+                    roles = emptySet(),
+                    attributes = emptyMap(),
+                    startedAtEpochMillis = now,
+                    lastActiveEpochMillis = now,
+                )
+            commitLocked(updated = updated, nextAuthState = toAuthState(updated, expired = false))
+            updated
+        }
 
     /** Marks the current authenticated session expired while preserving [anonymousId]. */
     fun markExpired() {
-        val current = _metadata.value
-        val previousUser = current.userId
-        val updated =
-            current.copy(
-                userId = null,
-                displayName = null,
-                roles = emptySet(),
-                attributes = emptyMap(),
+        lock.withLock {
+            val current = _metadata.value
+            val previousUser = current.userId ?: (_authState.value as? AuthSessionState.Expired)?.previousUserId
+            val updated =
+                current.copy(
+                    userId = null,
+                    displayName = null,
+                    roles = emptySet(),
+                    attributes = emptyMap(),
+                )
+            commitLocked(
+                updated = updated,
+                nextAuthState =
+                    AuthSessionState.Expired(
+                        previousUserId = previousUser,
+                        anonymousId = updated.anonymousId,
+                    ),
             )
-        _metadata.value = updated
-        persist(updated)
-        _authState.value = AuthSessionState.Expired(previousUserId = previousUser, anonymousId = updated.anonymousId)
+        }
     }
 
-    private fun commit(
+    private fun commitLocked(
         updated: SessionMetadata,
-        isExpired: Boolean,
+        nextAuthState: AuthSessionState,
     ) {
         _metadata.value = updated
         persist(updated)
-        _authState.value = toAuthState(updated, expired = isExpired)
+        _authState.value = nextAuthState
     }
 
     private fun persist(value: SessionMetadata) {
         backingStore.putString(storageKey, json.encodeToString(SessionMetadata.serializer(), value))
     }
 
-    private fun loadOrInitialize(): SessionMetadata {
+    private fun loadOrInitialize(): InitialSession {
         val now = clock.nowEpochMillis()
         val restored =
             backingStore.getString(storageKey)?.let { raw ->
@@ -287,22 +350,53 @@ class SessionLifecycleManager(
         if (restored != null) {
             val isStillFresh = (now - restored.lastActiveEpochMillis) < idleTimeoutMillis
             return if (isStillFresh) {
-                restored.copy(lastActiveEpochMillis = now)
-            } else {
-                restored.copy(
-                    sessionId = uuidGenerator.nextId(),
-                    startedAtEpochMillis = now,
-                    lastActiveEpochMillis = now,
+                val updated = restored.copy(lastActiveEpochMillis = now).also(::persist)
+                InitialSession(metadata = updated, authState = toAuthState(updated, expired = false))
+            } else if (restored.userId != null) {
+                val cleared =
+                    restored
+                        .copy(
+                            sessionId = uuidGenerator.nextId(),
+                            userId = null,
+                            displayName = null,
+                            roles = emptySet(),
+                            attributes = emptyMap(),
+                            startedAtEpochMillis = now,
+                            lastActiveEpochMillis = now,
+                        ).also(::persist)
+                InitialSession(
+                    metadata = cleared,
+                    authState =
+                        AuthSessionState.Expired(
+                            previousUserId = restored.userId,
+                            anonymousId = cleared.anonymousId,
+                        ),
                 )
+            } else {
+                val rotated =
+                    restored
+                        .copy(
+                            sessionId = uuidGenerator.nextId(),
+                            startedAtEpochMillis = now,
+                            lastActiveEpochMillis = now,
+                        ).also(::persist)
+                InitialSession(metadata = rotated, authState = toAuthState(rotated, expired = false))
             }
         }
-        return SessionMetadata(
-            sessionId = uuidGenerator.nextId(),
-            anonymousId = uuidGenerator.nextId(),
-            startedAtEpochMillis = now,
-            lastActiveEpochMillis = now,
-        ).also(::persist)
+        val created =
+            SessionMetadata(
+                sessionId = uuidGenerator.nextId(),
+                anonymousId = uuidGenerator.nextId(),
+                startedAtEpochMillis = now,
+                lastActiveEpochMillis = now,
+            ).also(::persist)
+        return InitialSession(metadata = created, authState = toAuthState(created, expired = false))
     }
+
+    private data class InitialSession(
+        val metadata: SessionMetadata,
+        val authState: AuthSessionState,
+    )
 
     private fun toAuthState(
         value: SessionMetadata,

@@ -9,12 +9,17 @@ import io.ktor.client.plugins.compression.ContentEncodingConfig
 import io.ktor.util.ContentEncoder
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
+import io.ktor.utils.io.writeFully
+import io.ktor.utils.io.writer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import okhttp3.CertificatePinner
 import okhttp3.Protocol
 import org.brotli.dec.BrotliInputStream
 import kotlin.coroutines.CoroutineContext
+
+private const val BROTLI_BUFFER_SIZE = 8_192
 
 internal actual val platformHandlesEncodingNatively: Boolean = false
 
@@ -64,7 +69,23 @@ object BrotliContentEncoder : ContentEncoder {
     override fun decode(
         source: ByteReadChannel,
         coroutineContext: CoroutineContext,
-    ): ByteReadChannel = BrotliInputStream(source.toInputStream()).toByteReadChannel(coroutineContext)
+    ): ByteReadChannel =
+        CoroutineScope(coroutineContext + Dispatchers.IO)
+            .writer {
+                if (source.isClosedForRead || !source.awaitContent()) {
+                    return@writer
+                }
+                BrotliInputStream(source.toInputStream()).use { brotli ->
+                    val buffer = ByteArray(BROTLI_BUFFER_SIZE)
+                    while (true) {
+                        val bytesRead = brotli.read(buffer)
+                        if (bytesRead < 0) break
+                        if (bytesRead > 0) {
+                            channel.writeFully(buffer, 0, bytesRead)
+                        }
+                    }
+                }
+            }.channel
 
     override fun encode(
         source: ByteReadChannel,

@@ -8,8 +8,8 @@
 
 | Artifact | Coordinate | Source Module | Purpose |
 | :--- | :--- | :--- | :--- |
-| **BOM** | `io.github.abeta-dev:bom:0.6.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `io.github.abeta-dev:*` library modules** + `dependencies` (13 Maven artifacts total) |
-| **Version Catalog** | `io.github.abeta-dev:dependencies:0.6.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
+| **BOM** | `io.github.abeta-dev:bom:0.7.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `io.github.abeta-dev:*` library modules** + `dependencies` (**13 Maven Central artifacts** total) |
+| **Version Catalog** | `io.github.abeta-dev:dependencies:0.7.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
 
 ### Modules Included in `io.github.abeta-dev:bom`
 
@@ -29,7 +29,7 @@ From `kmp/kmp-bom/build.gradle.kts`:
 - **Compose UI Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`) and **`:storybook`**:
   - `jvm` (Java 21), `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
 - **`:sample-app`**: JVM Desktop & `--headless` CLI.
-- **Drop-in Platform Glue (`kmp/platforms/`)**: Reference Android (`android/AndroidPlatformBridgeFactory.kt`, `android/AndroidDatabaseFactory.kt`), Wear OS (`wearos/WearCompanionHostActivity.kt`), Apple SwiftUI & SwiftPM (`apple/AbetaAppleHosts.swift`, `apple/Package.template.swift`), and Web COOP/COEP (`web/README.md`) hosts (`kmp/platforms/README.md`). Android & Wear OS templates require an Android app module with `ANDROID_HOME` / Android SDK configured.
+- **Drop-in Platform Glue (`kmp/platforms/`)**: Published Maven Central artifacts target `jvm`, `ios*`, `macosArm64`, `watchos*`, and `wasmJs` (with guarded JVM AWT/file fallbacks). Reference Android (`android/{AndroidPlatformBridgeFactory,AbetaAndroidHostActivity,AndroidDatabaseFactory}.kt`), Wear OS (`wearos/{WearCompanionHostActivity,WearSduiRenderer}.kt`), Apple SwiftUI & 4-product SwiftPM (`apple/AbetaAppleHosts.swift`, `apple/Sources/{AbetaSduiSwiftUI,AbetaWatchSwiftUI}/`), and Web COOP/COEP (`web/README.md`) hosts live in `kmp/platforms/` (`kmp/platforms/README.md`). Android & Wear OS templates require an Android app module with `ANDROID_HOME` / Android SDK configured.
 
 `sdui-layout`, `watch-companion`, and `storybook` configure Apple XCFrameworks:
 
@@ -59,7 +59,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("abetaLibs") {
-            from("io.github.abeta-dev:dependencies:0.6.0")
+            from("io.github.abeta-dev:dependencies:0.7.0")
         }
     }
 }
@@ -71,7 +71,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
 
             // Pick your required layers—no version numbers needed
             implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
@@ -100,7 +100,7 @@ Inside `kmp/dependencyManagement/gradle/`:
    - Networking, DI, Compression & Persistence: Ktor `3.6.1` (`ktor-bom`, `ktor-common` bundle, `ktor-client-auth`, `ktor-client-encoding`, `ktor-client-okhttp`, `ktor-client-darwin`, `ktor-client-js`, `ktor-client-mock`), Brotli `0.1.2` (`org.brotli:dec`), Koin `4.2.2` (`koin-core`), Kermit `2.2.0`, Multiplatform Settings `1.3.0`, Turbine `1.2.1`, `compose.ui.test`, Room 3 `3.0.3` (`androidx.room3:room3-runtime`, `room3-compiler`), SQLite `2.7.1` (`androidx.sqlite:sqlite-bundled`, `sqlite-web`), KSP `2.3.14`
    - Quality, Docs & Publishing Plugins: Spotless `8.11.0`, Detekt `2.0.0-alpha.6`, Dokka `2.3.0`, Vanniktech Maven Publish `0.37.0`, Binary Compatibility Validator `0.18.2`, `androidx.room3` `3.0.3`, `com.google.devtools.ksp` `2.3.14`
 2. **`internal.versions.toml`** (used internally by `:kmp-bom` and inter-module references):
-   - Defines `kmpBom`, `kmpDependencies`, and per-module version refs (`0.3.0`) across all **11 publishable library modules** (`core`, `state`, `analytics`, `database`, `designTokens`, `sduiContracts`, `uiAtoms`, `actionEngine`, `network`, `sduiLayout`, `watchCompanion`) under the `internal` catalog alias.
+   - Defines `kmpBom`, `kmpDependencies`, and per-module version refs (`0.7.0`) across all **11 publishable library modules** (`core`, `state`, `analytics`, `database`, `designTokens`, `sduiContracts`, `uiAtoms`, `actionEngine`, `network`, `sduiLayout`, `watchCompanion`) under the `internal` catalog alias.
 
 ---
 

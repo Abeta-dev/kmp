@@ -10,6 +10,6 @@ alwaysApply: false
 
 - Consult `skills/abeta-kmp-bff/SKILL.md` and `agents/owners/bff-owner.md`.
 - Maintain strict Clean Architecture (`internal/handler -> internal/usecase -> internal/domain <- internal/infra`; `domain` has zero Gin/`net/http` imports).
-- Keep 1:1 wire parity with `kmp/sdui-contracts` and `kmp/action-engine` (`15` atoms, `14` snippets, `18` actions) and keep all 5 golden fixtures in `bff/testdata/golden/` passing.
+- Keep 1:1 wire parity with `kmp/sdui-contracts` and `kmp/action-engine` (`29` wire atoms, `23` snippets incl. `composed_block` w/ `36` `ComposedNodeKind`s, `custom_slot`, & `graph_canvas`, `6` `SnippetDeltaOp`s, `18` actions) across the 8 exportable `pkg/sdui/*` packages (`bff@v0.9.0`), and keep all **11** golden fixtures in `bff/testdata/golden/` passing.
 - Keep screen builders separated per screen (`bff/internal/infra/screen_<name>.go`) and snippet builders partitioned by domain in `bff/pkg/sdui/snippets/`.
 - Run `(cd bff && test -z "$(gofmt -l .)" && go vet ./... && go test -count=1 -race -cover ./...)`.

@@ -37,15 +37,15 @@ class NudgeAndComposedRenderersTest {
                 nudgePrefix = "Add",
                 unlockedLabel = "FREE express delivery unlocked!",
             )
-        val halfWay = assertNotNull(computeFreeDeliveryNudge(withThreshold, totalCents = 650))
+        val halfWay = assertNotNull(computeFreeDeliveryNudge(withThreshold, totalCents = 650L))
         assertEquals(0.65f, halfWay.progress)
-        assertEquals(350, halfWay.remainingCents)
+        assertEquals(350L, halfWay.remainingCents)
         assertFalse(halfWay.unlocked)
         assertEquals("Add $3.50 more for FREE delivery", halfWay.message)
 
-        val unlocked = assertNotNull(computeFreeDeliveryNudge(withThreshold, totalCents = 1200))
+        val unlocked = assertNotNull(computeFreeDeliveryNudge(withThreshold, totalCents = 1200L))
         assertEquals(1f, unlocked.progress)
-        assertEquals(0, unlocked.remainingCents)
+        assertEquals(0L, unlocked.remainingCents)
         assertTrue(unlocked.unlocked)
         assertEquals("FREE express delivery unlocked!", unlocked.message)
 
@@ -53,14 +53,18 @@ class NudgeAndComposedRenderersTest {
             assertNotNull(
                 computeFreeDeliveryNudge(
                     noThreshold.copy(freeDeliveryThresholdCents = 500),
-                    totalCents = 500,
+                    totalCents = 500L,
                 ),
             )
         assertEquals("FREE delivery unlocked!", defaultUnlocked.message)
     }
 
     @Test
-    fun marqueeVelocityAndOrderTrackerProgressResolveDeterministically() {
+    fun marqueeVelocityCopyCountAndOrderTrackerProgressResolveDeterministically() {
+        assertEquals(3, resolveMarqueeCopyCount(containerWidthPx = 0, cycleWidthPx = 200))
+        assertEquals(3, resolveMarqueeCopyCount(containerWidthPx = 400, cycleWidthPx = 400))
+        assertEquals(10, resolveMarqueeCopyCount(containerWidthPx = 1600, cycleWidthPx = 200))
+        assertEquals(24, resolveMarqueeCopyCount(containerWidthPx = 10_000, cycleWidthPx = 50))
         assertEquals(48, resolveMarqueeVelocityDpPerSec(0))
         assertEquals(12, resolveMarqueeVelocityDpPerSec(4))
         assertEquals(240, resolveMarqueeVelocityDpPerSec(999))

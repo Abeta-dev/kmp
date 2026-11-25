@@ -15,11 +15,13 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.request
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
@@ -109,10 +111,13 @@ class KtorHttpTransport(
 
     private suspend fun executeWithCsrf(spec: RequestSpec): AppResult<HttpResponse> {
         val provider = csrfTokenProvider?.takeIf { spec.method in it.protectedMethods }
+        val callerProvidedCsrf = provider != null && spec.headers.containsHeaderIgnoreCase(provider.headerName)
+        var sentToken: String? = null
         val initialHeaders =
-            if (provider != null && !spec.headers.containsHeaderIgnoreCase(provider.headerName)) {
-                val token = fetchCsrfTokenSafely { provider.currentToken() }
-                if (!token.isNullOrBlank()) spec.headers + (provider.headerName to token) else spec.headers
+            if (provider != null && !callerProvidedCsrf) {
+                val token = fetchCsrfTokenSafely { provider.currentToken() }?.takeIf { it.isNotBlank() }
+                sentToken = token
+                if (token != null) spec.headers + (provider.headerName to token) else spec.headers
             } else {
                 spec.headers
             }
@@ -120,16 +125,18 @@ class KtorHttpTransport(
         val firstResult = executeRawRequest(spec.copy(headers = initialHeaders))
         val shouldRetry =
             provider != null &&
+                !callerProvidedCsrf &&
                 firstResult is AppResult.Success &&
                 firstResult.value.status == HttpStatusCode.Forbidden
 
         return if (!shouldRetry) {
             firstResult
         } else {
-            val refreshedToken = fetchCsrfTokenSafely { provider.refreshToken() }
-            if (refreshedToken.isNullOrBlank()) {
+            val refreshedToken = fetchCsrfTokenSafely { provider.refreshToken() }?.takeIf { it.isNotBlank() }
+            if (refreshedToken == null || refreshedToken == sentToken) {
                 firstResult
             } else {
+                drainAndCancelResponseSafely(firstResult.value)
                 val retryHeaders = initialHeaders.withHeaderOverride(provider.headerName, refreshedToken)
                 executeRawRequest(spec.copy(headers = retryHeaders))
             }
@@ -142,7 +149,10 @@ class KtorHttpTransport(
             val response =
                 httpClient.request(spec.path) {
                     this.method = spec.method.toKtorMethod()
-                    spec.headers.forEach { (name, value) -> header(name, value) }
+                    spec.headers.forEach { (name, value) ->
+                        headers.remove(name)
+                        header(name, value)
+                    }
                     spec.queryParams.forEach { (name, value) -> parameter(name, value) }
                     applyBody(json, spec.body)
                 }
@@ -208,7 +218,8 @@ class KtorHttpTransport(
                 durationMillis = elapsedSince(clock, spec.startedAt),
             )
         return if (!status.isSuccess()) {
-            val error = mapStatusError(status, context.url, extractRetryAfterMillis(response.headers))
+            val retryAfter = extractRetryAfterMillis(response.headers, clock.nowEpochMillis())
+            val error = mapStatusError(status, context.url, retryAfter)
             recordFailure(telemetrySink, context, error, error::class.simpleName ?: error.code)
         } else {
             val responseHeaders = response.headers.toHeaderMap()
@@ -254,6 +265,24 @@ private data class MetricContext(
     val statusCode: Int?,
     val durationMillis: Long,
 )
+
+@Suppress("TooGenericExceptionCaught")
+private suspend fun drainAndCancelResponseSafely(response: HttpResponse) {
+    try {
+        response.bodyAsChannel().cancel(null)
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (_: Throwable) {
+        // Ignore drain errors while releasing the failed response call.
+    }
+    try {
+        response.call.cancel()
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (_: Throwable) {
+        // Ignore cancellation cleanup errors.
+    }
+}
 
 @Suppress("TooGenericExceptionCaught")
 private suspend fun fetchCsrfTokenSafely(block: suspend () -> String?): String? =

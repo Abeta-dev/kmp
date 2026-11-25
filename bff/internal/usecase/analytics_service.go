@@ -80,10 +80,12 @@ func (s *AnalyticsService) GetSummary(ctx context.Context) (analytics.Summary, e
 func defaultEventCategory(eventName string) string {
 	switch {
 	case eventName == analytics.EventPageOpen:
-		return analytics.CategoryScreen
+		return analytics.CategoryPageOpen
 	case strings.HasSuffix(eventName, "_impression"):
 		return analytics.CategoryImpression
+	case eventName == analytics.EventInteractionClick:
+		return analytics.CategoryInteraction
 	default:
-		return analytics.CategoryAction
+		return analytics.CategoryCustom
 	}
 }

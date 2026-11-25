@@ -15,7 +15,8 @@ class CertificatePinMatcherTest {
     @Test
     fun matchesLiteralAndWildcardHostnames() {
         assertTrue(CertificatePinMatcher.matchesHostname("api.abeta.dev", "api.abeta.dev"))
-        assertTrue(CertificatePinMatcher.matchesHostname("API.ABETA.DEV", "*.abeta.dev"))
+        assertTrue(CertificatePinMatcher.matchesHostname("api.abeta.dev.", "api.abeta.dev"))
+        assertTrue(CertificatePinMatcher.matchesHostname("API.ABETA.DEV.", "*.abeta.dev."))
         assertFalse(CertificatePinMatcher.matchesHostname("deep.sub.abeta.dev", "*.abeta.dev"))
         assertFalse(CertificatePinMatcher.matchesHostname("evil.com", "*.abeta.dev"))
 
@@ -61,5 +62,19 @@ class CertificatePinMatcherTest {
         assertNotNull(extracted)
         assertContentEquals(spki, extracted)
         assertNull(CertificatePinMatcher.extractSpkiDerOrNull(byteArrayOf(0x01, 0x02)))
+
+        // Crafted 4-byte DER length (0xFFFFFFFF) must not overflow Int arithmetic.
+        val overflowDer =
+            byteArrayOf(
+                0x30,
+                0x84.toByte(),
+                0xFF.toByte(),
+                0xFF.toByte(),
+                0xFF.toByte(),
+                0xFF.toByte(),
+                0x00,
+                0x00,
+            )
+        assertNull(CertificatePinMatcher.extractSpkiDerOrNull(overflowDer))
     }
 }

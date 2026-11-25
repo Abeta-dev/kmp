@@ -32,6 +32,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import dev.abeta.kmp.contracts.MotionLoopEffect
 import dev.abeta.kmp.tokens.ThemeTokens
 
@@ -59,7 +61,7 @@ private const val WIGGLE_KEYFRAME_4_MS = 700
 private const val WIGGLE_KEYFRAME_5_MS = 880
 
 private const val FLOAT_PERIOD_MS = 1800
-private const val FLOAT_AMPLITUDE_PX = 4f
+private val FLOAT_AMPLITUDE_DP = 3.dp
 
 private const val HEARTBEAT_PERIOD_MS = 1600
 private const val HEARTBEAT_PEAK_PRIMARY = 1.07f
@@ -70,16 +72,16 @@ private const val HEARTBEAT_BEAT_2_MS = 540
 private const val HEARTBEAT_REST_2_MS = 760
 
 private const val GLOW_RING_PERIOD_MS = 1500
-private const val GLOW_MIN_STROKE_PX = 2f
-private const val GLOW_MAX_STROKE_PX = 5f
+private val GLOW_MIN_STROKE_DP = 1.5.dp
+private val GLOW_MAX_STROKE_DP = 3.5.dp
 private const val GLOW_OUTER_STROKE_MULTIPLIER = 1.8f
 private const val GLOW_MIN_ALPHA = 0.22f
 private const val GLOW_MAX_ALPHA = 0.65f
 private const val GLOW_OUTER_ALPHA_FACTOR = 0.30f
-private const val GLOW_MAX_CORNER_RADIUS_PX = 28f
+private val GLOW_MAX_CORNER_RADIUS_DP = 16.dp
 
 private const val MARQUEE_SWAY_PERIOD_MS = 1800
-private const val MARQUEE_SWAY_PX = 6f
+private val MARQUEE_SWAY_DP = 4.dp
 
 private const val PRESS_BOUNCE_SCALE = 0.96f
 
@@ -156,17 +158,68 @@ fun Modifier.pressBounce(enabled: Boolean = true): Modifier {
 }
 
 @Composable
-internal fun rememberLoopTransformState(loopEffect: MotionLoopEffect): LoopTransformState =
-    when (loopEffect) {
-        MotionLoopEffect.NONE -> LoopTransformState()
-        MotionLoopEffect.PULSE -> rememberPulseLoop()
-        MotionLoopEffect.WIGGLE -> LoopTransformState(rotationZ = rememberWiggleDegrees())
-        MotionLoopEffect.HEARTBEAT -> LoopTransformState(scale = rememberHeartbeatScale())
-        MotionLoopEffect.SHIMMER -> LoopTransformState(shimmerPhase = rememberLinearLoop(SHIMMER_SPEC))
-        MotionLoopEffect.FLOAT -> LoopTransformState(translationY = rememberLinearLoop(FLOAT_SPEC))
-        MotionLoopEffect.GLOW_RING -> LoopTransformState(glowProgress = rememberLinearLoop(GLOW_RING_SPEC))
-        MotionLoopEffect.MARQUEE -> LoopTransformState(translationX = rememberLinearLoop(MARQUEE_SPEC))
+internal fun rememberLoopTransformState(loopEffect: MotionLoopEffect): LoopTransformState {
+    val density = LocalDensity.current
+    return when (loopEffect) {
+        MotionLoopEffect.NONE -> {
+            LoopTransformState()
+        }
+
+        MotionLoopEffect.PULSE -> {
+            rememberPulseLoop()
+        }
+
+        MotionLoopEffect.WIGGLE -> {
+            LoopTransformState(rotationZ = rememberWiggleDegrees())
+        }
+
+        MotionLoopEffect.HEARTBEAT -> {
+            LoopTransformState(scale = rememberHeartbeatScale())
+        }
+
+        MotionLoopEffect.SHIMMER -> {
+            LoopTransformState(shimmerPhase = rememberLinearLoop(SHIMMER_SPEC))
+        }
+
+        MotionLoopEffect.FLOAT -> {
+            val amplitudePx = with(density) { FLOAT_AMPLITUDE_DP.toPx() }
+            LoopTransformState(
+                translationY =
+                    rememberLinearLoop(
+                        RepeatingFloatSpec(
+                            initialValue = -amplitudePx,
+                            targetValue = amplitudePx,
+                            durationMs = FLOAT_PERIOD_MS,
+                            easing = FastOutSlowInEasing,
+                            repeatMode = RepeatMode.Reverse,
+                            label = "float_offset_y",
+                        ),
+                    ),
+            )
+        }
+
+        MotionLoopEffect.GLOW_RING -> {
+            LoopTransformState(glowProgress = rememberLinearLoop(GLOW_RING_SPEC))
+        }
+
+        MotionLoopEffect.MARQUEE -> {
+            val swayPx = with(density) { MARQUEE_SWAY_DP.toPx() }
+            LoopTransformState(
+                translationX =
+                    rememberLinearLoop(
+                        RepeatingFloatSpec(
+                            initialValue = -swayPx,
+                            targetValue = swayPx,
+                            durationMs = MARQUEE_SWAY_PERIOD_MS,
+                            easing = FastOutSlowInEasing,
+                            repeatMode = RepeatMode.Reverse,
+                            label = "marquee_sway_x",
+                        ),
+                    ),
+            )
+        }
     }
+}
 
 private data class RepeatingFloatSpec(
     val initialValue: Float,
@@ -187,16 +240,6 @@ private val SHIMMER_SPEC =
         label = "shimmer_phase",
     )
 
-private val FLOAT_SPEC =
-    RepeatingFloatSpec(
-        initialValue = -FLOAT_AMPLITUDE_PX,
-        targetValue = FLOAT_AMPLITUDE_PX,
-        durationMs = FLOAT_PERIOD_MS,
-        easing = FastOutSlowInEasing,
-        repeatMode = RepeatMode.Reverse,
-        label = "float_offset_y",
-    )
-
 private val GLOW_RING_SPEC =
     RepeatingFloatSpec(
         initialValue = ZERO,
@@ -205,16 +248,6 @@ private val GLOW_RING_SPEC =
         easing = FastOutSlowInEasing,
         repeatMode = RepeatMode.Reverse,
         label = "glow_ring_progress",
-    )
-
-private val MARQUEE_SPEC =
-    RepeatingFloatSpec(
-        initialValue = -MARQUEE_SWAY_PX,
-        targetValue = MARQUEE_SWAY_PX,
-        durationMs = MARQUEE_SWAY_PERIOD_MS,
-        easing = FastOutSlowInEasing,
-        repeatMode = RepeatMode.Reverse,
-        label = "marquee_sway_x",
     )
 
 internal fun Modifier.applyLoopOverlays(
@@ -351,10 +384,13 @@ private fun Modifier.applyGlowRingHalo(
         val height = size.height
         if (width > ZERO && height > ZERO) {
             val progress = progressState.value
-            val innerStroke = GLOW_MIN_STROKE_PX + (GLOW_MAX_STROKE_PX - GLOW_MIN_STROKE_PX) * progress
+            val minStrokePx = GLOW_MIN_STROKE_DP.toPx()
+            val maxStrokePx = GLOW_MAX_STROKE_DP.toPx()
+            val maxCornerPx = GLOW_MAX_CORNER_RADIUS_DP.toPx()
+            val innerStroke = minStrokePx + (maxStrokePx - minStrokePx) * progress
             val outerStroke = innerStroke * GLOW_OUTER_STROKE_MULTIPLIER
             val innerAlpha = GLOW_MIN_ALPHA + (GLOW_MAX_ALPHA - GLOW_MIN_ALPHA) * progress
-            val cornerPx = minOf(minOf(width, height) / 2f, GLOW_MAX_CORNER_RADIUS_PX)
+            val cornerPx = minOf(minOf(width, height) / 2f, maxCornerPx)
             val radius = CornerRadius(cornerPx, cornerPx)
             drawRoundRect(
                 color = glowColor.copy(alpha = innerAlpha * GLOW_OUTER_ALPHA_FACTOR),

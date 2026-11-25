@@ -129,7 +129,7 @@ func canonicalInteractiveScreen() snippets.PageResponse {
 			Enter:         atoms.MotionTransitionFadeIn,
 			DurationToken: atoms.MotionDurationFast,
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "interactive_search_bar",
 			"surface":    "interactive-demo",
 		}).
@@ -180,7 +180,7 @@ func canonicalInteractiveScreen() snippets.PageResponse {
 			DurationToken: atoms.MotionDurationFast,
 			StaggerMs:     40,
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "interactive_chip_group",
 			"group_id":   "discovery_categories",
 		}).
@@ -267,7 +267,7 @@ func canonicalInteractiveScreen() snippets.PageResponse {
 			Enter:         atoms.MotionTransitionScaleIn,
 			DurationToken: atoms.MotionDurationNormal,
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "interactive_swipe_deck",
 			"deck_id":    "builders_deck",
 		}).
@@ -285,7 +285,7 @@ func canonicalInteractiveScreen() snippets.PageResponse {
 			MaxWidthDp: atoms.IntPtr(960),
 		}).
 		AddSnippets(searchSnippet, chipGroupSnippet, swipeDeckSnippet).
-		WithTracking("page_loaded", map[string]any{
+		WithTracking("page_loaded", map[string]string{
 			"page_id": "interactive-demo",
 			"version": "v1",
 		}).

@@ -18,6 +18,7 @@ import dev.abeta.kmp.core.logging.NoOpAppLogger
 import dev.abeta.kmp.core.platform.PlatformCapabilities
 import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.repository.ScreenRepository
+import dev.abeta.kmp.network.sse.SseTransport
 import dev.abeta.kmp.state.session.SessionStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -218,6 +219,7 @@ class SduiLayoutViewModel : ViewModel {
             platformBridges: PlatformBridgeBundle = PlatformBridgeBundle.createTestDefault(),
             onClearedCallback: () -> Unit = {},
             viewModelScope: CoroutineScope? = null,
+            sseTransport: SseTransport? = null,
         ): SduiLayoutViewModel {
             val factory: (CoroutineScope) -> LayoutController = { boundScope ->
                 LayoutController(
@@ -232,6 +234,7 @@ class SduiLayoutViewModel : ViewModel {
                     logger = logger,
                     offlineCoordinator = offlineCoordinator,
                     platformBridges = platformBridges,
+                    sseTransport = sseTransport,
                 )
             }
             return if (viewModelScope != null) {

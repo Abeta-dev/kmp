@@ -1,8 +1,12 @@
-import SwiftUI
-import AbetaSduiKit
-import AbetaWatchKit
+// Single-file reference SwiftUI hosts for teams vendoring Apple source directly
+// instead of importing the `AbetaSduiSwiftUI` and `AbetaWatchSwiftUI` SwiftPM libraries.
 
 // MARK: - 1. iOS & iPadOS SDUI Host (`AbetaSduiKit.xcframework`)
+
+#if canImport(SwiftUI) && os(iOS)
+import SwiftUI
+import UIKit
+import AbetaSduiKit
 
 struct AbetaIosSduiScreenView: UIViewControllerRepresentable {
     let screenId: String
@@ -33,38 +37,163 @@ struct AbetaIosRootAppView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        navigationContainer {
             AbetaIosSduiScreenView(
                 screenId: activeScreenId,
                 bffBaseUrl: bffBaseUrl
             )
             .id(activeScreenId)
             .ignoresSafeArea(.container, edges: .all)
-            .toolbar(.hidden, for: .navigationBar)
         }
         .onOpenURL { url in
-            if let resolved = resolveScreenId(from: url) {
+            if let resolved = resolveScreenId(from: url), !resolved.isEmpty {
                 activeScreenId = resolved
             }
         }
     }
 
-    private func resolveScreenId(from url: URL) -> String? {
-        let components = url.pathComponents.filter { $0 != "/" }
-        if let screensIdx = components.firstIndex(of: "screens"),
-           components.indices.contains(screensIdx + 1) {
-            return components[screensIdx + 1]
+    @ViewBuilder
+    private func navigationContainer<Content: View>(
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        if #available(iOS 16.0, *) {
+            NavigationStack {
+                content()
+                    .toolbar(.hidden, for: .navigationBar)
+            }
+        } else {
+            NavigationView {
+                content()
+                    .navigationBarHidden(true)
+            }
+            .navigationViewStyle(.stack)
         }
-        return components.last ?? url.host
+    }
+
+    private func resolveScreenId(from url: URL) -> String? {
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           let queryScreen = components.queryItems?.first(where: { $0.name == "screen" })?.value?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !queryScreen.isEmpty {
+            return queryScreen
+        }
+        let pathSegments = url.pathComponents.filter { $0 != "/" && !$0.isEmpty }
+        if let screensIdx = pathSegments.firstIndex(of: "screens"),
+           pathSegments.indices.contains(screensIdx + 1) {
+            return pathSegments[screensIdx + 1]
+        }
+        let scheme = url.scheme?.lowercased()
+        let isHttpScheme = scheme == "http" || scheme == "https"
+        if !isHttpScheme, url.host == "screens", let firstSegment = pathSegments.first {
+            return firstSegment
+        }
+        if let lastSegment = pathSegments.last {
+            return lastSegment
+        }
+        if !isHttpScheme, let host = url.host?.trimmingCharacters(in: .whitespacesAndNewlines), !host.isEmpty {
+            return host
+        }
+        return nil
     }
 }
+#endif
 
 // MARK: - 2. Apple Watch (`AbetaWatchKit.xcframework`)
 
+#if canImport(SwiftUI) && os(watchOS)
+import Foundation
+import SwiftUI
+import AbetaWatchKit
+
+private struct HostWatchUiStateBox: @unchecked Sendable {
+    let value: WatchUiState
+}
+
+private final class HostWatchCancelHandle: @unchecked Sendable {
+    private let lock = NSLock()
+    private var onCancel: (() -> Void)?
+
+    init(_ onCancel: @escaping () -> Void) {
+        self.onCancel = onCancel
+    }
+
+    func cancel() {
+        lock.lock()
+        let block = onCancel
+        onCancel = nil
+        lock.unlock()
+        block?()
+    }
+}
+
+private final class HostWatchLifecycle: @unchecked Sendable {
+    let holder: WatchCompanionHostHolder
+    private let lock = NSLock()
+    private var stateCancel: (() -> Void)?
+    private var connectivityCancel: (() -> Void)?
+    private var isClosed: Bool = false
+
+    init(holder: WatchCompanionHostHolder) {
+        self.holder = holder
+    }
+
+    func replaceHandles(
+        state: @escaping () -> Void,
+        connectivity: @escaping () -> Void
+    ) {
+        lock.lock()
+        let prevState = stateCancel
+        let prevConnectivity = connectivityCancel
+        if isClosed {
+            stateCancel = nil
+            connectivityCancel = nil
+            lock.unlock()
+            prevState?()
+            prevConnectivity?()
+            state()
+            connectivity()
+            return
+        }
+        stateCancel = state
+        connectivityCancel = connectivity
+        lock.unlock()
+        prevState?()
+        prevConnectivity?()
+    }
+
+    func stop() {
+        lock.lock()
+        let prevState = stateCancel
+        let prevConnectivity = connectivityCancel
+        stateCancel = nil
+        connectivityCancel = nil
+        lock.unlock()
+        prevState?()
+        prevConnectivity?()
+    }
+
+    func close() {
+        lock.lock()
+        let prevState = stateCancel
+        let prevConnectivity = connectivityCancel
+        stateCancel = nil
+        connectivityCancel = nil
+        let shouldClose = !isClosed
+        isClosed = true
+        lock.unlock()
+        prevState?()
+        prevConnectivity?()
+        if shouldClose {
+            holder.close()
+        }
+    }
+}
+
 @MainActor
 final class AbetaWatchViewModel: ObservableObject {
-    private let holder: WatchCompanionHostHolder
-    private var observeTask: Task<Void, Never>?
+    private let lifecycle: HostWatchLifecycle
+
+    private var holder: WatchCompanionHostHolder { lifecycle.holder }
 
     @Published var metrics: [WatchMetricGlance] = []
     @Published var cards: [WatchActionCard] = []
@@ -75,14 +204,18 @@ final class AbetaWatchViewModel: ObservableObject {
     @Published var toastMessage: String? = nil
 
     init(bffBaseUrl: String? = nil, initialScreenId: String = "watch-status") {
-        self.holder = WatchAppleFactoryKt.createAppleWatchCompanionHost(bffBaseUrl: bffBaseUrl)
-        holder.controller.loadScreen(screenId: initialScreenId)
+        let createdHolder = WatchAppleFactoryKt.createAppleWatchCompanionHost(bffBaseUrl: bffBaseUrl)
+        self.lifecycle = HostWatchLifecycle(holder: createdHolder)
         startObservingState()
+        createdHolder.controller.loadScreen(screenId: initialScreenId)
     }
 
     deinit {
-        observeTask?.cancel()
-        holder.close()
+        lifecycle.close()
+    }
+
+    func stop() {
+        lifecycle.stop()
     }
 
     func refresh() {
@@ -140,22 +273,25 @@ final class AbetaWatchViewModel: ObservableObject {
     }
 
     private func startObservingState() {
-        observeTask?.cancel()
-        observeTask = Task { [weak self] in
-            guard let self else { return }
-            for await state in holder.uiStateStream() {
-                if Task.isCancelled { break }
-                self.apply(state: state)
+        let stateCancel = holder.observeUiState { [weak self] state in
+            let boxed = HostWatchUiStateBox(value: state)
+            Task { @MainActor [weak self] in
+                self?.apply(state: boxed.value)
             }
         }
+        let connectivityCancel = holder.startConnectivityObservation()
+        lifecycle.replaceHandles(state: stateCancel, connectivity: connectivityCancel)
     }
 }
 
 struct AbetaWatchSduiView: View {
     @StateObject private var viewModel: AbetaWatchViewModel
 
-    init(bffBaseUrl: String? = nil) {
-        _viewModel = StateObject(wrappedValue: AbetaWatchViewModel(bffBaseUrl: bffBaseUrl))
+    @MainActor
+    init(bffBaseUrl: String? = nil, initialScreenId: String = "watch-status") {
+        _viewModel = StateObject(
+            wrappedValue: AbetaWatchViewModel(bffBaseUrl: bffBaseUrl, initialScreenId: initialScreenId)
+        )
     }
 
     var body: some View {
@@ -173,6 +309,7 @@ struct AbetaWatchSduiView: View {
                 }
             }
             .navigationTitle(viewModel.titleText)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
@@ -186,7 +323,7 @@ struct AbetaWatchSduiView: View {
                         .accessibilityLabel("Offline mode showing cached screen")
                 }
 
-                if let toast = viewModel.toastMessage {
+                if let toast = viewModel.toastMessage, !toast.isEmpty {
                     Button {
                         viewModel.dismissToast()
                     } label: {
@@ -212,6 +349,9 @@ struct AbetaWatchSduiView: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 4)
         }
+        .refreshable {
+            await viewModel.refreshAsync()
+        }
     }
 
     @ViewBuilder
@@ -236,6 +376,7 @@ struct AbetaWatchSduiView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .onTapGesture {
             viewModel.trigger(metric.onClick)
@@ -244,6 +385,28 @@ struct AbetaWatchSduiView: View {
 
     @ViewBuilder
     private func actionCardRow(_ card: WatchActionCard) -> some View {
+        if card.primaryActionLabel == nil,
+           card.secondaryActionLabel == nil,
+           let cardAction = card.primaryAction {
+            Button {
+                viewModel.trigger(cardAction)
+            } label: {
+                actionCardContent(card)
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(.isButton)
+        } else {
+            actionCardContent(card)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if card.primaryActionLabel == nil, let cardAction = card.primaryAction {
+                        viewModel.trigger(cardAction)
+                    }
+                }
+        }
+    }
+
+    private func actionCardContent(_ card: WatchActionCard) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 4) {
                 Text(card.title)
@@ -310,38 +473,18 @@ struct AbetaWatchSduiView: View {
 
 // MARK: - 3. Swift Concurrency (`async`/`await` + `AsyncStream`) Ergonomics
 
-/// Structured Swift Concurrency adapters bridging Kotlin `StateFlow<WatchUiState>` into native
-/// `AsyncStream` and `async`/`await` APIs for SwiftUI `.task` and `.refreshable` modifiers.
-///
-/// Tip: When your Xcode project enables Touchlab SKIE or Kotlin/Native Swift Export, you can
-/// iterate `for await state in holder.controller.uiState` directly with zero polling overhead;
-/// these helpers provide a drop-in zero-dependency fallback for plain Objective-C XCFrameworks.
 extension WatchCompanionHostHolder {
-    /// Emits `WatchUiState` updates as a cancellation-aware Swift `AsyncStream`.
-    func uiStateStream(
-        pollIntervalNanoseconds: UInt64 = 150_000_000
-    ) -> AsyncStream<WatchUiState> {
+    /// Emits `WatchUiState` updates as a reactive, cancellation-aware Swift `AsyncStream`
+    /// backed by `observeUiState` with zero polling overhead.
+    func uiStateStream() -> AsyncStream<WatchUiState> {
         AsyncStream { continuation in
-            let task = Task {
-                var lastEmitted: WatchUiState?
-                while !Task.isCancelled {
-                    if let current = self.controller.uiState.value as? WatchUiState {
-                        let changed = lastEmitted.map { !$0.isEqual(current) } ?? true
-                        if changed {
-                            lastEmitted = current
-                            continuation.yield(current)
-                        }
-                    }
-                    do {
-                        try await Task.sleep(nanoseconds: pollIntervalNanoseconds)
-                    } catch {
-                        break
-                    }
+            let cancelHandle = HostWatchCancelHandle(
+                self.observeUiState { state in
+                    continuation.yield(state)
                 }
-                continuation.finish()
-            }
+            )
             continuation.onTermination = { _ in
-                task.cancel()
+                cancelHandle.cancel()
             }
         }
     }
@@ -370,3 +513,4 @@ extension WatchCompanionHostHolder {
         return (controller.uiState.value as? WatchUiState) ?? WatchUiStateIdle.shared
     }
 }
+#endif

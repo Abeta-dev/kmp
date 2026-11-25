@@ -316,7 +316,7 @@ func MoldFlashDealRecipe(
 			Enter:         atoms.MotionTransitionSlideUp,
 			DurationToken: atoms.MotionDurationNormal,
 		}).
-		WithTracking("composed_recipe_viewed", map[string]any{
+		WithTracking("composed_recipe_viewed", map[string]string{
 			"recipe":  "flash_deal_card",
 			"deal_id": dealID,
 		}).
@@ -394,7 +394,7 @@ func MoldLoyaltyStampRecipe(
 			Enter:         atoms.MotionTransitionFadeIn,
 			DurationToken: atoms.MotionDurationNormal,
 		}).
-		WithTracking("composed_recipe_viewed", map[string]any{
+		WithTracking("composed_recipe_viewed", map[string]string{
 			"recipe":     "loyalty_stamp_card",
 			"program_id": programID,
 		}).
@@ -450,7 +450,7 @@ func MoldLiveEtaPromoRecipe(
 			Enter:         atoms.MotionTransitionSlideUp,
 			DurationToken: atoms.MotionDurationFast,
 		}).
-		WithTracking("composed_recipe_viewed", map[string]any{
+		WithTracking("composed_recipe_viewed", map[string]string{
 			"recipe":   "live_eta_promo_card",
 			"promo_id": promoID,
 		}).

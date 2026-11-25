@@ -28,6 +28,7 @@ kotlin {
                 enabled = false
             }
         }
+        // Required by Compose Multiplatform (CMP-4906) for wasmJs check tasks.
         binaries.executable()
     }
 

@@ -149,7 +149,7 @@ func TestAtomsJSONWireCompatibility(t *testing.T) {
 
 	assertHasKeys(t, layout, "padding", "margin", "bg_color", "corner_radius", "border", "fill_max_width")
 
-	meta := atoms.TrackingMeta{EventName: "viewed", Properties: map[string]any{"screen": "home"}}
+	meta := atoms.TrackingMeta{EventName: "viewed", Properties: map[string]string{"screen": "home"}}
 	assertHasKeys(t, meta, "event_name", "properties")
 
 	sw := atoms.NewSwitch("push_alerts", "Push Alerts", true, &click)

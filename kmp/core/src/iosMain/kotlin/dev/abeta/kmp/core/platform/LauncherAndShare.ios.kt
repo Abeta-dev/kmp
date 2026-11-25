@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalForeignApi::class)
 @file:Suppress("ktlint:standard:filename", "MatchingDeclarationName")
 
 package dev.abeta.kmp.core.platform
@@ -5,13 +6,18 @@ package dev.abeta.kmp.core.platform
 import dev.abeta.kmp.core.error.UnexpectedError
 import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.result.AppResult
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.suspendCancellableCoroutine
+import platform.CoreGraphics.CGRectGetMidX
+import platform.CoreGraphics.CGRectGetMidY
+import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSURL
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowScene
+import platform.UIKit.popoverPresentationController
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import kotlin.coroutines.resume
@@ -87,6 +93,18 @@ private class IosSharePort : SharePort {
                     return@dispatch_async
                 }
                 val sheet = UIActivityViewController(activityItems = items, applicationActivities = null)
+                sheet.popoverPresentationController?.let { popover ->
+                    val anchorView = rootController.view
+                    popover.sourceView = anchorView
+                    popover.sourceRect =
+                        CGRectMake(
+                            x = CGRectGetMidX(anchorView.bounds),
+                            y = CGRectGetMidY(anchorView.bounds),
+                            width = 0.0,
+                            height = 0.0,
+                        )
+                    popover.permittedArrowDirections = 0uL
+                }
                 rootController.presentViewController(sheet, animated = true) {
                     if (continuation.isActive) {
                         continuation.resume(AppResult.Success(Unit))

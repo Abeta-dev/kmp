@@ -57,8 +57,8 @@ type LayoutConfig struct {
 
 // TrackingMeta holds analytics event metadata attached to pages or snippets.
 type TrackingMeta struct {
-	EventName  string         `json:"event_name"`
-	Properties map[string]any `json:"properties,omitempty"`
+	EventName  string            `json:"event_name"`
+	Properties map[string]string `json:"properties,omitempty"`
 }
 
 // IconAtom describes a vector icon primitive.

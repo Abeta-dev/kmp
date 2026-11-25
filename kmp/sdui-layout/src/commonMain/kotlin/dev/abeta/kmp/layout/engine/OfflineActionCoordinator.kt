@@ -3,6 +3,7 @@ package dev.abeta.kmp.layout.engine
 import dev.abeta.kmp.actions.handler.ApiCallExecutor
 import dev.abeta.kmp.actions.model.ActionContext
 import dev.abeta.kmp.actions.model.CallApiPayload
+import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.core.error.NetworkError
 import dev.abeta.kmp.core.error.NotFoundError
@@ -23,12 +24,14 @@ import kotlinx.serialization.json.Json
  * Coordinates durable offline [CallApiPayload] queueing via [OfflineMutationQueue] and
  * replays queued mutations through [ApiCallExecutor] when connectivity recovers.
  */
+@Suppress("LongParameterList")
 class OfflineActionCoordinator(
     private val mutationQueue: OfflineMutationQueue,
     private val apiCallExecutor: ApiCallExecutor,
     private val logger: AppLogger = NoOpAppLogger(),
     private val json: Json = SduiJson,
     private val contextProvider: () -> ActionContext = { ActionContext() },
+    private val onFollowUpAction: (suspend (ActionRef) -> Unit)? = null,
 ) {
     /** Observable queue status counters and flush progress. */
     val status: StateFlow<OfflineQueueStatus> = mutationQueue.status
@@ -53,11 +56,13 @@ class OfflineActionCoordinator(
     }
 
     /**
-     * Replays all pending queued mutations through [apiCallExecutor] sequentially.
+     * Replays all pending queued mutations through [apiCallExecutor] sequentially, dispatching
+     * any returned `followUpActions` (or `payload.onSuccess`) through [onFollowUpAction].
      */
-    suspend fun flushAll(): AppResult<FlushReport> =
+    suspend fun flushAll(onFollowUpAction: (suspend (ActionRef) -> Unit)? = null): AppResult<FlushReport> =
         runCatchingResult {
-            mutationQueue.flush(::executeMutation)
+            val handler = onFollowUpAction ?: this.onFollowUpAction
+            mutationQueue.flush { mutation -> executeMutation(mutation, handler) }
         }
 
     /**
@@ -67,7 +72,10 @@ class OfflineActionCoordinator(
         mutationQueue.clear()
     }
 
-    private suspend fun executeMutation(mutation: QueuedMutation): AppResult<Unit> {
+    private suspend fun executeMutation(
+        mutation: QueuedMutation,
+        followUpHandler: (suspend (ActionRef) -> Unit)?,
+    ): AppResult<Unit> {
         val payload = if (mutation.type == MUTATION_TYPE_CALL_API) decodePayload(mutation) else null
         return when {
             mutation.type != MUTATION_TYPE_CALL_API -> {
@@ -88,12 +96,15 @@ class OfflineActionCoordinator(
             }
 
             else -> {
-                executeApiPayload(payload)
+                executeApiPayload(payload, followUpHandler)
             }
         }
     }
 
-    private suspend fun executeApiPayload(payload: CallApiPayload): AppResult<Unit> =
+    private suspend fun executeApiPayload(
+        payload: CallApiPayload,
+        followUpHandler: (suspend (ActionRef) -> Unit)?,
+    ): AppResult<Unit> =
         when (val result = apiCallExecutor.execute(payload, contextProvider())) {
             is AppResult.Failure -> {
                 result
@@ -101,6 +112,10 @@ class OfflineActionCoordinator(
 
             is AppResult.Success -> {
                 if (result.value.isSuccess) {
+                    val followUps = result.value.followUpActions.ifEmpty { listOfNotNull(payload.onSuccess) }
+                    followUps.forEach { followUp ->
+                        followUpHandler?.invoke(followUp)
+                    }
                     AppResult.Success(Unit)
                 } else {
                     AppResult.Failure(

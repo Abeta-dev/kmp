@@ -4,19 +4,8 @@ import dev.abeta.kmp.contracts.PageResponse
 import dev.abeta.kmp.contracts.SnippetDeltaOp
 import dev.abeta.kmp.contracts.SnippetDeltaPatch
 import dev.abeta.kmp.contracts.SnippetEnvelope
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 
-private val DEFAULT_APPEND_FIELD_PATHS =
-    listOf(
-        "body.text",
-        "text.text",
-        "message.text",
-        "subtitle.text",
-        "title.text",
-    )
+private const val MAX_PATCH_RECURSION_DEPTH = 16
 
 /**
  * Pure, deterministic reducer applying an incremental [SnippetDeltaPatch] to [page] without
@@ -45,9 +34,12 @@ fun applySnippetDeltaPatch(
 
         SnippetDeltaOp.REMOVE_SNIPPET -> {
             val targetId = patch.snippetId?.takeIf { it.isNotBlank() }
-            val filtered =
-                if (targetId != null) page.snippets.filterNot { it.snippetId == targetId } else page.snippets
-            if (filtered.size == page.snippets.size) page else page.copy(snippets = filtered)
+            if (targetId == null) {
+                page
+            } else {
+                val (updated, changed) = removeSnippetRecursive(page.snippets, targetId, depth = 0)
+                if (changed) page.copy(snippets = updated) else page
+            }
         }
 
         SnippetDeltaOp.UPDATE_PAGE_META -> {
@@ -122,123 +114,64 @@ private fun applyInsertSnippet(
     return page.copy(snippets = updatedSnippets)
 }
 
-private inline fun updateTargetSnippet(
+private fun updateTargetSnippet(
     page: PageResponse,
     targetId: String,
     transform: (SnippetEnvelope) -> SnippetEnvelope,
 ): PageResponse {
-    val index = page.snippets.indexOfFirst { it.snippetId == targetId }
-    return if (index < 0) {
-        page
-    } else {
-        val current = page.snippets[index]
-        val updated = transform(current)
-        if (updated == current) {
-            page
-        } else {
-            val nextSnippets =
-                page.snippets
-                    .toMutableList()
-                    .apply { set(index, updated) }
-                    .toList()
-            page.copy(snippets = nextSnippets)
-        }
-    }
+    val (updated, changed) = updateSnippetRecursive(page.snippets, targetId, depth = 0, transform = transform)
+    return if (changed) page.copy(snippets = updated) else page
 }
 
-private fun resolveAppendPathSegments(
-    data: JsonObject,
-    explicitPath: String?,
-): List<String> {
-    val parsedExplicit =
-        explicitPath
-            ?.split('.')
-            ?.map { it.trim() }
-            ?.filter { it.isNotEmpty() }
-            .orEmpty()
-    return if (parsedExplicit.isNotEmpty()) {
-        parsedExplicit
-    } else {
-        DEFAULT_APPEND_FIELD_PATHS
-            .map { it.split('.') }
-            .firstOrNull { segments ->
-                val parent =
-                    segments.dropLast(1).fold<String, JsonElement?>(data) { acc, segment ->
-                        (acc as? JsonObject)?.get(segment)
-                    } as? JsonObject
-                val leaf = parent?.get(segments.last())
-                leaf is JsonPrimitive && leaf.isString
-            } ?: DEFAULT_APPEND_FIELD_PATHS.first().split('.')
+private fun updateSnippetRecursive(
+    snippets: List<SnippetEnvelope>,
+    targetId: String,
+    depth: Int,
+    transform: (SnippetEnvelope) -> SnippetEnvelope,
+): Pair<List<SnippetEnvelope>, Boolean> {
+    if (depth > MAX_PATCH_RECURSION_DEPTH || snippets.isEmpty()) {
+        return snippets to false
     }
-}
-
-private fun appendTextAtPath(
-    current: JsonObject,
-    segments: List<String>,
-    chunk: String,
-): JsonObject {
-    if (segments.isEmpty()) return current
-    val head = segments.first()
-    val existing = current[head]
-    val updatedElement: JsonElement? =
-        if (segments.size == 1) {
-            appendLeafText(existing, chunk)
-        } else {
-            val childObject =
-                when (existing) {
-                    is JsonObject -> existing
-                    null, is JsonNull -> JsonObject(emptyMap())
-                    else -> null
-                }
-            childObject?.let { appendTextAtPath(it, segments.drop(1), chunk) }
-        }
-    return if (updatedElement == null) {
-        current
-    } else {
-        JsonObject(current.toMutableMap().apply { put(head, updatedElement) })
-    }
-}
-
-private fun appendLeafText(
-    existing: JsonElement?,
-    chunk: String,
-): JsonElement? =
-    when {
-        existing is JsonPrimitive && existing.isString -> {
-            JsonPrimitive(existing.content + chunk)
-        }
-
-        existing == null || existing is JsonNull -> {
-            JsonPrimitive(chunk)
-        }
-
-        existing is JsonObject && existing["text"] is JsonPrimitive -> {
-            val textLeaf = existing["text"] as JsonPrimitive
-            if (textLeaf.isString) {
-                JsonObject(existing.toMutableMap().apply { put("text", JsonPrimitive(textLeaf.content + chunk)) })
+    var changed = false
+    val result =
+        snippets.map { current ->
+            if (current.snippetId == targetId) {
+                val next = transform(current)
+                if (next != current) changed = true
+                next
             } else {
-                null
+                val (nested, nestedChanged) =
+                    transformContainerChildren(current, depth + 1) { childList ->
+                        updateSnippetRecursive(childList, targetId, depth + 1, transform)
+                    }
+                if (nestedChanged) changed = true
+                nested
             }
         }
+    return if (changed) result to true else snippets to false
+}
 
-        else -> {
-            null
+private fun removeSnippetRecursive(
+    snippets: List<SnippetEnvelope>,
+    targetId: String,
+    depth: Int,
+): Pair<List<SnippetEnvelope>, Boolean> {
+    if (depth > MAX_PATCH_RECURSION_DEPTH || snippets.isEmpty()) {
+        return snippets to false
+    }
+    var changed = false
+    val nextList = ArrayList<SnippetEnvelope>(snippets.size)
+    for (current in snippets) {
+        if (current.snippetId == targetId) {
+            changed = true
+            continue
         }
-    }
-
-internal fun deepMergeJsonObjects(
-    base: JsonObject,
-    overlay: JsonObject,
-): JsonObject {
-    val merged = base.toMutableMap()
-    for ((key, overlayValue) in overlay) {
-        val baseValue = merged[key]
-        merged[key] =
-            if (baseValue is JsonObject && overlayValue is JsonObject) {
-                deepMergeJsonObjects(baseValue, overlayValue)
-            } else {
-                overlayValue
+        val (nested, nestedChanged) =
+            transformContainerChildren(current, depth + 1) { childList ->
+                removeSnippetRecursive(childList, targetId, depth + 1)
             }
+        if (nestedChanged) changed = true
+        nextList.add(nested)
     }
-    return JsonObject(merged)
+    return if (changed) nextList to true else snippets to false
 }

@@ -255,6 +255,85 @@ class InteractiveSnippetsComposeTest {
             assertEquals("all", formState["chip_categories"])
         }
 
+    @Test
+    fun searchBarEncodesUrlAndFallbackRouteAndClearsUserTypedQueryWithoutInitialQuery() =
+        runComposeUiTest {
+            val capturedActions = mutableListOf<ActionRef>()
+            val searchData =
+                SearchBarSnippetData(
+                    searchId = "live_q",
+                    query = "",
+                    clearable = true,
+                    onSubmit =
+                        ActionRef(
+                            id = "search_open",
+                            type = "open_url",
+                            payload =
+                                buildJsonObject {
+                                    put("url", "https://abeta.dev/find?q={{query}}")
+                                    put("fallback_route", "/search?q={{query}}")
+                                },
+                        ),
+                )
+
+            setContent {
+                SingleSnippetHost(
+                    envelope = snippetEnvelope("search_url", SnippetTypes.SEARCH_BAR, searchData),
+                    onAction = capturedActions::add,
+                )
+            }
+
+            onNodeWithTag("search_input_live_q").performTextInput("ice cream")
+            onNodeWithTag("search_clear_live_q").assertIsDisplayed().performClick()
+            val cleared = capturedActions.last()
+            assertEquals("https://abeta.dev/find?q=", cleared.payload["url"]?.jsonPrimitive?.content)
+            assertEquals("/search?q=", cleared.payload["fallback_route"]?.jsonPrimitive?.content)
+
+            val resolved = resolveQueryPlaceholders(searchData.onSubmit!!, "cold brew")
+            assertEquals("https://abeta.dev/find?q=cold%20brew", resolved.payload["url"]?.jsonPrimitive?.content)
+            assertEquals("/search?q=cold%20brew", resolved.payload["fallback_route"]?.jsonPrimitive?.content)
+        }
+
+    @Test
+    fun chipGroupRestoresSelectionFromFormValuesAcrossRemount() =
+        runComposeUiTest {
+            val registry = BuiltInSnippetModule.createDefaultRegistry()
+            val chipsData =
+                ChipGroupSnippetData(
+                    groupId = "diet",
+                    multiSelect = true,
+                    chips =
+                        listOf(
+                            FilterChipItem(id = "all", label = "All", selected = true),
+                            FilterChipItem(id = "vegan", label = "Vegan", selected = false),
+                        ),
+                )
+            setContent {
+                DesignTheme(darkTheme = false, reducedMotion = true) {
+                    SduiScreen(
+                        state =
+                            LayoutUiState.Ready(
+                                page =
+                                    PageResponse(
+                                        pageId = "chip_restore",
+                                        snippets =
+                                            listOf(
+                                                snippetEnvelope("chips_diet", SnippetTypes.CHIP_GROUP, chipsData),
+                                            ),
+                                    ),
+                                formValues = mapOf("chip_diet" to "vegan"),
+                            ),
+                        snippetRegistry = registry,
+                        onAction = {},
+                        onFormValueChange = { _, _ -> },
+                    )
+                }
+            }
+
+            onNodeWithTag("chip_all").assertIsNotSelected()
+            onNodeWithTag("chip_vegan").assertIsSelected()
+        }
+
     private fun sampleSwipeDeckData(): SwipeDeckSnippetData =
         SwipeDeckSnippetData(
             deckId = "discover",

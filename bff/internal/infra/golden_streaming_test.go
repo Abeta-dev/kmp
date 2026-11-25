@@ -41,7 +41,7 @@ func canonicalStreamingAndVersionedScreen(t *testing.T) snippets.PageResponse {
 		WithLeadingIcon(atoms.NewIcon("sparkles", 20, theming.ColorBrandPrimary)).
 		WithTrailingTag(atoms.NewTag("SSE", theming.ColorInfoContainer)).
 		WithLayout(cardLayout).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "stream_demo_header",
 			"surface":    "streaming-versioned-demo",
 		}).
@@ -55,7 +55,7 @@ func canonicalStreamingAndVersionedScreen(t *testing.T) snippets.PageResponse {
 		WithDescription(atoms.NewText("Connecting to live stream... ", theming.TypographyBodyMedium, theming.ColorTextPrimary)).
 		WithBadge(atoms.NewTag("LIVE", theming.ColorSuccessContainer)).
 		WithLayout(cardLayout).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "stream_response_card",
 			"surface":    "streaming-versioned-demo",
 		}).
@@ -69,7 +69,7 @@ func canonicalStreamingAndVersionedScreen(t *testing.T) snippets.PageResponse {
 		WithDelta(atoms.NewTag("CONNECTING", theming.ColorInfoContainer)).
 		WithIcon(atoms.NewIcon("bolt", 20, theming.ColorBrandPrimary)).
 		WithLayout(cardLayout).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "stream_status_metric",
 			"surface":    "streaming-versioned-demo",
 		}).
@@ -90,7 +90,7 @@ func canonicalStreamingAndVersionedScreen(t *testing.T) snippets.PageResponse {
 			RetryMs:     snippets.Int64Ptr(3000),
 		}).
 		AddSnippets(header, responseCard, statusMetric).
-		WithTracking("page_loaded", map[string]any{
+		WithTracking("page_loaded", map[string]string{
 			"page_id": "streaming-versioned-demo",
 			"version": "v1",
 		}).

@@ -37,7 +37,7 @@ func canonicalExpressMoleculesAndAnalyticsScreen() snippets.PageResponse {
 			CornerRadius: atoms.UniformRadius(theming.RadiusMD.Dp()),
 			FillMaxWidth: atoms.BoolPtr(true),
 		}).
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "express_sticky_search",
 			"sticky":     "true",
 		}).
@@ -73,13 +73,13 @@ func canonicalExpressMoleculesAndAnalyticsScreen() snippets.PageResponse {
 		"express_hero_media",
 		snippets.MediaPagerNode(heroPager).
 			WithNodeID("node_express_hero_pager").
-			WithTracking("node_impression", map[string]any{
+			WithTracking("node_impression", map[string]string{
 				"component_id": "node_express_hero_pager",
 				"molecule":     "hero_media_pager",
 			}),
 	).
 		WithRecipeName("express_hero_media_pager").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "express_hero_pager_block",
 		}).
 		Build()
@@ -181,7 +181,7 @@ func canonicalExpressMoleculesAndAnalyticsScreen() snippets.PageResponse {
 
 	productGridSnippet := snippets.NewComposedBlockSnippet("express_product_grid", "express_products", productGridRoot).
 		WithRecipeName("express_product_grid").
-		WithTracking("snippet_impression", map[string]any{
+		WithTracking("snippet_impression", map[string]string{
 			"snippet_id": "express_product_grid",
 		}).
 		Build()
@@ -266,7 +266,7 @@ func canonicalExpressMoleculesAndAnalyticsScreen() snippets.PageResponse {
 			couponCard,
 			billSummary,
 		).
-		WithTracking("page_open", map[string]any{
+		WithTracking("page_open", map[string]string{
 			"page_id": "express-molecules-demo",
 			"version": "v1",
 		}).

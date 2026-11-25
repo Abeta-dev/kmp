@@ -22,12 +22,13 @@ import platform.Foundation.CFBridgingRelease
 import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSData
 import platform.Foundation.NSDictionary
+import platform.Foundation.NSLock
 import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
 import platform.Security.SecItemUpdate
 import platform.Security.errSecDuplicateItem
-import platform.Security.errSecInteractionNotAllowed
+import platform.Security.errSecItemNotFound
 import platform.Security.errSecMissingEntitlement
 import platform.Security.errSecSuccess
 import platform.Security.kSecAttrAccessible
@@ -57,16 +58,91 @@ internal expect fun createMutableCfDictionary(): CFMutableDictionaryRef?
 private class AppleKeychainSecureStore(
     private val serviceName: String,
 ) : SecureKeyValueStore {
+    private val lock = NSLock()
     private val fallbackStore = InMemoryKeyValueStore()
     private var useFallbackOnly = false
 
     override val storageBackend: String
-        get() = if (useFallbackOnly) "AppleKeychainFallbackInMemory" else "AppleKeychain"
+        get() = withLock { if (useFallbackOnly) "AppleKeychainFallbackInMemory" else "AppleKeychain" }
 
     override val isHardwareOrOsEncrypted: Boolean
-        get() = !useFallbackOnly
+        get() = withLock { !useFallbackOnly }
 
-    override fun getString(key: String): String? {
+    override fun getString(key: String): String? = withLock { getStringLocked(key) }
+
+    override fun putString(
+        key: String,
+        value: String,
+    ) = withLock {
+        if (useFallbackOnly) {
+            fallbackStore.putString(key, value)
+            return@withLock
+        }
+        val encoded = encodeUtf8NsData(value)
+        if (encoded != null) {
+            writeKeychainItemLocked(key = key, rawValue = value, encoded = encoded)
+        }
+    }
+
+    override fun remove(key: String) =
+        withLock {
+            if (useFallbackOnly) {
+                fallbackStore.remove(key)
+                return@withLock
+            }
+            val status = withKeychainQuery(account = key) { dictRef -> SecItemDelete(dictRef) }
+            if (shouldUseFallback(status)) {
+                useFallbackOnly = true
+                fallbackStore.remove(key)
+            }
+        }
+
+    override fun clear() =
+        withLock {
+            if (useFallbackOnly) {
+                fallbackStore.clear()
+                return@withLock
+            }
+            val status = withKeychainQuery(account = null) { dictRef -> SecItemDelete(dictRef) }
+            if (shouldUseFallback(status)) {
+                useFallbackOnly = true
+                fallbackStore.clear()
+            }
+        }
+
+    override fun contains(key: String): Boolean = withLock { getStringLocked(key) != null }
+
+    override fun keys(): Set<String> =
+        withLock {
+            if (useFallbackOnly) return@withLock fallbackStore.keys()
+            memScoped {
+                val resultRef = alloc<CFTypeRefVar>()
+                val status =
+                    withKeychainQuery(
+                        account = null,
+                        cfEntries =
+                            listOf(
+                                kSecReturnAttributes to kCFBooleanTrue,
+                                kSecMatchLimit to kSecMatchLimitAll,
+                            ),
+                    ) { dictRef ->
+                        SecItemCopyMatching(dictRef, resultRef.ptr)
+                    }
+                if (shouldUseFallback(status)) {
+                    useFallbackOnly = true
+                    return@memScoped fallbackStore.keys()
+                }
+                if (status != errSecSuccess) return@memScoped emptySet()
+                val list = CFBridgingRelease(resultRef.value) as? List<*> ?: return@memScoped emptySet()
+                list
+                    .mapNotNull { entry ->
+                        val dict = entry as? NSDictionary
+                        dict?.objectForKey(ATTR_ACCOUNT_KEY) as? String
+                    }.toSet()
+            }
+        }
+
+    private fun getStringLocked(key: String): String? {
         if (useFallbackOnly) return fallbackStore.getString(key)
         return memScoped {
             val resultRef = alloc<CFTypeRefVar>()
@@ -87,112 +163,69 @@ private class AppleKeychainSecureStore(
         }
     }
 
-    override fun putString(
-        key: String,
-        value: String,
-    ) {
-        if (useFallbackOnly) {
-            fallbackStore.putString(key, value)
-            return
-        }
-        val encoded = encodeUtf8NsData(value)
-        if (encoded != null) {
-            writeKeychainItem(key = key, rawValue = value, encoded = encoded)
-        }
-    }
-
-    private fun writeKeychainItem(
+    private fun writeKeychainItemLocked(
         key: String,
         rawValue: String,
         encoded: NSData,
     ) {
-        val addStatus =
-            withKeychainQuery(
-                account = key,
-                cfEntries = listOf(kSecAttrAccessible to kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly),
-                objectEntries = listOf(kSecValueData to encoded),
-            ) { dictRef ->
-                SecItemAdd(dictRef, null)
-            }
+        val addStatus = addKeychainItem(key = key, encoded = encoded)
         if (shouldUseFallback(addStatus)) {
             useFallbackOnly = true
             fallbackStore.putString(key, rawValue)
         } else if (addStatus == errSecDuplicateItem) {
-            updateExistingItem(key = key, encoded = encoded)
+            updateExistingItemLocked(key = key, rawValue = rawValue, encoded = encoded)
         }
     }
 
-    private fun updateExistingItem(
+    private fun addKeychainItem(
         key: String,
+        encoded: NSData,
+    ): Int =
+        withKeychainQuery(
+            account = key,
+            cfEntries = listOf(kSecAttrAccessible to kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly),
+            objectEntries = listOf(kSecValueData to encoded),
+        ) { dictRef ->
+            SecItemAdd(dictRef, null)
+        }
+
+    private fun updateExistingItemLocked(
+        key: String,
+        rawValue: String,
         encoded: NSData,
     ) {
         val updateDict = createMutableCfDictionary()
         val retainedEncoded = CFBridgingRetain(encoded)
-        try {
-            if (updateDict != null && retainedEncoded != null) {
-                CFDictionarySetValue(updateDict, kSecValueData, retainedEncoded)
-            }
-            withKeychainQuery(account = key) { queryRef ->
-                SecItemUpdate(queryRef, updateDict)
-            }
-        } finally {
-            retainedEncoded?.let { CFRelease(it) }
-            updateDict?.let { CFRelease(it) }
-        }
-    }
-
-    override fun remove(key: String) {
-        if (useFallbackOnly) {
-            fallbackStore.remove(key)
-            return
-        }
-        val status = withKeychainQuery(account = key) { dictRef -> SecItemDelete(dictRef) }
-        if (shouldUseFallback(status)) {
-            useFallbackOnly = true
-            fallbackStore.remove(key)
-        }
-    }
-
-    override fun clear() {
-        if (useFallbackOnly) {
-            fallbackStore.clear()
-            return
-        }
-        val status = withKeychainQuery(account = null) { dictRef -> SecItemDelete(dictRef) }
-        if (shouldUseFallback(status)) {
-            useFallbackOnly = true
-            fallbackStore.clear()
-        }
-    }
-
-    override fun contains(key: String): Boolean = getString(key) != null
-
-    override fun keys(): Set<String> {
-        if (useFallbackOnly) return fallbackStore.keys()
-        return memScoped {
-            val resultRef = alloc<CFTypeRefVar>()
-            val status =
-                withKeychainQuery(
-                    account = null,
-                    cfEntries =
-                        listOf(
-                            kSecReturnAttributes to kCFBooleanTrue,
-                            kSecMatchLimit to kSecMatchLimitAll,
-                        ),
-                ) { dictRef ->
-                    SecItemCopyMatching(dictRef, resultRef.ptr)
+        val updateStatus =
+            try {
+                if (updateDict != null && retainedEncoded != null) {
+                    CFDictionarySetValue(updateDict, kSecValueData, retainedEncoded)
                 }
-            if (shouldUseFallback(status)) {
-                useFallbackOnly = true
-                return@memScoped fallbackStore.keys()
+                withKeychainQuery(account = key) { queryRef ->
+                    SecItemUpdate(queryRef, updateDict)
+                }
+            } finally {
+                retainedEncoded?.let { CFRelease(it) }
+                updateDict?.let { CFRelease(it) }
             }
-            if (status != errSecSuccess) return@memScoped emptySet()
-            val list = CFBridgingRelease(resultRef.value) as? List<*> ?: return@memScoped emptySet()
-            list
-                .mapNotNull { entry ->
-                    val dict = entry as? NSDictionary
-                    dict?.objectForKey(ATTR_ACCOUNT_KEY) as? String
-                }.toSet()
+        if (shouldUseFallback(updateStatus)) {
+            useFallbackOnly = true
+            fallbackStore.putString(key, rawValue)
+        } else if (updateStatus == errSecItemNotFound) {
+            val retryStatus = addKeychainItem(key = key, encoded = encoded)
+            if (shouldUseFallback(retryStatus)) {
+                useFallbackOnly = true
+                fallbackStore.putString(key, rawValue)
+            }
+        }
+    }
+
+    private inline fun <T> withLock(block: () -> T): T {
+        lock.lock()
+        return try {
+            block()
+        } finally {
+            lock.unlock()
         }
     }
 
@@ -245,9 +278,7 @@ private class AppleKeychainSecureStore(
     private companion object {
         const val ATTR_ACCOUNT_KEY = "acct"
 
-        fun shouldUseFallback(status: Int): Boolean =
-            status == errSecMissingEntitlement ||
-                status == errSecInteractionNotAllowed
+        fun shouldUseFallback(status: Int): Boolean = status == errSecMissingEntitlement
     }
 }
 

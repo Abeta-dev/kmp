@@ -1,6 +1,6 @@
-# Web (WasmJS) Room 3 + SQLite Setup (`dev.abeta.kmp:database`)
+# Web (WasmJS) Room 3 + SQLite Setup (`io.github.abeta-dev:database`)
 
-`dev.abeta.kmp:database` compiles for `wasmJs` with **Room 3 (`androidx.room3:room3-runtime:3.0.3`)** and **SQLite Web (`androidx.sqlite:sqlite-web:2.7.1`)**, using `WebWorkerSQLiteDriver` to run SQLite off the browser main thread.
+`io.github.abeta-dev:database` compiles for `wasmJs` with **Room 3 (`androidx.room3:room3-runtime:3.0.3`)** and **SQLite Web (`androidx.sqlite:sqlite-web:2.7.1`)**, using `WebWorkerSQLiteDriver` to run SQLite off the browser main thread.
 
 ## 1. Required Cross-Origin Isolation Headers (OPFS / SharedArrayBuffer)
 
@@ -35,7 +35,7 @@ add_header Cross-Origin-Embedder-Policy "require-corp" always;
 
 ## 2. Host Dependencies (`build.gradle.kts`)
 
-Your WasmJS host app needs `dev.abeta.kmp:database` plus `kotlinx-browser` (to construct `org.w3c.dom.Worker` for `WebWorkerSQLiteDriver`, since `androidx.sqlite:sqlite-web:2.7.1` declares `kotlinx-browser` on its runtime classpath):
+Your WasmJS host app needs `io.github.abeta-dev:database` plus `kotlinx-browser` (to construct `org.w3c.dom.Worker` for `WebWorkerSQLiteDriver`, since `androidx.sqlite:sqlite-web:2.7.1` declares `kotlinx-browser` on its runtime classpath):
 
 ```kotlin
 kotlin {
@@ -44,8 +44,8 @@ kotlin {
     }
     sourceSets {
         wasmJsMain.dependencies {
-            implementation(platform("dev.abeta.kmp:bom:<version>"))
-            implementation("dev.abeta.kmp:database")
+            implementation(platform("io.github.abeta-dev:bom:<version>"))
+            implementation("io.github.abeta-dev:database")
             implementation("org.jetbrains.kotlinx:kotlinx-browser:<version>")
         }
     }

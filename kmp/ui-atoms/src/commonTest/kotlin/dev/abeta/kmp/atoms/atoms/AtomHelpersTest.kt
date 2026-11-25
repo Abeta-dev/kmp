@@ -185,8 +185,11 @@ class AtomHelpersTest {
         assertEquals("42 km", formatSliderValue(42f, "km"))
         assertEquals("12.5 %", formatSliderValue(12.5f, "%"))
         assertEquals("-0.5", formatSliderValue(-0.5f, null))
+        assertEquals("0", formatSliderValue(Float.NaN, null))
+        assertEquals("0 km", formatSliderValue(Float.POSITIVE_INFINITY, "km"))
         assertEquals(10f..11f, resolveSliderRange(10f, 5f))
         assertEquals(0f..100f, resolveSliderRange(0f, 100f))
+        assertEquals(0f..1f, resolveSliderRange(Float.NaN, Float.POSITIVE_INFINITY))
 
         assertEquals("AL", resolveAvatarInitials(" al ", "Ada Lovelace"))
         assertEquals("DK", resolveAvatarInitials(null, "Donald Knuth"))
@@ -260,6 +263,31 @@ class AtomHelpersTest {
         assertTrue(isCountdownUrgent(remainingSeconds = 1, urgentThresholdSeconds = 60))
         assertFalse(isCountdownUrgent(remainingSeconds = 61, urgentThresholdSeconds = 60))
         assertFalse(isCountdownUrgent(remainingSeconds = 0, urgentThresholdSeconds = 60))
+
+        assertEquals(
+            45,
+            resolveCountdownRemainingSeconds(
+                fallbackRemainingSeconds = 120,
+                expiresAtEpochMs = 1_045_000L,
+                nowEpochMs = 1_000_000L,
+            ),
+        )
+        assertEquals(
+            0,
+            resolveCountdownRemainingSeconds(
+                fallbackRemainingSeconds = 120,
+                expiresAtEpochMs = 999_000L,
+                nowEpochMs = 1_000_000L,
+            ),
+        )
+        assertEquals(
+            90,
+            resolveCountdownRemainingSeconds(
+                fallbackRemainingSeconds = 90,
+                expiresAtEpochMs = null,
+                nowEpochMs = 1_000_000L,
+            ),
+        )
     }
 
     @Test
@@ -268,6 +296,7 @@ class AtomHelpersTest {
         assertFalse(shouldRollDigitUp(previous = '5', current = '4'))
         assertTrue(shouldRollDigitUp(previous = '9', current = '9'))
         assertTrue(shouldRollDigitUp(previous = ':', current = '1'))
+        assertTrue(shouldRollDigitUp(previous = '\u0661', current = '2'))
 
         assertFalse(isLoopEffectActive(MotionLoopEffect.NONE, reducedMotion = false))
         val activeEffects =

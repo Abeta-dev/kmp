@@ -2,7 +2,9 @@ package dev.abeta.kmp.layout.engine
 
 import dev.abeta.kmp.actions.handler.ActionOutcome
 import dev.abeta.kmp.actions.handler.ApiCallExecutor
+import dev.abeta.kmp.actions.model.ActionTypes
 import dev.abeta.kmp.actions.model.CallApiPayload
+import dev.abeta.kmp.contracts.ActionRef
 import dev.abeta.kmp.core.error.OfflineError
 import dev.abeta.kmp.core.identity.SequentialUuidGenerator
 import dev.abeta.kmp.core.result.AppResult
@@ -104,5 +106,42 @@ class OfflineActionCoordinatorTest {
 
             coordinator.clear()
             assertEquals(0, coordinator.status.value.pendingCount)
+        }
+
+    @Test
+    fun flushDispatchesFollowUpActionsUponReplaySuccess() =
+        runTest {
+            val followUp = ActionRef(id = "replay_toast", type = ActionTypes.SHOW_TOAST)
+            val dispatchedFollowUps = mutableListOf<ActionRef>()
+            val queue =
+                OfflineMutationQueue(
+                    backingStore = InMemoryKeyValueStore(),
+                    clock = MutableClock(30_000L),
+                    uuidGenerator = SequentialUuidGenerator(),
+                )
+            val executor =
+                ApiCallExecutor { payload, _ ->
+                    AppResult.Success(
+                        ActionOutcome.ApiCallResult(
+                            endpoint = payload.endpoint,
+                            method = payload.method,
+                            isSuccess = true,
+                            statusCode = 200,
+                            followUpActions = listOf(followUp),
+                        ),
+                    )
+                }
+            val coordinator = OfflineActionCoordinator(mutationQueue = queue, apiCallExecutor = executor)
+            coordinator.enqueueOfflineCall(
+                payload = CallApiPayload(endpoint = "/api/v1/orders", method = "POST"),
+                reason = "Offline",
+            )
+
+            val report =
+                assertIs<AppResult.Success<FlushReport>>(
+                    coordinator.flushAll(onFollowUpAction = { dispatchedFollowUps += it }),
+                ).value
+            assertEquals(1, report.succeeded)
+            assertEquals(listOf(followUp), dispatchedFollowUps)
         }
 }

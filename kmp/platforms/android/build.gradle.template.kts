@@ -1,5 +1,5 @@
 // Reference Gradle build template demonstrating Google's official KMP Android Library plugin
-// (`com.android.kotlin.multiplatform.library`) alongside the Abeta KMP Kit BOM (`0.6.0`) and
+// (`com.android.kotlin.multiplatform.library`) alongside the Abeta KMP Kit BOM (`0.7.0`) and
 // official Google AndroidX KMP libraries (`androidx.lifecycle`, `androidx.savedstate`,
 // `androidx.datastore`, `androidx.sqlite`).
 //
@@ -36,7 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Abeta KMP Kit BOM aligns all `io.github.abeta-dev:*` library versions.
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.6.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:state")
             implementation("io.github.abeta-dev:database")
@@ -48,11 +48,14 @@ kotlin {
             implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.1")
             implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.1")
             implementation("androidx.datastore:datastore-preferences-core:1.3.0")
+            implementation("androidx.room3:room3-runtime:3.0.3")
             implementation("androidx.sqlite:sqlite-bundled:2.7.1")
         }
 
         androidMain.dependencies {
+            implementation("androidx.core:core-ktx:1.16.0")
             implementation("androidx.activity:activity-compose:1.10.1")
+            implementation("androidx.compose.material3:material3:1.3.2")
             implementation("androidx.biometric:biometric:1.1.0")
             implementation("androidx.fragment:fragment-ktx:1.8.6")
         }

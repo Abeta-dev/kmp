@@ -23,8 +23,8 @@ public final class dev/abeta/kmp/layout/analytics/RemoteBffAnalyticsTracker$Comp
 }
 
 public final class dev/abeta/kmp/layout/di/SduiKoinModuleKt {
-	public static final fun createSduiKoinModule (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;ZLjava/lang/String;Ldev/abeta/kmp/network/ports/CsrfTokenProvider;Ljava/lang/String;Ljava/lang/String;Z)Lorg/koin/core/module/Module;
-	public static synthetic fun createSduiKoinModule$default (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;ZLjava/lang/String;Ldev/abeta/kmp/network/ports/CsrfTokenProvider;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lorg/koin/core/module/Module;
+	public static final fun createSduiKoinModule (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;ZLjava/lang/String;Ldev/abeta/kmp/network/ports/CsrfTokenProvider;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/layout/snippet/CustomSlotRegistry;)Lorg/koin/core/module/Module;
+	public static synthetic fun createSduiKoinModule$default (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/engine/HttpClientEngine;Ldev/abeta/kmp/core/storage/KeyValueStore;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/repository/ScreenCachePolicy;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLdev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Ljava/util/Map;ZLjava/lang/String;Ldev/abeta/kmp/network/ports/CsrfTokenProvider;Ljava/lang/String;Ljava/lang/String;ZLdev/abeta/kmp/layout/snippet/CustomSlotRegistry;ILjava/lang/Object;)Lorg/koin/core/module/Module;
 }
 
 public final class dev/abeta/kmp/layout/engine/LayoutController {
@@ -99,14 +99,15 @@ public final class dev/abeta/kmp/layout/engine/LayoutUiState$Loading : dev/abeta
 
 public final class dev/abeta/kmp/layout/engine/LayoutUiState$Ready : dev/abeta/kmp/layout/engine/LayoutUiState {
 	public static final field $stable I
-	public fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;Z)V
-	public synthetic fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;ZJ)V
+	public synthetic fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;ZJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/abeta/kmp/contracts/PageResponse;
 	public final fun component10 ()J
 	public final fun component11 ()Z
 	public final fun component12 ()J
 	public final fun component13 ()Ljava/lang/String;
 	public final fun component14 ()Z
+	public final fun component15 ()J
 	public final fun component2 ()Ljava/util/Map;
 	public final fun component3 ()Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
 	public final fun component4 ()Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;
@@ -115,8 +116,8 @@ public final class dev/abeta/kmp/layout/engine/LayoutUiState$Ready : dev/abeta/k
 	public final fun component7 ()Z
 	public final fun component8 ()I
 	public final fun component9 ()Ldev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;
-	public final fun copy (Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;Z)Ldev/abeta/kmp/layout/engine/LayoutUiState$Ready;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/engine/LayoutUiState$Ready;Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;ZILjava/lang/Object;)Ldev/abeta/kmp/layout/engine/LayoutUiState$Ready;
+	public final fun copy (Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;ZJ)Ldev/abeta/kmp/layout/engine/LayoutUiState$Ready;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/engine/LayoutUiState$Ready;Ldev/abeta/kmp/contracts/PageResponse;Ljava/util/Map;Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;Ldev/abeta/kmp/actions/handler/ActionOutcome$ToastRequested;Ljava/util/Map;ZZILdev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;JZJLjava/lang/String;ZJILjava/lang/Object;)Ldev/abeta/kmp/layout/engine/LayoutUiState$Ready;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getActiveFeedback ()Ldev/abeta/kmp/actions/handler/ActionOutcome$FeedbackTriggered;
 	public final fun getActiveOverlay ()Ldev/abeta/kmp/actions/handler/ActionOutcome$OverlayRequested;
@@ -127,6 +128,7 @@ public final class dev/abeta/kmp/layout/engine/LayoutUiState$Ready : dev/abeta/k
 	public final fun getFormValues ()Ljava/util/Map;
 	public final fun getPage ()Ldev/abeta/kmp/contracts/PageResponse;
 	public final fun getPendingOfflineActions ()I
+	public final fun getToastSequence ()J
 	public final fun getValidationErrors ()Ljava/util/Map;
 	public fun hashCode ()I
 	public final fun isLoadingMore ()Z
@@ -140,12 +142,13 @@ public final class dev/abeta/kmp/layout/engine/OfflineActionCoordinator {
 	public static final field $stable I
 	public static final field MUTATION_TYPE_CALL_API Ljava/lang/String;
 	public static final field TAG Ljava/lang/String;
-	public fun <init> (Ldev/abeta/kmp/state/sync/OfflineMutationQueue;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/logging/AppLogger;Lkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function0;)V
-	public synthetic fun <init> (Ldev/abeta/kmp/state/sync/OfflineMutationQueue;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/logging/AppLogger;Lkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/abeta/kmp/state/sync/OfflineMutationQueue;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/logging/AppLogger;Lkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/state/sync/OfflineMutationQueue;Ldev/abeta/kmp/actions/handler/ApiCallExecutor;Ldev/abeta/kmp/core/logging/AppLogger;Lkotlinx/serialization/json/Json;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun enqueueOfflineCall (Ldev/abeta/kmp/actions/model/CallApiPayload;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun enqueueOfflineCall$default (Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/actions/model/CallApiPayload;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun flushAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun flushAll (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun flushAll$default (Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun getStatus ()Lkotlinx/coroutines/flow/StateFlow;
 }
 
@@ -185,8 +188,8 @@ public final class dev/abeta/kmp/layout/engine/SduiLayoutViewModel : androidx/li
 }
 
 public final class dev/abeta/kmp/layout/engine/SduiLayoutViewModel$Companion {
-	public final fun create (Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/CoroutineScope;)Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;
-	public static synthetic fun create$default (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel$Companion;Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/CoroutineScope;ILjava/lang/Object;)Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;
+	public final fun create (Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/CoroutineScope;Ldev/abeta/kmp/network/sse/SseTransport;)Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;
+	public static synthetic fun create$default (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel$Companion;Ldev/abeta/kmp/layout/repository/ScreenRepository;Ldev/abeta/kmp/actions/handler/ActionDispatcher;Ldev/abeta/kmp/state/session/SessionStore;Ldev/abeta/kmp/analytics/AnalyticsTracker;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ldev/abeta/kmp/core/logging/AppLogger;Ldev/abeta/kmp/layout/engine/OfflineActionCoordinator;Ldev/abeta/kmp/layout/platform/PlatformBridgeBundle;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/CoroutineScope;Ldev/abeta/kmp/network/sse/SseTransport;ILjava/lang/Object;)Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;
 	public final fun readSnapshot (Landroidx/savedstate/SavedState;)Ldev/abeta/kmp/layout/engine/SduiSavedSnapshot;
 }
 
@@ -373,14 +376,16 @@ public abstract interface class dev/abeta/kmp/layout/repository/ConditionalScree
 
 public final class dev/abeta/kmp/layout/repository/ConditionalScreenFetchResult$Modified : dev/abeta/kmp/layout/repository/ConditionalScreenFetchResult {
 	public static final field $stable I
-	public fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;)V
-	public synthetic fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/abeta/kmp/contracts/PageResponse;
 	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;)Ldev/abeta/kmp/layout/repository/ConditionalScreenFetchResult$Modified;
-	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/repository/ConditionalScreenFetchResult$Modified;Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/layout/repository/ConditionalScreenFetchResult$Modified;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;Ljava/lang/String;)Ldev/abeta/kmp/layout/repository/ConditionalScreenFetchResult$Modified;
+	public static synthetic fun copy$default (Ldev/abeta/kmp/layout/repository/ConditionalScreenFetchResult$Modified;Ldev/abeta/kmp/contracts/PageResponse;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/abeta/kmp/layout/repository/ConditionalScreenFetchResult$Modified;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEtag ()Ljava/lang/String;
+	public final fun getHttpEtag ()Ljava/lang/String;
 	public final fun getPage ()Ldev/abeta/kmp/contracts/PageResponse;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -421,8 +426,8 @@ public final class dev/abeta/kmp/layout/repository/RemoteScreenManifestRepositor
 	public static final field $stable I
 	public static final field Companion Ldev/abeta/kmp/layout/repository/RemoteScreenManifestRepository$Companion;
 	public static final field DEFAULT_MANIFEST_PATH Ljava/lang/String;
-	public fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;)V
-	public synthetic fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun fetchManifest (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -433,8 +438,9 @@ public final class dev/abeta/kmp/layout/repository/RemoteScreenRepository : dev/
 	public static final field $stable I
 	public static final field Companion Ldev/abeta/kmp/layout/repository/RemoteScreenRepository$Companion;
 	public static final field DEFAULT_BASE_PATH Ljava/lang/String;
-	public fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;)V
-	public synthetic fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final field HEADER_CLIENT_APP_VERSION Ljava/lang/String;
+	public fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ldev/abeta/kmp/network/client/HttpTransport;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun fetchScreen (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun fetchScreenConditional (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -598,8 +604,8 @@ public final class dev/abeta/kmp/layout/ui/ComposableSingletons$SduiScreenKt {
 }
 
 public final class dev/abeta/kmp/layout/ui/SduiHostRootKt {
-	public static final fun SduiHostedRoot (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;Ldev/abeta/kmp/layout/snippet/SnippetRegistry;Ldev/abeta/kmp/atoms/atoms/UiImageRenderer;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
-	public static final fun SduiHostedRoot (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;ZLandroidx/compose/runtime/Composer;II)V
+	public static final fun SduiHostedRoot (Ldev/abeta/kmp/layout/engine/SduiLayoutViewModel;Ldev/abeta/kmp/layout/snippet/SnippetRegistry;Ldev/abeta/kmp/atoms/atoms/UiImageRenderer;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Ldev/abeta/kmp/layout/snippet/CustomSlotRegistry;Landroidx/compose/runtime/Composer;II)V
+	public static final fun SduiHostedRoot (Ljava/lang/String;Ljava/lang/String;Ldev/abeta/kmp/core/logging/AppLogger;Ljava/lang/String;ZLdev/abeta/kmp/layout/snippet/CustomSlotRegistry;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class dev/abeta/kmp/layout/ui/SduiScreenKt {

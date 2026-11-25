@@ -274,7 +274,7 @@ private fun SampleScreens.buildContainersGrid(): SnippetEnvelope {
                 encode(
                     MetricCardSnippetData(
                         label = text("Active Snippets", "label.medium", "text.secondary"),
-                        value = text("13", "headline.medium"),
+                        value = text("23", "headline.medium"),
                         layout = cardLayout,
                     ),
                 ),
@@ -288,7 +288,7 @@ private fun SampleScreens.buildContainersGrid(): SnippetEnvelope {
                 encode(
                     MetricCardSnippetData(
                         label = text("Atoms Ready", "label.medium", "text.secondary"),
-                        value = text("14", "headline.medium"),
+                        value = text("31", "headline.medium"),
                         layout = cardLayout,
                     ),
                 ),

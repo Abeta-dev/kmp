@@ -61,6 +61,9 @@ func DecodeSnippetData[T any](env SnippetEnvelope) (T, error) {
 	if typed, ok := env.Data.(T); ok {
 		return typed, nil
 	}
+	if ptr, ok := env.Data.(*T); ok && ptr != nil {
+		return *ptr, nil
+	}
 	raw, err := json.Marshal(env.Data)
 	if err != nil {
 		return zero, fmt.Errorf("snippets: marshal envelope %q data: %w", env.SnippetID, err)

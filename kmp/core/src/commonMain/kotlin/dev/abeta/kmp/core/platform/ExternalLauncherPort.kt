@@ -4,6 +4,8 @@ import dev.abeta.kmp.core.error.ValidationError
 import dev.abeta.kmp.core.result.AppResult
 
 private val DEFAULT_ALLOWED_URL_SCHEMES = setOf("https", "http", "mailto", "tel")
+private const val ASCII_CONTROL_LIMIT = 0x20
+private const val ASCII_DEL = 0x7F
 
 /**
  * Cross-platform external browser / OS URL launcher port.
@@ -17,18 +19,30 @@ interface ExternalLauncherPort {
 }
 
 /**
- * Validates [url] against [allowedSchemes] (blocking unsafe schemes such as `javascript:` or `file:`).
+ * Validates [url] against [allowedSchemes] (blocking unsafe schemes such as `javascript:` or `file:`,
+ * control characters, and whitespace).
  */
 fun validateExternalUrl(
     url: String,
     allowedSchemes: Set<String> = DEFAULT_ALLOWED_URL_SCHEMES,
 ): AppResult<String> {
+    val hasControlChar = url.any { ch -> ch.code < ASCII_CONTROL_LIMIT || ch.code == ASCII_DEL }
     val trimmed = url.trim()
+    val hasWhitespace = url.any { ch -> ch.isWhitespace() }
     val schemeEnd = trimmed.indexOf(':')
     val scheme = if (schemeEnd > 0) trimmed.substring(0, schemeEnd).lowercase() else ""
     return when {
         trimmed.isEmpty() -> {
             AppResult.Failure(ValidationError(field = "url", message = "URL must not be blank."))
+        }
+
+        hasControlChar || hasWhitespace -> {
+            AppResult.Failure(
+                ValidationError(
+                    field = "url",
+                    message = "URL must not contain control characters or whitespace.",
+                ),
+            )
         }
 
         scheme !in allowedSchemes -> {

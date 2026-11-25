@@ -1,0 +1,50 @@
+# Detekt 2.0.0-alpha.6 configuration for Abeta KMP Kit.
+# Layered on top of Detekt's built-in defaults (`buildUponDefaultConfig = true` in kmp/build.gradle.kts).
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+complexity:
+  CyclomaticComplexMethod:
+    active: true
+    allowedComplexity: 14
+  LargeClass:
+    active: true
+    allowedLines: 600
+  LongMethod:
+    active: true
+    allowedLines: 60
+  LongParameterList:
+    active: true
+    allowedFunctionParameters: 5
+    allowedConstructorParameters: 6
+    ignoreDataClasses: true
+  NestedBlockDepth:
+    active: true
+    allowedDepth: 4
+  TooManyFunctions:
+    active: true
+    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**']
+    allowedFunctionsPerFile: 11
+    allowedFunctionsPerClass: 11
+    allowedFunctionsPerInterface: 11
+    allowedFunctionsPerObject: 11
+    allowedFunctionsPerEnum: 11
+
+naming:
+  FunctionNaming:
+    active: true
+    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**']
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+
+style:
+  MagicNumber:
+    active: true
+    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**', '**/*.kts']
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeRawStrings: true

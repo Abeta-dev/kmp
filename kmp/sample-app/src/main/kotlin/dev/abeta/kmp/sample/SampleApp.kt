@@ -1,16 +1,21 @@
 package dev.abeta.kmp.sample
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.actions.codec.BuiltInActionDecoders
@@ -25,14 +30,21 @@ import dev.abeta.kmp.analytics.CompositeAnalyticsTracker
 import dev.abeta.kmp.analytics.LoggerAnalyticsTracker
 import dev.abeta.kmp.analytics.RecordingAnalyticsTracker
 import dev.abeta.kmp.atoms.atoms.LocalImageRenderer
+import dev.abeta.kmp.atoms.atoms.UiButton
 import dev.abeta.kmp.atoms.atoms.UiDivider
 import dev.abeta.kmp.atoms.atoms.UiImageRenderer
+import dev.abeta.kmp.atoms.atoms.UiSurfaceCard
+import dev.abeta.kmp.atoms.atoms.UiTag
 import dev.abeta.kmp.contracts.ActionRef
+import dev.abeta.kmp.contracts.ButtonAtom
+import dev.abeta.kmp.contracts.ButtonSize
 import dev.abeta.kmp.contracts.DividerAtom
 import dev.abeta.kmp.contracts.FeedbackEffect
 import dev.abeta.kmp.contracts.FormSnippetData
 import dev.abeta.kmp.contracts.SduiJson
 import dev.abeta.kmp.contracts.SnippetTypes
+import dev.abeta.kmp.contracts.TagAtom
+import dev.abeta.kmp.contracts.TagVariant
 import dev.abeta.kmp.core.logging.AppLogger
 import dev.abeta.kmp.core.logging.KermitAppLogger
 import dev.abeta.kmp.core.logging.LogLevel
@@ -51,12 +63,16 @@ import dev.abeta.kmp.layout.repository.RemoteScreenRepository
 import dev.abeta.kmp.layout.repository.ScreenCachePolicy
 import dev.abeta.kmp.layout.repository.ScreenRepository
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
+import dev.abeta.kmp.layout.snippet.CustomSlotContext
+import dev.abeta.kmp.layout.snippet.CustomSlotRegistry
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.layout.ui.SduiScreen
 import dev.abeta.kmp.network.client.HttpClientFactory
 import dev.abeta.kmp.network.client.KtorHttpTransport
 import dev.abeta.kmp.network.config.NetworkConfig
 import dev.abeta.kmp.network.config.RetryPolicy
+import dev.abeta.kmp.network.sse.KtorSseTransport
+import dev.abeta.kmp.network.sse.SseTransport
 import dev.abeta.kmp.state.session.InMemorySessionStore
 import dev.abeta.kmp.state.session.SessionStore
 import dev.abeta.kmp.state.sync.OfflineMutationQueue
@@ -70,6 +86,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -109,6 +126,7 @@ class SampleContainer(
     val imageRenderer: UiImageRenderer,
     val controller: LayoutController,
     val platformBridges: PlatformBridgeBundle = PlatformBridgeBundle.createTestDefault(),
+    val customSlotRegistry: CustomSlotRegistry = createSampleCustomSlotRegistry(),
     private val httpClient: HttpClient? = null,
     private val backStack: ArrayDeque<String> = ArrayDeque(listOf(DEFAULT_SCREEN_ID)),
     private val currentScreenFlow: MutableStateFlow<String> = MutableStateFlow(DEFAULT_SCREEN_ID),
@@ -300,7 +318,9 @@ object SampleFactory {
                 json = SduiJson,
                 engine = httpEngine,
             )
+        val isRemote = bffBaseUrl != null || httpEngine != null
         val (baseRepo, apiExecutor) = createBackendPorts(bffBaseUrl, httpEngine, httpClient)
+        val sseTransport = if (isRemote) KtorSseTransport(httpClient = httpClient) else null
         val cachedRepository =
             CachedScreenRepository(
                 remote = baseRepo,
@@ -324,6 +344,7 @@ object SampleFactory {
             analytics = analytics,
             offlineCoordinator = offlineCoordinator,
             httpClient = httpClient,
+            sseTransport = sseTransport,
             logger = logger,
             platformBridges = platformBridges,
         )
@@ -339,6 +360,7 @@ object SampleFactory {
         analytics: AnalyticsTracker,
         offlineCoordinator: OfflineActionCoordinator,
         httpClient: HttpClient,
+        sseTransport: SseTransport?,
         logger: AppLogger,
         platformBridges: PlatformBridgeBundle,
     ): SampleContainer {
@@ -365,6 +387,7 @@ object SampleFactory {
                 logger = logger,
                 offlineCoordinator = offlineCoordinator,
                 platformBridges = platformBridges,
+                sseTransport = sseTransport,
             )
         val container =
             SampleContainer(
@@ -377,6 +400,7 @@ object SampleFactory {
                 imageRenderer = KtorImageRenderer(fetcher = KtorImageBytesFetcher(httpClient = httpClient)),
                 controller = controller,
                 platformBridges = platformBridges,
+                customSlotRegistry = createSampleCustomSlotRegistry(),
                 httpClient = httpClient,
             )
         containerRef = container
@@ -443,6 +467,7 @@ fun SampleRoot(
                 SduiScreen(
                     state = uiState,
                     snippetRegistry = container.snippetRegistry,
+                    customSlotRegistry = container.customSlotRegistry,
                     onAction = container.controller::onAction,
                     onFormValueChange = container.controller::onFormFieldChanged,
                     onRetry = { container.controller.retry() },
@@ -455,6 +480,77 @@ fun SampleRoot(
                     isWatch = SampleShowcaseApps.normalizeBaseScreenId(activeScreen) == "watch-status",
                     onHaptic = container.platformBridges.hapticEngine.asUiHapticCallback(),
                     modifier = Modifier.weight(1f).fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+private const val SAMPLE_CUSTOM_SLOT_TYPE = "sample_live_host_widget"
+private const val STORYBOOK_COMPAT_SLOT_TYPE = "storybook_live_host_widget"
+
+internal fun createSampleCustomSlotRegistry(): CustomSlotRegistry =
+    CustomSlotRegistry
+        .builder()
+        .register(SAMPLE_CUSTOM_SLOT_TYPE) { context -> SampleLiveCustomSlot(context = context) }
+        .register(STORYBOOK_COMPAT_SLOT_TYPE) { context -> SampleLiveCustomSlot(context = context) }
+        .build()
+
+@Composable
+@Suppress("ktlint:standard:function-naming", "FunctionName")
+private fun SampleLiveCustomSlot(context: CustomSlotContext) {
+    val spacing = ThemeTokens.spacing
+    val typography = ThemeTokens.typography
+    val colors = ThemeTokens.colors
+    var pingCount by remember(context.slotId) { mutableIntStateOf(0) }
+    val title = context.initialState["title"]?.jsonPrimitive?.content ?: "Sample Host Custom Slot"
+    val subtitle =
+        context.initialState["subtitle"]
+            ?.jsonPrimitive
+            ?.content
+            .orEmpty()
+
+    UiSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.space8)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(text = title, style = typography.titleSmall, color = colors.text.primary)
+                UiTag(TagAtom(label = "HOST BOUND", variant = TagVariant.SUCCESS))
+            }
+            if (subtitle.isNotBlank()) {
+                Text(text = subtitle, style = typography.bodySmall, color = colors.text.secondary)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Slot '${context.slotId}' · events: $pingCount",
+                    style = typography.caption,
+                    color = colors.text.tertiary,
+                )
+                UiButton(
+                    atom =
+                        ButtonAtom(
+                            label = "Emit Event",
+                            size = ButtonSize.SMALL,
+                            onClick = ActionRef(id = "sample_slot_event", type = ActionTypes.TRACK_EVENT),
+                        ),
+                    onAction = {
+                        pingCount += 1
+                        context.emitEvent(
+                            eventName = "ping",
+                            extraPayload =
+                                buildJsonObject {
+                                    put("slot_id", context.slotId)
+                                    put("ping_count", pingCount)
+                                },
+                        )
+                    },
                 )
             }
         }

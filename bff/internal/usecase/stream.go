@@ -52,6 +52,24 @@ func BuildStreamPatches(streamID string) ([]snippets.SnippetDeltaPatch, error) {
 			}),
 			snippets.NewUpdatePageMetaPatch("Abeta Live Stream · Complete", "v1-ai-assistant").WithDone(true),
 		}, nil
+	case "sync-status":
+		return []snippets.SnippetDeltaPatch{
+			snippets.NewAppendTextPatch(
+				"stream_response_card",
+				"description.text",
+				"Checking offline mutation queue and manifest hashes. ",
+			),
+			snippets.NewAppendTextPatch(
+				"stream_response_card",
+				"description.text",
+				"All local screens are synchronized with the BFF.",
+			),
+			snippets.NewPatchSnippetData("stream_status_metric", map[string]any{
+				"value": map[string]any{"text": "SYNCED"},
+				"delta": map[string]any{"label": "UP TO DATE"},
+			}),
+			snippets.NewUpdatePageMetaPatch("Abeta Sync · Up to Date", "v1-sync-status").WithDone(true),
+		}, nil
 	default:
 		return []snippets.SnippetDeltaPatch{
 			snippets.NewAppendTextPatch(

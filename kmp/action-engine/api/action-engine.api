@@ -368,8 +368,9 @@ public final class dev/abeta/kmp/actions/handler/BuiltInActionHandlers {
 public final class dev/abeta/kmp/actions/handler/DefaultActionDispatcher : dev/abeta/kmp/actions/handler/ActionDispatcher {
 	public static final field Companion Ldev/abeta/kmp/actions/handler/DefaultActionDispatcher$Companion;
 	public static final field DEFAULT_MAX_DEPTH I
-	public fun <init> (Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;Ldev/abeta/kmp/actions/handler/ActionRegistry;Ldev/abeta/kmp/actions/validation/ActionValidator;I)V
-	public synthetic fun <init> (Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;Ldev/abeta/kmp/actions/handler/ActionRegistry;Ldev/abeta/kmp/actions/validation/ActionValidator;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final field DEFAULT_MAX_TOTAL_ACTIONS I
+	public fun <init> (Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;Ldev/abeta/kmp/actions/handler/ActionRegistry;Ldev/abeta/kmp/actions/validation/ActionValidator;II)V
+	public synthetic fun <init> (Ldev/abeta/kmp/actions/codec/ActionDecoderRegistry;Ldev/abeta/kmp/actions/handler/ActionRegistry;Ldev/abeta/kmp/actions/validation/ActionValidator;IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun dispatch (Ldev/abeta/kmp/contracts/ActionRef;Ldev/abeta/kmp/actions/model/ActionContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

@@ -56,23 +56,32 @@ class WatchCompanionController(
     val uiState: StateFlow<WatchUiState> = _uiState.asStateFlow()
 
     private var activeScreenId: String = DEFAULT_WATCH_SCREEN
+    private var activeLoadJob: Job? = null
+    private var loadGeneration: Long = 0L
 
     /** Loads and maps the SDUI screen [screenId] for wearable presentation. */
     fun loadScreen(screenId: String = DEFAULT_WATCH_SCREEN): Job {
+        activeLoadJob?.cancel()
+        val generation = ++loadGeneration
         activeScreenId = screenId
         _uiState.value = WatchUiState.Loading
-        return scope.launch {
-            when (val result = pageSource.fetchPage(screenId)) {
-                is AppResult.Failure -> {
-                    hapticEngine.perform(HapticStyle.ERROR)
-                    _uiState.value = WatchUiState.Error(error = result.error, screenId = screenId)
-                }
+        val job =
+            scope.launch {
+                when (val result = pageSource.fetchPage(screenId)) {
+                    is AppResult.Failure -> {
+                        if (generation != loadGeneration) return@launch
+                        hapticEngine.perform(HapticStyle.ERROR)
+                        _uiState.value = WatchUiState.Error(error = result.error, screenId = screenId)
+                    }
 
-                is AppResult.Success -> {
-                    handleLoadedPage(result.value)
+                    is AppResult.Success -> {
+                        if (generation != loadGeneration) return@launch
+                        handleLoadedPage(result.value, generation)
+                    }
                 }
             }
-        }
+        activeLoadJob = job
+        return job
     }
 
     /** Reloads the currently active watch screen. */
@@ -92,9 +101,14 @@ class WatchCompanionController(
             }
         }
 
-    /** Clears transient toast status on [WatchUiState.Ready]. */
+    /** Clears transient toast and page feedback status on [WatchUiState.Ready]. */
     fun dismissToast() {
-        updateReady { it.copy(activeToast = null) }
+        updateReady {
+            it.copy(
+                activeToast = null,
+                page = it.page.copy(lastFeedbackMessage = null),
+            )
+        }
     }
 
     /** Observes OS connectivity transitions until cancelled, updating [WatchGlancePage.isOffline]. */
@@ -115,13 +129,19 @@ class WatchCompanionController(
         }
     }
 
-    private suspend fun handleLoadedPage(page: PageResponse) {
+    private suspend fun handleLoadedPage(
+        page: PageResponse,
+        generation: Long,
+    ) {
+        if (generation != loadGeneration) return
         val mapped = mapper.map(page = page, isOffline = !connectivityMonitor.isOnline())
         _uiState.value = WatchUiState.Ready(page = mapped)
         val context = ActionContext(sessionState = sessionStore.state.value)
         for (pageAction in page.pageActions) {
+            if (generation != loadGeneration) break
             val results = actionDispatcher.dispatch(pageAction, context)
             for (result in results) {
+                if (generation != loadGeneration) break
                 applyDispatchResult(result)
             }
         }
@@ -156,17 +176,21 @@ class WatchCompanionController(
             }
 
             is ActionOutcome.OpenUrlRequested -> {
-                externalLauncher.openUrl(outcome.url)
+                handleOpenUrl(outcome)
                 true
             }
 
             is ActionOutcome.ShareRequested -> {
-                sharePort.share(ShareRequest(text = outcome.text, title = outcome.title, url = outcome.url))
+                val res = sharePort.share(ShareRequest(text = outcome.text, title = outcome.title, url = outcome.url))
+                if (res is AppResult.Failure) {
+                    triggerHaptic(HapticStyle.ERROR)
+                    updateReady { it.copy(activeToast = res.error.message) }
+                }
                 true
             }
 
             is ActionOutcome.ApiCallResult -> {
-                triggerHaptic(if (outcome.isSuccess) HapticStyle.SUCCESS else HapticStyle.ERROR)
+                handleApiCallResult(outcome)
                 true
             }
 
@@ -174,6 +198,34 @@ class WatchCompanionController(
                 false
             }
         }
+
+    private suspend fun handleOpenUrl(outcome: ActionOutcome.OpenUrlRequested) {
+        val result = externalLauncher.openUrl(outcome.url)
+        if (result is AppResult.Failure) {
+            val fallback =
+                outcome.fallbackRoute
+                    ?.trim()
+                    ?.removePrefix("/screens/")
+                    ?.removePrefix("/")
+                    ?.takeIf { it.isNotEmpty() }
+            if (fallback != null) {
+                loadScreen(fallback)
+            } else {
+                triggerHaptic(HapticStyle.ERROR)
+                updateReady { it.copy(activeToast = result.error.message) }
+            }
+        }
+    }
+
+    private fun handleApiCallResult(outcome: ActionOutcome.ApiCallResult) {
+        triggerHaptic(if (outcome.isSuccess) HapticStyle.SUCCESS else HapticStyle.ERROR)
+        if (!outcome.isSuccess && outcome.followUpActions.isEmpty()) {
+            val errorToast =
+                outcome.errorMessage?.takeIf { it.isNotBlank() }
+                    ?: "Request failed (${outcome.endpoint})"
+            updateReady { it.copy(activeToast = errorToast) }
+        }
+    }
 
     private fun applyNavigationOrStateOutcome(outcome: ActionOutcome) {
         when (outcome) {

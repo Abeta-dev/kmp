@@ -101,7 +101,7 @@ func buildHomeScreen() snippets.PageResponse {
 					Padding:      atoms.SymmetricSpacing(theming.SpacingLG.Dp(), theming.SpacingMD.Dp()),
 					FillMaxWidth: atoms.BoolPtr(true),
 				}).
-				WithTracking("snippet_impression", map[string]any{"snippet_id": "home_header"}).
+				WithTracking("snippet_impression", map[string]string{"snippet_id": "home_header"}).
 				Build(),
 			snippets.NewBannerSnippet("home_promo_banner", atoms.NewText("Zero-Release UI Updates", theming.TypographyTitleMedium, theming.ColorTextPrimary)).
 				WithBody(atoms.NewText("Ship layout, theming, and action workflows instantly across Android, iOS, and Desktop.", theming.TypographyBodySmall, theming.ColorTextSecondary)).
@@ -174,6 +174,6 @@ func buildHomeScreen() snippets.PageResponse {
 				FillMaxWidth: atoms.BoolPtr(true),
 			},
 		}).
-		WithTracking("page_loaded", map[string]any{"page_id": "home"}).
+		WithTracking("page_loaded", map[string]string{"page_id": "home"}).
 		Build()
 }

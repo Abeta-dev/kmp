@@ -6,12 +6,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -124,6 +126,7 @@ private fun resolveChipModifier(
     onAction: (ActionRef) -> Unit,
 ): Modifier {
     val spacing = ThemeTokens.spacing
+    val sizing = ThemeTokens.sizing
     val cornerRadius = ThemeTokens.cornerRadius
     val strokeWidth = ThemeTokens.strokeWidth
     val haptic = LocalUiHapticFeedback.current
@@ -133,8 +136,13 @@ private fun resolveChipModifier(
     return modifier
         .applyLayoutConfig(atom.layout)
         .testTag("chip_${atom.id}")
-        .heightIn(min = CHIP_MIN_HEIGHT_DP.dp)
-        .pressBounce(enabled = atom.enabled && hasClickHandler)
+        .let { base ->
+            if (hasClickHandler) {
+                base.defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
+            } else {
+                base.heightIn(min = CHIP_MIN_HEIGHT_DP.dp)
+            }
+        }.pressBounce(enabled = atom.enabled && hasClickHandler)
         .clip(pillShape)
         .background(palette.background, pillShape)
         .border(strokeWidth.thin, palette.border, pillShape)
@@ -164,13 +172,13 @@ private fun UiChipRemoveButton(
     palette: ResolvedChipColors,
     onRemove: () -> Unit,
 ) {
+    val sizing = ThemeTokens.sizing
     Box(
         modifier =
             Modifier
-                .size(CHIP_REMOVE_TOUCH_DP.dp)
+                .defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
+                .minimumInteractiveComponentSize()
                 .testTag("chip_remove_${atom.id}")
-                .clip(CircleShape)
-                .background(palette.content.copy(alpha = REMOVE_BG_ALPHA), CircleShape)
                 .semantics { contentDescription = "Remove ${atom.label}" }
                 .clickable(
                     enabled = atom.enabled,
@@ -179,14 +187,23 @@ private fun UiChipRemoveButton(
                 ),
         contentAlignment = Alignment.Center,
     ) {
-        UiIcon(
-            atom =
-                IconAtom(
-                    name = "close",
-                    sizeDp = CHIP_REMOVE_ICON_SIZE_DP,
-                    color = ColorTokenRef(token = palette.iconColorToken),
-                ),
-        )
+        Box(
+            modifier =
+                Modifier
+                    .size(CHIP_REMOVE_TOUCH_DP.dp)
+                    .clip(CircleShape)
+                    .background(palette.content.copy(alpha = REMOVE_BG_ALPHA), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            UiIcon(
+                atom =
+                    IconAtom(
+                        name = "close",
+                        sizeDp = CHIP_REMOVE_ICON_SIZE_DP,
+                        color = ColorTokenRef(token = palette.iconColorToken),
+                    ),
+            )
+        }
     }
 }
 

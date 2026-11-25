@@ -31,6 +31,7 @@ import dev.abeta.kmp.layout.repository.RemoteScreenManifestRepository
 import dev.abeta.kmp.layout.repository.ScreenCachePolicy
 import dev.abeta.kmp.layout.repository.ScreenManifestRepository
 import dev.abeta.kmp.layout.repository.ScreenRepository
+import dev.abeta.kmp.layout.snippet.CustomSlotRegistry
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.network.client.HttpMethodType
 import dev.abeta.kmp.network.client.HttpTransport
@@ -195,6 +196,33 @@ class SduiKoinModuleTest {
                 repo.fetchScreen("home")
                 repo.fetchScreen("home")
                 assertEquals(1, screenCalls)
+            } finally {
+                app.close()
+            }
+        }
+
+    @Test
+    fun versionGatedAutoWiresDefaultManifestRepositoryAndBindsCustomSlotRegistry() =
+        runTest {
+            val mockEngine = createVersionGatedMockEngine(onScreenFetch = {}, onMutate = {})
+            val customSlots = CustomSlotRegistry.builder().register("custom_chart") {}.build()
+            val app =
+                koinApplication {
+                    modules(
+                        createSduiKoinModule(
+                            baseUrl = "https://bff.abeta.dev",
+                            scope = this@runTest,
+                            httpEngine = mockEngine,
+                            keyValueStore = InMemoryKeyValueStore(),
+                            cachePolicy = ScreenCachePolicy.VERSION_GATED,
+                            platformBridges = PlatformBridgeBundle.createTestDefault(),
+                            customSlotRegistry = customSlots,
+                        ),
+                    )
+                }
+            try {
+                assertNotNull(app.koin.get<ScreenManifestRepository>())
+                assertNotNull(app.koin.get<CustomSlotRegistry>().resolve("custom_chart"))
             } finally {
                 app.close()
             }

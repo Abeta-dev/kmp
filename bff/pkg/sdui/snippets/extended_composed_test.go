@@ -142,8 +142,8 @@ func TestExpressComposedNodeKinds_StickyAndTrackingRoundTrip(t *testing.T) {
 	// Verify 7 new ComposedNodeKinds + BoxAlignment + ColumnsByWidth + Tracking + ClickTracking + empty container cloning
 	pagerImgs := []atoms.ImageAtom{{ID: "p1", URL: "https://cdn.abeta.dev/p1.png"}}
 	pagerAtom := atoms.NewMediaPager("mp_1", pagerImgs, 160)
-	trackProps := map[string]any{"molecule": "tile"}
-	clickProps := map[string]any{"cta": "add"}
+	trackProps := map[string]string{"molecule": "tile"}
+	clickProps := map[string]string{"cta": "add"}
 
 	root := snippets.VStack(
 		8,

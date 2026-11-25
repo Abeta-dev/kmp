@@ -6,7 +6,6 @@ import dev.abeta.kmp.core.error.ForbiddenError
 import dev.abeta.kmp.core.error.UnexpectedError
 import dev.abeta.kmp.core.result.AppResult
 import java.awt.Desktop
-import java.awt.GraphicsEnvironment
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
@@ -21,7 +20,7 @@ private class JvmExternalLauncherPort : ExternalLauncherPort {
             }
 
             is AppResult.Success -> {
-                if (GraphicsEnvironment.isHeadless()) {
+                if (isJvmHeadlessSafely()) {
                     AppResult.Failure(
                         ForbiddenError(
                             resource = "external_launcher",
@@ -34,6 +33,7 @@ private class JvmExternalLauncherPort : ExternalLauncherPort {
             }
         }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun openUriOnDesktop(url: String): AppResult<Unit> {
         var fallbackToCommand = false
         val browseResult: AppResult<Unit>? =
@@ -50,7 +50,7 @@ private class JvmExternalLauncherPort : ExternalLauncherPort {
                 AppResult.Failure(UnexpectedError(message = "Invalid URI: ${err.message}", cause = err))
             } catch (err: IOException) {
                 AppResult.Failure(UnexpectedError(message = "Failed to open URI: ${err.message}", cause = err))
-            } catch (_: UnsupportedOperationException) {
+            } catch (_: Throwable) {
                 fallbackToCommand = true
                 null
             }
@@ -70,6 +70,8 @@ private class JvmExternalLauncherPort : ExternalLauncherPort {
             AppResult.Success(Unit)
         } catch (err: IOException) {
             AppResult.Failure(UnexpectedError(message = "OS browser command failed: ${err.message}", cause = err))
+        } catch (err: SecurityException) {
+            AppResult.Failure(UnexpectedError(message = "OS browser command denied: ${err.message}", cause = err))
         }
     }
 }

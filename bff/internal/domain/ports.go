@@ -47,6 +47,11 @@ type ScreenRepository interface {
 	ListScreenIDs(ctx context.Context) ([]string, error)
 }
 
+// ManifestProvider supplies precomputed screen version and ETag manifests in O(1).
+type ManifestProvider interface {
+	BuildManifest(ctx context.Context, appVersion string) (snippets.ScreenManifestResponse, error)
+}
+
 // ActionExecutor executes an ActionExecutionInput and returns a structured result.
 type ActionExecutor interface {
 	Execute(ctx context.Context, input ActionExecutionInput) (ActionExecutionResult, error)

@@ -11,7 +11,7 @@ import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.TabsSnippetData
 import kotlinx.serialization.json.Json
 
-private const val CENTS_PER_DOLLAR = 100
+private const val CENTS_PER_DOLLAR = 100L
 private const val CENTS_PAD_DIGITS = 2
 
 /**
@@ -21,7 +21,7 @@ private const val CENTS_PAD_DIGITS = 2
 internal data class FloatingCartSummary(
     val hasProductCards: Boolean,
     val itemCount: Int,
-    val totalCents: Int,
+    val totalCents: Long,
 ) {
     /** Formats `"<n> item(s) · $d.cc"` using commonMultiplatform-safe arithmetic. */
     fun formattedLabel(): String {
@@ -65,32 +65,35 @@ internal fun computeFloatingCartSummary(
     formValues: Map<String, String>,
 ): FloatingCartSummary {
     val seenProducts = hashSetOf<String>()
-    var totalItems = 0
-    var totalCents = 0
+    var totalItems = 0L
+    var totalCents = 0L
 
     for (product in productCards) {
         if (seenProducts.add(product.productId)) {
             val minQty = product.stepper.minQuantity.coerceAtLeast(0)
+            val maxQty = product.stepper.maxQuantity.coerceAtLeast(minQty)
             val rawQty = formValues[product.stepper.fieldId]?.toIntOrNull() ?: product.stepper.quantity
-            val qty = rawQty.coerceAtLeast(minQty)
-            totalItems += qty
-            totalCents += qty * product.unitPriceCents.coerceAtLeast(0)
+            val qty = rawQty.coerceIn(minQty, maxQty)
+            totalItems += qty.toLong()
+            totalCents += qty.toLong() * product.unitPriceCents.coerceAtLeast(0).toLong()
         }
     }
 
     return FloatingCartSummary(
         hasProductCards = productCards.isNotEmpty(),
-        itemCount = totalItems,
+        itemCount = totalItems.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
         totalCents = totalCents,
     )
 }
 
-internal fun formatUsdCents(cents: Int): String {
-    val safeCents = cents.coerceAtLeast(0)
+internal fun formatUsdCents(cents: Long): String {
+    val safeCents = cents.coerceAtLeast(0L)
     val dollars = safeCents / CENTS_PER_DOLLAR
     val remainder = safeCents % CENTS_PER_DOLLAR
     return "$$dollars.${remainder.toString().padStart(CENTS_PAD_DIGITS, '0')}"
 }
+
+internal fun formatUsdCents(cents: Int): String = formatUsdCents(cents.toLong())
 
 private fun extractChildEnvelopes(
     envelope: SnippetEnvelope,

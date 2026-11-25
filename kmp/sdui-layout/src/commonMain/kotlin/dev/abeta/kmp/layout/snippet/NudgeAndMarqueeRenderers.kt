@@ -47,6 +47,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -83,9 +84,22 @@ private const val CARET_HEIGHT_DP = 7
 private const val DISMISS_CIRCLE_SIZE_DP = 28
 private const val DISMISS_GLYPH = "×"
 private const val MARQUEE_ICON_SIZE_DP = 16
-private const val MARQUEE_COPY_COUNT = 3
+private const val MIN_MARQUEE_COPY_COUNT = 3
+private const val MAX_MARQUEE_COPY_COUNT = 24
+private const val MARQUEE_EXTRA_BUFFER_COPIES = 2
 private const val MAX_FRAME_DELTA_SEC = 0.05f
 private const val NANOS_PER_SECOND = 1_000_000_000f
+
+internal fun resolveMarqueeCopyCount(
+    containerWidthPx: Int,
+    cycleWidthPx: Int,
+): Int {
+    if (containerWidthPx <= 0 || cycleWidthPx <= 0) {
+        return MIN_MARQUEE_COPY_COUNT
+    }
+    return ((containerWidthPx / cycleWidthPx) + MARQUEE_EXTRA_BUFFER_COPIES)
+        .coerceIn(MIN_MARQUEE_COPY_COUNT, MAX_MARQUEE_COPY_COUNT)
+}
 
 internal fun resolveMarqueeVelocityDpPerSec(velocityDpPerSec: Int): Int =
     if (velocityDpPerSec <= 0) {
@@ -389,8 +403,10 @@ internal class MarqueeStripSnippetRenderer(
         val spacing = ThemeTokens.spacing
         val density = LocalDensity.current.density
         val velocityPxPerSec = resolveMarqueeVelocityDpPerSec(model.velocityDpPerSec) * density
+        var containerWidthPx by remember(model.stripId) { mutableIntStateOf(0) }
         var cycleWidthPx by remember(model.stripId, model.items) { mutableIntStateOf(0) }
         val offsetPxState = remember(model.stripId) { mutableFloatStateOf(0f) }
+        val copyCount = resolveMarqueeCopyCount(containerWidthPx = containerWidthPx, cycleWidthPx = cycleWidthPx)
 
         LaunchedEffect(model.stripId, velocityPxPerSec) {
             var lastFrameNanos = 0L
@@ -409,35 +425,33 @@ internal class MarqueeStripSnippetRenderer(
             }
         }
 
-        Row(
-            modifier =
-                Modifier
-                    .wrapContentWidth(unbounded = true, align = Alignment.Start)
-                    .graphicsLayer {
-                        val widthPx = cycleWidthPx
-                        translationX = if (widthPx > 0) -offsetPxState.floatValue else 0f
-                    },
-            verticalAlignment = Alignment.CenterVertically,
+        Box(
+            modifier = Modifier.fillMaxWidth().onSizeChanged { size -> containerWidthPx = size.width },
         ) {
-            repeat(MARQUEE_COPY_COUNT) { copyIndex ->
-                val primaryCopy = copyIndex == 0
-                val copyModifier =
-                    if (primaryCopy) {
-                        Modifier.onSizeChanged { size -> cycleWidthPx = size.width }.padding(end = spacing.space16)
-                    } else {
-                        Modifier.padding(end = spacing.space16)
+            Row(
+                modifier =
+                    Modifier
+                        .wrapContentWidth(unbounded = true, align = Alignment.Start)
+                        .graphicsLayer {
+                            translationX = if (cycleWidthPx > 0) -offsetPxState.floatValue else 0f
+                        },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                repeat(copyCount) { copyIndex ->
+                    val primaryCopy = copyIndex == 0
+                    val copyModifier =
+                        if (primaryCopy) {
+                            Modifier.onSizeChanged { cycleWidthPx = it.width }.padding(end = spacing.space16)
+                        } else {
+                            Modifier.clearAndSetSemantics {}.padding(end = spacing.space16)
+                        }
+                    Row(
+                        modifier = copyModifier,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(spacing.space12),
+                    ) {
+                        MarqueeItemsContent(model.items, model.separator, primaryCopy, onAction)
                     }
-                Row(
-                    modifier = copyModifier,
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(spacing.space12),
-                ) {
-                    MarqueeItemsContent(
-                        items = model.items,
-                        separator = model.separator,
-                        includeTestTags = primaryCopy,
-                        onAction = onAction,
-                    )
                 }
             }
         }

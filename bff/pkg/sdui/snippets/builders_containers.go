@@ -23,8 +23,8 @@ func (b *CarouselSnippetBuilder) WithParentID(parentID string) *CarouselSnippetB
 	return b
 }
 
-func (b *CarouselSnippetBuilder) WithTracking(eventName string, props map[string]any) *CarouselSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *CarouselSnippetBuilder) WithTracking(eventName string, props map[string]string) *CarouselSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -96,8 +96,8 @@ func (b *GridSnippetBuilder) WithParentID(parentID string) *GridSnippetBuilder {
 	return b
 }
 
-func (b *GridSnippetBuilder) WithTracking(eventName string, props map[string]any) *GridSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *GridSnippetBuilder) WithTracking(eventName string, props map[string]string) *GridSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -161,8 +161,8 @@ func (b *TabsSnippetBuilder) WithParentID(parentID string) *TabsSnippetBuilder {
 	return b
 }
 
-func (b *TabsSnippetBuilder) WithTracking(eventName string, props map[string]any) *TabsSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *TabsSnippetBuilder) WithTracking(eventName string, props map[string]string) *TabsSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 
@@ -219,8 +219,8 @@ func (b *AccordionSnippetBuilder) WithParentID(parentID string) *AccordionSnippe
 	return b
 }
 
-func (b *AccordionSnippetBuilder) WithTracking(eventName string, props map[string]any) *AccordionSnippetBuilder {
-	b.meta.tracking = &atoms.TrackingMeta{EventName: eventName, Properties: props}
+func (b *AccordionSnippetBuilder) WithTracking(eventName string, props map[string]string) *AccordionSnippetBuilder {
+	b.meta.tracking = cloneTrackingMeta(&atoms.TrackingMeta{EventName: eventName, Properties: props})
 	return b
 }
 

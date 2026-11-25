@@ -38,6 +38,26 @@ class CorePlatformBridgesTest {
         val negative = formatCurrencyCents(-349L, "USD")
         assertTrue(positive.contains("12") || positive.contains("USD"))
         assertTrue(negative.contains("-") || negative.contains("("))
+
+        val yen = formatCurrencyCents(1500L, "JPY")
+        assertTrue(yen.contains("1,500") || yen.contains("1500"))
+        assertFalse(yen.contains("15.00"))
+
+        val dinar = formatCurrencyCents(1250L, "KWD")
+        assertTrue(dinar.contains("250"))
+
+        val minValueUsd = formatCurrencyCents(Long.MIN_VALUE, "USD")
+        val minValueJpy = formatCurrencyCents(Long.MIN_VALUE, "JPY")
+        assertTrue(minValueUsd.isNotBlank())
+        assertTrue(minValueJpy.isNotBlank())
+        assertEquals(
+            "-JPY 9223372036854775808",
+            formatCurrencyMinorUnitsFallback(Long.MIN_VALUE, "JPY"),
+        )
+        assertEquals(
+            "-KWD 9223372036854775.808",
+            formatCurrencyMinorUnitsFallback(Long.MIN_VALUE, "KWD"),
+        )
     }
 
     @Test
@@ -59,6 +79,21 @@ class CorePlatformBridgesTest {
         assertEquals("form-demo", universal.screenId)
         assertEquals("2 of 3", universal.params["step"])
 
+        val complex =
+            DeepLinkParser.parse(
+                "https://user:pass@app.abeta.dev:8443/screens/c++%20guide?q=hello+world#section?ignored=1",
+            )
+        assertNotNull(complex)
+        assertEquals("app.abeta.dev", complex.host)
+        assertEquals("c++ guide", complex.screenId)
+        assertEquals("hello world", complex.params["q"])
+        assertNull(complex.params["ignored"])
+
+        val fragmentBeforeQuery = DeepLinkParser.parse("https://app.abeta.dev/screens/orders#anchor?fake=true")
+        assertNotNull(fragmentBeforeQuery)
+        assertEquals("orders", fragmentBeforeQuery.screenId)
+        assertTrue(fragmentBeforeQuery.params.isEmpty())
+
         assertNull(DeepLinkParser.parse("https://app.abeta.dev/"))
         assertNull(DeepLinkParser.parse("not-a-uri"))
     }
@@ -70,6 +105,10 @@ class CorePlatformBridgesTest {
             assertTrue(launcher.canOpenUrl("https://abeta.dev/docs"))
             assertFalse(launcher.canOpenUrl("javascript:alert(1)"))
             assertFalse(launcher.canOpenUrl("file:///etc/passwd"))
+            assertFalse(launcher.canOpenUrl("https://abeta.dev/path with space"))
+            assertFalse(launcher.canOpenUrl("https://abeta.dev/path\r\nHeader: evil"))
+            assertFalse(launcher.canOpenUrl("https://abeta.dev/path\tfoo"))
+            assertFalse(launcher.canOpenUrl("https://abeta.dev/path\u0000null"))
 
             val blocked = launcher.openUrl("javascript:alert(1)")
             val failure = assertIs<AppResult.Failure>(blocked)

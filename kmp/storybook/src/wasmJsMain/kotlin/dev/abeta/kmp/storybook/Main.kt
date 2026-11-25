@@ -4,6 +4,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import kotlin.js.ExperimentalWasmJsInterop
 
+private const val HEX_RADIX = 16
+private const val PERCENT_SEQ_LENGTH = 3
+
 @OptIn(ExperimentalWasmJsInterop::class)
 @JsFun("() => window.location.search || ''")
 private external fun browserLocationSearch(): String
@@ -12,23 +15,48 @@ private external fun browserLocationSearch(): String
 @JsFun("() => window.location.hash || ''")
 private external fun browserLocationHash(): String
 
-private fun parseQueryParam(
-    raw: String,
-    key: String,
-): String? =
-    raw
-        .trimStart('?', '#')
-        .split('&')
-        .mapNotNull { part ->
+private fun parseQueryParams(raw: String): Map<String, String> {
+    val cleaned = raw.trim().trimStart('#').trimStart('?')
+    if (cleaned.isEmpty()) return emptyMap()
+    return buildMap {
+        cleaned.split('&').forEach { part ->
             val idx = part.indexOf('=')
-            if (idx <= 0) {
-                null
-            } else {
-                part.substring(0, idx).lowercase() to part.substring(idx + 1)
+            if (idx > 0) {
+                val key = decodePercent(part.substring(0, idx)).trim().lowercase()
+                val value = decodePercent(part.substring(idx + 1)).trim()
+                if (key.isNotEmpty() && value.isNotEmpty() && key !in this) {
+                    put(key, value)
+                }
             }
-        }.firstOrNull { it.first == key.lowercase() }
-        ?.second
-        ?.takeIf { it.isNotBlank() }
+        }
+    }
+}
+
+private fun decodePercent(input: String): String {
+    val normalized = input.replace('+', ' ')
+    val out = StringBuilder(normalized.length)
+    var index = 0
+    while (index < normalized.length) {
+        if (normalized[index] == '%' && index + 2 < normalized.length) {
+            val bytes = mutableListOf<Byte>()
+            var cursor = index
+            while (cursor + 2 < normalized.length && normalized[cursor] == '%') {
+                val decoded = normalized.substring(cursor + 1, cursor + PERCENT_SEQ_LENGTH).toIntOrNull(HEX_RADIX)
+                if (decoded == null) break
+                bytes.add(decoded.toByte())
+                cursor += PERCENT_SEQ_LENGTH
+            }
+            if (bytes.isNotEmpty()) {
+                out.append(bytes.toByteArray().decodeToString())
+                index = cursor
+                continue
+            }
+        }
+        out.append(normalized[index])
+        index += 1
+    }
+    return out.toString()
+}
 
 /**
  * WebAssembly browser entry point mounting [StorybookApp] into `#storybookRoot`,
@@ -36,9 +64,10 @@ private fun parseQueryParam(
  */
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    val combinedParams = "${browserLocationSearch()}&${browserLocationHash().trimStart('#')}"
-    val requestedStory = parseQueryParam(combinedParams, "story")
-    val requestedApp = parseQueryParam(combinedParams, "app")
+    val searchParams = parseQueryParams(browserLocationSearch())
+    val hashParams = parseQueryParams(browserLocationHash())
+    val requestedStory = searchParams["story"] ?: hashParams["story"]
+    val requestedApp = searchParams["app"] ?: hashParams["app"]
     val initialStoryId =
         when {
             requestedStory != null -> StoryCatalog.findById(requestedStory).id

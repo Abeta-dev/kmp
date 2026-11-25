@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"html"
 	"net/http"
+	"strings"
 
+	"github.com/abeta-dev/kmp/bff/internal/usecase"
+	"github.com/abeta-dev/kmp/bff/pkg/sdui/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,8 +28,8 @@ var builtInScreenIDs = []string{
 	"pay-receipt",
 }
 
-func registerOpenAPIRoutes(engine *gin.Engine, serviceName string, requireAuth bool) {
-	specBytes := mustBuildOpenAPISpec(serviceName, requireAuth)
+func registerOpenAPIRoutes(engine *gin.Engine, serviceName, appVersion string, requireAuth bool) {
+	specBytes := mustBuildOpenAPISpec(serviceName, appVersion, requireAuth)
 	docsHTML := buildDocsHTML(serviceName)
 
 	engine.GET("/openapi.json", func(c *gin.Context) {
@@ -53,7 +56,7 @@ func buildDocsHTML(serviceName string) []byte {
 </head>
 <body>
   <script id="api-reference" data-url="/openapi.json"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.25.0"></script>
   <noscript>
     <p>OpenAPI 3.1 schema available at <a href="/openapi.json">/openapi.json</a>.</p>
   </noscript>
@@ -63,10 +66,17 @@ func buildDocsHTML(serviceName string) []byte {
 	return []byte(page)
 }
 
-func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
-	var apiSecurity []map[string][]string
-	if requireAuth {
-		apiSecurity = []map[string][]string{{"bearerAuth": {}}}
+func mustBuildOpenAPISpec(serviceName, appVersion string, requireAuth bool) []byte {
+	version := strings.TrimSpace(appVersion)
+	if version == "" {
+		version = usecase.DefaultAppVersion
+	}
+
+	withSecurity := func(op map[string]any) map[string]any {
+		if requireAuth {
+			op["security"] = []map[string][]string{{"bearerAuth": {}}}
+		}
+		return op
 	}
 
 	etagHeader := map[string]any{
@@ -75,7 +85,7 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 	}
 	cacheHeader := map[string]any{
 		"description": "HTTP cache policy",
-		"schema":      map[string]any{"type": "string", "example": defaultCacheControl},
+		"schema":      map[string]any{"type": "string", "example": server.DefaultCacheControl},
 	}
 	jsonContent := func(schema map[string]any) map[string]any {
 		return map[string]any{"application/json": map[string]any{"schema": schema}}
@@ -87,12 +97,32 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 		"description": "Client ETag for conditional 304 Not Modified validation",
 		"schema":      map[string]any{"type": "string"},
 	}
+	manifestOp := func(operationID string) map[string]any {
+		return withSecurity(map[string]any{
+			"summary":     "Fetch deterministic SDUI screen version & ETag manifest",
+			"operationId": operationID,
+			"tags":        []string{"SDUI Screens"},
+			"parameters":  []map[string]any{ifNoneMatchParam},
+			"responses": map[string]any{
+				"200": map[string]any{
+					"description": "Screen version & ETag manifest envelope",
+					"headers": map[string]any{
+						"ETag":          etagHeader,
+						"Cache-Control": cacheHeader,
+					},
+					"content": jsonContent(envelopeSchema(refSchema("ScreenManifestResponse"))),
+				},
+				"304": map[string]any{"description": "Not Modified"},
+				"401": map[string]any{"description": "Unauthorized"},
+			},
+		})
+	}
 
 	spec := map[string]any{
 		"openapi": openAPIVersion,
 		"info": map[string]any{
 			"title":       serviceName,
-			"version":     "1.0.0",
+			"version":     version,
 			"description": "Abeta KMP Server-Driven UI (SDUI) Backend-For-Frontend HTTP API.",
 		},
 		"servers": []map[string]any{
@@ -176,12 +206,15 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 					},
 				},
 			},
+			"/api/v1/manifest": map[string]any{
+				"get": manifestOp("getManifest"),
+			},
 			"/api/v1/screens": map[string]any{
-				"get": map[string]any{
+				"get": withSecurity(map[string]any{
 					"summary":     "List registered SDUI screen IDs",
 					"operationId": "listScreens",
 					"tags":        []string{"SDUI Screens"},
-					"security":    apiSecurity,
+					"parameters":  []map[string]any{ifNoneMatchParam},
 					"responses": map[string]any{
 						"200": map[string]any{
 							"description": "Available screen identifiers",
@@ -194,7 +227,7 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 								"properties": map[string]any{
 									"screens": map[string]any{
 										"type":    "array",
-										"items":   map[string]any{"type": "string", "enum": builtInScreenIDs},
+										"items":   map[string]any{"type": "string"},
 										"example": builtInScreenIDs,
 									},
 								},
@@ -203,42 +236,23 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						"304": map[string]any{"description": "Not Modified"},
 						"401": map[string]any{"description": "Unauthorized"},
 					},
-				},
+				}),
 			},
 			"/api/v1/screens/manifest": map[string]any{
-				"get": map[string]any{
-					"summary":     "Fetch deterministic SDUI screen version & ETag manifest",
-					"operationId": "getScreenManifest",
-					"tags":        []string{"SDUI Screens"},
-					"security":    apiSecurity,
-					"parameters":  []map[string]any{ifNoneMatchParam},
-					"responses": map[string]any{
-						"200": map[string]any{
-							"description": "Screen version & ETag manifest envelope",
-							"headers": map[string]any{
-								"ETag":          etagHeader,
-								"Cache-Control": cacheHeader,
-							},
-							"content": jsonContent(envelopeSchema(refSchema("ScreenManifestResponse"))),
-						},
-						"304": map[string]any{"description": "Not Modified"},
-						"401": map[string]any{"description": "Unauthorized"},
-					},
-				},
+				"get": manifestOp("getScreenManifest"),
 			},
 			"/api/v1/screens/{screenId}": map[string]any{
-				"get": map[string]any{
+				"get": withSecurity(map[string]any{
 					"summary":     "Fetch an SDUI screen payload",
 					"operationId": "getScreen",
 					"tags":        []string{"SDUI Screens"},
-					"security":    apiSecurity,
 					"parameters": []map[string]any{
 						{
 							"name":        "screenId",
 							"in":          "path",
 							"required":    true,
-							"description": "Screen identifier (built-in: home, fresh-home, store-home, catalog, profile, form-demo, containers, watch-status, pay-home, pay-transfer, pay-cards, pay-receipt)",
-							"schema":      map[string]any{"type": "string", "enum": builtInScreenIDs},
+							"description": "Screen identifier (built-in examples: home, fresh-home, store-home, catalog, profile, form-demo, containers, watch-status, pay-home, pay-transfer, pay-cards, pay-receipt)",
+							"schema":      map[string]any{"type": "string", "examples": builtInScreenIDs},
 						},
 						ifNoneMatchParam,
 					},
@@ -256,27 +270,26 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						"401": map[string]any{"description": "Unauthorized"},
 						"404": map[string]any{"description": "Screen Not Found"},
 					},
-				},
+				}),
 			},
 			"/api/v1/streams/{streamId}": map[string]any{
-				"get": map[string]any{
+				"get": withSecurity(map[string]any{
 					"summary":     "Stream incremental SDUI SnippetDeltaPatch frames over SSE",
 					"operationId": "streamScreenDeltas",
 					"tags":        []string{"SDUI Streaming"},
-					"security":    apiSecurity,
 					"parameters": []map[string]any{
 						{
 							"name":        "streamId",
 							"in":          "path",
 							"required":    true,
-							"description": "Stream identifier (e.g., ai-assistant, order-live)",
+							"description": "Stream identifier (e.g., ai-assistant, order-live, sync-status)",
 							"schema":      map[string]any{"type": "string", "example": "ai-assistant"},
 						},
 						{
 							"name":        "Last-Event-ID",
 							"in":          "header",
 							"required":    false,
-							"description": "Last delivered SSE event ID; server resumes strictly after this ID",
+							"description": "Last delivered SSE event ID; server resumes strictly after this ID (204 when caught up)",
 							"schema":      map[string]any{"type": "string", "example": "2"},
 						},
 					},
@@ -289,17 +302,18 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 								},
 							},
 						},
+						"204": map[string]any{"description": "Stream already caught up for Last-Event-ID"},
 						"400": map[string]any{"description": "Invalid stream identifier"},
 						"401": map[string]any{"description": "Unauthorized"},
+						"404": map[string]any{"description": "Stream Not Found"},
 					},
-				},
+				}),
 			},
 			"/api/v1/actions/execute": map[string]any{
-				"post": map[string]any{
+				"post": withSecurity(map[string]any{
 					"summary":     "Execute an SDUI action trigger",
 					"operationId": "executeAction",
 					"tags":        []string{"SDUI Actions"},
-					"security":    apiSecurity,
 					"requestBody": map[string]any{
 						"required": true,
 						"content":  jsonContent(refSchema("ActionExecutionInput")),
@@ -311,16 +325,16 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						},
 						"400": map[string]any{"description": "Malformed payload or unsupported action"},
 						"401": map[string]any{"description": "Unauthorized"},
+						"413": map[string]any{"description": "Payload Too Large"},
 						"422": map[string]any{"description": "Declarative form validation failed"},
 					},
-				},
+				}),
 			},
 			"/api/v1/orders/express": map[string]any{
-				"post": map[string]any{
+				"post": withSecurity(map[string]any{
 					"summary":     "Place an Abeta Fresh 8-minute express order",
 					"operationId": "placeExpressOrder",
 					"tags":        []string{"SDUI Orders"},
-					"security":    apiSecurity,
 					"requestBody": map[string]any{
 						"required": false,
 						"content": jsonContent(map[string]any{
@@ -341,15 +355,15 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						},
 						"400": map[string]any{"description": "Malformed express order payload"},
 						"401": map[string]any{"description": "Unauthorized"},
+						"413": map[string]any{"description": "Payload Too Large"},
 					},
-				},
+				}),
 			},
 			"/api/v1/pay/transfer": map[string]any{
-				"post": map[string]any{
+				"post": withSecurity(map[string]any{
 					"summary":     "Execute an Abeta Pay instant P2P transfer",
 					"operationId": "executePayTransfer",
 					"tags":        []string{"Abeta Pay"},
-					"security":    apiSecurity,
 					"requestBody": map[string]any{
 						"required": false,
 						"content": jsonContent(map[string]any{
@@ -370,15 +384,15 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						},
 						"400": map[string]any{"description": "Malformed pay transfer payload"},
 						"401": map[string]any{"description": "Unauthorized"},
+						"413": map[string]any{"description": "Payload Too Large"},
 					},
-				},
+				}),
 			},
 			"/api/v1/catalog/tokens": map[string]any{
-				"get": map[string]any{
+				"get": withSecurity(map[string]any{
 					"summary":     "Fetch active SDUI design token catalog",
 					"operationId": "getTokenCatalog",
 					"tags":        []string{"SDUI Design System"},
-					"security":    apiSecurity,
 					"parameters":  []map[string]any{ifNoneMatchParam},
 					"responses": map[string]any{
 						"200": map[string]any{
@@ -392,14 +406,13 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						"304": map[string]any{"description": "Not Modified"},
 						"401": map[string]any{"description": "Unauthorized"},
 					},
-				},
+				}),
 			},
 			"/api/v1/analytics/events": map[string]any{
-				"post": map[string]any{
+				"post": withSecurity(map[string]any{
 					"summary":     "Ingest batched SDUI client analytics events",
 					"operationId": "ingestAnalyticsEvents",
 					"tags":        []string{"SDUI Analytics"},
-					"security":    apiSecurity,
 					"requestBody": map[string]any{
 						"required": true,
 						"content":  jsonContent(refSchema("AnalyticsBatchRequest")),
@@ -411,15 +424,15 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						},
 						"400": map[string]any{"description": "Malformed or invalid analytics batch"},
 						"401": map[string]any{"description": "Unauthorized"},
+						"413": map[string]any{"description": "Payload Too Large"},
 					},
-				},
+				}),
 			},
 			"/api/v1/analytics/summary": map[string]any{
-				"get": map[string]any{
+				"get": withSecurity(map[string]any{
 					"summary":     "Fetch live aggregated SDUI analytics summary",
 					"operationId": "getAnalyticsSummary",
 					"tags":        []string{"SDUI Analytics"},
-					"security":    apiSecurity,
 					"responses": map[string]any{
 						"200": map[string]any{
 							"description": "Live analytics counters and recent events ring snapshot",
@@ -427,7 +440,7 @@ func mustBuildOpenAPISpec(serviceName string, requireAuth bool) []byte {
 						},
 						"401": map[string]any{"description": "Unauthorized"},
 					},
-				},
+				}),
 			},
 		},
 		"components": map[string]any{

@@ -148,7 +148,7 @@ func TestGraphCanvasSnippet_DefaultsExplicitFalseAndRoundTrip(t *testing.T) {
 				Pinned:      true,
 				OnClick:     &clickAct,
 				OnDragEnd:   &dragAct,
-				Tracking:    &atoms.TrackingMeta{EventName: "node_seen", Properties: map[string]any{"node_id": "node_a"}},
+				Tracking:    &atoms.TrackingMeta{EventName: "node_seen", Properties: map[string]string{"node_id": "node_a"}},
 			},
 		},
 		Edges: []snippets.GraphEdgeSpec{

@@ -272,7 +272,7 @@ internal class OrderTrackerSnippetRenderer(
     ) {
         val colors = ThemeTokens.colors
         val strokeWidth = ThemeTokens.strokeWidth
-        val dotModifier =
+        val outerModifier =
             Modifier
                 .size(STEP_DOT_SIZE_DP.dp)
                 .graphicsLayer {
@@ -280,7 +280,7 @@ internal class OrderTrackerSnippetRenderer(
                     scaleX = scale
                     scaleY = scale
                 }.let { base ->
-                    if (step.active) {
+                    if (step.active && !step.completed) {
                         base.applyMotionSpec(
                             motion = MotionSpec(loopEffect = MotionLoopEffect.GLOW_RING),
                             motionKey = "step_glow_${step.id}",
@@ -288,24 +288,27 @@ internal class OrderTrackerSnippetRenderer(
                     } else {
                         base
                     }
-                }.clip(CircleShape)
+                }
+        val innerModifier = Modifier.size(STEP_DOT_SIZE_DP.dp).clip(CircleShape)
 
-        when {
-            step.completed -> {
-                CompletedStepDot(step = step, modifier = dotModifier)
-            }
+        Box(modifier = outerModifier, contentAlignment = Alignment.Center) {
+            when {
+                step.completed -> {
+                    CompletedStepDot(step = step, modifier = innerModifier)
+                }
 
-            step.active -> {
-                ActiveStepDot(step = step, modifier = dotModifier, onAction = onAction)
-            }
+                step.active -> {
+                    ActiveStepDot(step = step, modifier = innerModifier, onAction = onAction)
+                }
 
-            else -> {
-                Box(
-                    modifier =
-                        dotModifier
-                            .background(colors.surface.secondary, CircleShape)
-                            .border(strokeWidth.thin, colors.border.default, CircleShape),
-                )
+                else -> {
+                    Box(
+                        modifier =
+                            innerModifier
+                                .background(colors.surface.secondary, CircleShape)
+                                .border(strokeWidth.thin, colors.border.default, CircleShape),
+                    )
+                }
             }
         }
     }

@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -167,17 +169,23 @@ private fun UiAlertBannerContent(
             )
         }
         atom.actionLabel?.takeIf { it.isNotBlank() }?.let { actionLabel ->
-            Text(
-                text = actionLabel,
-                style = typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = style.titleColor,
+            val sizing = ThemeTokens.sizing
+            Box(
                 modifier =
                     Modifier
+                        .defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
+                        .minimumInteractiveComponentSize()
                         .testTag("alert_banner_action_$bannerKey")
                         .pressBounce()
-                        .clickable(role = Role.Button, onClick = onActionClick)
-                        .padding(vertical = spacing.space2),
-            )
+                        .clickable(role = Role.Button, onClick = onActionClick),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text(
+                    text = actionLabel,
+                    style = typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = style.titleColor,
+                )
+            }
         }
     }
 }
@@ -189,24 +197,30 @@ private fun UiAlertBannerDismissButton(
     bannerKey: String,
     onClick: () -> Unit,
 ) {
+    val sizing = ThemeTokens.sizing
     Box(
         modifier =
             Modifier
-                .size(DISMISS_TOUCH_DP.dp)
+                .defaultMinSize(minWidth = sizing.minTouchTarget, minHeight = sizing.minTouchTarget)
+                .minimumInteractiveComponentSize()
                 .testTag("alert_banner_dismiss_$bannerKey")
-                .clip(CircleShape)
                 .semantics { contentDescription = "Dismiss $title" }
                 .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        UiIcon(
-            atom =
-                IconAtom(
-                    name = "close",
-                    sizeDp = DISMISS_ICON_SIZE_DP,
-                    color = ColorTokenRef(token = "icon.secondary"),
-                ),
-        )
+        Box(
+            modifier = Modifier.size(DISMISS_TOUCH_DP.dp).clip(CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            UiIcon(
+                atom =
+                    IconAtom(
+                        name = "close",
+                        sizeDp = DISMISS_ICON_SIZE_DP,
+                        color = ColorTokenRef(token = "icon.secondary"),
+                    ),
+            )
+        }
     }
 }
 

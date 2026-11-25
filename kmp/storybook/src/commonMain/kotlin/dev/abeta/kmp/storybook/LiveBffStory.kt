@@ -64,6 +64,7 @@ import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
 import dev.abeta.kmp.layout.repository.RemoteApiCallExecutor
 import dev.abeta.kmp.layout.repository.RemoteScreenRepository
 import dev.abeta.kmp.layout.snippet.BuiltInSnippetModule
+import dev.abeta.kmp.layout.snippet.CustomSlotRegistry
 import dev.abeta.kmp.layout.snippet.SnippetRegistry
 import dev.abeta.kmp.layout.ui.SduiScreen
 import dev.abeta.kmp.network.client.HttpClientFactory
@@ -71,6 +72,7 @@ import dev.abeta.kmp.network.client.KtorHttpTransport
 import dev.abeta.kmp.network.config.NetworkConfig
 import dev.abeta.kmp.network.config.RetryPolicy
 import dev.abeta.kmp.network.config.TimeoutPolicy
+import dev.abeta.kmp.network.sse.KtorSseTransport
 import dev.abeta.kmp.state.session.InMemorySessionStore
 import dev.abeta.kmp.tokens.ThemeTokens
 import io.ktor.client.HttpClient
@@ -103,12 +105,120 @@ private val BFF_SCREENS =
 private class LiveBffHolder(
     val httpClient: HttpClient,
     val snippetRegistry: SnippetRegistry,
+    val customSlotRegistry: CustomSlotRegistry,
     val controller: LayoutController,
-)
+    private val backStack: ArrayDeque<String>,
+) {
+    fun resetHistory(screenId: String) {
+        backStack.clear()
+        backStack.addLast(screenId)
+    }
+
+    companion object {
+        fun create(
+            baseUrl: String,
+            useBuiltInDemo: Boolean,
+            initialScreen: String,
+            scope: CoroutineScope,
+            onScreenChanged: (String) -> Unit,
+        ): LiveBffHolder {
+            val httpClient = createHttpClient(baseUrl)
+            val transport = KtorHttpTransport(httpClient = httpClient, json = SduiJson)
+            val repository =
+                if (useBuiltInDemo) StorybookDemoScreenRepository() else RemoteScreenRepository(httpClient = transport)
+            val apiExecutor =
+                if (useBuiltInDemo) StorybookDemoApiExecutor() else RemoteApiCallExecutor(httpClient = transport)
+            val dispatcher =
+                DefaultActionDispatcher(
+                    decoderRegistry = BuiltInActionDecoders.createDefaultRegistry(),
+                    actionRegistry = BuiltInActionHandlers.createDefaultRegistry(apiExecutor = apiExecutor),
+                )
+            val backStack = ArrayDeque<String>(listOf(initialScreen))
+            var controllerRef: LayoutController? = null
+            val controller =
+                LayoutController(
+                    screenRepository = repository,
+                    actionDispatcher = dispatcher,
+                    sessionStore = InMemorySessionStore(),
+                    analyticsTracker = LoggerAnalyticsTracker(NoOpAppLogger()),
+                    scope = scope,
+                    navigationListener = { nav ->
+                        applyNavigation(nav, backStack, onScreenChanged) { controllerRef?.loadScreen(it) }
+                    },
+                    backListener = { back ->
+                        applyBack(back.steps, backStack, onScreenChanged) { controllerRef?.loadScreen(it) }
+                    },
+                    platformBridges =
+                        PlatformBridgeBundle.createTestDefault(biometricResult = BiometricResult.Authenticated),
+                    sseTransport = if (useBuiltInDemo) null else KtorSseTransport(httpClient = httpClient),
+                )
+            controllerRef = controller
+            return LiveBffHolder(
+                httpClient = httpClient,
+                snippetRegistry = BuiltInSnippetModule.createDefaultRegistry(),
+                customSlotRegistry = SnippetsSpatialSamples.createStorybookCustomSlotRegistry(),
+                controller = controller,
+                backStack = backStack,
+            )
+        }
+
+        private fun createHttpClient(baseUrl: String): HttpClient =
+            HttpClientFactory.create(
+                config =
+                    NetworkConfig(
+                        baseUrl = baseUrl,
+                        timeouts =
+                            TimeoutPolicy(
+                                connectTimeoutMillis = BFF_CONNECT_TIMEOUT_MS,
+                                requestTimeoutMillis = BFF_REQUEST_TIMEOUT_MS,
+                                socketTimeoutMillis = BFF_REQUEST_TIMEOUT_MS,
+                            ),
+                        retry = RetryPolicy(maxRetries = 0),
+                    ),
+                json = SduiJson,
+            )
+
+        private fun applyNavigation(
+            nav: ActionOutcome.NavigationRequested,
+            backStack: ArrayDeque<String>,
+            onScreenChanged: (String) -> Unit,
+            loadScreen: (String) -> Unit,
+        ) {
+            val target =
+                nav.route
+                    .trim()
+                    .removePrefix("/screens/")
+                    .removePrefix("/")
+            if (target.isNotEmpty()) {
+                if (nav.clearBackStack) backStack.clear()
+                if (backStack.lastOrNull() != target) backStack.addLast(target)
+                onScreenChanged(target)
+                loadScreen(target)
+            }
+        }
+
+        private fun applyBack(
+            steps: Int,
+            backStack: ArrayDeque<String>,
+            onScreenChanged: (String) -> Unit,
+            loadScreen: (String) -> Unit,
+        ) {
+            if (backStack.size > 1) {
+                repeat(steps.coerceAtLeast(1)) {
+                    if (backStack.size > 1) backStack.removeLast()
+                }
+                val destination = backStack.last()
+                onScreenChanged(destination)
+                loadScreen(destination)
+            }
+        }
+    }
+}
 
 /**
  * Interactive Go BFF screen explorer fetching screens via [HttpClientFactory], [KtorHttpTransport],
- * and [RemoteScreenRepository], rendered inside [SduiScreen] with overlay demo triggers.
+ * and [RemoteScreenRepository], rendered inside [SduiScreen] with overlay demo triggers, back-stack
+ * navigation, custom slot rendering, and remote SSE delta streaming.
  */
 @Composable
 @Suppress("ktlint:standard:function-naming", "FunctionName")
@@ -124,24 +234,17 @@ fun LiveBffStory(onAction: (ActionRef) -> Unit) {
 
     val holder =
         remember(activeUrl, useBuiltInDemo) {
-            createLiveBffHolder(activeUrl, useBuiltInDemo, scope) { selectedScreen = it }
+            LiveBffHolder.create(activeUrl, useBuiltInDemo, selectedScreen, scope) { selectedScreen = it }
         }
     DisposableEffect(holder) { onDispose { holder.httpClient.close() } }
-    LaunchedEffect(holder, fetchCount, selectedScreen, useBuiltInDemo) {
-        if (fetchCount > 0) holder.controller.loadScreen(selectedScreen)
+    LaunchedEffect(holder, fetchCount) {
+        if (fetchCount > 0) {
+            holder.resetHistory(selectedScreen)
+            holder.controller.loadScreen(selectedScreen)
+        }
     }
 
     val uiState by holder.controller.uiState.collectAsStateWithLifecycle()
-    val triggerOverlayDemo: (OverlayPresentation) -> Unit = { presentation ->
-        val action = createOverlayDemoAction(presentation)
-        onAction(action)
-        if (uiState is LayoutUiState.Ready) {
-            holder.controller.onAction(action)
-        } else {
-            previewOverlay = decodeOverlayRequest(action)
-        }
-    }
-
     Column(verticalArrangement = Arrangement.spacedBy(spacing.space16)) {
         LiveBffControlsCard(
             useBuiltInDemo = useBuiltInDemo,
@@ -150,7 +253,7 @@ fun LiveBffStory(onAction: (ActionRef) -> Unit) {
             uiState = uiState,
             onModeChange = { builtIn ->
                 useBuiltInDemo = builtIn
-                fetchCount += 1
+                fetchCount = if (builtIn) fetchCount + 1 else 0
             },
             onUrlChange = { urlInput = it },
             onSelectScreen = { screen ->
@@ -162,17 +265,36 @@ fun LiveBffStory(onAction: (ActionRef) -> Unit) {
                 activeUrl = urlInput.trim().ifEmpty { DEFAULT_BFF_URL }
                 fetchCount += 1
             },
-            onPreviewOverlay = triggerOverlayDemo,
+            onPreviewOverlay = { presentation ->
+                previewOverlay = triggerLiveOverlayDemo(presentation, uiState, holder.controller, onAction)
+            },
         )
         LiveBffViewportFrame(
             uiState = uiState,
             snippetRegistry = holder.snippetRegistry,
+            customSlotRegistry = holder.customSlotRegistry,
             controller = holder.controller,
             onAction = onAction,
         )
     }
     previewOverlay?.let { overlay ->
         PreviewOverlayModal(overlay = overlay, onDismiss = { previewOverlay = null })
+    }
+}
+
+private fun triggerLiveOverlayDemo(
+    presentation: OverlayPresentation,
+    uiState: LayoutUiState,
+    controller: LayoutController,
+    onAction: (ActionRef) -> Unit,
+): ActionOutcome.OverlayRequested? {
+    val action = createOverlayDemoAction(presentation)
+    onAction(action)
+    return if (uiState is LayoutUiState.Ready) {
+        controller.onAction(action)
+        null
+    } else {
+        decodeOverlayRequest(action)
     }
 }
 
@@ -281,6 +403,7 @@ private fun LiveBffModeAndScreenSelectors(
 private fun LiveBffViewportFrame(
     uiState: LayoutUiState,
     snippetRegistry: SnippetRegistry,
+    customSlotRegistry: CustomSlotRegistry,
     controller: LayoutController,
     onAction: (ActionRef) -> Unit,
 ) {
@@ -313,6 +436,7 @@ private fun LiveBffViewportFrame(
             SduiScreen(
                 state = uiState,
                 snippetRegistry = snippetRegistry,
+                customSlotRegistry = customSlotRegistry,
                 onAction = { action ->
                     onAction(action)
                     controller.onAction(action)
@@ -371,66 +495,6 @@ private fun PreviewOverlayModal(
             confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
         )
     }
-}
-
-private fun createLiveBffHolder(
-    baseUrl: String,
-    useBuiltInDemo: Boolean,
-    scope: CoroutineScope,
-    onNavigate: (String) -> Unit,
-): LiveBffHolder {
-    val httpClient =
-        HttpClientFactory.create(
-            config =
-                NetworkConfig(
-                    baseUrl = baseUrl,
-                    timeouts =
-                        TimeoutPolicy(
-                            connectTimeoutMillis = BFF_CONNECT_TIMEOUT_MS,
-                            requestTimeoutMillis = BFF_REQUEST_TIMEOUT_MS,
-                            socketTimeoutMillis = BFF_REQUEST_TIMEOUT_MS,
-                        ),
-                    retry = RetryPolicy(maxRetries = 0),
-                ),
-            json = SduiJson,
-        )
-    val transport = KtorHttpTransport(httpClient = httpClient, json = SduiJson)
-    val repository =
-        if (useBuiltInDemo) StorybookDemoScreenRepository() else RemoteScreenRepository(httpClient = transport)
-    val apiExecutor =
-        if (useBuiltInDemo) StorybookDemoApiExecutor() else RemoteApiCallExecutor(httpClient = transport)
-    val dispatcher =
-        DefaultActionDispatcher(
-            decoderRegistry = BuiltInActionDecoders.createDefaultRegistry(),
-            actionRegistry = BuiltInActionHandlers.createDefaultRegistry(apiExecutor = apiExecutor),
-        )
-    var controllerRef: LayoutController? = null
-    val controller =
-        LayoutController(
-            screenRepository = repository,
-            actionDispatcher = dispatcher,
-            sessionStore = InMemorySessionStore(),
-            analyticsTracker = LoggerAnalyticsTracker(NoOpAppLogger()),
-            scope = scope,
-            navigationListener = { nav ->
-                val target =
-                    nav.route
-                        .trim()
-                        .removePrefix("/screens/")
-                        .removePrefix("/")
-                if (target.isNotEmpty()) {
-                    onNavigate(target)
-                    controllerRef?.loadScreen(target)
-                }
-            },
-            platformBridges = PlatformBridgeBundle.createTestDefault(biometricResult = BiometricResult.Authenticated),
-        )
-    controllerRef = controller
-    return LiveBffHolder(
-        httpClient = httpClient,
-        snippetRegistry = BuiltInSnippetModule.createDefaultRegistry(),
-        controller = controller,
-    )
 }
 
 private fun createOverlayDemoAction(presentation: OverlayPresentation): ActionRef {

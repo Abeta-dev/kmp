@@ -27,7 +27,7 @@ verification_command: "(cd kmp && ./gradlew :network:spotlessCheck :network:dete
 - **Paths**: `kmp/network/**`
 - **Maven Coordinate**: `io.github.abeta-dev:network` (Kotlin package `dev.abeta.kmp.network`)
 - **Targets**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`
-- **Core Responsibilities**: `HttpTransport`, `KtorHttpTransport`, `HttpClientFactory`, `NetworkConfig`, `NetworkPorts` (`AuthTokenProvider`, `RetryPolicy`), HTTP/2 ALPN, Brotli (`br`) decompression, bearer token refresh, and shared `CertificatePinMatcher` SPKI/cert pinning across JVM/OkHttp and Apple Darwin `NSURLSession`.
+- **Core Responsibilities**: `HttpTransport`, `KtorHttpTransport`, `HttpClientFactory`, `NetworkConfig` (w/ `appVersion` -> `X-Client-App-Version` & validated `sha256/` pins), `NetworkPorts` (`AuthTokenProvider`, `CsrfTokenProvider` + single `403` retry, `RetryPolicy`), conditional `If-None-Match`/`304`, `SseTransport`/`KtorSseTransport` (`Last-Event-ID` reconnect), HTTP/2 ALPN, Brotli (`br`) decompression, bearer token refresh, and shared `CertificatePinMatcher` SPKI/cert pinning across JVM/OkHttp and Apple Darwin `NSURLSession`.
 
 ## Non-Negotiable Architecture & Review Gates
 1. **Strict Layer 2 Boundary**: May ONLY depend on `projects.core`. NEVER import `sdui-contracts`, `action-engine`, `ui-atoms`, or `sdui-layout`.

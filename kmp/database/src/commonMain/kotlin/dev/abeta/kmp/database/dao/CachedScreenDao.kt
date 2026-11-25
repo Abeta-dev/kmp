@@ -43,4 +43,13 @@ interface CachedScreenDao {
     /** Returns the total number of stored screen cache rows. */
     @Query("SELECT COUNT(*) FROM cached_screens")
     suspend fun count(): Int
+
+    /** Returns the number of non-expired screen cache rows relative to [nowEpochMillis]. */
+    @Query(
+        """
+        SELECT COUNT(*) FROM cached_screens
+        WHERE expiresAtEpochMillis IS NULL OR expiresAtEpochMillis > :nowEpochMillis
+        """,
+    )
+    suspend fun countFresh(nowEpochMillis: Long): Int
 }

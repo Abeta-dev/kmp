@@ -19,14 +19,19 @@ const (
 	EventTrackEvent        = "track_event"
 )
 
-// Canonical analytics event categories matching KMP AnalyticsCategory wire names.
+// Canonical analytics event categories matching KMP AnalyticsCategory wire names,
+// plus legacy/extended categories retained for backwards compatibility.
 const (
-	CategoryAction     = "action"
-	CategoryImpression = "impression"
-	CategoryScreen     = "screen"
-	CategoryLifecycle  = "lifecycle"
-	CategorySystem     = "system"
-	CategoryError      = "error"
+	CategoryPageOpen    = "page_open"
+	CategoryImpression  = "impression"
+	CategoryInteraction = "interaction"
+	CategoryCustom      = "custom"
+
+	CategoryAction    = "action"
+	CategoryScreen    = "screen"
+	CategoryLifecycle = "lifecycle"
+	CategorySystem    = "system"
+	CategoryError     = "error"
 )
 
 // Event represents a single structured client or BFF analytics telemetry record.

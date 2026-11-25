@@ -1156,7 +1156,7 @@
       <a class="brand" href="#top" aria-label="Abeta KMP Kit Home">
         <span class="brand-mark" aria-hidden="true">A</span>
         <span>Abeta KMP Kit</span>
-        <span class="version-pill">v0.6.0</span>
+        <span class="version-pill">v0.7.0</span>
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
@@ -1194,7 +1194,7 @@
           <p class="hero-lead">
             <strong>Abeta KMP Kit</strong> pairs a strict 4-layer <strong>Kotlin Multiplatform + Compose Multiplatform</strong>
             SDUI, Wearable &amp; Room 3 Database kit with a <strong>Go 1.26.0 Clean Architecture BFF</strong>—sharing one
-            1:1 <code>v1</code> JSON wire contract (21 snippets incl. the <strong>Atomic Snippet Molding Engine</strong> &amp; 7 ambient motion loops) across Android, Wear OS, iOS, iPadOS, watchOS, macOS, Desktop JVM, and Web (<code>wasmJs</code>).
+            1:1 <code>v1</code> JSON wire contract (23 canonical snippets incl. the <strong>Atomic Snippet Molding Engine</strong>, <code>custom_slot</code>, <code>graph_canvas</code>, 6 SSE delta ops &amp; 7 ambient motion loops) across JVM, iOS/iPadOS, watchOS, macOS, and Web (<code>wasmJs</code>) plus drop-in Android &amp; Wear OS hosts.
           </p>
 
           <div class="hero-cta-group">
@@ -1231,15 +1231,15 @@
             </div>
             <div class="metric-card">
               <div class="metric-value">29 / 31 Atoms</div>
-              <div class="metric-label">29 pure wire atoms &amp; 31 stateless Compose UI atoms (incl. <code>UiMediaPager</code>, <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code>, <code>UiQrCode</code> &amp; 7 motion loops)</div>
+              <div class="metric-label">29 pure wire atoms &amp; 31 stateless Compose UI atoms (incl. <code>UiMediaPager</code>, ISO/IEC 18004 <code>UiQrCode</code>, <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code> &amp; 7 motion loops)</div>
             </div>
             <div class="metric-card">
-              <div class="metric-value">36 Mold Kinds</div>
-              <div class="metric-label">21 canonical SDUI snippets + <code>composed_block</code> with <strong>36 <code>ComposedNodeKind</code>s</strong>, per-child <code>box_alignment</code>, sticky headers, rich SDUI bottom sheets &amp; end-to-end BFF analytics</div>
+              <div class="metric-value">23 Snippets · 36 Molds</div>
+              <div class="metric-label">23 canonical SDUI snippets (incl. <code>custom_slot</code> &amp; <code>graph_canvas</code>) + <code>composed_block</code> with <strong>36 <code>ComposedNodeKind</code>s</strong>, 6 SSE delta ops, sticky headers, rich SDUI bottom sheets &amp; BFF analytics</div>
             </div>
             <div class="metric-card">
               <div class="metric-value">20 Stories</div>
-              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>7-in-1 Live Super-App Demos</strong>, <strong>Live Analytics Event Stream</strong>, <strong>31-Atom Gallery</strong>, <strong>Animation &amp; Nudges Lab</strong> &amp; <strong>Atomic Snippet Crafter</strong></div>
+              <div class="metric-label">Interactive WasmJS Storybook featuring <strong>7-in-1 Live Super-App Demos</strong>, <strong>All 23 Snippets</strong>, <strong>31-Atom Gallery</strong>, <strong>Animation &amp; Nudges Lab</strong>, <strong>Voice &amp; Desktop Bridges</strong> &amp; <strong>Atomic Snippet Crafter</strong></div>
             </div>
           </div>
         </div>
@@ -1272,7 +1272,7 @@
             <div class="tab-panel active" id="panel-kmp" role="tabpanel" aria-labelledby="tab-kmp">
               <div class="tab-meta">
                 <span>Gradle BOM &amp; multiplatform artifacts via <strong>Maven Central</strong></span>
-                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.6.0</span>
+                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.7.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
@@ -1285,22 +1285,22 @@
 }
 
 dependencies {
-    implementation(platform("io.github.abeta-dev:bom:0.6.0"))
+    implementation(platform("io.github.abeta-dev:bom:0.7.0"))
     implementation("io.github.abeta-dev:sdui-layout")
-    implementation("io.github.abeta-dev:database")        // Optional Room 3 SQLite DB
+    implementation("io.github.abeta-dev:database")        // Optional Room 3 SQLite DB (schema v2)
     implementation("io.github.abeta-dev:watch-companion") // Optional Wear OS / watchOS
 }</code></pre>
               </div>
               <p class="code-note">
-                Published to Maven Central under verified <code>io.github.abeta-dev</code> coordinates while Kotlin source imports remain <code>dev.abeta.kmp.*</code>. Built with official Google AndroidX KMP <code>room3</code>, <code>datastore</code>, <code>lifecycle</code> &amp; <code>savedstate</code>.
+                Published to Maven Central under verified <code>io.github.abeta-dev</code> coordinates (11 KMP libraries + BOM + catalog = 13 artifacts) while Kotlin source imports remain <code>dev.abeta.kmp.*</code>. Built with official Google AndroidX KMP <code>room3</code>, <code>datastore</code>, <code>lifecycle</code> &amp; <code>savedstate</code>.
               </p>
             </div>
 
             <!-- Tab 2: Apple SwiftPM -->
             <div class="tab-panel" id="panel-swift" role="tabpanel" aria-labelledby="tab-swift">
               <div class="tab-meta">
-                <span>Prebuilt Release XCFrameworks via <strong>Xcode Swift Package Manager</strong></span>
-                <span class="badge badge-indigo">Abeta-dev/kmp-spm</span>
+                <span>4 SwiftPM products (Release XCFrameworks + SwiftUI wrappers) via <strong>Xcode</strong></span>
+                <span class="badge badge-indigo">Abeta-dev/kmp-spm · 0.7.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
@@ -1309,41 +1309,45 @@ dependencies {
                 </div>
                 <pre id="code-swift"><code>// Direct Git URL: https://github.com/Abeta-dev/kmp-spm
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.6.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.7.0"),
 ]
 
-// Import prebuilt binary targets directly in Swift:
-import AbetaSduiKit   // iOS / iPadOS Compose + SDUI host
-import AbetaWatchKit  // watchOS headless wearable companion</code></pre>
+// 4 Products — import SwiftUI wrappers or low-level binary XCFrameworks:
+import AbetaSduiSwiftUI   // iOS / iPadOS 15+ SwiftUI SDUI views
+import AbetaSduiKit       // iOS / iPadOS 15+ binary XCFramework
+import AbetaWatchSwiftUI  // watchOS 9+ SwiftUI watch renderer
+import AbetaWatchKit      // watchOS 9+ headless binary XCFramework</code></pre>
               </div>
               <p class="code-note">
-                Lightweight ~1 KB manifest repo pulls SHA-256 verified <code>.xcframework.zip</code> binaries from GitHub Releases.
+                Lightweight manifest repo generated directly by <code>scripts/package_xcframeworks.sh</code>, pulling SHA-256 verified <code>.xcframework.zip</code> binaries from GitHub Releases alongside SwiftUI source targets.
               </p>
             </div>
 
             <!-- Tab 3: Go SDUI SDK -->
             <div class="tab-panel" id="panel-go" role="tabpanel" aria-labelledby="tab-go">
               <div class="tab-meta">
-                <span>Canonical <code>v1</code> Go wire builders, molecules &amp; analytics via <strong>proxy.golang.org</strong></span>
-                <span class="badge badge-emerald">bff@v0.8.0</span>
+                <span>8 exportable <code>v1</code> Go wire, cache &amp; server packages via <strong>proxy.golang.org</strong></span>
+                <span class="badge badge-emerald">bff@v0.9.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
                   <span>Terminal + Go imports</span>
                   <button class="copy-btn" type="button" data-copy-target="code-go">Copy</button>
                 </div>
-                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.8.0
+                <pre id="code-go"><code>go get github.com/abeta-dev/kmp/bff@v0.9.0
 
-// Import 1:1 v1 wire packages in your Go BFF:
+// Import 1:1 v1 wire, caching &amp; server packages in your Go BFF:
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/actions"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/analytics"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/atoms"
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/cache"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/molecules"
+// "github.com/abeta-dev/kmp/bff/pkg/sdui/server"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/snippets"
 // "github.com/abeta-dev/kmp/bff/pkg/sdui/theming"</code></pre>
               </div>
               <p class="code-note">
-                Golden-tested 1:1 parity across all 29 wire atoms, 21 canonical snippet types (incl. <code>composed_block</code> with 36 node kinds &amp; <code>pkg/sdui/molecules</code>), 7 motion loops, 18 action types, and <code>POST /api/v1/analytics/events</code>.
+                Golden-tested (11 fixtures) 1:1 parity across 29 wire atoms, 23 canonical snippet types (incl. <code>composed_block</code> w/ 36 node kinds, <code>custom_slot</code>, <code>graph_canvas</code>), 6 SSE delta ops, 7 motion loops, 18 action types, <code>pkg/sdui/cache</code> &amp; <code>pkg/sdui/server</code>.
               </p>
             </div>
 
@@ -1621,7 +1625,25 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:core</span>
               <span class="badge badge-emerald">Layer 0</span>
             </div>
-            <p>Primitives (<code>AppResult</code>, <code>AppError</code>, concurrency guards) plus OS hardware &amp; security ports (Keychain, AES-GCM, Biometrics, Deep Links, Haptics).</p>
+            <p>Primitives (<code>AppResult</code>, <code>AppError</code>, concurrency guards) plus OS, Voice &amp; Desktop ports (Keychain, file AES-GCM, Biometrics, Deep Links, Haptics, Audio/STT, DesktopSystem).</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/state/">
+            <div class="api-card-top">
+              <span class="api-card-name">:state</span>
+              <span class="badge badge-emerald">Layer 0</span>
+            </div>
+            <p>Thread-safe reactive <code>SessionStore</code>, AndroidX <code>DataStoreKeyValueStore</code>, zero-KSP disk KV store, schema-versioned <code>PreferenceStore</code>, <code>FeatureFlagProvider</code>, and <code>OfflineMutationQueue</code>.</p>
+            <span class="api-card-link">Open Dokka HTML &rarr;</span>
+          </a>
+
+          <a class="api-card" href="./api/analytics/">
+            <div class="api-card-top">
+              <span class="api-card-name">:analytics</span>
+              <span class="badge badge-emerald">Layer 0</span>
+            </div>
+            <p>Vendor-agnostic <code>AnalyticsTracker</code> pipeline with <code>Composite</code>, <code>Logger</code>, <code>Sanitizing</code> (PII redaction), <code>Deduplicating</code>, <code>Enriching</code>, and persistent <code>BufferedAnalyticsTracker</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1630,7 +1652,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:database</span>
               <span class="badge badge-emerald">Layer 0</span>
             </div>
-            <p>Room 3 (<code>3.0.3</code>) KMP SQLite persistence (<code>cached_screens</code>, <code>offline_mutations</code>, <code>key_value_records</code>) with Bundled &amp; WasmJS OPFS Web Worker drivers.</p>
+            <p>Room 3 (<code>3.0.3</code>, schema v2 w/ <code>MIGRATION_1_2</code>) KMP SQLite persistence (<code>cached_screens</code>, <code>offline_mutations</code>, <code>key_value_records</code>) with Bundled &amp; WasmJS OPFS Web Worker drivers.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1648,7 +1670,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:sdui-contracts</span>
               <span class="badge badge-indigo">Layer 1</span>
             </div>
-            <p>Pure <code>@Serializable</code> v1 wire DTOs: 28 Wire Atoms (incl. <code>RadioGroupAtom</code>, <code>SelectAtom</code>, <code>OtpInputAtom</code>, <code>RatingAtom</code>, <code>PriceAtom</code>, <code>QrCodeAtom</code>, <code>CountdownAtom</code>), 21 <code>SnippetTypes</code> (incl. <code>composed_block</code> with 29 <code>ComposedNodeKind</code>s), 7 motion loops, <code>FloatingCartSpec</code> nudges, and <code>SduiJson</code>.</p>
+            <p>Pure <code>@Serializable</code> v1 wire DTOs: 29 Wire Atoms (incl. <code>MediaPagerAtom</code>, <code>CountdownAtom</code> w/ <code>expires_at_epoch_ms</code> &amp; 12 extended atoms), 23 <code>SnippetTypes</code> (incl. <code>composed_block</code> w/ 36 <code>ComposedNodeKind</code>s, <code>custom_slot</code>, <code>graph_canvas</code>), 6 SSE <code>SnippetDeltaOp</code>s, 7 motion loops, and <code>SduiJson</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1657,7 +1679,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:ui-atoms</span>
               <span class="badge badge-indigo">Layer 1</span>
             </div>
-            <p>30 stateless Compose Multiplatform atoms (incl. <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiChip</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code>, <code>UiBadge</code>, <code>UiAlertBanner</code>, <code>UiStatTile</code>, <code>UiKeyValueRow</code>, <code>UiQrCode</code>, <code>UiStepper</code>, <code>UiCountdown</code>, <code>UiRollingCounter</code>), 7 ambient <code>MotionLoopEffect</code>s, <code>pressBounce</code>, <code>UiCelebrationOverlay</code>, and <code>UiHapticFeedback</code>.</p>
+            <p>31 stateless Compose Multiplatform atoms (incl. <code>UiMediaPager</code>, ISO/IEC 18004 <code>UiQrCode</code>, <code>UiRadioGroup</code>, <code>UiSelect</code>, <code>UiOtpInput</code>, <code>UiChip</code>, <code>UiSegmentedControl</code>, <code>UiRating</code>, <code>UiPrice</code>, <code>UiBadge</code>, <code>UiAlertBanner</code>, <code>UiStatTile</code>, <code>UiKeyValueRow</code>, <code>UiStepper</code>, <code>UiCountdown</code>, <code>UiRollingCounter</code>), 7 ambient <code>MotionLoopEffect</code>s, <code>UiCelebrationOverlay</code>, and <code>UiHapticFeedback</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1666,7 +1688,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:action-engine</span>
               <span class="badge badge-amber">Layer 2</span>
             </div>
-            <p>Open/Closed action pipeline: 18 built-in <code>ActionTypes</code>, <code>ActionDecoderRegistry</code>, <code>ActionRegistry</code>, <code>ActionValidator</code>, and <code>DefaultActionDispatcher</code>.</p>
+            <p>Open/Closed action pipeline: 18 built-in <code>ActionTypes</code>, <code>ActionDecoderRegistry</code>, <code>ActionRegistry</code>, <code>ActionValidator</code>, and budget-guarded <code>DefaultActionDispatcher</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1675,7 +1697,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:network</span>
               <span class="badge badge-amber">Layer 2</span>
             </div>
-            <p>DIP-compliant Ktor 3.6.1 HTTP/2 ALPN + Brotli client, automatic bearer token refresh, and shared JVM/Apple SPKI <code>CertificatePinMatcher</code>.</p>
+            <p>DIP-compliant Ktor 3.6.1 HTTP/2 ALPN + Brotli client, conditional <code>304</code>, SSE <code>KtorSseTransport</code>, CSRF <code>403</code> retry, bearer refresh, and validated JVM/Apple SPKI <code>CertificatePinMatcher</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1684,7 +1706,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:sdui-layout</span>
               <span class="badge badge-emerald">Layer 3</span>
             </div>
-            <p><code>LayoutController</code>, 21 built-in snippet renderers (incl. <code>ComposedBlockSnippetRenderer</code> Molding Engine), <code>FloatingCartDockHost</code> threshold nudges, <code>PlatformBridgeBundle</code>, Koin DI, iOS <code>AbetaSduiKit</code>, and macOS Cocoa hosts.</p>
+            <p><code>LayoutController</code> + SSE delta patching, 23 built-in snippet renderers (incl. <code>ComposedBlock</code> w/ 36 node kinds, <code>CustomSlot</code> &amp; <code>GraphCanvas</code>), <code>FloatingCartDockHost</code>, <code>CachedScreenRepository</code> (<code>VERSION_GATED</code>), <code>RemoteBffAnalyticsTracker</code>, <code>PlatformBridgeBundle</code>, Koin DI, iOS <code>AbetaSduiKit</code>, and macOS Cocoa hosts.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1693,7 +1715,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:watch-companion</span>
               <span class="badge badge-emerald">Layer 3</span>
             </div>
-            <p>Headless wearable SDUI orchestrator powering watchOS (<code>AbetaWatchKit.xcframework</code>) and Wear OS JVM hosts with zero Compose UI dependencies.</p>
+            <p>Headless wearable SDUI orchestrator powering watchOS (<code>AbetaWatchKit</code> &amp; <code>AbetaWatchSwiftUI</code>) and Wear OS JVM hosts with ETag/304 caching and zero Compose UI dependencies.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
         </div>

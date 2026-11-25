@@ -1,8 +1,8 @@
 # JetBrains Junie & Android Studio AI Guidelines (`abeta-dev/kmp`)
 
 This repository contains:
-- **`kmp/`**: Gradle 9.7.0 / JDK 21 / Kotlin 2.4.21 / Compose Multiplatform 1.12.2 SDUI & Wearable Kit (**10 publishable library modules** + `kmp-bom` + `dependencyManagement` + `storybook` + `sample-app` + `platforms/`).
-- **`bff/`**: Go 1.26.0 Clean Architecture SDUI Backend-for-Frontend (`cmd/bff`, `internal/{domain,usecase,handler,infra}`, `pkg/sdui/*`).
+- **`kmp/`**: Gradle 9.7.0 / JDK 21 / Kotlin 2.4.21 / Compose Multiplatform 1.12.2 SDUI, Wearable & Room 3 Database Kit (**11 publishable library modules** + `kmp-bom` + `dependencyManagement` = **13 Maven Central artifacts** at **`0.7.0`** + `storybook` + `sample-app` + `platforms/`).
+- **`bff/`**: Go 1.26.0 Clean Architecture SDUI Backend-for-Frontend (`cmd/bff`, `internal/{domain,usecase,handler,infra}`, 8 exportable `pkg/sdui/*` packages at **`bff@v0.9.0`**).
 
 ## Opening in Android Studio / IntelliJ IDEA
 1. Open the **`kmp/`** directory as a Gradle project (or the repo root if editing both `kmp/` and `bff/`).
@@ -12,7 +12,7 @@ This repository contains:
 
 ## Canonical Rules & Owners
 - Full contract: [AGENTS.md](../AGENTS.md)
-- Module Code Owner personas: [agents/owners/](../agents/owners/) (16 per-module owners matching `.github/CODEOWNERS`)
+- Module Code Owner personas: [agents/owners/](../agents/owners/) (17 per-module owners matching `.github/CODEOWNERS`)
 - Skills: [skills/](../skills/) (`abeta-kmp-kit`, `abeta-kmp-usage`, `abeta-kmp-demo`, `abeta-kmp-platforms`, `abeta-kmp-atomic`, `abeta-kmp-actions`, `abeta-kmp-bff`, `abeta-kmp-architecture`, `abeta-kmp-module-review`, `abeta-kmp-cicd`)
 
 ## Non-Negotiable Architecture Checks
