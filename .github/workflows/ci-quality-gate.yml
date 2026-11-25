@@ -89,8 +89,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run Gradle check (Spotless, Detekt, BCV ABI, Unit & Compose UI tests)
-        run: ./gradlew check --no-daemon --stacktrace
+      - name: Run Gradle check (Spotless, Detekt, BCV ABI, HMPP metadata, Unit & Compose UI tests)
+        run: ./gradlew check allMetadataJar --no-daemon --stacktrace
 
       - name: Run sample-app headless smoke test
         run: ./gradlew :sample-app:run --args="--headless" --no-daemon
