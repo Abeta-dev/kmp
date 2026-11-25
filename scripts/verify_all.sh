@@ -9,10 +9,10 @@ echo "==> [1/5] Running brand & machine-path hygiene check..."
 echo "==> [2/5] Running architecture, BOM, wire-parity & module-owner gate..."
 "$ROOT_DIR/scripts/check_architecture_and_owners.sh"
 
-echo "==> [3/5] Running KMP Gradle check..."
+echo "==> [3/5] Running KMP Gradle check & HMPP metadata jars..."
 (
   cd "$ROOT_DIR/kmp"
-  ./gradlew check --no-daemon
+  ./gradlew check allMetadataJar --no-daemon
 )
 
 echo "==> [4/5] Running Sample App headless smoke verification..."
