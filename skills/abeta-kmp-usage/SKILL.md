@@ -5,14 +5,16 @@ description: End-to-end onboarding and consumption guide for abeta-dev/kmp. Use 
 
 # Abeta KMP Kit — How To Use This Repo Skill (`abeta-kmp-usage`)
 
-Use this skill when onboarding to `abeta-dev/kmp`, consuming `io.github.abeta-dev:*` Maven Central modules (Kotlin package namespace `dev.abeta.kmp.*`) in a new or existing KMP/Android/iOS/Desktop/Web/Watch app, or running the full KMP + Go BFF stack locally.
+Use this skill when onboarding to `abeta-dev/kmp`, consuming `io.github.abeta-dev:*` Maven Central modules (including native `-android` `.aar` artifacts; Kotlin package namespace `dev.abeta.kmp.*`) in a new or existing KMP/Android/iOS/Desktop/Web/Watch app, or running the full KMP + Go BFF stack locally.
+
+> **Mandatory Grounding Order**: `AGENTS.md` → `docs/architecture.md` → `docs/flows/*.md` → `docs/patterns/*.md` → `docs/codegraph/INDEX.md` (`./scripts/generate_codegraph.py --query <symbol>`) → Source Reads Only for Verification.
 
 ## 1. Prerequisites & First 5 Minutes
 
 - **JDK 21** + **Gradle 9.7.0** (bundled via `kmp/gradlew`)
+- **Android SDK 37 (`ANDROID_HOME`, `compileSdk = 37`, `minSdk = 24`)** for building native `-android` `.aar` targets across all 11 publishable KMP modules
 - **Go 1.26.0** (for `bff/`)
 - **Xcode** (optional, macOS only for iOS/macOS/watchOS XCFrameworks)
-- **Android SDK (`ANDROID_HOME`, `compileSdk >= 35`)** (optional, only for copying `kmp/platforms/{android,wearos}` into your host Android app)
 
 ```bash
 # Verify the entire monorepo works out of the box
@@ -32,7 +34,7 @@ Use this skill when onboarding to `abeta-dev/kmp`, consuming `io.github.abeta-de
 
 ## 2. Consuming via Gradle BOM & Version Catalog (Zero Auth Required)
 
-Stable releases across all **11 publishable KMP library modules** (plus `bom` and `dependencies` = 13 Maven Central artifacts) publish to **Maven Central** (`mavenCentral()`), and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for Maven Central, Cloudsmith, 4-product Apple SwiftPM (`https://github.com/Abeta-dev/kmp-spm`, `from: "0.7.0"`), and Go `proxy.golang.org` (`github.com/abeta-dev/kmp/bff@v0.9.0`) setup, and `docs/local-database-room3.md` for Room 3 local SQLite persistence (schema v2 w/ `MIGRATION_1_2`).
+Stable releases across all **11 publishable KMP library modules** (all shipping native `-android` `.aar` binaries via AGP `9.5.3` + `bom` + `dependencies` = 13 Maven Central artifacts) publish to **Maven Central** (`mavenCentral()`), and snapshots/mirrors publish to **Cloudsmith Open Source** (`https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/`). See `docs/publishing-and-hosting.md` for Maven Central, Cloudsmith, 4-product Apple SwiftPM (`https://github.com/Abeta-dev/kmp-spm`, `from: "0.8.0"`), and Go `proxy.golang.org` (`github.com/abeta-dev/kmp/bff@v0.9.0`) setup, and `docs/local-database-room3.md` for Room 3 local SQLite persistence (schema v2 w/ `MIGRATION_1_2` & `DatabaseKeyValueStore`).
 
 In your consumer project's `settings.gradle.kts`:
 ```kotlin
@@ -45,7 +47,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abeta") {
-            from("io.github.abeta-dev:dependencies:0.7.0")
+            from("io.github.abeta-dev:dependencies:0.8.0")
         }
     }
 }
@@ -54,10 +56,10 @@ dependencyResolutionManagement {
 In your module's `build.gradle.kts`:
 ```kotlin
 dependencies {
-    implementation(platform("io.github.abeta-dev:bom:0.7.0"))
+    implementation(platform("io.github.abeta-dev:bom:0.8.0"))
     // Pick only the layers you need (versions aligned by the BOM; Kotlin imports remain dev.abeta.kmp.*):
     implementation("io.github.abeta-dev:core")
-    implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
+    implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB + DatabaseKeyValueStore
     implementation("io.github.abeta-dev:design-tokens")
     implementation("io.github.abeta-dev:sdui-contracts")
     implementation("io.github.abeta-dev:ui-atoms")
@@ -69,6 +71,8 @@ dependencies {
 }
 ```
 
+> **Android / Wear OS Initialization**: Call `AbetaAndroidContext.initialize(applicationContext)` once in `Application.onCreate()` so native `androidMain` actuals in `core`, `state`, and `database` activate immediately.
+> **Opt-In Room 3 Persistence**: `sdui-layout` remains Room-free by default; pass `DatabaseKeyValueStore(localDb, namespace)` from `io.github.abeta-dev:database` into `CachedScreenRepository`, `OfflineMutationQueue`, or `PersistentSessionStore` to opt in.
 > **Local Monorepo Toggle**: Inside this repository, `abeta.kmpLocalBuild=true` in `kmp/gradle.properties` transparently substitutes `io.github.abeta-dev:*` Maven coordinates with local Gradle `:module` projects. Pass `-Pabeta.kmpLocalBuild=false` to verify published coordinates.
 
 ## 3. Minimal Wiring in Your App (Koin + `SduiHostedRoot` / `SduiScreen`)

@@ -8,15 +8,16 @@ It provides offline-first structured storage across **Android, Wear OS, JVM Desk
 
 ## 1. Toolchain & Artifact Coordinates
 
-All versions are centralized in [`kmp/dependencyManagement/gradle/libs.versions.toml`](../kmp/dependencyManagement/gradle/libs.versions.toml) and aligned via `io.github.abeta-dev:bom:0.7.0`:
+All versions are centralized in [`kmp/dependencyManagement/gradle/libs.versions.toml`](../kmp/dependencyManagement/gradle/libs.versions.toml) and aligned via `io.github.abeta-dev:bom:0.8.0`:
 
 | Component | Maven Coordinate / Plugin | Version |
 | :--- | :--- | :--- |
-| **Abeta Database Module** | `io.github.abeta-dev:database` | `0.7.0` (aligned by `io.github.abeta-dev:bom:0.7.0`) |
+| **Abeta Database Module** | `io.github.abeta-dev:database` (incl. native `database-android` `.aar`) | `0.8.0` (aligned by `io.github.abeta-dev:bom:0.8.0`) |
 | **Room 3 Runtime** | `androidx.room3:room3-runtime` | `3.0.3` |
 | **Room 3 KSP Compiler** | `androidx.room3:room3-compiler` | `3.0.3` |
 | **Room 3 Gradle Plugin** | `androidx.room3` | `3.0.3` |
-| **SQLite Native / JVM Driver** | `androidx.sqlite:sqlite-bundled` | `2.7.1` |
+| **Android KMP Library Plugin** | `com.android.kotlin.multiplatform.library` (`compileSdk = 37`, `minSdk = 24`) | `9.5.3` |
+| **SQLite Native / Android / JVM Driver** | `androidx.sqlite:sqlite-bundled` | `2.7.1` |
 | **SQLite Browser Driver (WasmJS)** | `androidx.sqlite:sqlite-web` | `2.7.1` |
 | **KSP Compiler Plugin** | `com.google.devtools.ksp` | `2.3.14` |
 
@@ -28,7 +29,7 @@ Every KMP target uses an explicit `SQLiteDriver` compiled or bundled for that OS
 
 | Platform / OS | KMP Target(s) | SQLite Driver Artifact | Runtime Driver / Storage Backend | Host Reference / Setup |
 | :--- | :--- | :--- | :--- | :--- |
-| **Android & Wear OS** | `jvm` (in Android host app) | `androidx.sqlite:sqlite-bundled:2.7.1` | `BundledSQLiteDriver()` backed by `context.getDatabasePath(name)` | [`kmp/platforms/android/AndroidDatabaseFactory.kt`](../kmp/platforms/android/AndroidDatabaseFactory.kt) |
+| **Android & Wear OS** | `android` (native `.aar`, `compileSdk = 37`, `minSdk = 24`) | `androidx.sqlite:sqlite-bundled:2.7.1` | Built-in `androidMain` factory (`BundledSQLiteDriver()` + `MIGRATION_1_2` backed by `AbetaAndroidContext.initialize(context)`) | `AbetaAndroidContext.initialize(applicationContext)` + optional [`kmp/platforms/android/AndroidDatabaseFactory.kt`](../kmp/platforms/android/AndroidDatabaseFactory.kt) |
 | **JVM Desktop (macOS, Windows, Linux)** | `jvm` (Java 21) | `androidx.sqlite:sqlite-bundled:2.7.1` | `BundledSQLiteDriver()` backed by file path or `:memory:` | Built-in `jvmMain` factory in `kmp/database` |
 | **iOS & iPadOS** | `iosArm64`, `iosSimulatorArm64` | `androidx.sqlite:sqlite-bundled:2.7.1` | `BundledSQLiteDriver()` in app `NSDocumentDirectory` / `NSLibraryDirectory` | Built-in `appleMain` factory in `kmp/database` |
 | **macOS Native** | `macosArm64` | `androidx.sqlite:sqlite-bundled:2.7.1` | `BundledSQLiteDriver()` in app support / local file path | Built-in `appleMain` factory in `kmp/database` |
@@ -82,7 +83,25 @@ public expect object AbetaDatabaseConstructor : RoomDatabaseConstructor<AbetaDat
 }
 ```
 
-KSP (`2.3.14`) runs `androidx.room3:room3-compiler:3.0.3` across all 8 KMP compilation targets (`kspJvm`, `kspIosArm64`, `kspIosSimulatorArm64`, `kspMacosArm64`, `kspWatchosArm64`, `kspWatchosSimulatorArm64`, `kspWatchosDeviceArm64`, `kspWasmJs`) to generate every platform's `actual object AbetaDatabaseConstructor` and DAO implementations at compile time.
+KSP (`2.3.14`) runs `androidx.room3:room3-compiler:3.0.3` across all **9 KMP compilation targets** (`kspAndroid`, `kspJvm`, `kspIosArm64`, `kspIosSimulatorArm64`, `kspMacosArm64`, `kspWatchosArm64`, `kspWatchosSimulatorArm64`, `kspWatchosDeviceArm64`, `kspWasmJs`) to generate every platform's `actual object AbetaDatabaseConstructor` and DAO implementations at compile time.
+
+### Opt-In `DatabaseKeyValueStore` Adapter (Keeping `sdui-layout` Room-Free by Default)
+
+`DatabaseKeyValueStore` (`dev.abeta.kmp.database.DatabaseKeyValueStore`) implements Layer 0's `ObservableKeyValueStore` directly over Room 3's `key_value_records` table with an in-memory `MutableStateFlow` snapshot for immediate read-your-own-writes consistency and a serialized background coroutine write queue (`awaitSync()` and `close()` lifecycle helpers).
+
+Because `sdui-layout` and `state` depend only on the pure `KeyValueStore` / `ObservableKeyValueStore` port in `:core`, `sdui-layout` remains **100% Room-free by default** while apps that include `io.github.abeta-dev:database` can opt in to Room 3 persistence across `CachedScreenRepository`, `OfflineMutationQueue`, and `PersistentSessionStore`:
+
+```kotlin
+val localDb = createAbetaLocalDatabase(AbetaDatabaseConfig(databaseName = "abeta_kmp.db"))
+val screenKv = DatabaseKeyValueStore(database = localDb, namespace = "sdui_screens")
+val queueKv = DatabaseKeyValueStore(database = localDb, namespace = "offline_mutations")
+val sessionKv = DatabaseKeyValueStore(database = localDb, namespace = "session")
+
+// Wire directly into Layer 0 / Layer 3 stores without coupling sdui-layout to Room:
+val mutationQueue = OfflineMutationQueue(store = queueKv)
+val sessionStore = PersistentSessionStore(store = sessionKv)
+// Pass screenKv into createSduiKoinModule(..., cacheStore = screenKv) or CachedScreenRepository(...)
+```
 
 ---
 
@@ -101,7 +120,7 @@ room3 {
 1. **Always Commit Exported Schemas**: Commit every generated JSON file under `kmp/database/schemas/dev.abeta.kmp.database.AbetaDatabase/<version>.json`.
 2. **Never Edit Shipped Schema Versions**: When adding columns, indices, or tables, increment `@Database(version = N + 1)` and keep prior `<version>.json` files untouched for migration tests.
 3. **Provide Explicit Migrations**: Register explicit `Migration(from, to)` steps (or Room 3 `@AutoMigration` specs) when changing schemas; never rely on destructive fallback wipes in production consumer configurations.
-4. **Update Public ABI**: If public database APIs or models change, regenerate `kmp/database/api/database.api` via `(cd kmp && ./gradlew :database:apiDump --no-daemon)`.
+4. **Update Public ABI**: If public database APIs or models change, regenerate `kmp/database/api/jvm/database.api` via `(cd kmp && ./gradlew :database:apiDump --no-daemon)`.
 
 ---
 
@@ -121,7 +140,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("abetaLibs") {
-            from("io.github.abeta-dev:dependencies:0.7.0")
+            from("io.github.abeta-dev:dependencies:0.8.0")
         }
     }
 }
@@ -133,7 +152,7 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.8.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:database")
             // Optional SDUI & networking modules aligned by the same BOM:
@@ -143,26 +162,29 @@ kotlin {
 }
 ```
 
-> **Transitive Drivers**: `io.github.abeta-dev:database` declares `androidx.room3:room3-runtime` in `commonMain`, `androidx.sqlite:sqlite-bundled` in `jvmMain` & `appleMain`, and `androidx.sqlite:sqlite-web` in `wasmJsMain` as `api` dependencies, so consumers automatically receive the matching SQLite driver for every target.
+> **Transitive Drivers**: `io.github.abeta-dev:database` declares `androidx.room3:room3-runtime` in `commonMain`, `androidx.sqlite:sqlite-bundled` in `androidMain`, `jvmMain`, & `appleMain`, and `androidx.sqlite:sqlite-web` in `wasmJsMain` as `api` dependencies, so consumers automatically receive the matching SQLite driver for every target.
 
 ---
 
 ## 6. Platform-Specific Host Integration
 
-### A. Android & Wear OS (`kmp/platforms/android/AndroidDatabaseFactory.kt`)
+### A. Android & Wear OS (Native `androidMain` Driver + `AbetaAndroidContext`)
 
-Android and Wear OS apps construct `AbetaDatabase` using `ApplicationContext` so SQLite files live in the app's private database directory (`context.getDatabasePath(config.databaseName)`). Copy or adapt [`kmp/platforms/android/AndroidDatabaseFactory.kt`](../kmp/platforms/android/AndroidDatabaseFactory.kt) into your Android host module:
+`io.github.abeta-dev:database` ships a native `io.github.abeta-dev:database-android:0.8.0` `.aar` with a built-in `androidMain` Room 3 builder (`DatabaseFactory.android.kt`). Initialize `AbetaAndroidContext` once in `Application.onCreate()` (or early in your host `Activity`), then call the shared `createAbetaLocalDatabase(...)` directly from `commonMain`:
 
 ```kotlin
-val localDb = AndroidDatabaseFactory.createLocalDatabase(
-    context = applicationContext,
+// Application.onCreate() or host Activity.onCreate()
+AbetaAndroidContext.initialize(applicationContext)
+
+// Works identically from commonMain on Android, Wear OS, JVM, and Apple:
+val localDb = createAbetaLocalDatabase(
     config = AbetaDatabaseConfig(databaseName = "abeta_kmp.db"),
 )
 ```
 
-- Uses `Room.databaseBuilder<AbetaDatabase>(context = appContext, name = dbFile.absolutePath)` (or `Room.inMemoryDatabaseBuilder` when `config.inMemory = true`)
-- Attaches `BundledSQLiteDriver()` so SQLite version and extensions match iOS/macOS/JVM identically regardless of Android API level
-- Configures coroutine dispatchers off `Dispatchers.Main` (`ioDispatcher`)
+- Automatically uses `Room.databaseBuilder<AbetaDatabase>(context, ...)` stored under `context.filesDir/abeta-kmp/` (with path traversal validation and safe host fallback when running JVM unit tests without an Android `Context`, or `Room.inMemoryDatabaseBuilder` when `config.inMemory = true`).
+- Registers `AbetaDatabase.MIGRATION_1_2`, attaches `BundledSQLiteDriver()` so SQLite version and extensions match iOS/macOS/JVM identically regardless of Android API level, and runs queries on `ioDispatcher`.
+- For explicit `context.getDatabasePath(...)` control, you may also use the drop-in [`kmp/platforms/android/AndroidDatabaseFactory.kt`](../kmp/platforms/android/AndroidDatabaseFactory.kt) helper.
 
 ### B. JVM Desktop & Apple (`iOS`, `macOS`, `watchOS`)
 

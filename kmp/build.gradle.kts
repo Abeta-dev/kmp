@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinxSerialization) apply false
     alias(libs.plugins.composeMultiplatform) apply false
@@ -80,6 +81,9 @@ subprojects {
             // Keep JVM ABI validation deterministic across Linux and macOS CI; experimental klib BCV
             // requires compiling Apple targets that are unavailable on ubuntu-latest runners.
             apply(plugin = "org.jetbrains.kotlinx.binary-compatibility-validator")
+            tasks.matching { it.name == "jvmApiCheck" || it.name == "apiCheck" }.configureEach {
+                mustRunAfter(tasks.matching { it.name == "jvmApiDump" || it.name == "apiDump" })
+            }
         }
         afterEvaluate {
             val kmpDetektTasks = tasks.matching {

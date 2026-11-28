@@ -8,8 +8,8 @@
 
 | Artifact | Coordinate | Source Module | Purpose |
 | :--- | :--- | :--- | :--- |
-| **BOM** | `io.github.abeta-dev:bom:0.7.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `io.github.abeta-dev:*` library modules** + `dependencies` (**13 Maven Central artifacts** total) |
-| **Version Catalog** | `io.github.abeta-dev:dependencies:0.7.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
+| **BOM** | `io.github.abeta-dev:bom:0.8.0` | `:kmp-bom` (`kmp/kmp-bom/build.gradle.kts`) | Aligns versions across all **11 publishable `io.github.abeta-dev:*` library modules** (incl. native `*-android` `.aar` targets) + `dependencies` (**13 Maven Central artifacts** total) |
+| **Version Catalog** | `io.github.abeta-dev:dependencies:0.8.0` | `:dependencyManagement` (`kmp/dependencyManagement/build.gradle.kts`) | Exposes external toolchain & library versions (`libs.versions.toml`) |
 
 ### Modules Included in `io.github.abeta-dev:bom`
 
@@ -25,11 +25,12 @@ From `kmp/kmp-bom/build.gradle.kts`:
 ### Supported Multiplatform Targets & Apple XCFrameworks
 
 - **Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `database`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`):
-  - `jvm` (Java 21), `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`.
-- **Compose UI Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`) and **`:storybook`**:
-  - `jvm` (Java 21), `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
+  - native **`android` `.aar`** (`com.android.kotlin.multiplatform.library` `9.5.3`, `compileSdk = 37`, `minSdk = 24`, published as `io.github.abeta-dev:<module>-android:0.8.0`), `jvm` (Java 21), `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`.
+- **Compose UI Publishable Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`):
+  - native **`android` `.aar`** (`compileSdk = 37`, `minSdk = 24`), `jvm` (Java 21), `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
+- **`:storybook`**: `jvm` (Java 21), `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
 - **`:sample-app`**: JVM Desktop & `--headless` CLI.
-- **Drop-in Platform Glue (`kmp/platforms/`)**: Published Maven Central artifacts target `jvm`, `ios*`, `macosArm64`, `watchos*`, and `wasmJs` (with guarded JVM AWT/file fallbacks). Reference Android (`android/{AndroidPlatformBridgeFactory,AbetaAndroidHostActivity,AndroidDatabaseFactory}.kt`), Wear OS (`wearos/{WearCompanionHostActivity,WearSduiRenderer}.kt`), Apple SwiftUI & 4-product SwiftPM (`apple/AbetaAppleHosts.swift`, `apple/Sources/{AbetaSduiSwiftUI,AbetaWatchSwiftUI}/`), and Web COOP/COEP (`web/README.md`) hosts live in `kmp/platforms/` (`kmp/platforms/README.md`). Android & Wear OS templates require an Android app module with `ANDROID_HOME` / Android SDK configured.
+- **Native Android Actuals & Drop-in Platform Glue (`kmp/platforms/`)**: Published Maven Central artifacts (`0.8.0`) include native `*-android` `.aar` libraries across all 11 modules; Android & Wear OS apps call `AbetaAndroidContext.initialize(applicationContext)` once at startup. Optional reference hosts for Android (`android/{AndroidPlatformBridgeFactory,AbetaAndroidHostActivity,AndroidDatabaseFactory}.kt`), Wear OS (`wearos/{WearCompanionHostActivity,WearSduiRenderer}.kt`), Apple SwiftUI & 4-product SwiftPM (`apple/AbetaAppleHosts.swift`, `apple/Sources/{AbetaSduiSwiftUI,AbetaWatchSwiftUI}/`), and Web COOP/COEP (`web/README.md`) live in `kmp/platforms/` (`kmp/platforms/README.md`).
 
 `sdui-layout`, `watch-companion`, and `storybook` configure Apple XCFrameworks:
 
@@ -59,7 +60,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("abetaLibs") {
-            from("io.github.abeta-dev:dependencies:0.7.0")
+            from("io.github.abeta-dev:dependencies:0.8.0")
         }
     }
 }
@@ -71,10 +72,10 @@ dependencyResolutionManagement {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.8.0"))
 
             // Pick your required layers—no version numbers needed
-            implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB
+            implementation("io.github.abeta-dev:database") // Optional Room 3 KMP SQLite local DB + DatabaseKeyValueStore
             implementation("io.github.abeta-dev:design-tokens")
             implementation("io.github.abeta-dev:sdui-contracts")
             implementation("io.github.abeta-dev:ui-atoms")
@@ -95,19 +96,19 @@ kotlin {
 Inside `kmp/dependencyManagement/gradle/`:
 
 1. **`libs.versions.toml`** (published as `io.github.abeta-dev:dependencies`):
-   - Core Toolchain: Kotlin `2.4.21`, Compose Multiplatform `1.12.2`, Compose Material3 `1.12.0-alpha03`, Compose Lifecycle `2.11.0`, Compose Navigation `2.10.0`
+   - Core Toolchain: Kotlin `2.4.21`, AGP `9.5.3` (`com.android.kotlin.multiplatform.library`), Compose Multiplatform `1.12.2`, Compose Material3 `1.12.0-alpha03`, Compose Lifecycle `2.11.0`, Compose Navigation `2.10.0`
    - KotlinX: Coroutines `1.11.0`, Serialization `1.13.0`, DateTime `0.8.0`, Collections Immutable `0.5.2`
    - Networking, DI, Compression & Persistence: Ktor `3.6.1` (`ktor-bom`, `ktor-common` bundle, `ktor-client-auth`, `ktor-client-encoding`, `ktor-client-okhttp`, `ktor-client-darwin`, `ktor-client-js`, `ktor-client-mock`), Brotli `0.1.2` (`org.brotli:dec`), Koin `4.2.2` (`koin-core`), Kermit `2.2.0`, Multiplatform Settings `1.3.0`, Turbine `1.2.1`, `compose.ui.test`, Room 3 `3.0.3` (`androidx.room3:room3-runtime`, `room3-compiler`), SQLite `2.7.1` (`androidx.sqlite:sqlite-bundled`, `sqlite-web`), KSP `2.3.14`
    - Quality, Docs & Publishing Plugins: Spotless `8.11.0`, Detekt `2.0.0-alpha.6`, Dokka `2.3.0`, Vanniktech Maven Publish `0.37.0`, Binary Compatibility Validator `0.18.2`, `androidx.room3` `3.0.3`, `com.google.devtools.ksp` `2.3.14`
 2. **`internal.versions.toml`** (used internally by `:kmp-bom` and inter-module references):
-   - Defines `kmpBom`, `kmpDependencies`, and per-module version refs (`0.7.0`) across all **11 publishable library modules** (`core`, `state`, `analytics`, `database`, `designTokens`, `sduiContracts`, `uiAtoms`, `actionEngine`, `network`, `sduiLayout`, `watchCompanion`) under the `internal` catalog alias.
+   - Defines `kmpBom`, `kmpDependencies`, and per-module version refs (`0.8.0`) across all **11 publishable library modules** (`core`, `state`, `analytics`, `database`, `designTokens`, `sduiContracts`, `uiAtoms`, `actionEngine`, `network`, `sduiLayout`, `watchCompanion`) under the `internal` catalog alias.
 
 ---
 
 ## ABI Validation (`Binary Compatibility Validator`) & Dokka v2
 
 ### Binary Compatibility Validator (`0.18.2`)
-Applied to all **11 publishable KMP library modules** (`core`, `state`, `analytics`, `database`, `design-tokens`, `sdui-contracts`, `ui-atoms`, `action-engine`, `network`, `sdui-layout`, `watch-companion`). Golden `.api` descriptors live under `kmp/<module>/api/<module>.api` (including `kmp/database/api/database.api` and `kmp/watch-companion/api/watch-companion.api`).
+Applied to all **11 publishable KMP library modules** (`core`, `state`, `analytics`, `database`, `design-tokens`, `sdui-contracts`, `ui-atoms`, `action-engine`, `network`, `sdui-layout`, `watch-companion`). Because every publishable module targets both `android` and `jvm`, golden `.api` descriptors live under `kmp/<module>/api/jvm/<module>.api` (including `kmp/database/api/jvm/database.api` and `kmp/watch-companion/api/jvm/watch-companion.api`).
 
 ```bash
 cd kmp

@@ -15,6 +15,8 @@ import dev.abeta.kmp.contracts.SnippetEnvelope
 import dev.abeta.kmp.contracts.SnippetTypes
 import dev.abeta.kmp.contracts.TextFieldAtom
 import dev.abeta.kmp.core.error.NotFoundError
+import dev.abeta.kmp.core.platform.PlatformKind
+import dev.abeta.kmp.core.platform.currentPlatformCapabilities
 import dev.abeta.kmp.core.result.AppResult
 import dev.abeta.kmp.layout.repository.ScreenRepository
 import dev.abeta.kmp.state.session.InMemorySessionStore
@@ -131,6 +133,12 @@ class SduiLayoutViewModelTest {
     @Test
     fun savedStateRoundTripRestoresScreenAndEditedFormValuesAfterProcessDeath() =
         runTest(StandardTestDispatcher()) {
+            // Android host unit tests run against AGP's stub android.os.BaseBundle where putString throws.
+            val isAndroid = currentPlatformCapabilities().platform.kind == PlatformKind.ANDROID
+            if (isAndroid && runCatching { savedState { putString("probe", "ok") } }.isFailure) {
+                return@runTest
+            }
+
             val (firstVm, _) = buildViewModel(scope = this)
             firstVm.loadScreen("express-checkout").join()
             firstVm.onFormFieldChanged("delivery_note", "Ring bell twice")

@@ -1,9 +1,11 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import java.io.File
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidxRoom3)
@@ -19,6 +21,13 @@ kotlin {
 
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
+    android {
+        namespace = "dev.abeta.kmp.database"
+        compileSdk = 37
+        minSdk = 24
+        withHostTestBuilder {}
     }
 
     jvm()
@@ -45,6 +54,9 @@ kotlin {
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.serialization.json)
         }
+        androidMain.dependencies {
+            api(libs.androidx.sqlite.bundled)
+        }
         jvmMain.dependencies {
             api(libs.androidx.sqlite.bundled)
         }
@@ -67,6 +79,7 @@ room3 {
 }
 
 dependencies {
+    add("kspAndroid", libs.androidx.room3.compiler)
     add("kspJvm", libs.androidx.room3.compiler)
     add("kspIosArm64", libs.androidx.room3.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room3.compiler)
@@ -87,6 +100,53 @@ tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
 
 tasks.matching { it.name == "jvmApiCheck" }.configureEach {
     mustRunAfter(tasks.matching { it.name == "jvmApiDump" })
+}
+
+val extractAndroidHostSqliteJni =
+    tasks.register<Copy>("extractAndroidHostSqliteJni") {
+        val osName = System.getProperty("os.name").orEmpty().lowercase()
+        val osArch = System.getProperty("os.arch").orEmpty().lowercase()
+        val nativeSubdir =
+            when {
+                osName.contains("mac") || osName.contains("darwin") -> "osx_arm64"
+                osName.contains("win") -> "windows_x64"
+                osArch.contains("aarch64") || osArch.contains("arm64") -> "linux_arm64"
+                else -> "linux_x64"
+            }
+        from({
+            configurations
+                .named("jvmRuntimeClasspath")
+                .get()
+                .files
+                .filter { it.name.startsWith("sqlite-bundled-jvm") && it.extension == "jar" }
+                .map { zipTree(it) }
+        }) {
+            include("natives/$nativeSubdir/*")
+            eachFile {
+                path = name
+            }
+            includeEmptyDirs = false
+        }
+        into(layout.buildDirectory.dir("androidHostTestJniLibs"))
+    }
+
+tasks.withType<Test>().matching { it.name == "testAndroidHostTest" }.configureEach {
+    dependsOn(extractAndroidHostSqliteJni)
+    doFirst {
+        val jniDir =
+            layout.buildDirectory
+                .dir("androidHostTestJniLibs")
+                .get()
+                .asFile.absolutePath
+        val existing = systemProperties["java.library.path"]?.toString().orEmpty()
+        val combined =
+            if (existing.isBlank()) {
+                jniDir
+            } else {
+                "$jniDir${File.pathSeparator}$existing"
+            }
+        systemProperty("java.library.path", combined)
+    }
 }
 
 mavenPublishing {

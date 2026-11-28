@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.mavenPublish)
 }
@@ -14,6 +15,13 @@ version = internal.versions.state.get()
 kotlin {
     applyDefaultHierarchyTemplate()
     jvmToolchain(21)
+
+    android {
+        namespace = "dev.abeta.kmp.state"
+        compileSdk = 37
+        minSdk = 24
+        withHostTestBuilder {}
+    }
 
     jvm()
     iosArm64()

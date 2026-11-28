@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.8.0] - 2026-11-28
+
+> Go BFF remains at **`bff@v0.9.0`** (zero breaking wire changes).
+
+### Added
+
+- **Native Android KMP `.aar` Targets Across All 11 Publishable Libraries (`com.android.kotlin.multiplatform.library` `9.5.3`)**:
+  - Enabled the modern Google Android KMP Library plugin (`compileSdk = 37`, `minSdk = 24`) across all **11 publishable KMP modules** (`io.github.abeta-dev:<module>-android:0.8.0` aligned via `io.github.abeta-dev:bom:0.8.0`).
+  - Added thread-safe `AbetaAndroidContext` (`AbetaAndroidContext.initialize(context)`) in `core` alongside native `androidMain` actuals for `ClipboardPort`, `ExternalLauncherPort`, `HapticEngine`, `ConnectivityMonitor`, `SharePort`, `LocaleFormatter`, `PlatformInfo`, `PlatformCapabilities`, `AndroidKeyStore`-backed `SecureKeyValueStore` (with restricted AES-256-GCM file fallback), `SharedPreferences`/DataStore/file stores in `state`, Room 3 Android builder (`BundledSQLiteDriver` + `MIGRATION_1_2`) in `database`, OkHttp SPKI pinning (`PlatformHttpEngine.android.kt`) in `network`, and `BitmapFactory` image decoding (`KtorImageRenderer.android.kt`) in `sdui-layout`.
+- **Deferred OS Bridge Ports (`core`, `sdui-layout`)**:
+  - Added native `macosMain` AppKit `DesktopSystemPort` (`NSApp` dock badge, `NSWorkspace` System Settings deep links, `requestUserAttention`).
+  - Implemented real multiplatform `FilePickerPort` (`jvm` AWT `FileDialog`, `macos` AppKit `NSOpenPanel`, `wasmJs` `<input type="file">`), real `AudioCapturePort` (`jvm` `javax.sound.sampled` `TargetDataLine` 16 kHz PCM with live RMS telemetry), and real `LocationPort` (`wasmJs` `navigator.geolocation`), wired into `PlatformBridgeBundle.createPlatformDefault()`.
+- **Room 3 `DatabaseKeyValueStore` Adapter (`database`)**:
+  - Added `DatabaseKeyValueStore` (`ObservableKeyValueStore` implementation over Room 3 `key_value_records`) in `io.github.abeta-dev:database`, providing opt-in Room 3 SQLite persistence for `CachedScreenRepository`, `OfflineMutationQueue`, and `PersistentSessionStore` while keeping `sdui-layout` Room-free by default.
+- **Mandatory Grounding Before Generation & Deterministic CodeGraph (`docs/flows/`, `docs/patterns/`, `docs/codegraph/`, `scripts/generate_codegraph.py`)**:
+  - Established a repository-wide 6-step grounding workflow across every IDE/AI entrypoint (`AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, `.cursor/rules/`, `.github/copilot-instructions.md`, `.junie/guidelines.md`, `.agent/rules/`): `AGENTS.md` → `docs/architecture.md` → `docs/flows/*.md` (4 end-to-end runtime flow guides) → `docs/patterns/*.md` (4 architectural pattern guides) → deterministic CodeGraph symbol indexer (`scripts/generate_codegraph.py` + `docs/codegraph/{symbols.json,INDEX.md}`, queried via `--query <symbol>` and enforced in CI via `--check`) → targeted source reads only for verification.
+
+### CI & Hardening
+
+- **Android SDK 37 & Apple Verification Gates (`.github/workflows/`)**:
+  - Provisioned Android SDK 37 across CI workflows to compile, test, and validate all native `-android` `.aar` targets alongside JVM, Apple, and WasmJS.
+  - Added `macos-apple-verify` CI job compiling iOS and watchOS simulator frameworks, executing `macosArm64Test`, and validating Swift 5 & 6 `-typecheck` via `scripts/verify_spm_package.sh`.
+
+---
+
 ## [0.7.0] / [bff/v0.9.0] - 2026-11-25
 
 ### Added

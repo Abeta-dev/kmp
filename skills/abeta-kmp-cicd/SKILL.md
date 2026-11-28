@@ -5,17 +5,19 @@ description: Complete CI/CD, GitHub Actions workflows, automated Module Code Own
 
 # Abeta KMP Kit — CI/CD & Quality Gates Skill (`abeta-kmp-cicd`)
 
-Use this skill whenever configuring, extending, debugging, or executing CI/CD pipelines, automated code-owner reviews, ABI checks, or open-registry releases (Maven Central, Cloudsmith Open Source, SwiftPM XCFrameworks, Go `proxy.golang.org`) in `abeta-dev/kmp`.
+Use this skill whenever configuring, extending, debugging, or executing CI/CD pipelines, automated code-owner reviews, CodeGraph symbol freshness checks, ABI checks, or open-registry releases (Maven Central, Cloudsmith Open Source, SwiftPM XCFrameworks, Go `proxy.golang.org`) in `abeta-dev/kmp`.
+
+> **Mandatory Grounding Order**: `AGENTS.md` → `docs/architecture.md` → `docs/flows/*.md` → `docs/patterns/*.md` → `docs/codegraph/INDEX.md` (`./scripts/generate_codegraph.py --query <symbol>`) → Source Reads Only for Verification.
 
 ## 1. GitHub Actions Workflows Map
 
 | Workflow | Trigger | Purpose |
 | :--- | :--- | :--- |
-| [kmp-ci.yml](../../.github/workflows/kmp-ci.yml) | PR / push (`kmp/**`, `scripts/**`) | Java 21 + Gradle 9.7.0 `./gradlew check --no-daemon --stacktrace` (Spotless, Detekt, BCV `apiCheck`, JVM tests, WasmJS compile) |
+| [kmp-ci.yml](../../.github/workflows/kmp-ci.yml) | PR / push (`kmp/**`, `scripts/**`) | Java 21 + **Android SDK 37** + Gradle 9.7.0 `./gradlew check --no-daemon --stacktrace` (Spotless, Detekt, BCV `apiCheck`, native `-android` `.aar` compile/tests, JVM tests, WasmJS compile) + **`macos-apple-verify`** job (compiles iOS/watchOS simulator frameworks, runs `macosArm64Test`, and executes Swift 5 & 6 `-typecheck` via `verify_spm_package.sh`) |
 | [bff-ci.yml](../../.github/workflows/bff-ci.yml) | PR / push (`bff/**`, `scripts/**`) | Go 1.26.0 `gofmt`, `go vet ./...`, `go test -race -coverprofile=coverage.out ./...` |
-| [quality-security.yml](../../.github/workflows/quality-security.yml) | PR / push | Brand & machine-path hygiene (`check_brand_hygiene.sh`), Architecture & Code Owner gate (`check_architecture_and_owners.sh`), SHA-256-verified open-source `gitleaks` CLI secret scan (`.gitleaks.toml`), Spotless & Detekt |
-| [module-owner-architecture-review.yml](../../.github/workflows/module-owner-architecture-review.yml) | PR / manual dispatch | Deterministic Uncle Bob Dependency Rule, BOM/Catalog/ABI parity, 1:1 KMP<->BFF wire parity, per-module Code Owner PR review comment, Spotless/Detekt/`apiCheck`/Go `arch_test`, and optional multi-model AI diff review (Claude / Gemini / OpenAI) |
-| [release.yml](../../.github/workflows/release.yml) | Tags `v*`, `bff/v*` or `workflow_dispatch` | Full KMP + Go verification -> `macos-latest` publish all **13 Gradle modules** (**11 KMP libs** incl. `:database` + `:kmp-bom` + `:dependencyManagement`) to **Maven Central (Sonatype Central Portal)** (requires repo variable `vars.ENABLE_MAVEN_CENTRAL=true`), **Cloudsmith Open Source**, optional custom Maven mirror, plus 4-product Apple SwiftPM (`AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI`) + generated `Package.swift` (`package_xcframeworks.sh` & `verify_spm_package.sh`) + `SHA256SUMS.txt` -> GitHub Release, SwiftPM mirror (`Abeta-dev/kmp-spm` via `SPM_REPO_TOKEN`), & `proxy.golang.org` warmup |
+| [quality-security.yml](../../.github/workflows/quality-security.yml) | PR / push | Brand & machine-path hygiene (`check_brand_hygiene.sh`), Architecture & Code Owner gate (`check_architecture_and_owners.sh`), CodeGraph freshness (`./scripts/generate_codegraph.py --check`), SHA-256-verified open-source `gitleaks` CLI secret scan (`.gitleaks.toml`), Spotless & Detekt (with Android SDK 37) |
+| [module-owner-architecture-review.yml](../../.github/workflows/module-owner-architecture-review.yml) | PR / manual dispatch | Deterministic Uncle Bob Dependency Rule, BOM/Catalog/ABI parity, 1:1 KMP<->BFF wire parity, CodeGraph `--check`, per-module Code Owner PR review comment, Spotless/Detekt/`apiCheck`/Go `arch_test`, and optional multi-model AI diff review (Claude / Gemini / OpenAI) |
+| [release.yml](../../.github/workflows/release.yml) | Tags `v*`, `bff/v*` or `workflow_dispatch` | Full KMP (with Android SDK 37) + Go verification -> `macos-latest` publish all **13 Gradle modules** (**11 KMP libs** incl. native `*-android` `.aar` targets & `:database` + `:kmp-bom` + `:dependencyManagement`) to **Maven Central (Sonatype Central Portal)** (requires repo variable `vars.ENABLE_MAVEN_CENTRAL=true`), **Cloudsmith Open Source**, optional custom Maven mirror, plus 4-product Apple SwiftPM (`AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI`) + generated `Package.swift` (`package_xcframeworks.sh` & `verify_spm_package.sh`) + `SHA256SUMS.txt` -> GitHub Release, SwiftPM mirror (`Abeta-dev/kmp-spm` via `SPM_REPO_TOKEN`), & `proxy.golang.org` warmup |
 | [snapshot-publish.yml](../../.github/workflows/snapshot-publish.yml) | Push (`main` `kmp/**`) or `workflow_dispatch` | Publishes multiplatform `*-SNAPSHOT` builds to **Cloudsmith Open Source** on `macos-latest` automatically whenever `CLOUDSMITH_API_KEY` is configured |
 | [wiki-sync.yml](../../.github/workflows/wiki-sync.yml) | Push (`wiki/**`) | Mirrors `wiki/*.md` to the GitHub repository wiki |
 
@@ -33,7 +35,7 @@ Every module in `abeta-dev/kmp` has a dedicated Code Owner persona in `agents/ow
 
 What `check_architecture_and_owners.sh` enforces automatically:
 1. **Uncle Bob Dependency Rule**: validates `projects.*` dependencies in every `kmp/*/build.gradle.kts`, Layer 0 `database` isolation (depends only on `core`, zero Compose/Ktor), Layer 1 import isolation (`design-tokens`, `sdui-contracts`, `ui-atoms`), headless `watch-companion` (zero Compose UI), and pure Go `bff/internal/domain`.
-2. **Gradle BOM, Catalog & ABI**: zero hardcoded dependency versions in module `build.gradle.kts`, all **11 publishable modules** (including `database`) registered in `internal.versions.toml`, `kmp-bom`, `build.gradle.kts`, `settings.gradle.kts`, and `kmp/<mod>/api/<mod>.api`.
+2. **Gradle BOM, Catalog & ABI**: zero hardcoded dependency versions in module `build.gradle.kts`, all **11 publishable modules** (including `database`) registered in `internal.versions.toml`, `kmp-bom`, `build.gradle.kts`, `settings.gradle.kts`, and BCV `.api` descriptors (`kmp/<mod>/api/jvm/<mod>.api`).
 3. **1:1 KMP <-> Go BFF Wire Parity**: asserts exact set equality across all **18 `ActionTypes`** and **23 `SnippetTypes`**.
 4. **Module Owner Coverage**: confirms all **17 owner agents** (including `database-owner.md`) exist in `agents/owners/` with valid metadata and matching `.github/CODEOWNERS` paths.
 5. **SOLID / KISS File-Size Guardrail**: flags production `.kt`/`.go` files exceeding `750 LOC`.
@@ -47,7 +49,8 @@ What `check_architecture_and_owners.sh` enforces automatically:
 ## 4. Local Pre-Push & Release Runbook
 
 ```bash
-# 1. Full 5-stage monorepo verification gate
+# 1. CodeGraph freshness + full 5-stage monorepo verification gate
+./scripts/generate_codegraph.py --check
 ./scripts/verify_all.sh
 
 # 2. Intentional public API changes -> update BCV descriptors across all 11 modules
@@ -67,15 +70,15 @@ What `check_architecture_and_owners.sh` enforces automatically:
   -Dkotlin.daemon.jvm.options="-Xmx6g")
 
 # 5. Package 4-product Apple XCFrameworks/SwiftUI + verify generated SwiftPM Package.swift locally
-./scripts/package_xcframeworks.sh --tag v0.7.0 --out-dir dist/xcframeworks
-./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.7.0
+./scripts/package_xcframeworks.sh --tag v0.8.0 --out-dir dist/xcframeworks
+./scripts/verify_spm_package.sh dist/xcframeworks/Package.swift --expected-tag v0.8.0
 
 # 6. Verify all 13 Maven artifacts locally (zero credentials required)
 (cd kmp && ./gradlew publishToMavenLocal -Pabeta.kmpLocalBuild=false --no-daemon)
 
 # 7. Cut SemVer releases (triggers .github/workflows/release.yml — ensure vars.ENABLE_MAVEN_CENTRAL=true; see docs/publishing-and-hosting.md)
-git tag -a v0.7.0 -m "Release v0.7.0"
-git push origin v0.7.0
+git tag -a v0.8.0 -m "Release v0.8.0"
+git push origin v0.8.0
 # For Go BFF module proxy (proxy.golang.org):
 git tag -a bff/v0.9.0 -m "Release Go BFF v0.9.0"
 git push origin bff/v0.9.0
@@ -84,4 +87,4 @@ git push origin bff/v0.9.0
 ## 5. CI Troubleshooting Notes
 - **macOS without Xcode iOS/watchOS simulator runtimes**: `kmp/build.gradle.kts` detects installed runtimes via `xcrun simctl list runtimes available` and falls back to `linkDebugTestIosSimulatorArm64` / `linkDebugTestWatchosSimulatorArm64` so `./gradlew check` never fails on missing simulator images.
 - **Kotlin/Native LTO OOM**: Always pass `--max-workers=1` and `-Xmx6g` when assembling multiple Compose Release XCFrameworks in one invocation.
-- **Brotli / Android SDK**: `kmp/platforms/{android,wearos}` templates live outside `settings.gradle.kts` so Linux/macOS CI without `ANDROID_HOME` stays 100% green.
+- **Android SDK 37**: All 11 publishable KMP modules compile native `-android` `.aar` targets (`compileSdk = 37`, `minSdk = 24`); CI workflows provision Android SDK 37 before running Gradle tasks, while `kmp/platforms/{android,wearos}` app host templates remain outside `settings.gradle.kts`.

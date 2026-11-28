@@ -10,7 +10,7 @@
 //
 // Xcode Consumption (Zero Credentials Required):
 //   1. File -> Add Package Dependencies... -> https://github.com/Abeta-dev/kmp-spm
-//   2. Select the SemVer release (e.g. `0.7.0`; both `0.7.0` and `v0.7.0` work in Xcode).
+//   2. Select the SemVer release (e.g. `0.8.0`; both `0.8.0` and `v0.8.0` work in Xcode).
 //   3. Link ready-made SwiftUI wrappers or low-level binary frameworks to your Apple targets:
 //        - iOS / iPadOS 15+ SwiftUI:  `AbetaSduiSwiftUI` (exports `AbetaIosRootAppView`, `AbetaIosSduiScreenView`)
 //        - iOS / iPadOS 15+ UIKit:    `AbetaSduiKit`
@@ -19,7 +19,7 @@
 //
 // SwiftPM (`Package.swift`) Consumption:
 //   dependencies: [
-//       .package(url: "https://github.com/Abeta-dev/kmp-spm.git", from: "0.7.0"),
+//       .package(url: "https://github.com/Abeta-dev/kmp-spm.git", from: "0.8.0"),
 //   ]
 //
 // Swift Usage:

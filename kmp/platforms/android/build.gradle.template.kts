@@ -1,11 +1,11 @@
 // Reference Gradle build template demonstrating Google's official KMP Android Library plugin
-// (`com.android.kotlin.multiplatform.library`) alongside the Abeta KMP Kit BOM (`0.7.0`) and
+// (`com.android.kotlin.multiplatform.library`) alongside the Abeta KMP Kit BOM (`0.8.0`) and
 // official Google AndroidX KMP libraries (`androidx.lifecycle`, `androidx.savedstate`,
 // `androidx.datastore`, `androidx.sqlite`).
 //
 // Usage:
 //   Copy into your consumer Android/KMP library module with `ANDROID_HOME` configured
-//   (AGP 8.10+ / 9.0+, Kotlin 2.4+, JDK 21). Replace literal plugin/dependency versions
+//   (AGP 9.5.3 `android { ... }`, Kotlin 2.4+, JDK 21). Replace literal plugin/dependency versions
 //   with your project's `libs.versions.toml` version catalog entries.
 
 plugins {
@@ -19,10 +19,10 @@ kotlin {
     applyDefaultHierarchyTemplate()
     jvmToolchain(21)
 
-    // Modern Google KMP Android Library target (replaces legacy `com.android.library` + `androidTarget()`).
-    androidLibrary {
+    // Modern Google KMP Android Library target (AGP 9.5.3 `android { ... }`, replacing legacy `androidTarget()`).
+    android {
         namespace = "dev.abeta.kmp.android"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 24
 
         withHostTestBuilder {}.configure {}
@@ -36,7 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Abeta KMP Kit BOM aligns all `io.github.abeta-dev:*` library versions.
-            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
+            implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.8.0"))
             implementation("io.github.abeta-dev:core")
             implementation("io.github.abeta-dev:state")
             implementation("io.github.abeta-dev:database")

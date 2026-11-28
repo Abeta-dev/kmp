@@ -25,7 +25,7 @@ complexity:
     allowedDepth: 4
   TooManyFunctions:
     active: true
-    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**']
+    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**']
     allowedFunctionsPerFile: 11
     allowedFunctionsPerClass: 11
     allowedFunctionsPerInterface: 11
@@ -35,13 +35,13 @@ complexity:
 naming:
   FunctionNaming:
     active: true
-    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**']
+    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**']
     functionPattern: '[a-z][a-zA-Z0-9]*'
 
 style:
   MagicNumber:
     active: true
-    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**', '**/*.kts']
+    excludes: ['**/test/**', '**/commonTest/**', '**/jvmTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/macosTest/**', '**/watchosTest/**', '**/wasmJsTest/**', '**/*.kts']
   MaxLineLength:
     active: true
     maxLineLength: 120

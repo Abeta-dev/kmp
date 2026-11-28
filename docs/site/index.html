@@ -1156,7 +1156,7 @@
       <a class="brand" href="#top" aria-label="Abeta KMP Kit Home">
         <span class="brand-mark" aria-hidden="true">A</span>
         <span>Abeta KMP Kit</span>
-        <span class="version-pill">v0.7.0</span>
+        <span class="version-pill">v0.8.0</span>
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
@@ -1194,7 +1194,7 @@
           <p class="hero-lead">
             <strong>Abeta KMP Kit</strong> pairs a strict 4-layer <strong>Kotlin Multiplatform + Compose Multiplatform</strong>
             SDUI, Wearable &amp; Room 3 Database kit with a <strong>Go 1.26.0 Clean Architecture BFF</strong>—sharing one
-            1:1 <code>v1</code> JSON wire contract (23 canonical snippets incl. the <strong>Atomic Snippet Molding Engine</strong>, <code>custom_slot</code>, <code>graph_canvas</code>, 6 SSE delta ops &amp; 7 ambient motion loops) across JVM, iOS/iPadOS, watchOS, macOS, and Web (<code>wasmJs</code>) plus drop-in Android &amp; Wear OS hosts.
+            1:1 <code>v1</code> JSON wire contract (23 canonical snippets incl. the <strong>Atomic Snippet Molding Engine</strong>, <code>custom_slot</code>, <code>graph_canvas</code>, 6 SSE delta ops &amp; 7 ambient motion loops) across native <strong>Android <code>.aar</code></strong> (AGP 9.5.3), JVM, iOS/iPadOS, watchOS, macOS, and Web (<code>wasmJs</code>).
           </p>
 
           <div class="hero-cta-group">
@@ -1227,7 +1227,7 @@
           <div class="metrics-grid">
             <div class="metric-card">
               <div class="metric-value">11 Modules</div>
-              <div class="metric-label">Publishable KMP libs + Gradle BOM &amp; Version Catalog, ABI-checked via BCV</div>
+              <div class="metric-label">Publishable KMP libs (all shipping native <strong>Android <code>.aar</code></strong> + Apple/JVM/WasmJS) + Gradle BOM &amp; Version Catalog, ABI-checked via BCV</div>
             </div>
             <div class="metric-card">
               <div class="metric-value">29 / 31 Atoms</div>
@@ -1271,8 +1271,8 @@
             <!-- Tab 1: Android / KMP / JVM -->
             <div class="tab-panel active" id="panel-kmp" role="tabpanel" aria-labelledby="tab-kmp">
               <div class="tab-meta">
-                <span>Gradle BOM &amp; multiplatform artifacts via <strong>Maven Central</strong></span>
-                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.7.0</span>
+                <span>Gradle BOM &amp; native Android <code>.aar</code> / KMP artifacts via <strong>Maven Central</strong></span>
+                <span class="badge badge-emerald">io.github.abeta-dev:bom:0.8.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
@@ -1285,14 +1285,14 @@
 }
 
 dependencies {
-    implementation(platform("io.github.abeta-dev:bom:0.7.0"))
+    implementation(platform("io.github.abeta-dev:bom:0.8.0"))
     implementation("io.github.abeta-dev:sdui-layout")
-    implementation("io.github.abeta-dev:database")        // Optional Room 3 SQLite DB (schema v2)
+    implementation("io.github.abeta-dev:database")        // Optional Room 3 SQLite DB + DatabaseKeyValueStore
     implementation("io.github.abeta-dev:watch-companion") // Optional Wear OS / watchOS
 }</code></pre>
               </div>
               <p class="code-note">
-                Published to Maven Central under verified <code>io.github.abeta-dev</code> coordinates (11 KMP libraries + BOM + catalog = 13 artifacts) while Kotlin source imports remain <code>dev.abeta.kmp.*</code>. Built with official Google AndroidX KMP <code>room3</code>, <code>datastore</code>, <code>lifecycle</code> &amp; <code>savedstate</code>.
+                Published to Maven Central under verified <code>io.github.abeta-dev</code> coordinates (11 KMP libraries incl. native <code>*-android</code> <code>.aar</code> targets via AGP 9.5.3 + BOM + catalog = 13 artifacts) while Kotlin imports remain <code>dev.abeta.kmp.*</code>. Call <code>AbetaAndroidContext.initialize(context)</code> once on Android/Wear OS startup.
               </p>
             </div>
 
@@ -1300,7 +1300,7 @@ dependencies {
             <div class="tab-panel" id="panel-swift" role="tabpanel" aria-labelledby="tab-swift">
               <div class="tab-meta">
                 <span>4 SwiftPM products (Release XCFrameworks + SwiftUI wrappers) via <strong>Xcode</strong></span>
-                <span class="badge badge-indigo">Abeta-dev/kmp-spm · 0.7.0</span>
+                <span class="badge badge-indigo">Abeta-dev/kmp-spm · 0.8.0</span>
               </div>
               <div class="code-wrap">
                 <div class="code-header">
@@ -1309,7 +1309,7 @@ dependencies {
                 </div>
                 <pre id="code-swift"><code>// Direct Git URL: https://github.com/Abeta-dev/kmp-spm
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.7.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.8.0"),
 ]
 
 // 4 Products — import SwiftUI wrappers or low-level binary XCFrameworks:
@@ -1625,7 +1625,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:core</span>
               <span class="badge badge-emerald">Layer 0</span>
             </div>
-            <p>Primitives (<code>AppResult</code>, <code>AppError</code>, concurrency guards) plus OS, Voice &amp; Desktop ports (Keychain, file AES-GCM, Biometrics, Deep Links, Haptics, Audio/STT, DesktopSystem).</p>
+            <p>Primitives (<code>AppResult</code>, <code>AppError</code>) plus native Android (<code>AbetaAndroidContext</code>), Apple/macOS AppKit, JVM, &amp; WasmJS ports (Keychain/AndroidKeyStore, Biometrics, FilePicker, 16 kHz PCM AudioCapture, Geolocation, DesktopSystem).</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1634,7 +1634,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:state</span>
               <span class="badge badge-emerald">Layer 0</span>
             </div>
-            <p>Thread-safe reactive <code>SessionStore</code>, AndroidX <code>DataStoreKeyValueStore</code>, zero-KSP disk KV store, schema-versioned <code>PreferenceStore</code>, <code>FeatureFlagProvider</code>, and <code>OfflineMutationQueue</code>.</p>
+            <p>Thread-safe reactive <code>SessionStore</code>, AndroidX <code>DataStoreKeyValueStore</code>, zero-KSP disk &amp; Android <code>SharedPreferences</code> KV stores, schema-versioned <code>PreferenceStore</code>, <code>FeatureFlagProvider</code>, and <code>OfflineMutationQueue</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1652,7 +1652,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:database</span>
               <span class="badge badge-emerald">Layer 0</span>
             </div>
-            <p>Room 3 (<code>3.0.3</code>, schema v2 w/ <code>MIGRATION_1_2</code>) KMP SQLite persistence (<code>cached_screens</code>, <code>offline_mutations</code>, <code>key_value_records</code>) with Bundled &amp; WasmJS OPFS Web Worker drivers.</p>
+            <p>Room 3 (<code>3.0.3</code>, schema v2 w/ <code>MIGRATION_1_2</code>) KMP SQLite persistence (<code>cached_screens</code>, <code>offline_mutations</code>, <code>key_value_records</code>), opt-in <code>DatabaseKeyValueStore</code> adapter, and native Android, Bundled, &amp; WasmJS OPFS drivers.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1697,7 +1697,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:network</span>
               <span class="badge badge-amber">Layer 2</span>
             </div>
-            <p>DIP-compliant Ktor 3.6.1 HTTP/2 ALPN + Brotli client, conditional <code>304</code>, SSE <code>KtorSseTransport</code>, CSRF <code>403</code> retry, bearer refresh, and validated JVM/Apple SPKI <code>CertificatePinMatcher</code>.</p>
+            <p>DIP-compliant Ktor 3.6.1 HTTP/2 ALPN + Brotli client, conditional <code>304</code>, SSE <code>KtorSseTransport</code>, CSRF <code>403</code> retry, bearer refresh, and validated Android/JVM OkHttp &amp; Apple SPKI <code>CertificatePinMatcher</code>.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1706,7 +1706,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:sdui-layout</span>
               <span class="badge badge-emerald">Layer 3</span>
             </div>
-            <p><code>LayoutController</code> + SSE delta patching, 23 built-in snippet renderers (incl. <code>ComposedBlock</code> w/ 36 node kinds, <code>CustomSlot</code> &amp; <code>GraphCanvas</code>), <code>FloatingCartDockHost</code>, <code>CachedScreenRepository</code> (<code>VERSION_GATED</code>), <code>RemoteBffAnalyticsTracker</code>, <code>PlatformBridgeBundle</code>, Koin DI, iOS <code>AbetaSduiKit</code>, and macOS Cocoa hosts.</p>
+            <p><code>LayoutController</code> + SSE delta patching, 23 built-in snippet renderers (incl. <code>ComposedBlock</code> w/ 36 node kinds, <code>CustomSlot</code> &amp; <code>GraphCanvas</code>), <code>FloatingCartDockHost</code>, <code>CachedScreenRepository</code> (<code>VERSION_GATED</code>), Android <code>BitmapFactory</code>, Room-free by default, <code>PlatformBridgeBundle</code>, Koin DI, iOS <code>AbetaSduiKit</code>, and macOS Cocoa hosts.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
 
@@ -1715,7 +1715,7 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
               <span class="api-card-name">:watch-companion</span>
               <span class="badge badge-emerald">Layer 3</span>
             </div>
-            <p>Headless wearable SDUI orchestrator powering watchOS (<code>AbetaWatchKit</code> &amp; <code>AbetaWatchSwiftUI</code>) and Wear OS JVM hosts with ETag/304 caching and zero Compose UI dependencies.</p>
+            <p>Headless wearable SDUI orchestrator powering watchOS (<code>AbetaWatchKit</code> &amp; <code>AbetaWatchSwiftUI</code>) and native Android/Wear OS <code>.aar</code> hosts with ETag/304 caching and zero Compose UI dependencies.</p>
             <span class="api-card-link">Open Dokka HTML &rarr;</span>
           </a>
         </div>
@@ -1727,10 +1727,10 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
       <div class="container">
         <div class="section-head">
           <div>
-            <div class="section-kicker">AI &amp; LLM Ready (llmstxt.org)</div>
-            <h2 class="section-title">Direct Context for Coding Agents &amp; Assistants</h2>
+            <div class="section-kicker">Mandatory Grounding &amp; CodeGraph (llmstxt.org)</div>
+            <h2 class="section-title">Direct Context &amp; Deterministic Symbol Grounding for AI Agents</h2>
             <p class="section-desc">
-              Point Claude, Gemini, Cursor, Copilot, or custom RAG pipelines straight at our hosted plain-text indexes—no scraping required.
+              Every IDE entrypoint enforces a 6-step <strong>Mandatory Grounding Before Generation</strong> workflow (<code>AGENTS.md</code> &rarr; <code>docs/architecture.md</code> &rarr; <code>docs/flows/</code> &rarr; <code>docs/patterns/</code> &rarr; deterministic <strong>CodeGraph</strong> <code>docs/codegraph/INDEX.md</code> &amp; <code>symbols.json</code> &rarr; targeted source reads), paired with hosted <code>llms.txt</code> indexes.
             </p>
           </div>
         </div>
@@ -1739,17 +1739,18 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
           <div class="llm-card">
             <div>
               <h3>
-                <span>llms.txt</span>
-                <span class="badge badge-emerald">Index</span>
+                <span>llms.txt &amp; CodeGraph</span>
+                <span class="badge badge-emerald">Index + Symbols</span>
               </h3>
               <p>
-                Concise <code>llmstxt.org</code> index mapping core architecture docs, sibling repository links, all 10 AI agent skills, and all 17 per-module Code Owner personas.
+                Concise <code>llmstxt.org</code> index paired with 4 runtime Flow docs, 4 engineering Pattern recipes, and our CI-verified deterministic CodeGraph symbol index (<code>./scripts/generate_codegraph.py --query &lt;symbol&gt;</code>) covering Kotlin, Go, and Swift.
               </p>
             </div>
             <div class="llm-actions">
               <a class="btn btn-primary btn-sm" href="./llms.txt">Open ./llms.txt &rarr;</a>
-              <a class="btn btn-secondary btn-sm" href="https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt" target="_blank" rel="noopener noreferrer">layout-engine llms.txt</a>
-              <a class="btn btn-secondary btn-sm" href="https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt" target="_blank" rel="noopener noreferrer">sdui-bff llms.txt</a>
+              <a class="btn btn-secondary btn-sm" href="https://github.com/Abeta-dev/kmp/blob/main/docs/codegraph/INDEX.md" target="_blank" rel="noopener noreferrer">CodeGraph INDEX</a>
+              <a class="btn btn-secondary btn-sm" href="https://github.com/Abeta-dev/kmp/blob/main/docs/flows/README.md" target="_blank" rel="noopener noreferrer">Flows</a>
+              <a class="btn btn-secondary btn-sm" href="https://github.com/Abeta-dev/kmp/blob/main/docs/patterns/README.md" target="_blank" rel="noopener noreferrer">Patterns</a>
             </div>
           </div>
 
@@ -1760,12 +1761,14 @@ docker pull ghcr.io/abeta-dev/sdui-bff:0.4.0</code></pre>
                 <span class="badge badge-indigo">Complete Reference</span>
               </h3>
               <p>
-                Self-contained single-file technical reference covering the 3-repo Abeta SDUI Platform, 4-layer module matrix, Room 3 schema, full Wire Protocol <code>v1</code> payloads, install snippets, and verification commands.
+                Self-contained single-file technical reference covering the 6-step Mandatory Grounding order, 3-repo Abeta SDUI Platform, 4-layer module matrix (incl. native Android <code>.aar</code> targets), Room 3 schema &amp; <code>DatabaseKeyValueStore</code>, full Wire Protocol <code>v1</code> payloads, install snippets, and verification commands.
               </p>
             </div>
             <div class="llm-actions">
               <a class="btn btn-indigo btn-sm" href="./llms-full.txt">Open ./llms-full.txt &rarr;</a>
               <a class="btn btn-secondary btn-sm" href="https://github.com/Abeta-dev/kmp/blob/main/AGENTS.md" target="_blank" rel="noopener noreferrer">AGENTS.md</a>
+              <a class="btn btn-secondary btn-sm" href="https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt" target="_blank" rel="noopener noreferrer">layout-engine</a>
+              <a class="btn btn-secondary btn-sm" href="https://raw.githubusercontent.com/Abeta-dev/sdui-bff/main/llms.txt" target="_blank" rel="noopener noreferrer">sdui-bff</a>
             </div>
           </div>
         </div>

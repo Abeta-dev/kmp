@@ -101,6 +101,9 @@ object UnavailableAudioCapturePort : AudioCapturePort {
     }
 }
 
+/** Creates the platform-native [AudioCapturePort] for the current KMP target. */
+expect fun createPlatformAudioCapturePort(): AudioCapturePort
+
 /**
  * Deterministic test fake for [AudioCapturePort] supporting synthetic level emission and failure injection.
  */

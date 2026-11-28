@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.mavenPublish)
@@ -15,6 +16,13 @@ extra["org.jetbrains.compose.experimental.macos.enabled"] = "true"
 kotlin {
     applyDefaultHierarchyTemplate()
     jvmToolchain(21)
+
+    android {
+        namespace = "dev.abeta.kmp.atoms"
+        compileSdk = 37
+        minSdk = 24
+        withHostTestBuilder {}
+    }
 
     jvm()
     iosArm64()

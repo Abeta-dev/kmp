@@ -75,6 +75,9 @@ object UnavailableLocationPort : LocationPort {
         AppResult.Failure(ForbiddenError(resource = "location", message = "Location provider is not bound on host."))
 }
 
+/** Creates the platform-native [LocationPort] for the current KMP target. */
+expect fun createPlatformLocationPort(): LocationPort
+
 /**
  * Criteria describing a native OS file or media picker request.
  */
@@ -107,6 +110,9 @@ object UnavailableFilePickerPort : FilePickerPort {
     override suspend fun pickFiles(request: FilePickerRequest): AppResult<List<PickedFile>> =
         AppResult.Failure(ForbiddenError(resource = "file_picker", message = "File picker is not bound on host."))
 }
+
+/** Creates the platform-native [FilePickerPort] for the current KMP target. */
+expect fun createPlatformFilePickerPort(): FilePickerPort
 
 /**
  * Port abstracting push notification token retrieval (APNs, FCM, Web Push).

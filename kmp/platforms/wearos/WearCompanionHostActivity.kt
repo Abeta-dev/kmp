@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.wear.compose.material.MaterialTheme
 import dev.abeta.kmp.core.error.UnexpectedError
+import dev.abeta.kmp.core.platform.AbetaAndroidContext
 import dev.abeta.kmp.core.platform.ConnectivityMonitor
 import dev.abeta.kmp.core.platform.ExternalLauncherPort
 import dev.abeta.kmp.core.platform.HapticEngine
@@ -41,12 +42,17 @@ import org.koin.dsl.koinApplication
  * into the modular [WearSduiScreen] renderer without relying on JVM Desktop `java.awt.*` or
  * `java.util.prefs.Preferences.userRoot()` fallbacks.
  *
+ * All 11 Abeta KMP Kit libraries (including `io.github.abeta-dev:watch-companion`) now ship native
+ * `-android` `.aar` artifacts via `io.github.abeta-dev:bom:0.8.0`. Calls [AbetaAndroidContext.initialize]
+ * in [onCreate] so Android-native KMP platform defaults are initialized across the Wear OS host.
+ *
  * Copy alongside `platforms/android/AndroidPlatformBridgeFactory.kt` into a Wear OS Gradle
  * application module (`compileSdk >= 35`, `androidx.wear.compose`).
  */
 class WearCompanionHostActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AbetaAndroidContext.initialize(applicationContext)
         val bffBaseUrl =
             intent?.getStringExtra(EXTRA_BFF_BASE_URL)?.trim()?.takeIf { it.isNotEmpty() }
         val initialScreenId =
