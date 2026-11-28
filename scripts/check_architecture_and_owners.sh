@@ -168,7 +168,10 @@ LAYER1_FORBIDDEN_IMPORTS = {
 
 for mod, forbidden_prefixes in LAYER1_FORBIDDEN_IMPORTS.items():
     for kt_file in glob.glob(os.path.join(root, f"kmp/{mod}/src/**/*.kt"), recursive=True):
-        if "/commonTest/" in kt_file or "/jvmTest/" in kt_file:
+        if any(
+            seg in kt_file
+            for seg in ("/commonTest/", "/jvmTest/", "/androidHostTest/", "/androidDeviceTest/", "/androidUnitTest/")
+        ):
             continue
         with open(kt_file, "r", encoding="utf-8") as fh:
             for line_no, line in enumerate(fh, 1):
@@ -226,9 +229,22 @@ for mod in PUBLISHABLE_LIBS:
         violations.append(f"[BOM/Settings] Module `:{mod}` missing from kmp/settings.gradle.kts")
     if f'group = "io.github.abeta-dev", name = "{mod}"' not in internal_toml:
         violations.append(f"[Catalog] Coordinate `io.github.abeta-dev:{mod}` missing from internal.versions.toml")
-    api_file = os.path.join(root, f"kmp/{mod}/api/{mod}.api")
-    if not os.path.isfile(api_file):
-        violations.append(f"[ABI] Missing Binary Compatibility Validator descriptor: kmp/{mod}/api/{mod}.api")
+    mod_gradle = read_text(f"kmp/{mod}/build.gradle.kts")
+    if "androidKotlinMultiplatformLibrary" not in mod_gradle or not re.search(r"\bandroid\s*\{", mod_gradle):
+        violations.append(
+            f"[AndroidTarget] Publishable module `:{mod}` missing `androidKotlinMultiplatformLibrary` plugin or `android {{ ... }}` target"
+        )
+    jvm_api_file = os.path.join(root, f"kmp/{mod}/api/jvm/{mod}.api")
+    flat_api_file = os.path.join(root, f"kmp/{mod}/api/{mod}.api")
+    if os.path.isfile(jvm_api_file):
+        if os.path.isfile(flat_api_file):
+            violations.append(
+                f"[ABI] Stale duplicate flat ABI descriptor kmp/{mod}/api/{mod}.api exists alongside kmp/{mod}/api/jvm/{mod}.api; remove the flat file."
+            )
+    elif not os.path.isfile(flat_api_file):
+        violations.append(
+            f"[ABI] Missing Binary Compatibility Validator descriptor: kmp/{mod}/api/jvm/{mod}.api (or legacy kmp/{mod}/api/{mod}.api)"
+        )
 
 # Ensure kmp-bom constrains the exact set of 11 publishable libraries + dependencies catalog
 catalog_kmp_aliases = {
@@ -439,12 +455,61 @@ for prefix, agent_rel, agent_name in OWNER_MAPPING:
                     violations.append(f"[CodeOwners] {agent_rel} missing required field `{required_key}`")
 
 # ---------------------------------------------------------------------------
-# 5. SOLID / KISS File-Size Hygiene Check (production source files)
+# 5. Mandatory Grounding Docs & CodeGraph Freshness Gate
+# ---------------------------------------------------------------------------
+GROUNDING_REQUIRED_FILES = [
+    "docs/architecture.md",
+    "docs/flows/README.md",
+    "docs/patterns/README.md",
+    "docs/codegraph/INDEX.md",
+    "docs/codegraph/symbols.json",
+    "scripts/generate_codegraph.py",
+]
+
+missing_grounding_files = []
+for rel_file in GROUNDING_REQUIRED_FILES:
+    if not os.path.isfile(os.path.join(root, rel_file)):
+        missing_grounding_files.append(rel_file)
+        violations.append(f"[Grounding] Missing required grounding/CodeGraph artifact: {rel_file}")
+
+codegraph_status = "skipped (missing required artifacts)"
+if not missing_grounding_files:
+    cg_proc = subprocess.run(
+        [sys.executable, os.path.join(root, "scripts/generate_codegraph.py"), "--check"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if cg_proc.returncode != 0:
+        cg_lines = [ln.strip() for ln in (cg_proc.stderr or cg_proc.stdout or "").splitlines() if ln.strip()]
+        cg_summary = cg_lines[0] if cg_lines else f"exit code {cg_proc.returncode}"
+        violations.append(
+            f"[CodeGraph] docs/codegraph/ is out of sync ({cg_summary}). Run `./scripts/generate_codegraph.py` to refresh."
+        )
+        codegraph_status = f"stale (exit {cg_proc.returncode})"
+    else:
+        codegraph_status = "fresh (--check passed)"
+
+# ---------------------------------------------------------------------------
+# 6. SOLID / KISS File-Size Hygiene Check (production source files)
 # ---------------------------------------------------------------------------
 MAX_PROD_LOC = 750
 for pat in ("kmp/**/src/**/*.kt", "bff/**/*.go"):
     for path in glob.glob(os.path.join(root, pat), recursive=True):
-        if any(seg in path for seg in ("/commonTest/", "/jvmTest/", "/src/test/", "_test.go", ".build.nosync", "/build/")):
+        if any(
+            seg in path
+            for seg in (
+                "/commonTest/",
+                "/jvmTest/",
+                "/androidHostTest/",
+                "/androidDeviceTest/",
+                "/androidUnitTest/",
+                "/src/test/",
+                "_test.go",
+                ".build.nosync",
+                "/build/",
+            )
+        ):
             continue
         with open(path, "r", encoding="utf-8", errors="ignore") as fh:
             loc = sum(1 for _ in fh)
@@ -453,7 +518,7 @@ for pat in ("kmp/**/src/**/*.kt", "bff/**/*.go"):
             warnings.append(f"[SOLID/KISS] {rel} has {loc} LOC (> {MAX_PROD_LOC} recommended SRP ceiling)")
 
 # ---------------------------------------------------------------------------
-# 6. Optional PR Diff -> Module Owner Routing & Review Report
+# 7. Optional PR Diff -> Module Owner Routing & Review Report
 # ---------------------------------------------------------------------------
 report_lines = [
     "## Abeta KMP Kit — Module Code Owner & Architecture Gate Report",
@@ -465,6 +530,7 @@ report_lines = [
     f"- **Wire Parity (`SnippetDeltaOp`)**: {len(kmp_delta_ops)} KMP / {len(go_delta_ops)} Go BFF",
     f"- **Wire Parity (`ComposedNodeKind`)**: {len(kmp_composed_kinds)} KMP / {len(go_composed_kinds)} Go BFF",
     f"- **Module Code Owner Agents Verified**: {len(seen_owners)} (`agents/owners/*` + `.github/CODEOWNERS`)",
+    f"- **Mandatory Grounding & CodeGraph Gate**: {len(GROUNDING_REQUIRED_FILES) - len(missing_grounding_files)}/{len(GROUNDING_REQUIRED_FILES)} files present, CodeGraph {codegraph_status}",
     f"- **Hard Violations**: {len(violations)}",
     f"- **SOLID/KISS Advisories**: {len(warnings)}",
     "",
@@ -522,7 +588,7 @@ if warnings:
 
 if not violations:
     report_lines.append("### Verdict")
-    report_lines.append("✅ **PASSED** — Dependency Rule, BOM/Catalog/ABI parity, 1:1 KMP/Go wire parity, and Code Owner coverage all succeeded.")
+    report_lines.append("✅ **PASSED** — Dependency Rule, BOM/Catalog/ABI parity, 1:1 KMP/Go wire parity, Code Owner coverage, and Grounding/CodeGraph freshness all succeeded.")
 
 report_md = "\n".join(report_lines) + "\n"
 if report_out:

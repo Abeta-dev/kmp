@@ -33,11 +33,14 @@ import dev.abeta.kmp.core.platform.UnavailableLocationPort
 import dev.abeta.kmp.core.platform.UnavailablePushNotificationPort
 import dev.abeta.kmp.core.platform.UnavailableSpeechToTextPort
 import dev.abeta.kmp.core.platform.UnsupportedPermissionPort
+import dev.abeta.kmp.core.platform.createPlatformAudioCapturePort
 import dev.abeta.kmp.core.platform.createPlatformClipboardPort
 import dev.abeta.kmp.core.platform.createPlatformConnectivityMonitor
 import dev.abeta.kmp.core.platform.createPlatformDesktopSystemPort
 import dev.abeta.kmp.core.platform.createPlatformExternalLauncher
+import dev.abeta.kmp.core.platform.createPlatformFilePickerPort
 import dev.abeta.kmp.core.platform.createPlatformHapticEngine
+import dev.abeta.kmp.core.platform.createPlatformLocationPort
 import dev.abeta.kmp.core.platform.createPlatformSharePort
 import dev.abeta.kmp.core.platform.currentPlatformCapabilities
 import dev.abeta.kmp.core.security.BiometricAuthenticator
@@ -78,10 +81,10 @@ data class PlatformBridgeBundle(
         fun createPlatformDefault(
             secureServiceName: String = "dev.abeta.kmp.secure",
             permissionPort: PermissionPort = UnsupportedPermissionPort,
-            locationPort: LocationPort = UnavailableLocationPort,
-            filePickerPort: FilePickerPort = UnavailableFilePickerPort,
+            locationPort: LocationPort = createPlatformLocationPort(),
+            filePickerPort: FilePickerPort = createPlatformFilePickerPort(),
             pushNotificationPort: PushNotificationPort = UnavailablePushNotificationPort,
-            audioCapturePort: AudioCapturePort = UnavailableAudioCapturePort,
+            audioCapturePort: AudioCapturePort = createPlatformAudioCapturePort(),
             speechToTextPort: SpeechToTextPort = UnavailableSpeechToTextPort,
             desktopSystemPort: DesktopSystemPort = createPlatformDesktopSystemPort(),
         ): PlatformBridgeBundle =

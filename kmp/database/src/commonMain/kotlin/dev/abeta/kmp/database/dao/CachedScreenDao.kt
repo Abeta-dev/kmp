@@ -1,8 +1,9 @@
 package dev.abeta.kmp.database.dao
 
 import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
-import androidx.room3.Upsert
 import dev.abeta.kmp.database.entities.CachedScreenEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CachedScreenDao {
     /** Inserts or replaces a [CachedScreenEntity] by primary key (`screenId`). */
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: CachedScreenEntity)
 
     /** Returns the cached screen row for [screenId], or `null` if not stored. */

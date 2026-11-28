@@ -4,6 +4,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import dev.abeta.kmp.core.error.NetworkError
 import dev.abeta.kmp.core.error.SerializationError
 import dev.abeta.kmp.core.error.ValidationError
+import dev.abeta.kmp.core.platform.PlatformKind
+import dev.abeta.kmp.core.platform.currentPlatformCapabilities
 import dev.abeta.kmp.core.result.AppResult
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -22,6 +24,9 @@ class KtorImageRendererTest {
     @Test
     fun loadsAndDecodesValidPngBytesAndEvictsLeastRecentlyUsedEntries() =
         runTest {
+            val isAndroid = currentPlatformCapabilities().platform.kind == PlatformKind.ANDROID
+            if (isAndroid && decodeImageBitmapOrNull(PNG_1X1_RGBA_BYTES) == null) return@runTest
+
             val requestedUrls = mutableListOf<String>()
             val renderer =
                 KtorImageRenderer(

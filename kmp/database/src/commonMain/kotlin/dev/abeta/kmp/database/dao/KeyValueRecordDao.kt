@@ -1,8 +1,9 @@
 package dev.abeta.kmp.database.dao
 
 import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
-import androidx.room3.Upsert
 import dev.abeta.kmp.database.entities.KeyValueRecordEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface KeyValueRecordDao {
     /** Inserts or replaces a [KeyValueRecordEntity] scoped by `(namespace, recordKey)`. */
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(record: KeyValueRecordEntity)
 
     /** Returns the full record for [namespace] and [key], or `null` if absent. */

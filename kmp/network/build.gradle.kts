@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.mavenPublish)
 }
@@ -13,6 +14,13 @@ version = internal.versions.network.get()
 kotlin {
     applyDefaultHierarchyTemplate()
     jvmToolchain(21)
+
+    android {
+        namespace = "dev.abeta.kmp.network"
+        compileSdk = 37
+        minSdk = 24
+        withHostTestBuilder {}
+    }
 
     jvm()
     iosArm64()
@@ -48,6 +56,11 @@ kotlin {
             implementation(project.dependencies.platform(libs.ktor.bom))
             implementation(libs.bundles.ktor.common)
             implementation(libs.ktor.client.auth)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.brotli.dec)
         }
 
         jvmMain.dependencies {

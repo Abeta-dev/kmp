@@ -31,6 +31,7 @@ import dev.abeta.kmp.core.platform.FakeAudioCapturePort
 import dev.abeta.kmp.core.platform.FakeSpeechToTextPort
 import dev.abeta.kmp.core.platform.RecordingDesktopSystemPort
 import dev.abeta.kmp.core.platform.UnavailableAudioCapturePort
+import dev.abeta.kmp.core.platform.UnavailableFilePickerPort
 import dev.abeta.kmp.core.platform.UnavailableSpeechToTextPort
 import dev.abeta.kmp.layout.engine.LayoutUiState
 import dev.abeta.kmp.layout.platform.PlatformBridgeBundle
@@ -45,6 +46,7 @@ import kotlinx.serialization.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -269,7 +271,8 @@ class SpatialAndCustomSlotComposeTest {
         assertTrue(testBridges.desktopSystemPort.isSupported)
 
         val platformBridges = PlatformBridgeBundle.createPlatformDefault()
-        assertEquals(UnavailableAudioCapturePort, platformBridges.audioCapturePort)
+        assertNotEquals(UnavailableAudioCapturePort, platformBridges.audioCapturePort)
+        assertNotEquals(UnavailableFilePickerPort, platformBridges.filePickerPort)
         assertEquals(UnavailableSpeechToTextPort, platformBridges.speechToTextPort)
         assertNotNull(platformBridges.desktopSystemPort)
     }

@@ -25,6 +25,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.abeta.kmp.atoms.atoms.LocalImageRenderer
 import dev.abeta.kmp.atoms.atoms.UiImageRenderer
+import dev.abeta.kmp.core.platform.AbetaAndroidContext
 import dev.abeta.kmp.layout.di.createSduiKoinModule
 import dev.abeta.kmp.layout.engine.LayoutController
 import dev.abeta.kmp.layout.engine.LayoutUiState
@@ -51,6 +52,10 @@ import org.koin.dsl.koinApplication
  * & dark theme + reduced-motion accessibility preferences, deep links, runtime permissions,
  * and [AndroidPlatformBridgeFactory] into [DesignTheme] + [SduiScreen].
  *
+ * All 11 Abeta KMP Kit libraries now ship native `-android` `.aar` artifacts via
+ * `io.github.abeta-dev:bom:0.8.0`. Calls [AbetaAndroidContext.initialize] in [onCreate] so
+ * Android-native KMP platform defaults are ready before rendering or accessing storage.
+ *
  * Copy into an Android Gradle application module targeting `compileSdk >= 35`.
  */
 class AbetaAndroidHostActivity : FragmentActivity() {
@@ -75,6 +80,7 @@ class AbetaAndroidHostActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        AbetaAndroidContext.initialize(applicationContext)
         onBackPressedDispatcher.addCallback(this, predictiveBackCallback)
 
         val bffBaseUrl =

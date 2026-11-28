@@ -4,6 +4,23 @@
 
 ---
 
+## Mandatory Grounding Before Generation (6-Step Order)
+
+Every IDE rule file (`AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, `.cursor/rules/00-monorepo-core.mdc`, `.github/copilot-instructions.md`, `.junie/guidelines.md`, `.agent/rules/abeta-kmp-rules.md`) enforces the exact same 6-step grounding workflow before code generation:
+
+```text
+AGENTS.md → Architecture Docs (docs/architecture.md) → Flow Docs (docs/flows/*.md) → Pattern Docs (docs/patterns/*.md) → CodeGraph Symbols (docs/codegraph/INDEX.md & symbols.json / ./scripts/generate_codegraph.py --query <symbol>) → Source Reads Only for Verification
+```
+
+1. **Contract & Invariants**: [AGENTS.md](../AGENTS.md)
+2. **Architecture & Boundaries**: [docs/architecture.md](architecture.md)
+3. **End-to-End Runtime Flows**: [docs/flows/README.md](flows/README.md) (`screen-load-cache-and-manifest-flow.md`, `action-dispatch-and-offline-sync-flow.md`, `sse-streaming-and-delta-patch-flow.md`, `wearable-and-apple-host-flow.md`)
+4. **Canonical Implementation Patterns**: [docs/patterns/README.md](patterns/README.md) (`sdui-atom-and-snippet-pattern.md`, `ocp-action-and-bridge-pattern.md`, `go-bff-cache-and-server-pattern.md`, `kmp-multiplatform-hmpp-and-abi-pattern.md`)
+5. **CodeGraph Deterministic Symbol Index**: [docs/codegraph/INDEX.md](codegraph/INDEX.md) & [docs/codegraph/README.md](codegraph/README.md) — resolve any Kotlin, Go, or Swift symbol in milliseconds via `./scripts/generate_codegraph.py --query <symbol>` (CI-checked with `./scripts/generate_codegraph.py --check`)
+6. **Targeted Source Reads**: Inspect exact `file:line` slices only to verify implementation details before editing.
+
+---
+
 ## Supported IDEs, Agents & Model Families
 
 | Tool / IDE / Model | Native Discovery Path(s) | Capabilities Provided |
@@ -27,8 +44,8 @@
    - Default (`kmp/gradle.properties`): `abeta.kmpLocalBuild=true` substitutes `io.github.abeta-dev:*` with local `:module` projects for instant refactoring and navigation.
    - External BOM verification: run Gradle with `-Pabeta.kmpLocalBuild=false`.
 5. **Android & Wear OS App Integration**:
-   - The core KMP modules build cleanly without `ANDROID_HOME` installed.
-   - To integrate into an Android Phone/Tablet/Foldable or Wear OS app module (`compileSdk >= 35`), copy the drop-in host templates from [`kmp/platforms/android/`](../kmp/platforms/android/) (`AndroidPlatformBridgeFactory.kt`, `AbetaAndroidHostActivity.kt`, `AndroidDatabaseFactory.kt`) or [`kmp/platforms/wearos/`](../kmp/platforms/wearos/) (`WearCompanionHostActivity.kt`, `WearSduiRenderer.kt`) and align versions with `io.github.abeta-dev:bom:0.7.0`.
+   - All **11 publishable KMP modules** ship native `-android` `.aar` artifacts via `com.android.kotlin.multiplatform.library` `9.5.3` (`compileSdk = 37`, `minSdk = 24`, aligned by `io.github.abeta-dev:bom:0.8.0`). Ensure Android SDK 37 (`ANDROID_HOME`) is installed when building the KMP workspace locally.
+   - Call `AbetaAndroidContext.initialize(applicationContext)` once at startup so native `androidMain` actuals activate immediately; optional host templates live under [`kmp/platforms/android/`](../kmp/platforms/android/) (`AndroidPlatformBridgeFactory.kt`, `AbetaAndroidHostActivity.kt`, `AndroidDatabaseFactory.kt`) and [`kmp/platforms/wearos/`](../kmp/platforms/wearos/) (`WearCompanionHostActivity.kt`, `WearSduiRenderer.kt`).
 6. **Xcode / Apple Targets (macOS)**:
    - Assemble Apple frameworks sequentially to prevent Kotlin/Native LTO heap exhaustion:
      ```bash
@@ -43,7 +60,7 @@
 | Skill | Purpose |
 | :--- | :--- |
 | [abeta-kmp-kit](../skills/abeta-kmp-kit/SKILL.md) | Monorepo umbrella router across all 11 publishable KMP modules & Go BFF |
-| [abeta-kmp-usage](../skills/abeta-kmp-usage/SKILL.md) | Consuming via `io.github.abeta-dev:bom:0.7.0` + catalog, wiring Koin/`SduiHostedRoot`, OCP extensions |
+| [abeta-kmp-usage](../skills/abeta-kmp-usage/SKILL.md) | Consuming via `io.github.abeta-dev:bom:0.8.0` + catalog (incl. native `*-android` `.aar`), wiring Koin/`SduiHostedRoot`, OCP extensions |
 | [abeta-kmp-demo](../skills/abeta-kmp-demo/SKILL.md) | Complete 7-in-1 Super-App Showcase & 20-story End-to-End Storybook reference guide (`sample-app`, `storybook`, `bff`) |
 | [abeta-kmp-platforms](../skills/abeta-kmp-platforms/SKILL.md) | Android, Wear OS, iOS/iPadOS, watchOS (`apple64Main`/`watchosArm64Main`), macOS, Desktop & WasmJS |
 | [abeta-kmp-atomic](../skills/abeta-kmp-atomic/SKILL.md) | Design tokens, 29 wire atoms, 23 snippets (incl. `composed_block` w/ 36 `ComposedNodeKind`s, `custom_slot`, `graph_canvas`), 31 stateless Compose atoms & `/impeccable` craft |

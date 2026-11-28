@@ -5,12 +5,26 @@
 
 ---
 
+## 0. Mandatory Grounding Before Generation (6-Step Order)
+
+Before proposing designs or editing code, follow this fixed analysis order:
+
+```text
+AGENTS.md → Architecture Docs (docs/architecture.md) → Flow Docs (docs/flows/*.md) → Pattern Docs (docs/patterns/*.md) → CodeGraph Symbols (docs/codegraph/INDEX.md & symbols.json / ./scripts/generate_codegraph.py --query <symbol>) → Source Reads Only for Verification
+```
+
+- **Flow Docs (`docs/flows/README.md`)**: `screen-load-cache-and-manifest-flow.md`, `action-dispatch-and-offline-sync-flow.md`, `sse-streaming-and-delta-patch-flow.md`, `wearable-and-apple-host-flow.md`.
+- **Pattern Docs (`docs/patterns/README.md`)**: `sdui-atom-and-snippet-pattern.md`, `ocp-action-and-bridge-pattern.md`, `go-bff-cache-and-server-pattern.md`, `kmp-multiplatform-hmpp-and-abi-pattern.md`.
+- **CodeGraph (`docs/codegraph/INDEX.md`, `docs/codegraph/symbols.json`)**: Query Kotlin/Go/Swift public symbols via `./scripts/generate_codegraph.py --query <symbol>` and verify CI freshness via `./scripts/generate_codegraph.py --check`.
+
+---
+
 ## 1. 3-Repo Abeta SDUI Platform Architecture
 
 The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source repositories sharing one canonical `v1` JSON wire protocol:
 
 1. **`Abeta-dev/kmp` (this repository — Client Kit & Canonical `v1` Wire Contracts)**:
-   - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** + `bom` + `dependencies` = **13 Maven Central artifacts** at **`v0.7.0`**).
+   - 4-layer **Kotlin Multiplatform + Compose Multiplatform** SDUI, Wearable & Room 3 Database Kit (`kmp/`, **11 publishable library modules** with native Android `.aar` targets via AGP `9.5.3` + `bom` + `dependencies` = **13 Maven Central artifacts** at **`v0.8.0`**).
    - Reference **Go 1.26.0** SDUI BFF & **8 exportable Go packages** (`bff/`, published as `github.com/abeta-dev/kmp/bff@v0.9.0` via `pkg/sdui/{actions,analytics,atoms,cache,molecules,server,snippets,theming}`).
    - Runnable **7-in-1 Super-App Showcase Launcher** (`kmp/sample-app`) and **20-story End-to-End Interactive Storybook** (`kmp/storybook`, featuring all **31** stateless UI atoms across 8 dedicated UI Atom stories, **All 23 Snippets**, Voice & Desktop OS Bridges, and all 7 Super-App verticals — Fresh, Bites, Pulse, Mart, Spark, Trade, Pay + Watch — playable live in WasmJS browser with multi-step workflows).
 2. **`Abeta-dev/layout-engine`** (`https://raw.githubusercontent.com/Abeta-dev/layout-engine/main/llms.txt`):
@@ -19,7 +33,7 @@ The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source r
    - Multi-tenant production Go SDUI BFF importing `github.com/abeta-dev/kmp/bff@v0.9.0` to serve live vertical screens and interactive mutations for all 7 Super-App verticals (`abeta-fresh`, `abeta-bites`, `abeta-pulse`, `abeta-mart`, `abeta-spark`, `abeta-trade`, `abeta-pay`).
 
 ### Core Toolchain Versions (`kmp/dependencyManagement/gradle/libs.versions.toml` & `bff/go.mod`)
-- **Kotlin**: `2.4.21` | **Compose Multiplatform**: `1.12.2` (Material 3 `1.12.0-alpha03`) | **Gradle**: `9.7.0` (JDK 21)
+- **Kotlin**: `2.4.21` | **Compose Multiplatform**: `1.12.2` (Material 3 `1.12.0-alpha03`) | **AGP (`com.android.kotlin.multiplatform.library`)**: `9.5.3` (`compileSdk = 37`, `minSdk = 24`) | **Gradle**: `9.7.0` (JDK 21)
 - **KotlinX**: Coroutines `1.11.0`, Serialization `1.13.0`, DateTime `0.8.0`, Immutable Collections `0.5.2`
 - **Networking / DI / Settings**: Ktor `3.6.1`, `org.brotli:dec:0.1.2`, Koin `4.2.2`, Kermit `2.2.0`, `multiplatform-settings:1.3.0`
 - **Local Database**: AndroidX Room 3 `3.0.3`, SQLite Bundled `2.7.1`, SQLite Web `2.7.1`, KSP `2.3.14`
@@ -33,40 +47,41 @@ The Abeta Server-Driven UI (SDUI) Platform spans three coordinated open-source r
 Dependencies strictly point **inward** (`Layer 3 -> Layer 2 -> Layer 1 -> Layer 0`; Go `internal/handler -> internal/usecase -> internal/domain <- internal/infra`). Enforced deterministically in CI by `scripts/check_architecture_and_owners.sh` and `bff/internal/domain/arch_test.go`.
 
 ### Supported Multiplatform Targets
-- **8-Target Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `database`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`):
-  `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`.
-- **5-Target Compose UI Publishable Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`) + **`storybook`**:
-  `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
+- **9-Target Headless / Contract Publishable Modules** (`core`, `state`, `analytics`, `database`, `sdui-contracts`, `action-engine`, `network`, `watch-companion`):
+  native **`android` `.aar`** (`compileSdk = 37`, `minSdk = 24`), `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, `wasmJs`.
+- **6-Target Compose UI Publishable Modules** (`design-tokens`, `ui-atoms`, `sdui-layout`):
+  native **`android` `.aar`** (`compileSdk = 37`, `minSdk = 24`), `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
+- **`storybook`**: `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `wasmJs`.
 - **`sample-app`**: JVM Desktop & `--headless` CLI.
-- **Drop-In Reference Native Host Glue (`kmp/platforms/`)**:
-  - Published Maven Central artifacts target `jvm`, `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `watchosArm64`, `watchosSimulatorArm64`, `watchosDeviceArm64`, and `wasmJs` (with guarded JVM AWT/file fallbacks).
-  - `android/{AndroidPlatformBridgeFactory,AbetaAndroidHostActivity,AndroidDatabaseFactory}.kt` (Android `ComponentActivity`/`FragmentActivity` + Room 3 `BundledSQLiteDriver` + `MIGRATION_1_2`, requires consumer Android app with `ANDROID_HOME`).
+- **Native Android `.aar` Artifacts & Reference Host Glue (`kmp/platforms/`)**:
+  - Published Maven Central artifacts (`io.github.abeta-dev:*:0.8.0`) ship native `io.github.abeta-dev:<module>-android:0.8.0` `.aar` binaries alongside `jvm`, `ios*`, `macosArm64`, `watchos*`, and `wasmJs`. Android/Wear OS apps call `AbetaAndroidContext.initialize(applicationContext)` once at startup so native `androidMain` actuals activate immediately.
+  - `android/{AndroidPlatformBridgeFactory,AbetaAndroidHostActivity,AndroidDatabaseFactory}.kt` (Android `ComponentActivity`/`FragmentActivity` host templates + Room 3 helpers).
   - `wearos/{WearCompanionHostActivity,WearSduiRenderer}.kt` (Wear OS Compose Material & Glance/Tile renderer wiring `:watch-companion` with Android-native bridges).
-  - `apple/AbetaAppleHosts.swift` & `apple/Sources/{AbetaSduiSwiftUI,AbetaWatchSwiftUI}/` (4-product SwiftPM `Abeta-dev/kmp-spm` `0.7.0`: `AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI`, plus macOS Cocoa `launchMacOsSduiWindow`).
+  - `apple/AbetaAppleHosts.swift` & `apple/Sources/{AbetaSduiSwiftUI,AbetaWatchSwiftUI}/` (4-product SwiftPM `Abeta-dev/kmp-spm` `0.8.0`: `AbetaSduiKit`, `AbetaWatchKit`, `AbetaSduiSwiftUI`, `AbetaWatchSwiftUI`, plus macOS Cocoa `launchMacOsSduiWindow`).
   - `web/README.md` (COOP/COEP headers for Room 3 `wasmJs` OPFS Web Worker SQLite persistence).
 
 ### All 11 Publishable KMP Modules + BOM + Catalog (`io.github.abeta-dev`; Kotlin package `dev.abeta.kmp.*`)
 
-| Layer | Module | Coordinate (`0.7.0`) | Allowed Internal Deps | Key Responsibilities |
+| Layer | Module | Coordinate (`0.8.0`) | Allowed Internal Deps | Key Responsibilities |
 | :--- | :--- | :--- | :--- | :--- |
 | **Catalog** | `dependencyManagement` | `io.github.abeta-dev:dependencies` | *(catalog)* | External (`libs.versions.toml`) & internal (`internal.versions.toml`) Gradle Version Catalogs |
-| **BOM** | `kmp-bom` | `io.github.abeta-dev:bom` | *(platform)* | Java Platform BOM aligning all 11 publishable `io.github.abeta-dev:*` modules + `dependencies` (13 Maven Central artifacts total) |
-| **Layer 0** | `core` | `io.github.abeta-dev:core` | None | `AppResult`, `AppError` (`ErrorCategory`, `isRetryable`), `DispatcherProvider`, `Clock`, `AppLogger`/`RedactingAppLogger`, `KeyValueStore`/`ObservableKeyValueStore`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`, `BackoffPolicy`, `FieldValidators`, `PlatformInfo`/`PlatformCapabilities`, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort`, `FilePickerPort`, `PushNotificationPort`, `AudioCapturePort`, `SpeechToTextPort`, `DesktopSystemPort`, `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore` (Apple Keychain `SecItem*` w/ `NSLock`, JVM `0600`/`0700` file-backed AES-256-GCM, WasmJS `sessionStorage`), `BiometricAuthenticator` (`LAContext`) |
-| **Layer 0** | `state` | `io.github.abeta-dev:state` | `:core` | Thread-safe `SessionStore`/`PersistentSessionStore`/`SessionLifecycleManager`, `DataStoreKeyValueStore` (`androidx.datastore:datastore-preferences-core:1.3.0`), `createDiskKeyValueStore`, schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, `OfflineMutationQueue` |
+| **BOM** | `kmp-bom` | `io.github.abeta-dev:bom` | *(platform)* | Java Platform BOM aligning all 11 publishable `io.github.abeta-dev:*` modules (incl. native `-android` `.aar` targets) + `dependencies` (13 Maven Central artifacts total) |
+| **Layer 0** | `core` | `io.github.abeta-dev:core` | None | `AppResult`, `AppError`, `DispatcherProvider`, `Clock`, `AppLogger`/`RedactingAppLogger`, `KeyValueStore`/`ObservableKeyValueStore`, `SingleFlight`, `Debouncer`, `ClickBackpressureGuard`, `BackoffPolicy`, `FieldValidators`, `AbetaAndroidContext`, `PlatformInfo`/`PlatformCapabilities`, native `androidMain` actuals, `HapticEngine`, `ClipboardPort`, `ExternalLauncherPort`, `SharePort`, `ConnectivityMonitor`, `PermissionPort`, `LocationPort` (`wasmJs` `navigator.geolocation`), `FilePickerPort` (`jvm` AWT `FileDialog`, `macos` AppKit `NSOpenPanel`, `wasmJs` `<input type="file">`), `PushNotificationPort`, `AudioCapturePort` (`jvm` 16 kHz PCM w/ live RMS), `SpeechToTextPort`, `DesktopSystemPort` (native `macosMain` AppKit & `jvm`), `LocaleFormatter`, `DeepLinkParser`, `SecureKeyValueStore` (`AndroidKeyStore`, `AppleKeychain` w/ `NSLock`, JVM `0600`/`0700` file AES-256-GCM, WasmJS `sessionStorage`), `BiometricAuthenticator` (`LAContext`) |
+| **Layer 0** | `state` | `io.github.abeta-dev:state` | `:core` | Thread-safe `SessionStore`/`PersistentSessionStore`/`SessionLifecycleManager`, `DataStoreKeyValueStore` (`androidx.datastore:datastore-preferences-core:1.3.0`), `createDiskKeyValueStore`, native `androidMain` `SharedPreferences`/DataStore/file actuals, schema-versioned `PreferenceStore`, `createSecurePersistentKeyValueStore(namespace)`, `FeatureFlagProvider`, `OfflineMutationQueue` |
 | **Layer 0** | `analytics` | `io.github.abeta-dev:analytics` | `:core` | `AnalyticsEvent`, `AnalyticsTracker`, `Composite`, `Logger`, `Recording`, `Sanitizing`, `Deduplicating`, `Enriching`, and `Buffered` trackers |
-| **Layer 0** | `database` | `io.github.abeta-dev:database` | `:core` | **Room 3 (`3.0.3`, schema v2 w/ `MIGRATION_1_2`)** KMP SQLite DB (`AbetaDatabase` with `@ConstructedBy(AbetaDatabaseConstructor::class)`, `AbetaLocalDatabase`): tables `cached_screens` (PK `screenId`, `payloadJson`, `etag`, `pageVersion`, `appVersion`, TTL), `offline_mutations` (PK `id`, FIFO retry queue), `key_value_records` (PK `namespace`+`recordKey`, TTL). Uses `sqlite-bundled:2.7.1` on JVM/Android/Apple and `sqlite-web:2.7.1` OPFS Web Worker on `wasmJs`; KSP `2.3.14` schema exports `1.json` & `2.json` under `kmp/database/schemas/` |
+| **Layer 0** | `database` | `io.github.abeta-dev:database` | `:core` | **Room 3 (`3.0.3`, schema v2 w/ `MIGRATION_1_2`)** KMP SQLite DB (`AbetaDatabase` with `@ConstructedBy(AbetaDatabaseConstructor::class)`, `AbetaLocalDatabase`, `DatabaseKeyValueStore` opt-in `ObservableKeyValueStore` adapter for `CachedScreenRepository`, `OfflineMutationQueue`, & `PersistentSessionStore`, native `androidMain` builder via `AbetaAndroidContext`): tables `cached_screens` (PK `screenId`, `payloadJson`, `etag`, `pageVersion`, `appVersion`, TTL), `offline_mutations` (PK `id`, FIFO retry queue), `key_value_records` (PK `namespace`+`recordKey`, TTL). Uses `sqlite-bundled:2.7.1` on Android/JVM/Apple and `sqlite-web:2.7.1` OPFS Web Worker on `wasmJs`; KSP `2.3.14` (`kspAndroid` + 8 targets) schema exports `1.json` & `2.json` under `kmp/database/schemas/` |
 | **Layer 1** | `design-tokens` | `io.github.abeta-dev:design-tokens` | None | `ColorTokens`, `DesignPalette`, `SpacingTokens`, `CornerRadiusTokens`, `StrokeWidthTokens`, `TypographyTokens` (17 type roles), `ElevationTokens`, `MotionTokens`, `OpacityTokens`, `SizingTokens`, `ThemePreset` (`INDIGO`, `EMERALD`, `AMBER`), `ColorAccessibility`, `DesignTheme`, `ThemeTokens`, and `ResponsiveTokens.kt` (`WindowWidthClass`, `WindowHeightClass`, `DeviceFormFactor`, `AdaptiveLayoutMetrics`, `ThemeTokens.adaptiveMetrics`) |
 | **Layer 1** | `sdui-contracts` | `io.github.abeta-dev:sdui-contracts` | None | Pure `@Serializable` `v1` wire DTOs (`SduiJson` with `ignoreUnknownKeys = true`): `PageResponse` (`page_version`, `app_version`, `etag`, `stream_spec`), `ScreenManifestResponse` (`sdui_schema_version`), `SnippetEnvelope` (`sticky`, `motion`), **29 Wire Atoms** (incl. `MediaPagerAtom`, `CountdownAtom` w/ `expires_at_epoch_ms`, & 12 `ExtendedAtoms.kt` primitives), **23 `SnippetTypes`** (incl. `nudge_bar`, `marquee_strip`, `order_tracker`, **`composed_block`** Atomic Snippet Molding Engine with **36 `ComposedNodeKind`s**, `custom_slot`, and `graph_canvas`), **6 `SnippetDeltaOp`s**, `MotionSpec` (7 Ambient `MotionLoopEffect`s), `FloatingCartSpec` (free-delivery threshold nudge fields), `AdaptiveContracts`, `ActionRef`, `ValidationRuleContract`, `TrackingContract`. Zero Compose or Ktor imports |
 | **Layer 1** | `ui-atoms` | `io.github.abeta-dev:ui-atoms` | `:design-tokens`, `:sdui-contracts` | **31 stateless Compose atoms** (incl. `UiStepper`, `UiCountdown`, `UiRollingCounter`, `UiMediaPager`, plus 12 extended atoms `UiRadioGroup`, `UiSelect`, `UiOtpInput`, `UiChip`, `UiSegmentedControl`, `UiRating`, `UiPrice`, `UiBadge`, `UiAlertBanner`, `UiStatTile`, `UiKeyValueRow`, real ISO/IEC 18004 `UiQrCode`) + `UiCelebrationOverlay`, `UiHapticFeedback`, `MotionModifier` + `MotionLoopModifiers` (`applyMotionSpec`, 7 Ambient `MotionLoopEffect`s, `Modifier.pressBounce`, `Modifier.shakeOnError` honoring `reducedMotion`), `LocalImageRenderer`, `TokenResolvers`. Emits `onAction: (ActionRef) -> Unit` only; NEVER imports `:core`, `:action-engine`, `:network`, or `:sdui-layout` |
 | **Layer 2** | `action-engine` | `io.github.abeta-dev:action-engine` | `:core`, `:sdui-contracts` | OCP action system: **18 `ActionTypes`**, `ActionPayloadDecoder`, `ActionDecoderRegistry`, `ActionHandler`, `ActionRegistry`, `DefaultActionDispatcher` (depth & dispatch-budget guarded), `ActionValidator`, `ApiCallExecutor`, `ActionOutcome` |
-| **Layer 2** | `network` | `io.github.abeta-dev:network` | `:core` | Ktor `3.6.1` `HttpTransport`/`KtorHttpTransport`/`HttpClientFactory`: HTTP/2 ALPN, Brotli (`br`), conditional `If-None-Match`/`304`, `SseTransport`/`KtorSseTransport` (`Last-Event-ID` reconnect), `CsrfTokenProvider` + single `403` retry, `NetworkConfig.appVersion` (`X-Client-App-Version`), bearer refresh (`AuthTokenProvider`), validated `sha256/` SPKI/cert pinning (`CertificatePinMatcher` for JVM/OkHttp `CertificatePinner` and Apple Darwin `NSURLSession` across iOS/macOS/watchOS) |
-| **Layer 3** | `sdui-layout` | `io.github.abeta-dev:sdui-layout` | Layers 0–2 | `LayoutController` (`observeConnectivity`, `handleDeepLink`, `isOffline`, `applyDeltaPatch`/`observeStream`, `loadMore`, `errorShakeSequence`, `dismissFeedback`), `SduiLayoutViewModel` + `SavedState`, `PlatformBridgeBundle`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers`, **23 snippet renderers** (`BuiltInSnippetModule`, incl. `NudgeBar`, `MarqueeStrip`, `OrderTracker`, **`ComposedBlock`** w/ **36 `ComposedNodeKind`s**, `CustomSlot` + `CustomSlotRegistry`, and `GraphCanvas`), `FloatingCartDockHost` (free-delivery threshold nudge) + `PageCartCalculator`, rich SDUI `ModalBottomSheet`/`AlertDialog`, `PullToRefreshBox`, `CachedScreenRepository` (`VERSION_GATED`, `304`, `/manifest`), `RemoteBffAnalyticsTracker`, `OfflineActionCoordinator`, `KtorImageRenderer`, `createSduiKoinModule`, `SduiHostedRoot`, iOS `createSduiViewController` (`AbetaSduiKit.xcframework`), macOS `launchMacOsSduiWindow` |
-| **Layer 3** | `watch-companion` | `io.github.abeta-dev:watch-companion` | `:core`, `:state`, `:analytics`, `:database`, `:sdui-contracts`, `:action-engine`, `:network` | Headless wearable orchestrator (zero Compose UI imports): `WatchGlanceModels`, `WatchScreenMapper`, `RemoteWatchPageSource` (ETag/304 & offline cache), `WatchRemoteApiCallExecutor`, `WatchCompanionController`, `createWatchCompanionModule`, `createAppleWatchCompanionHost`, `AbetaWatchKit.xcframework` |
+| **Layer 2** | `network` | `io.github.abeta-dev:network` | `:core` | Ktor `3.6.1` `HttpTransport`/`KtorHttpTransport`/`HttpClientFactory`: HTTP/2 ALPN, Brotli (`br`), conditional `If-None-Match`/`304`, `SseTransport`/`KtorSseTransport` (`Last-Event-ID` reconnect), `CsrfTokenProvider` + single `403` retry, `NetworkConfig.appVersion` (`X-Client-App-Version`), bearer refresh (`AuthTokenProvider`), validated `sha256/` SPKI/cert pinning (`CertificatePinMatcher` for Android/JVM OkHttp `CertificatePinner` and Apple Darwin `NSURLSession` across iOS/macOS/watchOS) |
+| **Layer 3** | `sdui-layout` | `io.github.abeta-dev:sdui-layout` | Layers 0–2 (Room-free by default; opt-in `:database` via `DatabaseKeyValueStore`) | `LayoutController` (`observeConnectivity`, `handleDeepLink`, `isOffline`, `applyDeltaPatch`/`observeStream`, `loadMore`, `errorShakeSequence`, `dismissFeedback`), `SduiLayoutViewModel` + `SavedState`, `PlatformBridgeBundle.createPlatformDefault()`, `PlatformBridgeOutcomeExecutor`, `AdaptiveScreenContainers`, **23 snippet renderers** (`BuiltInSnippetModule`, incl. `NudgeBar`, `MarqueeStrip`, `OrderTracker`, **`ComposedBlock`** w/ **36 `ComposedNodeKind`s**, `CustomSlot` + `CustomSlotRegistry`, and `GraphCanvas`), `FloatingCartDockHost` (free-delivery threshold nudge) + `PageCartCalculator`, rich SDUI `ModalBottomSheet`/`AlertDialog`, `PullToRefreshBox`, `CachedScreenRepository` (`VERSION_GATED`, `304`, `/manifest`), `RemoteBffAnalyticsTracker`, `OfflineActionCoordinator`, `KtorImageRenderer` (w/ native Android `BitmapFactory`), `createSduiKoinModule`, `SduiHostedRoot`, iOS `createSduiViewController` (`AbetaSduiKit.xcframework`), macOS `launchMacOsSduiWindow` |
+| **Layer 3** | `watch-companion` | `io.github.abeta-dev:watch-companion` | `:core`, `:state`, `:analytics`, `:sdui-contracts`, `:action-engine`, `:network` (opt-in `:database`) | Headless wearable orchestrator (zero Compose UI imports): `WatchGlanceModels`, `WatchScreenMapper`, `RemoteWatchPageSource` (ETag/304 & offline cache), `WatchRemoteApiCallExecutor`, `WatchCompanionController`, `createWatchCompanionModule`, `createAppleWatchCompanionHost`, `AbetaWatchKit.xcframework`, native Android/Wear OS `.aar` |
 
 **Key Architectural Invariants**:
 - **Atomic / Action Decoupling**: `ui-atoms` only accepts wire contracts and invokes `onAction: (ActionRef) -> Unit`; zero monolithic `when (actionType)` in UI or core.
 - **Apple HMPP Split**: C/ObjC code using bit-width-varying types (`NSInteger`/`CFIndex`) lives in `apple64Main` + `watchosArm64Main` so HMPP metadata and Dokka compile cleanly.
-- **ABI Stability**: Every publishable library maintains a Binary Compatibility Validator descriptor at `kmp/<module>/api/<module>.api` (verified via `./gradlew apiCheck`, updated via `./gradlew apiDump`).
+- **ABI Stability**: Every publishable library maintains a Binary Compatibility Validator descriptor under `kmp/<module>/api/jvm/<module>.api` (verified via `./gradlew apiCheck`, updated via `./gradlew apiDump`).
 - **No Hardcoded Versions**: External versions live only in `libs.versions.toml`; internal coordinates in `internal.versions.toml`.
 
 ---
@@ -274,7 +289,7 @@ Companion utilities in `ui-atoms`: `UiCelebrationOverlay`, `UiHapticFeedback` (`
 
 ## 4. Installation & Consumption Snippets (Zero Credentials Required)
 
-### Gradle KMP — Maven Central (Stable, verified `io.github.abeta-dev` namespace; Kotlin package `dev.abeta.kmp.*`)
+### Gradle KMP — Maven Central (Stable, verified `io.github.abeta-dev` namespace; Kotlin package `dev.abeta.kmp.*`; includes native `-android` `.aar` targets)
 ```kotlin
 // settings.gradle.kts
 dependencyResolutionManagement {
@@ -283,15 +298,15 @@ dependencyResolutionManagement {
         google()
     }
     versionCatalogs {
-        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.7.0") }
+        create("abetaKmp") { from("io.github.abeta-dev:dependencies:0.8.0") }
     }
 }
 
 // build.gradle.kts (commonMain)
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.8.0"))
     implementation("io.github.abeta-dev:core")
-    implementation("io.github.abeta-dev:database")        // Optional Room 3 KMP local SQLite DB
+    implementation("io.github.abeta-dev:database")        // Optional Room 3 KMP local SQLite DB + DatabaseKeyValueStore
     implementation("io.github.abeta-dev:design-tokens")
     implementation("io.github.abeta-dev:sdui-contracts")
     implementation("io.github.abeta-dev:ui-atoms")
@@ -308,7 +323,7 @@ repositories {
     maven("https://dl.cloudsmith.io/public/abeta-dev/kmp/maven/")
 }
 dependencies {
-    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.7.0-SNAPSHOT"))
+    implementation(project.dependencies.platform("io.github.abeta-dev:bom:0.8.0-SNAPSHOT"))
     implementation("io.github.abeta-dev:sdui-layout")
 }
 ```
@@ -318,7 +333,7 @@ Inside this monorepo, `abeta.kmpLocalBuild=true` substitutes `io.github.abeta-de
 ```swift
 // Package.swift — or Xcode -> File -> Add Package Dependencies...
 dependencies: [
-    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.7.0"),
+    .package(url: "https://github.com/Abeta-dev/kmp-spm", from: "0.8.0"),
 ]
 // 4 Products:
 // - iOS/iPadOS 15+: import AbetaSduiSwiftUI (SwiftUI wrapper) or import AbetaSduiKit (binary XCFramework)
@@ -379,9 +394,10 @@ Built-in screens in `bff/internal/infra/screen_repo.go` (**12 screens**): `home`
 ## 6. Verification & Developer Commands
 
 ```bash
-# 1. Brand/path hygiene & Uncle Bob Dependency Rule + BOM + ABI + Wire Parity + Code Owners
+# 1. Brand/path hygiene, Uncle Bob Dependency Rule + BOM + ABI + Wire Parity + Code Owners, & CodeGraph freshness
 ./scripts/check_brand_hygiene.sh
 ./scripts/check_architecture_and_owners.sh
+./scripts/generate_codegraph.py --check
 
 # 2. KMP format, Detekt, ABI apiCheck, compile & unit/golden/compose.uiTest suites (JDK 21)
 (cd kmp && ./gradlew check)

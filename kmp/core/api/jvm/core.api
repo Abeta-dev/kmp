@@ -510,6 +510,10 @@ public final class dev/abeta/kmp/core/platform/AudioCapturePort$DefaultImpls {
 	public static synthetic fun startCapture$default (Ldev/abeta/kmp/core/platform/AudioCapturePort;Ldev/abeta/kmp/core/platform/AudioCaptureConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class dev/abeta/kmp/core/platform/AudioCapturePort_jvmKt {
+	public static final fun createPlatformAudioCapturePort ()Ldev/abeta/kmp/core/platform/AudioCapturePort;
+}
+
 public final class dev/abeta/kmp/core/platform/AudioCaptureState : java/lang/Enum {
 	public static final field ERROR Ldev/abeta/kmp/core/platform/AudioCaptureState;
 	public static final field IDLE Ldev/abeta/kmp/core/platform/AudioCaptureState;
@@ -699,6 +703,11 @@ public abstract interface class dev/abeta/kmp/core/platform/FilePickerPort {
 
 public final class dev/abeta/kmp/core/platform/FilePickerPort$DefaultImpls {
 	public static synthetic fun pickFiles$default (Ldev/abeta/kmp/core/platform/FilePickerPort;Ldev/abeta/kmp/core/platform/FilePickerRequest;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/abeta/kmp/core/platform/FilePickerPort_jvmKt {
+	public static final fun createPlatformFilePickerPort ()Ldev/abeta/kmp/core/platform/FilePickerPort;
+	public static final fun createPlatformLocationPort ()Ldev/abeta/kmp/core/platform/LocationPort;
 }
 
 public final class dev/abeta/kmp/core/platform/FilePickerRequest {

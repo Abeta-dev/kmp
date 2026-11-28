@@ -1,6 +1,7 @@
 [versions]
 # Core Toolchain
 kotlin = "2.4.21"
+agp = "9.5.3"
 compose-multiplatform = "1.12.2"
 compose-material3 = "1.12.0-alpha03"
 
@@ -92,6 +93,7 @@ ktor-common = [
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

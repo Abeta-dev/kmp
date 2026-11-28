@@ -1,8 +1,9 @@
 package dev.abeta.kmp.database.dao
 
 import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
-import androidx.room3.Upsert
 import dev.abeta.kmp.database.entities.OfflineMutationEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface OfflineMutationDao {
     /** Inserts or updates a queued [OfflineMutationEntity]. */
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: OfflineMutationEntity)
 
     /** Returns all pending mutations in deterministic FIFO order (`createdAtEpochMillis`, `rowid`). */

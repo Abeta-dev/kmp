@@ -17,8 +17,13 @@ import dev.abeta.kmp.database.AbetaLocalDatabase
  * Drop-in Android and Wear OS factory creating a Room 3 [AbetaDatabase] backed by [BundledSQLiteDriver]
  * inside a host Android Gradle app (`compileSdk >= 35`).
  *
+ * Note: `io.github.abeta-dev:database` ships a native `-android` `.aar` artifact via
+ * `io.github.abeta-dev:bom:0.8.0` that works once `AbetaAndroidContext.initialize(context)` has
+ * been called, and includes the built-in `DatabaseKeyValueStore(db)` adapter from
+ * `io.github.abeta-dev:database` for persisting key-value state inside Room 3.
+ *
  * Copy into your Android / Wear OS host application module alongside:
- * - `implementation(platform("io.github.abeta-dev:bom:<version>"))`
+ * - `implementation(platform("io.github.abeta-dev:bom:0.8.0"))`
  * - `implementation("io.github.abeta-dev:database")`
  * - `implementation("androidx.sqlite:sqlite-bundled:2.7.1")`
  */
